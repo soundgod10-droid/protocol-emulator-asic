@@ -1,11 +1,36 @@
 /*
- * Copyright (c) 2024 Your Name
+ * Copyright (c) 2026 Steven Anthony
  * SPDX-License-Identifier: Apache-2.0
  */
 
 `default_nettype none
 
-module tt_um_example (
+// tt_um_soundgod10_droid_protocol_emulator: top level of the protocol
+// emulator chip. Milestone M1: UART transmitter.
+//
+// What it does:
+//   The chip sends UART frames (8 data bits, LSB first, 1 start bit,
+//   1 stop bit, no parity) on uo_out[4]. With a 50 MHz clock the bit rate
+//   is 115,207 bit/s. The host gives each byte on uio_in[7:0] and changes
+//   the level of ui_in[0]. The chip sets uo_out[5] to the level of ui_in[0]
+//   when it took the byte.
+//
+// Why it has this structure:
+//   Architecture D (A1_architecture.md section 4.4) changes the pins only
+//   through the timed I/O unit. M1 contains the first parts of that unit
+//   (block D2): the free-running cycle counter and one timed output
+//   channel. A TEMPORARY fixed sequencer does the work of a program thread
+//   until milestone M2 adds the threads. The host handshake on ui_in[0],
+//   uio_in and uo_out[5] is also TEMPORARY (M2: host SPI port, block D7).
+//
+// Pins in M1 (A1 section 2.2 gives uo_out[4] as the default UART TX pin):
+//   uo_out[4]  UART_TX  UART data out. High when idle and during reset.
+//   uo_out[5]  TX_ACK   TEMPORARY. Equal to ui_in[0] when the chip took the byte.
+//   ui_in[0]   TX_REQ   TEMPORARY. Change its level to send the byte on uio_in.
+//   uio_in     TX_DATA  TEMPORARY. Byte to send. All uio pins are inputs.
+//   All other outputs are 0.
+
+module tt_um_soundgod10_droid_protocol_emulator (
     input  wire [7:0] ui_in,    // Dedicated inputs
     output wire [7:0] uo_out,   // Dedicated outputs
     input  wire [7:0] uio_in,   // IOs: Input path
@@ -16,12 +41,102 @@ module tt_um_example (
     input  wire       rst_n     // reset_n - low to reset
 );
 
-  // All output pins must be assigned. If not used, assign to 0.
-  assign uo_out  = ui_in + uio_in;  // Example: ou_out is the sum of ui_in and uio_in
-  assign uio_out = 0;
-  assign uio_oe  = 0;
+  // Bit time in clock cycles (A1 section 3):
+  //   50,000,000 / 115,200 = 434.03 cycles. We use 434.
+  //   50,000,000 / 434 = 115,207.4 bit/s. Error: +0.0064 %.
+  //   Our part of the UART clock-error budget is +/-1 % (A1 section 3).
+  localparam [15:0] BIT_CYCLES = 16'd434;
 
-  // List all unused inputs to prevent warnings
-  wire _unused = &{ena, clk, rst_n, 1'b0};
+  // Minimum number of cycles from an event write to the event time.
+  // A1 section 4.4 sets 4 cycles for the threads; M1 uses the same value.
+  localparam [15:0] EVENT_LEAD = 16'd4;
+
+  // Reset: assert at once (the UART pin goes high also without a clock),
+  // release on a clock edge (all flip-flops leave reset in the same cycle).
+  wire rst_n_int;
+  pe_reset_sync u_reset_sync (
+      .clk      (clk),
+      .rst_n_in (rst_n),
+      .rst_n_out(rst_n_int)
+  );
+
+  // D2 cycle counter: the common time base of all pin events.
+  wire [31:0] cycle_count;
+  pe_cycle_counter #(
+      .WIDTH(32)
+  ) u_cycle_counter (
+      .clk  (clk),
+      .rst_n(rst_n_int),
+      .count(cycle_count)
+  );
+
+  // TX_REQ comes from the host without a relation to our clock.
+  // TX_DATA needs no synchronizer: the host keeps it stable while
+  // TX_REQ is not equal to TX_ACK, and the sequencer reads it only then,
+  // at least 2 cycles after TX_REQ changed.
+  wire tx_req;
+  pe_sync2 u_tx_req_sync (
+      .clk  (clk),
+      .rst_n(rst_n_int),
+      .d    (ui_in[0]),
+      .q    (tx_req)
+  );
+
+  // Event path from the sequencer to the timed output channel.
+  wire        ev_load;
+  wire [15:0] ev_time;
+  wire        ev_value;
+  wire        ev_ready;
+  wire        tx_ack;
+
+  // TEMPORARY: does the work of one M2 program thread (see the module).
+  pe_uart_tx_seq #(
+      .BIT_CYCLES(BIT_CYCLES),
+      .LEAD      (EVENT_LEAD)
+  ) u_uart_tx_seq (
+      .clk     (clk),
+      .rst_n   (rst_n_int),
+      .now     (cycle_count[15:0]),
+      .req     (tx_req),
+      .data    (uio_in),
+      .ack     (tx_ack),
+      .ev_load (ev_load),
+      .ev_time (ev_time),
+      .ev_value(ev_value),
+      .ev_ready(ev_ready)
+  );
+
+  // D2 timed output channel for the UART TX pin. Reset value 1 is the
+  // UART idle level. The pin is a flip-flop output, so it has no glitches.
+  wire tx_pin;
+  wire tx_oe;
+  pe_timed_out #(
+      .RESET_VALUE(1'b1),
+      .RESET_OE   (1'b1)
+  ) u_tx_channel (
+      .clk      (clk),
+      .rst_n    (rst_n_int),
+      .now      (cycle_count[15:0]),
+      .ev_load  (ev_load),
+      .ev_time  (ev_time),
+      .ev_value (ev_value),
+      .ev_oe    (1'b1),      // uo_out pins are always outputs
+      .ev_ready (ev_ready),
+      .pin_value(tx_pin),
+      .pin_oe   (tx_oe)
+  );
+
+  // All output pins must be assigned. If not used, assign to 0.
+  //   uo_out[7:6] = 0, [5] = TX_ACK, [4] = UART_TX, [3:0] = 0
+  assign uo_out  = {2'b00, tx_ack, tx_pin, 4'b0000};
+  assign uio_out = 8'h00;
+  assign uio_oe  = 8'h00;  // all uio pins are inputs (TX_DATA)
+
+  // Signals with no load in M1:
+  //   ena: always 1 (template).
+  //   ui_in[7:1]: host SPI and protocol inputs come in later milestones.
+  //   cycle_count[31:16]: M2 time capture will read them.
+  //   tx_oe: uo_out pins have no output enable; uio pins will use it.
+  wire _unused = &{ena, ui_in[7:1], cycle_count[31:16], tx_oe, 1'b0};
 
 endmodule

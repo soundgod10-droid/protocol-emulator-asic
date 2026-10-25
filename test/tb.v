@@ -23,8 +23,12 @@ module tb ();
   wire [7:0] uio_out;
   wire [7:0] uio_oe;
 
-  // Replace tt_um_example with your module name:
-  tt_um_example user_project (
+  // Names for the two M1 output pins. These are chip pins, not internal
+  // signals, so the cocotb test can use them to decide pass or fail.
+  wire uart_tx = uo_out[4];  // UART_TX
+  wire tx_ack  = uo_out[5];  // TX_ACK (M1, temporary handshake)
+
+  tt_um_soundgod10_droid_protocol_emulator user_project (
       .ui_in  (ui_in),    // Dedicated inputs
       .uo_out (uo_out),   // Dedicated outputs
       .uio_in (uio_in),   // IOs: Input path

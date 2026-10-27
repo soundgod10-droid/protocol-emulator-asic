@@ -903,7 +903,8 @@ def rand_insn(rng, lo, hi, d0, own_pins=()):
     if k == "sample":
         return [0xC000 | in_pin() << 8 | r() << 6 | rng.randint(6, 7) << 3 | rng.randrange(8)]
     if k == "wait":
-        return [0xD000 | in_pin() << 8 | r() << 6 | rng.randrange(3) << 4 | rng.randrange(4) << 2 | dash(2)]
+        to = 1 if rng.random() < 0.75 else 0
+        return [tnow(), 0xD000 | in_pin() << 8 | r() << 6 | rng.randrange(3) << 4 | to << 3 | rng.randrange(2) << 2 | dash(2)]
     if k == "wait_bad":
         return [0xD000 | in_pin() << 8 | r() << 6 | 3 << 4 | dash(4)]
     if k in ("pull", "push"):

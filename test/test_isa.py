@@ -790,7 +790,7 @@ def check_spi(log, b, data, transfers, label, n=0):
     for r, bit in zip(rises, bits):
         assert value_at(cs, r) == 0, f"{label}: CS is not low at the rising edge at {r}"
         assert value_at(mosi, r) == bit, f"{label}: MOSI wrong at the rising edge at {r}"
-    periods = {b2 - a for a, b2 in zip(rises, rises[1:]) if b2 - a < 100}
+    periods = {rises[i + 1] - rises[i] for i in range(len(rises) - 1) if i % 8 != 7}  # inside each byte
     assert periods == {50}, f"{label}: SCK periods {sorted(periods)} cycles"
     m_changes = [c for c, _ in mosi[1:]]
     nearest = min(abs(mc - r) for mc in m_changes for r in rises)

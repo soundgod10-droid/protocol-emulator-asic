@@ -54,8 +54,9 @@ module mem_fv #(
   reg clk = 1'b0;
   always @(posedge f_step) clk <= !clk;
 
-  reg rst_n = 1'b0;  // reset in the first cycle only
-  always @(posedge clk) rst_n <= 1'b1;
+  reg rst_q = 1'b0;  // reset in the first cycle only
+  always @(posedge clk) rst_q <= 1'b1;
+  wire rst_n = (FREE_RESET != 0) ? (rst_q && rst_in) : rst_q;
 
   reg          we = 1'b0;
   reg [AW-1:0] waddr;

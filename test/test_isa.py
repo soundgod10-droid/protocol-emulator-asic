@@ -730,13 +730,17 @@ def i2c_target(ack):
         sda_ours = 0 if ((oe >> P_SDA) & 1 and not (uio >> P_SDA) & 1) else 1
         sda = sda_ours & (0 if st["drive"] else 1)
         if scl and st["scl"] and sda != st["sda"]:
+            if sda == 1 and st["events"] and st["events"][-1][1] == "BIT" and st["high_after_bit"]:
+                st["events"].pop()  # the SCL rise before a STOP is not a data bit
             st["events"].append((c, "START" if sda == 0 else "STOP"))
             if sda == 0:
                 st["pos"] = 0
         if scl and not st["scl"]:
             st["pos"] = st["pos"] % 9 + 1
             st["events"].append((c, "BIT", sda))
+            st["high_after_bit"] = True
         if not scl and st["scl"]:
+            st["high_after_bit"] = False
             if st["pos"] == 8:
                 st["drive"] = 1 if ack() else 0
             elif st["pos"] == 9:

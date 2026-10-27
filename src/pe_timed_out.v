@@ -100,7 +100,7 @@ module pe_timed_out #(
   // (m_*) keeps a copy of each event that the slot must take and
   // calculates the pin from docs/isa.md 4.4, independently of the slot
   // registers above. The properties T1 to T4 hold for each sequence of
-  // \"now\". T5 and T6 are about the cycle count and apply while now adds 1
+  // now. T5 and T6 are about the cycle count and apply while now adds 1
   // in each cycle (m_ok); START (counter clear) stops them for the event
   // in the slot.
   // ---------------------------------------------------------------------

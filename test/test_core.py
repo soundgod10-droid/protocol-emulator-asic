@@ -908,7 +908,8 @@ def rand_insn(rng, lo, hi, d0, own_pins=()):
     if k == "wait_bad":
         return [0xD000 | in_pin() << 8 | r() << 6 | 3 << 4 | dash(4)]
     if k in ("pull", "push"):
-        return [0xE000 | (0 if k == "pull" else 1) << 10 | r() << 8 | rng.randrange(2) << 7 | dash(7)]
+        nb = 1 if rng.random() < 0.7 else 0
+        return [0xE000 | (0 if k == "pull" else 1) << 10 | r() << 8 | nb << 7 | dash(7)]
     if k in ("ior", "iow"):
         port = rng.randrange(4) if rng.random() < 0.85 else rng.randrange(64)
         return [0xE000 | (2 if k == "ior" else 3) << 10 | r() << 8 | dash(2) << 6 | port]

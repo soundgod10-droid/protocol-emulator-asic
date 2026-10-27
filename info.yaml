@@ -22,6 +22,14 @@ project:
     - "pe_cycle_counter.v"
     - "pe_timed_out.v"
     - "pe_uart_tx_seq.v"
+    - "pe_cells.v"
+    - "pe_latch_ram.v"
+    - "pe_host_fifo.v"
+    - "pe_timed_in.v"
+    - "pe_config.v"
+    - "pe_test_port.v"
+    - "pe_core.v"
+    - "pe_proc.v"
 
 # The pinout of your project. Leave unused pins blank. DO NOT delete or add any pins.
 # This section is for the datasheet/website. Use descriptive names (e.g., RX, TX, MOSI, SCL, SEG_A, etc.).

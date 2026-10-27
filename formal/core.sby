@@ -1,0 +1,21 @@
+# M2b: formal proof of the barrel core properties (pe_core `ifdef FORMAL:
+# barrel order B1 to B4, pin events E1 to E8, memory write W1 to W3).
+# The harness core_fv.v gives all core inputs freely. The properties are
+# invariants of one cycle or of two cycles ($past), so k-induction with a
+# small depth proves them for all time.
+
+[options]
+mode prove
+depth 4
+
+[engines]
+smtbmc z3
+
+[script]
+read -formal pe_cycle_counter.v pe_core.v core_fv.v
+prep -top core_fv
+
+[files]
+../src/pe_cycle_counter.v
+../src/pe_core.v
+core_fv.v

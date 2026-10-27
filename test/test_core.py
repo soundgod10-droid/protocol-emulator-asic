@@ -622,7 +622,7 @@ async def test_core_sample_wait(dut):
         "        TNOW 30",
         "        LDI r2, 16",
         "s1:     SAMPLE UI3, r0>>, 1",
-        "        TADD 7",
+        "        TADD 13",               # the loop takes 12 cycles: each sample is on time
         "        DJNZ r2, s1",
         "        PUSH r0",
         "        IOR r1, FLAGS",

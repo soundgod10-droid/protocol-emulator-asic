@@ -76,6 +76,8 @@ module uart_tx_fv (
   wire        f_eoe;        // dut.u_tx_channel.ev_oe_q
   wire        f_pin_oe;     // dut.u_tx_channel.pin_oe
   wire [1:0]  f_rq;         // dut.u_tx_req_sync.stage (TX_REQ synchronizer)
+  wire [1:0]  f_csel;       // dut.u_core_sel_sync.stage (CORE_SEL synchronizer, M2b)
+  wire        f_tp_start;   // dut.tp_start (test port START, M2b)
 
   wire [15:0] f_now = f_count[15:0];
 

@@ -23,12 +23,28 @@
 //   until milestone M2 adds the threads. The host handshake on ui_in[0],
 //   uio_in and uo_out[5] is also TEMPORARY (M2: host SPI port, block D7).
 //
-// Pins in M1 (A1 section 2.2 gives uo_out[4] as the default UART TX pin):
+// Pins in M1 mode (CORE_SEL = 0; A1 section 2.2 gives uo_out[4] as the
+// default UART TX pin):
 //   uo_out[4]  UART_TX  UART data out. High when idle and during reset.
 //   uo_out[5]  TX_ACK   TEMPORARY. Equal to ui_in[0] when the chip took the byte.
 //   ui_in[0]   TX_REQ   TEMPORARY. Change its level to send the byte on uio_in.
 //   uio_in     TX_DATA  TEMPORARY. Byte to send. All uio pins are inputs.
 //   All other outputs are 0.
+//
+// Milestone M2b adds the processor (pe_proc: barrel core, latch memory,
+// host FIFOs, timed I/O unit, docs/isa.md). M2c removes the M1 sequencer
+// and connects the host SPI port. Until then a TEMPORARY selection pin
+// gives the pins to the processor:
+//   ui_in[7]   CORE_SEL TEMPORARY. 1 = processor mode: uo_out[6:0] and
+//                       uio are the processor output pins 8 to 14 and 0
+//                       to 7 (docs/isa.md 5.1). 0 = M1 mode (above).
+//   ui_in[6]   TP_CLK   TEMPORARY test port (pe_test_port): each level
+//                       change is one bit.
+//   ui_in[5]   TP_DAT   TEMPORARY test port: bit value.
+//   uo_out[7]  TP_OUT   TEMPORARY test port readout (processor mode).
+//   ui_in[4:0], uio    processor input pins 8 to 12 and 0 to 7.
+// Reason: the M1 tests and the GitHub gate-level test stay green, and the
+// M2b tests use only chip pins (also at gate level).
 
 module tt_um_soundgod10_droid_protocol_emulator (
     input  wire [7:0] ui_in,    // Dedicated inputs

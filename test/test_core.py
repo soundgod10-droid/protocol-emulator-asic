@@ -285,7 +285,7 @@ async def run_lockstep(dut, scn):
             if st0 is not None:
                 sv = st0.value
                 assert sv.is_resolvable, f"{scn.label} cycle {c}: slot thread state has X or Z"
-                got = ctx_fields(int(sv))
+                got = ctx_fields(sv.to_unsigned())
                 want = model_fields(th)
                 assert got == want, f"{scn.label} cycle {c}, thread {c % 4}: RTL state {got}, model {want}"
                 compared_states += 1

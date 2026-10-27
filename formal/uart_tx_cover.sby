@@ -1,0 +1,56 @@
+# uart_tx_cover.sby: cover check for the M1 UART transmitter properties.
+#
+# The cover statements in uart_tx_fv.v must be reachable from reset:
+# the design takes a byte, a frame starts, and the monitor counts the
+# start bit. If they are reachable, the properties in uart_tx.sby are not
+# true only because nothing occurs.
+#
+# Depth: with "multiclock on" each clock cycle is 2 steps. The first start
+# bit comes about 13 cycles after reset (reset synchronizer 2, TX_REQ
+# synchronizer 2, take 1, EVENT_LEAD 4, event 1, monitor 3). 40 steps are
+# 20 cycles.
+#
+# The script is the same as in uart_tx.sby. Keep the two files equal.
+
+[options]
+mode cover
+depth 40
+multiclock on
+
+[engines]
+smtbmc z3
+
+[script]
+read -formal pe_cycle_counter.v
+read -formal pe_sync.v
+read -formal pe_timed_out.v
+read -formal pe_uart_tx_seq.v
+read -formal project.v
+read -formal uart_tx_fv.v
+hierarchy -top uart_tx_fv
+proc
+flatten
+cd uart_tx_fv
+connect -nounset -set f_rst_i  dut.rst_n_int
+connect -nounset -set f_rsync  dut.u_reset_sync.stage
+connect -nounset -set f_count  dut.cycle_count
+connect -nounset -set f_take   dut.u_uart_tx_seq.take
+connect -nounset -set f_state  dut.u_uart_tx_seq.state
+connect -nounset -set f_frame  dut.u_uart_tx_seq.frame
+connect -nounset -set f_nbits  dut.u_uart_tx_seq.nbits
+connect -nounset -set f_tnext  dut.u_uart_tx_seq.t_next
+connect -nounset -set f_v      dut.u_tx_channel.ev_valid
+connect -nounset -set f_te     dut.u_tx_channel.ev_time_q
+connect -nounset -set f_ve     dut.u_tx_channel.ev_value_q
+connect -nounset -set f_eoe    dut.u_tx_channel.ev_oe_q
+connect -nounset -set f_pin_oe dut.u_tx_channel.pin_oe
+cd ..
+prep -top uart_tx_fv
+
+[files]
+../src/pe_cycle_counter.v
+../src/pe_sync.v
+../src/pe_timed_out.v
+../src/pe_uart_tx_seq.v
+../src/project.v
+uart_tx_fv.v

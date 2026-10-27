@@ -793,10 +793,23 @@ KINDS = {
 }
 
 
-def rand_insn(rng, lo, hi, d0):
-    """Words of one random instruction (or a short sequence) for code at lo..hi, data at d0..d0+3."""
+def rand_insn(rng, lo, hi, d0, own_pins=()):
+    """Words of one random instruction (or a short sequence) for code at lo..hi, data at d0..d0+3.
+
+    own_pins: output pins that the thread owns. Most OUT instructions use
+    them, so that the event slots and pins change (an OUT to a pin of an
+    other thread only sets ERR, isa 5.2).
+    """
     def r():
         return rng.randrange(4)
+
+    def out_pin():
+        if own_pins and rng.random() < 0.85:
+            return rng.choice(own_pins)
+        return rng.randrange(16)
+
+    def in_pin():
+        return rng.randrange(13) if rng.random() < 0.95 else rng.randrange(16)
 
     def tgt():
         return rng.randint(lo, hi)

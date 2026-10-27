@@ -15,6 +15,7 @@
 [options]
 mode prove
 depth 20
+multiclock on
 
 [engines]
 smtbmc z3

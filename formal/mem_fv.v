@@ -70,12 +70,12 @@ module mem_fv #(
     raddr <= raddr_in;
   end
 
-  wire [15:0] rdata;
+  wire [WIDTH-1:0] rdata;
 
   pe_latch_ram #(
       .WORDS(WORDS),
       .AW   (AW),
-      .WIDTH(16)
+      .WIDTH(WIDTH)
   ) u_mem (
       .clk  (clk),
       .rst_n(rst_n),

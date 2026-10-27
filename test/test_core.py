@@ -387,7 +387,7 @@ async def test_core_alu_flags(dut):
     # 64 host words; the host reads one word every 26 cycles.
     scn = Scenario("alu_flags", asm((program(ops), 0)), cycles=2200, host=pop_round_robin([0]))
     m, popped, _ = await run_lockstep(dut, scn)
-    assert_ended(m, popped, min_words=60)
+    assert_ended(m, popped, min_words=2 * sum(1 for _, reg in ops if reg))
 
 
 @cocotb.test()

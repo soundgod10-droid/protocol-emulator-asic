@@ -66,6 +66,9 @@ module pe_latch_ram #(
   // Yosys and the linter.
   localparam integer WB = $clog2(WIDTH);  // WIDTH must be a power of 2
   wire [WORDS*WIDTH-1:0] q;
+`ifdef FORMAL
+  wire [WORDS-1:0] f_gclk;  // gated clock of each word, for the properties
+`endif
 
   genvar w, b;
   generate

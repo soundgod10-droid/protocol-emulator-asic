@@ -230,11 +230,26 @@ module pe_core (
   // carry is the last bit that goes out: rot[0] for SHL, rot[15] for the
   // right shifts and ROR (isa 9.1).
   // ---------------------------------------------------------------------
+  //
+  // The rotate and the masks are written as mux stages and comparators,
+  // not with ">>" and "<<". Reason: the GitHub flow runs the Yosys SHARE
+  // pass (SAT-based resource sharing) on shift cells, and on this design
+  // it did not finish in 80 minutes (M2b_core.md section 8). The function
+  // is the same.
   wire [3:0]  rot_n  = (ifn == 2'd0) ? (4'd0 - shn) : shn;
-  wire [31:0] rot_w  = {ra, ra} >> rot_n;
-  wire [15:0] rot    = rot_w[15:0];
-  wire [15:0] mask_r = 16'hFFFF >> shn;
-  wire [15:0] mask_l = 16'hFFFF << shn;
+  wire [15:0] rot_s0 = rot_n[0] ? {ra[0], ra[15:1]} : ra;                // by 1
+  wire [15:0] rot_s1 = rot_n[1] ? {rot_s0[1:0], rot_s0[15:2]} : rot_s0;  // by 2
+  wire [15:0] rot_s2 = rot_n[2] ? {rot_s1[3:0], rot_s1[15:4]} : rot_s1;  // by 4
+  wire [15:0] rot    = rot_n[3] ? {rot_s2[7:0], rot_s2[15:8]} : rot_s2;  // by 8
+  wire [15:0] mask_r;  // 16'hFFFF >> shn: bit i is 1 if i + shn <= 15
+  wire [15:0] mask_l;  // 16'hFFFF << shn: bit i is 1 if i >= shn
+  genvar gm;
+  generate
+    for (gm = 0; gm < 16; gm = gm + 1) begin : g_mask
+      assign mask_r[gm] = (shn <= (4'd15 - gm));
+      assign mask_l[gm] = (shn <= gm);
+    end
+  endgenerate
   reg  [15:0] sh_res;
   always @* begin
     if (shn == 4'd0) begin

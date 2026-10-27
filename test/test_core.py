@@ -862,13 +862,13 @@ def rand_insn(rng, lo, hi, d0, own_pins=()):
     if k == "st":
         return [0xB800 | r() << 9 | dash(2) << 7 | (d0 + rng.randrange(4))]
     if k == "out":
-        return [0xC000 | rng.randrange(16) << 8 | r() << 6 | rng.randrange(6) << 3 | rng.randrange(8)]
+        return [0xC000 | out_pin() << 8 | r() << 6 | rng.randrange(6) << 3 | rng.randrange(8)]
     if k == "sample":
-        return [0xC000 | rng.randrange(16) << 8 | r() << 6 | rng.randint(6, 7) << 3 | rng.randrange(8)]
+        return [0xC000 | in_pin() << 8 | r() << 6 | rng.randint(6, 7) << 3 | rng.randrange(8)]
     if k == "wait":
-        return [0xD000 | rng.randrange(16) << 8 | r() << 6 | rng.randrange(3) << 4 | rng.randrange(4) << 2 | dash(2)]
+        return [0xD000 | in_pin() << 8 | r() << 6 | rng.randrange(3) << 4 | rng.randrange(4) << 2 | dash(2)]
     if k == "wait_bad":
-        return [0xD000 | rng.randrange(16) << 8 | r() << 6 | 3 << 4 | dash(4)]
+        return [0xD000 | in_pin() << 8 | r() << 6 | 3 << 4 | dash(4)]
     if k in ("pull", "push"):
         return [0xE000 | (0 if k == "pull" else 1) << 10 | r() << 8 | rng.randrange(2) << 7 | dash(7)]
     if k in ("ior", "iow"):

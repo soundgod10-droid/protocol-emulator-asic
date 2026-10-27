@@ -34,10 +34,15 @@
 // the word address of the properties is free, so the small proof checks
 // the same structure. mem.sby checks the chip size with a bounded depth.
 
+// FREE_RESET = 1 (mem_reset.sby): the reset can also come at each later
+// clock level change. This shows the effect of a reset during a store.
+
 module mem_fv #(
-    parameter integer WORDS = 128,
-    parameter integer AW    = 7
+    parameter integer WORDS      = 128,
+    parameter integer AW         = 7,
+    parameter integer FREE_RESET = 0
 ) (
+    input wire          rst_in,   // used only with FREE_RESET = 1
     input wire          we_in,
     input wire [AW-1:0] waddr_in,
     input wire [15:0]   wdata_in,

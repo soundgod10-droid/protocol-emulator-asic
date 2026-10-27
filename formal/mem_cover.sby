@@ -1,0 +1,22 @@
+# M2b: cover check of the latch memory harness (mem_fv.v, 8 x 16 as in
+# mem_small.sby). It shows that the clock made from the solver steps
+# runs, and that a word is open for a write request while it is read, so
+# the properties of mem_small.sby and mem.sby are not empty.
+
+[options]
+mode cover
+depth 10
+multiclock on
+
+[engines]
+smtbmc z3
+
+[script]
+read -formal pe_cells.v pe_latch_ram.v mem_fv.v
+chparam -set WORDS 8 -set AW 3 mem_fv
+prep -top mem_fv
+
+[files]
+../src/pe_cells.v
+../src/pe_latch_ram.v
+mem_fv.v

@@ -1,0 +1,24 @@
+# M2b: formal proof of the latch memory properties (pe_latch_ram `ifdef
+# FORMAL: M1 to M4) with the harness mem_fv.v. multiclock: the clock is a
+# signal that changes at each solver step, and the latches are
+# level-sensitive elements, not flip-flops.
+
+[options]
+mode prove
+depth 8
+multiclock on
+
+[engines]
+smtbmc z3
+
+[script]
+read -formal pe_cells.v pe_latch_ram.v mem_fv.v
+prep -top mem_fv
+# The job stops with an error if Yosys removed properties (5 asserts are
+# written in pe_latch_ram).
+select -assert-min 5 t:$check t:$assert
+
+[files]
+../src/pe_cells.v
+../src/pe_latch_ram.v
+mem_fv.v

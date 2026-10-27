@@ -28,11 +28,20 @@
 //   data flip-flop to 0 while the word is open, so that word gets 0. The
 //   harness has no such reset (M2b_core.md, open items).
 
-module mem_fv (
-    input wire        we_in,
-    input wire [6:0]  waddr_in,
-    input wire [15:0] wdata_in,
-    input wire [6:0]  raddr_in
+// Size: the default is the chip size. mem_small.sby sets WORDS = 8 for
+// the k-induction proof (the solver did not finish the proof of 2,048
+// latches in 30 minutes); each word has the same generated logic, and
+// the word address of the properties is free, so the small proof checks
+// the same structure. mem.sby checks the chip size with a bounded depth.
+
+module mem_fv #(
+    parameter integer WORDS = 128,
+    parameter integer AW    = 7
+) (
+    input wire          we_in,
+    input wire [AW-1:0] waddr_in,
+    input wire [15:0]   wdata_in,
+    input wire [AW-1:0] raddr_in
 );
 
   (* gclk *) wire f_step;  // global solver clock: one step = half a clock period

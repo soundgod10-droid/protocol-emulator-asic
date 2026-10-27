@@ -80,6 +80,9 @@ module pe_latch_ram #(
           .en  (we && (waddr == ADDR)),
           .gclk(gclk)
       );
+`ifdef FORMAL
+      assign f_gclk[w] = gclk;
+`endif
       for (b = 0; b < WIDTH; b = b + 1) begin : g_bit
         pe_lat u_lat (
             .g(gclk),

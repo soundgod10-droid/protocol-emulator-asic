@@ -10,9 +10,9 @@
 // What it does:
 //   This module contains the chip top level and a reference UART receiver
 //   (the "monitor"). The monitor looks only at the UART_TX pin (uo_out[4]).
-//   The properties (P1 to P6) compare the pin with the monitor. The
-//   invariants (I0 to I13) connect the internal registers of the design to
-//   the monitor. With the invariants, the solver can prove the properties
+//   The properties (P1 to P8) compare the pin and the handshake with the
+//   monitor. The invariants (I0 to I13, H1 to H6) connect the internal
+//   registers of the design to the monitor. With the invariants, the solver can prove the properties
 //   for all time (k-induction), not only for a number of clock cycles.
 //
 // Why the internal signals come from "connect -set":

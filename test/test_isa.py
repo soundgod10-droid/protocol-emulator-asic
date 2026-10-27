@@ -513,7 +513,8 @@ async def test_model_alu_flags(dut):
         "LDI r0, 1000", "LDI r1, 1001",
         "CMP r0, r1", "IOR r2, FLAGS", "PUSH r2",            # 0xFFFF: N 1, C 0 -> 4 (E 0)
         "SUB r1, r0", "IOR r2, FLAGS", "PUSH r2", "PUSH r1",  # 1: C 1, E 1 (PUSH) -> 10; 1
-        "ADDI r0, -1000", "IOR r2, FLAGS", "PUSH r2",         # 0: Z 1, C 1 -> 11
+        "ADDI r0, -500", "ADDI r0, -500",                     # 1000 + 0xFE0C = 500 (C 1); 500 + 0xFE0C = 0x10000
+        "IOR r2, FLAGS", "PUSH r2",                           # 0: Z 1, C 1 -> 11
         "NOT r3, r0", "IOR r2, FLAGS", "PUSH r2",             # 0xFFFF: N 1, C stays 1 -> 14
         "ADD r3, r1", "IOR r2, FLAGS", "PUSH r2",             # 0x10000: 0, Z 1, C 1 -> 11
         "LDI r3, 773", "SHL r3, 7", "IOR r2, FLAGS", "PUSH r2", "PUSH r3",   # 0x8280, C = bit 9 = 1 -> 14

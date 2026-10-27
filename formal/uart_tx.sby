@@ -11,6 +11,21 @@
 #   property. After "flatten", the internal registers have names such as
 #   dut.u_uart_tx_seq.state. "connect -set" connects the f_* wires of
 #   uart_tx_fv to them before optimization.
+#
+# Why "-nounset":
+#   Without it, "connect -set" removes all drivers of the left side, and it
+#   also removes aliases such as "f_now = f_count[15:0]". Then f_now has no
+#   driver and the solver gives it any value. The f_* wires have no driver
+#   of their own, so "-nounset" removes nothing that is necessary.
+#
+# Why "multiclock on":
+#   The design has asynchronous resets. With "multiclock on", the solver
+#   uses an exact model of the asynchronous reset. Each clock cycle is
+#   2 steps, so depth 20 is 10 clock cycles.
+#
+# The tasks are in two files (uart_tx.sby, uart_tx_cover.sby) because the
+# formal runner on this workstation gives no result for a file with
+# [tasks].
 
 [options]
 mode prove

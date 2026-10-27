@@ -61,7 +61,11 @@ module pe_latch_ram #(
     end
   end
 
-  wire [WIDTH-1:0] word[0:WORDS-1];
+  // All latch outputs in one vector: word w is q[w*WIDTH +: WIDTH]. A flat
+  // vector (not an array of wires) is read the same way by the simulator,
+  // Yosys and the linter.
+  localparam integer WB = $clog2(WIDTH);  // WIDTH must be a power of 2
+  wire [WORDS*WIDTH-1:0] q;
 
   genvar w, b;
   generate
@@ -77,14 +81,17 @@ module pe_latch_ram #(
         pe_lat u_lat (
             .g(gclk),
             .d(wdata_q[b]),
-            .q(word[w][b])
+            .q(q[w*WIDTH+b])
         );
       end
     end
   endgenerate
 
   // One read port. docs/isa.md 3.3: LD and LDX take 2 slots so that the
-  // processor needs only this one 128:1 multiplexer.
-  assign rdata = word[raddr];
+  // processor needs only this one 128:1 multiplexer. The index has exactly
+  // the bits of the vector address (raddr, then WB zero bits), so the
+  // multiplexer has no unused inputs.
+  wire [AW+WB-1:0] rbase = {raddr, {WB{1'b0}}};
+  assign rdata = q[rbase+:WIDTH];
 
 endmodule

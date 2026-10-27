@@ -276,21 +276,13 @@ async def run_lockstep(dut, scn):
             arrive[t + 2] = info  # 2 synchronizer stages
             sent = True
         # The bit that was in the test port in cycle t-1 had its effect at
-        # the clock edge at the end of that cycle.
+        # the clock edge at the end of that cycle: readout register and START.
         if (t - 1) in arrive:
             info = arrive.pop(t - 1)
-            word = None
-            if info is not None:
-                fr, idx = info
-                if fr[0] == CMD_START:
-                    t0 = t
-                elif t0 is not None:
-                    c_now = t - t0
-                    assert c_now == TP_BITS * (idx + 1), f"{scn.label}: host frame {idx} at model cycle {c_now}"
-                    word = apply_host(m, fr)
-                    if fr[0] == CMD_POP and word is not None:
-                        popped[fr[1] & 3].append(word)
+            if info is not None and info[0][0] == CMD_START:
+                t0 = t
             if info is not None and info[0][0] == CMD_POP:
+                word = pop_result.pop(t - 1)
                 ro = (0x10000 | word) if word is not None else 0
                 ro_known = 0x1FFFF if word is not None else 0x10000
             else:
@@ -304,6 +296,13 @@ async def run_lockstep(dut, scn):
         dut.uio_in.value = uio & 0xFF
 
         if c is not None:
+            # A host frame whose last bit is in the test port in this cycle
+            # acts at the end of this cycle (see host_before).
+            info = arrive.get(t)
+            fr = info[0] if info is not None and info[0][0] != CMD_START else None
+            if fr is not None:
+                assert c == TP_BITS * (info[1] + 1) - 1, f"{scn.label}: host frame {info[1]} at model cycle {c}"
+                before = host_before(m, fr)
             m.set_inputs(ui, uio)
             th = m.threads[c % 4]
             if st0 is not None:
@@ -314,6 +313,12 @@ async def run_lockstep(dut, scn):
                 assert got == want, f"{scn.label} cycle {c}, thread {c % 4}: RTL state {got}, model {want}"
                 compared_states += 1
             exp = m.step()
+            if fr is not None:
+                host_after(m, fr, before)
+                if fr[0] == CMD_POP:
+                    pop_result[t] = before
+                    if before is not None:
+                        popped[fr[1] & 3].append(before)
         else:
             exp = RESET_PINS
 

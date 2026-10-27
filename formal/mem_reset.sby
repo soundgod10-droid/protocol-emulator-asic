@@ -1,0 +1,24 @@
+# M2b: bounded check of the latch memory (8 x 16) with a free reset
+# (mem_fv.v FREE_RESET = 1). Expected result: FAIL of M2/M3. A reset in
+# the first half of the cycle after a store sets the write data
+# flip-flop to 0 while the word is open, so the word gets 0 and not the
+# stored data. This job documents the open item of M2b_core.md; it is not
+# a check that must pass.
+
+[options]
+mode bmc
+depth 10
+multiclock on
+
+[engines]
+smtbmc z3
+
+[script]
+read -formal pe_cells.v pe_latch_ram.v mem_fv.v
+chparam -set WORDS 8 -set AW 3 -set FREE_RESET 1 mem_fv
+prep -top mem_fv
+
+[files]
+../src/pe_cells.v
+../src/pe_latch_ram.v
+mem_fv.v

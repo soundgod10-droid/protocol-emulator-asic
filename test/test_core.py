@@ -237,10 +237,16 @@ def model_fields(th):
             "status": th.status, "run": bool(th.run)}
 
 
-async def run_lockstep(dut, scn):
-    """Loads and runs the scenario on the chip and on the model; compares in each cycle."""
+async def run_lockstep(dut, scn, after_reset=None):
+    """Loads and runs the scenario on the chip and on the model; compares in each cycle.
+
+    after_reset: optional function, called after the chip reset (for example
+    to start pin monitors that must not see the X values before the reset).
+    """
     log = dut._log
     await start_chip(dut)
+    if after_reset is not None:
+        after_reset()
     st0 = state_handle(dut)
     m = scn.new_model()
 

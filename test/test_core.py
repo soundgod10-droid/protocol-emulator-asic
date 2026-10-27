@@ -929,13 +929,17 @@ async def test_core_random(dut):
     gl = state_handle(dut) is None
     seeds = RANDOM_SEEDS_GL if gl else RANDOM_SEEDS
     total = Counter()
+    all_changes = 0
+    all_words = 0
     for seed in seeds:
         scn, attempts = random_scenario(seed, RANDOM_CYCLES)
         dut._log.info(f"{scn.label}: program accepted after {attempts} attempt(s)")
         m, popped, changes = await run_lockstep(dut, scn)
         total.update(m.coverage)
-    dut._log.info(f"random streams: seeds {seeds}, {RANDOM_CYCLES} cycles each; "
-                  f"instruction groups executed in total {dict(sorted(total.items()))}")
+        all_changes += changes
+        all_words += sum(len(p) for p in popped)
+    dut._log.info(f"random streams: seeds {seeds}, {RANDOM_CYCLES} cycles each; {all_changes} pin changes, "
+                  f"{all_words} host words in total; instruction groups executed in total {dict(sorted(total.items()))}")
     groups = {k.split(".")[0] for k in total}
     missing = [f"{op:X}" for op in range(16) if f"{op:X}" not in groups]
     assert not missing, f"opcodes never executed: {missing}"

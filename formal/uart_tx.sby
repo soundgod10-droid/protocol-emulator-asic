@@ -79,6 +79,6 @@ prep -top uart_tx_fv
 ../src/pe_uart_tx_seq.v
 ../src/pe_test_port.v
 ../src/pe_config.v
-../src/pe_proc.v
+m1_proc_stub.v
 ../src/project.v
 uart_tx_fv.v

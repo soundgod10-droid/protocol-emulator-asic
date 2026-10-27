@@ -75,6 +75,7 @@ module uart_tx_fv (
   wire        f_ve;         // dut.u_tx_channel.ev_value_q
   wire        f_eoe;        // dut.u_tx_channel.ev_oe_q
   wire        f_pin_oe;     // dut.u_tx_channel.pin_oe
+  wire [1:0]  f_rq;         // dut.u_tx_req_sync.stage (TX_REQ synchronizer)
 
   wire [15:0] f_now = f_count[15:0];
 

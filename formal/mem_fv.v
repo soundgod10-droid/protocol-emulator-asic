@@ -40,13 +40,14 @@
 module mem_fv #(
     parameter integer WORDS      = 128,
     parameter integer AW         = 7,
+    parameter integer WIDTH      = 16,  // mem.sby: 2 (all 128 words, each bit has the same logic)
     parameter integer FREE_RESET = 0
 ) (
-    input wire          rst_in,   // used only with FREE_RESET = 1
-    input wire          we_in,
-    input wire [AW-1:0] waddr_in,
-    input wire [15:0]   wdata_in,
-    input wire [AW-1:0] raddr_in
+    input wire             rst_in,   // used only with FREE_RESET = 1
+    input wire             we_in,
+    input wire [AW-1:0]    waddr_in,
+    input wire [WIDTH-1:0] wdata_in,
+    input wire [AW-1:0]    raddr_in
 );
 
   (* gclk *) wire f_step;  // global solver clock: one step = half a clock period

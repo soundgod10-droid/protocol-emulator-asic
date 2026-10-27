@@ -220,6 +220,18 @@ module uart_tx_fv (
     assert (f_pin_oe);
   end
 
+  // P7: This checks that the frame of a byte that the design took starts
+  //     not later than B-1 cycles after the take. Reason: a byte that the
+  //     design took must not stay in the design without a frame (lost).
+  always @(*) assert (!m_pend || (m_age <= B - 16'd1));
+
+  // P8: This checks that the design takes a request (TX_ACK changes) not
+  //     later than 11 bit times after it sampled the new TX_REQ level.
+  //     Reason: a request from the host must not be lost. The longest
+  //     wait is a request that comes just after a take: the design takes
+  //     it in the stop bit of that frame.
+  always @(*) assert (!h_req || (h_wait <= B * 16'd11 - 16'd1));
+
   // ---------------------------------------------------------------------
   // Invariants. They tell the solver which states the design can reach,
   // so that k-induction can prove P1 to P6 for all time.

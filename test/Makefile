@@ -6,13 +6,18 @@ SIM ?= icarus
 FST ?= -fst # Use more efficient FST format
 TOPLEVEL_LANG ?= verilog
 SRC_DIR = $(PWD)/../src
-PROJECT_SOURCES = project.v pe_sync.v pe_cycle_counter.v pe_timed_out.v pe_uart_tx_seq.v
+PROJECT_SOURCES = project.v pe_sync.v pe_cycle_counter.v pe_timed_out.v pe_uart_tx_seq.v \
+                  pe_cells.v pe_latch_ram.v pe_host_fifo.v pe_timed_in.v pe_config.v \
+                  pe_test_port.v pe_core.v pe_proc.v
 
 ifneq ($(GATES),yes)
 
 # RTL simulation:
 SIM_BUILD				= sim_build/rtl
 VERILOG_SOURCES += $(addprefix $(SRC_DIR)/,$(PROJECT_SOURCES))
+# Behavioral models of the latch and clock-gate cells (src/pe_cells.v);
+# the gate-level simulation uses the library cell models.
+COMPILE_ARGS    += -DPE_BEHAVIORAL_CELLS
 
 else
 

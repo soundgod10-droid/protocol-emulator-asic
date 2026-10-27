@@ -929,9 +929,10 @@ def random_scenario(seed, cycles):
             lo, hi, d0 = 32 * n, 32 * n + 27, 32 * n + 28
             mine = [p for p in range(pe_model.N_OUT) if owner[p] == n]
             words = []
-            while len(words) < 28:
-                words += rand_insn(rng, lo, hi, d0, mine)
-            image[lo:lo + 28] = words[:28]
+            while len(words) < 27:
+                words += rand_insn(rng, lo + len(words), hi - 1, d0, mine)
+            # The code ends with JMP to its start: the program runs again and again.
+            image[lo:lo + 28] = words[:27] + [0x8000 | lo]
             image[d0:d0 + 4] = [rng.randrange(0x10000) for _ in range(4)]
             data_addrs.update(range(d0, d0 + 4))
         run = [rng.random() < 0.9 for _ in range(4)]

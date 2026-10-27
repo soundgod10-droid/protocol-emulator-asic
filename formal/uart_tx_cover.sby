@@ -48,6 +48,8 @@ connect -nounset -set f_ve     dut.u_tx_channel.ev_value_q
 connect -nounset -set f_eoe    dut.u_tx_channel.ev_oe_q
 connect -nounset -set f_pin_oe dut.u_tx_channel.pin_oe
 connect -nounset -set f_rq     dut.u_tx_req_sync.stage
+connect -nounset -set f_csel   dut.u_core_sel_sync.stage
+connect -nounset -set f_tp_start dut.tp_start
 cd ..
 prep -top uart_tx_fv
 

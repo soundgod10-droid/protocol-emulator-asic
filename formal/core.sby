@@ -14,6 +14,9 @@ smtbmc z3
 [script]
 read -formal pe_cycle_counter.v pe_core.v core_fv.v
 prep -top core_fv
+# The job stops with an error if Yosys removed properties (27 asserts are
+# written in pe_core).
+select -assert-min 27 t:$assert
 
 [files]
 ../src/pe_cycle_counter.v

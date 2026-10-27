@@ -90,3 +90,8 @@ module pe_lat (
 `endif
 
 endmodule
+
+// The macro is only for this file.
+`ifdef PE_CELLS_BEHAVIORAL
+`undef PE_CELLS_BEHAVIORAL
+`endif

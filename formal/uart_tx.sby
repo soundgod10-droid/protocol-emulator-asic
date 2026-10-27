@@ -42,12 +42,11 @@ read -formal pe_timed_out.v
 read -formal pe_uart_tx_seq.v
 read -formal pe_test_port.v
 # M2b: in M1 mode (CORE_SEL = 0, assumed in uart_tx_fv.v) the processor
-# and its configuration drive no M1 pin, so they are read as black boxes
-# (-lib: ports only, free outputs). Their 2,560 latches would make the
-# proof too large. ("blackbox" after "read" did not find the modules,
-# because "read" defers their elaboration.)
-read_verilog -formal -lib pe_config.v
-read_verilog -formal -lib pe_proc.v
+# drives no M1 pin, so m1_proc_stub.v replaces pe_proc.v: same ports,
+# free outputs. Its 2,560 latches would make the proof too large, and the
+# smtbmc flow does not accept a black box.
+read -formal pe_config.v
+read -formal m1_proc_stub.v
 read -formal project.v
 read -formal uart_tx_fv.v
 hierarchy -top uart_tx_fv

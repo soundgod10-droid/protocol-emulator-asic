@@ -21,16 +21,26 @@
 //   bits [15:0] (the event time is 16 bits). Synthesis removes the bits
 //   that have no load. M2 will read the full value (time capture).
 
+//
+// clear (added in M2b):
+//   1 in a cycle sets the counter to 0 at the end of that cycle. The host
+//   starts the threads with it (pe_test_port START), so that the first
+//   cycle of the threads is cycle 0, thread 0 has the first slot and the
+//   cycle numbers agree with the reference model (docs/isa.md 3.1).
+
 module pe_cycle_counter #(
     parameter integer WIDTH = 32  // A1 section 7: 32-bit cycle counter
 ) (
     input  wire             clk,
     input  wire             rst_n,  // active low, asynchronous assert
+    input  wire             clear,  // synchronous: 1 = count is 0 in the next cycle
     output reg  [WIDTH-1:0] count
 );
 
   always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
+      count <= {WIDTH{1'b0}};
+    end else if (clear) begin
       count <= {WIDTH{1'b0}};
     end else begin
       // Wrap at the maximum value is correct: the timed output channels

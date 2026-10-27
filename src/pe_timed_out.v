@@ -92,4 +92,95 @@ module pe_timed_out #(
     end
   end
 
+`ifdef FORMAL
+  // ---------------------------------------------------------------------
+  // Formal properties (formal/timed_out.sby with the harness
+  // formal/timed_out_fv.v). Only Yosys with the FORMAL macro reads this
+  // block; synthesis, the linter and the simulations do not. A monitor
+  // (m_*) keeps a copy of each event that the slot must take and
+  // calculates the pin from docs/isa.md 4.4, independently of the slot
+  // registers above. The properties T1 to T4 hold for each sequence of
+  // \"now\". T5 and T6 are about the cycle count and apply while now adds 1
+  // in each cycle (m_ok); START (counter clear) stops them for the event
+  // in the slot.
+  // ---------------------------------------------------------------------
+  wire        f_take = ev_load && ev_ready;  // a write that the slot must take
+  wire [15:0] f_lead = ev_time - now;        // lead of that write
+
+  reg        m_pend;      // an event was taken and did not occur yet
+  reg [15:0] m_t;         // its time
+  reg        m_v, m_e;    // its value and output enable
+  reg        m_pv, m_pe;  // expected pin value and output enable
+  reg [16:0] m_j;         // cycles from the write: 1 in the cycle after it
+  reg [16:0] m_d;         // expected cycles from the write to the event cycle
+  reg [15:0] m_now;       // now in the cycle before
+  reg        m_ok;        // now added 1 in each cycle since the write
+
+  wire m_due = m_pend && (now == m_t);         // the event cycle (isa 4.4)
+  wire f_ok  = m_ok && (now == m_now + 16'd1);
+
+  always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+      m_pend <= 1'b0;
+      m_t    <= 16'd0;
+      m_v    <= RESET_VALUE;
+      m_e    <= RESET_OE;
+      m_pv   <= RESET_VALUE;
+      m_pe   <= RESET_OE;
+      m_j    <= 17'd0;
+      m_d    <= 17'd0;
+      m_now  <= 16'd0;
+      m_ok   <= 1'b0;
+    end else begin
+      m_now <= now;
+      m_ok  <= f_ok;
+      if (m_pend) m_j <= m_j + 17'd1;
+      if (m_due) begin
+        m_pend <= 1'b0;
+        m_pv   <= m_v;
+        m_pe   <= m_e;
+      end
+      if (f_take) begin
+        m_pend <= 1'b1;
+        m_t    <= ev_time;
+        m_v    <= ev_value;
+        m_e    <= ev_oe;
+        m_j    <= 17'd1;
+        // The first cycle after the write with now = t is d = (t - now)
+        // mod 65,536 cycles later; for t = now it is 65,536 cycles later.
+        m_d    <= (f_lead == 16'd0) ? 17'h10000 : {1'b0, f_lead};
+        m_ok   <= 1'b1;
+      end
+    end
+  end
+
+  always @* begin
+    // T1: The pin (value and output enable) is the reset value or the
+    //     value of the last event that occurred. Thus, the pin changes only
+    //     at the clock edge at the end of an event cycle, and it gets the
+    //     value of that event.
+    assert ((pin_value == m_pv) && (pin_oe == m_pe));
+    // T2: The slot is full exactly while the monitor has an event that did
+    //     not occur. Thus, a write into an empty slot is never lost, and the
+    //     slot is empty again after the event cycle.
+    assert (ev_ready == !m_pend);
+    // T3: The slot keeps the time, value and output enable of the write.
+    if (m_pend) assert ((ev_time_q == m_t) && (ev_value_q == m_v) && (ev_oe_q == m_e));
+    if (m_pend && f_ok) begin
+      // T4: The event did not occur early or late: 1 <= j <= d.
+      assert ((m_j >= 17'd1) && (m_j <= m_d) && (m_d >= 17'd1) && (m_d <= 17'h10000));
+      // T5: The cycles to the event time agree with the cycle count.
+      assert ((m_t - now) == m_d[15:0] - m_j[15:0]);
+      // T6: The event occurs exactly d cycles after its write, that is at
+      //     cycle t: for 1 <= d <= 65,535 this is write cycle + d.
+      if (m_due) assert (m_j == m_d);
+    end
+  end
+
+  always @* begin
+    cover (m_due && f_ok && (m_d == 17'd4));  // an event with lead 4 occurs
+    cover (m_due && f_ok && (m_pv != m_v));   // an event changes the pin
+  end
+`endif
+
 endmodule

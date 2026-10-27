@@ -712,4 +712,120 @@ module pe_core (
     end
   end
 
+`ifdef FORMAL
+  // ---------------------------------------------------------------------
+  // Formal properties (formal/core.sby with the harness formal/core_fv.v).
+  // Only Yosys with the FORMAL macro reads this block; synthesis, the
+  // linter and the simulations do not. The harness connects now to the
+  // cycle counter (clear = start) and gives all other inputs freely, so
+  // the properties hold for every instruction word and every input.
+  // ---------------------------------------------------------------------
+  reg f_past_valid = 1'b0;
+  always @(posedge clk) f_past_valid <= 1'b1;
+
+  // f_tagN: number of the thread whose state is in ring entry stN. The
+  // tags move with the entries; START gives entry i to thread i.
+  reg [1:0] f_tag0, f_tag1, f_tag2, f_tag3;
+  always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+      f_tag0 <= 2'd0;
+      f_tag1 <= 2'd1;
+      f_tag2 <= 2'd2;
+      f_tag3 <= 2'd3;
+    end else begin
+      f_tag3 <= start ? 2'd3 : f_tag0;
+      f_tag2 <= start ? 2'd2 : f_tag3;
+      f_tag1 <= start ? 2'd1 : f_tag2;
+      f_tag0 <= start ? 2'd0 : f_tag1;
+    end
+  end
+
+  // B1: The state at the head of the ring is the state of the slot thread
+  //     tid = now[1:0], in each cycle, also after a START at any cycle.
+  //     Reason: the FIFO, the pin owner check and port THREAD use tid; a
+  //     wrong head state would execute one thread with the pins and the
+  //     FIFOs of an other thread.
+  always @* begin
+    if (rst_n) begin
+      assert (f_tag0 == tid);
+      assert (f_tag1 == tid + 2'd1);
+      assert (f_tag2 == tid + 2'd2);
+      assert (f_tag3 == tid + 2'd3);
+    end
+  end
+
+  always @(posedge clk) begin
+    if (f_past_valid && $past(rst_n) && rst_n) begin
+      // B2: The slot goes to the next thread in each cycle (0, 1, 2, 3, 0,
+      //     ...), and to thread 0 after START. Thus each thread has exactly
+      //     one slot, and executes at most one instruction, in each 4
+      //     cycles (isa 3.1).
+      if ($past(start)) assert (f_tag0 == 2'd0);
+      else assert (f_tag0 == $past(f_tag0) + 2'd1);
+      // B3: The word in ir is the word that was read for this slot thread:
+      //     its PC, or its LD address in the second slot of LD/LDX
+      //     (prefetch in the cycle before, with st1).
+      assert ($past(mem_raddr) == ((h_ps == PS_LD) ? h_ldaddr : h_pc));
+    end
+  end
+
+  // B4: A thread with RUN = 0 does nothing in its slot: its state does not
+  //     change and it has no side effect (isa 3.1).
+  always @* begin
+    if (!h_run) begin
+      assert (nc == st0);
+      assert (!mem_we && (ev_load == 15'd0) && !fifo_pull && !fifo_push);
+    end
+  end
+
+  // Pin events. The expected values come again from docs/isa.md, written
+  // here independently of the execute logic above.
+  wire [15:0] f_r      = st0[16*ir[7:6]+:16];         // register of field r (isa 11.2, OUT)
+  wire [15:0] f_t      = h_t + {13'd0, ir[2:0]};       // event time T + offset (isa 4.1)
+  wire [15:0] f_d      = f_t - now;                    // lead (isa 4.2)
+  wire        f_ontime = (f_d >= 16'd4) && (f_d <= 16'd32767);
+  wire        f_out    = h_run && (h_ps == PS_NONE) && (op == 4'hC) && (okind <= 3'd5);
+  wire        f_owned  = (pin != 4'd15) && pin_en[pin] && (pin_owner[2*pin+:2] == tid);
+  wire        f_bit    = (okind == 3'd0) ? 1'b0 : (okind == 3'd1) ? 1'b1 : (okind == 3'd5) ? f_r[15] : f_r[0];
+  wire        f_rel    = (okind == 3'd2) || (f_bit && pin_od[pin]);  // released (isa 4.5)
+  wire [15:0] f_lead   = ev_time - now;
+
+  always @* begin
+    // E1: The core never writes an event into a full slot, so pe_timed_out
+    //     never drops an event (isa 4.4).
+    assert ((ev_load & ~ev_ready) == 15'd0);
+    // E2: At most one event write in a cycle.
+    assert ((ev_load & (ev_load - 15'd1)) == 15'd0);
+    if (ev_load != 15'd0) begin
+      // E3: Each event is 4 to 32,767 cycles in the future when it is
+      //     written. Thus it occurs after the write (no event is applied
+      //     in the past) and before the 16-bit time comes back (isa 4.2).
+      assert ((f_lead >= 16'd4) && (f_lead <= 16'd32767));
+      // E4: Only an owned OUT writes an event, into the slot of its pin, at
+      //     T + offset when the lead is 4 to 32,767, else at now + 4 (isa
+      //     4.2, 4.3, 5.2).
+      assert (f_out && f_owned);
+      assert (ev_load == (15'd1 << pin));
+      assert (ev_time == (f_ontime ? f_t : now + 16'd4));
+      // E5: The value and the output enable of the event (isa 4.5).
+      assert (ev_value == (f_rel ? 1'b1 : f_bit));
+      assert (ev_oe == !f_rel);
+      // E6: LATE is set exactly for a late event (isa 4.3).
+      assert (n_late == (h_late || !f_ontime));
+    end
+    // E7: An owned OUT completes (PC + 1) exactly when it writes its
+    //     event; with a full slot it waits (PC kept). Thus no OUT is lost.
+    if (f_out && f_owned) begin
+      assert ((ev_load != 15'd0) == ev_ready[pin]);
+      assert ((n_pc == pc1) == ev_ready[pin]);
+      assert ((n_pc == h_pc) == !ev_ready[pin]);
+    end
+    // E8: An OUT to a pin of an other thread or to pin 15 changes no slot,
+    //     sets ERR and completes (isa 5.2).
+    if (f_out && !f_owned) begin
+      assert ((ev_load == 15'd0) && n_err && (n_pc == pc1));
+    end
+  end
+`endif
+
 endmodule

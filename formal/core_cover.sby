@@ -1,0 +1,19 @@
+# M2b: cover check of the core harness (core_fv.v). It shows that a store,
+# an event write and a START during the run can occur with the
+# assumptions of the harness, so the properties of core.sby are not empty.
+
+[options]
+mode cover
+depth 12
+
+[engines]
+smtbmc z3
+
+[script]
+read -formal pe_cycle_counter.v pe_core.v core_fv.v
+prep -top core_fv
+
+[files]
+../src/pe_cycle_counter.v
+../src/pe_core.v
+core_fv.v

@@ -826,6 +826,29 @@ module pe_core (
       assert ((ev_load == 15'd0) && n_err && (n_pc == pc1));
     end
   end
+
+  // Memory write port (isa 3.3, 8.2, 11.2): ST rs, addr = 1011 1ss- -mmm
+  // mmmm; STX rs, [ra] = 0000 0100 ssaa ----.
+  wire f_st    = (op == 4'hB) && ir[11];
+  wire f_stx   = (op == 4'h0) && (ir[11:8] == 4'h4);
+  wire f_store = h_run && (h_ps == PS_NONE) && (f_st || f_stx);
+
+  always @* begin
+    // W1: Only a running ST or STX in its slot writes the memory, and each
+    //     such store writes it. Thus, no store is lost and no other
+    //     instruction (also not an LD in its second slot) writes a word.
+    assert (mem_we == f_store);
+    if (mem_we) begin
+      // W2: The address and the data come from the fields of the store:
+      //     addr or ra mod 128, and rs.
+      assert (mem_waddr == (f_st ? ir[6:0] : st0[16*ir[5:4]+:7]));
+      assert (mem_wdata == (f_st ? st0[16*ir[10:9]+:16] : st0[16*ir[7:6]+:16]));
+      // W3: A store completes in its slot (PC + 1) and changes no other
+      //     field of the thread state.
+      assert (n_pc == pc1);
+      assert ({nc[CW-1:F_PC+7], nc[F_PC-1:0]} == {st0[CW-1:F_PC+7], st0[F_PC-1:0]});
+    end
+  end
 `endif
 
 endmodule

@@ -126,14 +126,35 @@ def pop_round_robin(threads):
     return lambda i: (CMD_POP, threads[i % len(threads)], 0)
 
 
-def apply_host(m, frame):
-    """Gives a host frame to the model. Returns the popped word for POP (or None)."""
-    cmd, arg, data = frame
+# Host commands and the slot of the same cycle:
+#   The test port command occurs at the clock edge at the end of the cycle
+#   k of its last bit. pe_host_fifo then decides with the FIFO state of
+#   cycle k, and the slot thread of cycle k also sees the state of cycle
+#   k: a host POP does not get a word that the thread pushes in cycle k,
+#   and a host PUSH to a FIFO that is full in cycle k has no effect, also
+#   if the thread pulls a word in cycle k. host_before() reads the model
+#   FIFO before the step of cycle k, host_after() changes it after the step.
+
+
+def host_before(m, frame):
+    """PUSH: True if the in-FIFO has space. POP: the head word of the out-FIFO, or None."""
+    cmd, arg, _ = frame
+    n = arg & 3
     if cmd == CMD_PUSH:
-        m.fifo_push(arg & 3, data)
-    elif cmd == CMD_POP:
-        return m.fifo_pop(arg & 3)
+        return len(m.fifo_in[n]) < pe_model.FIFO_DEPTH
+    if cmd == CMD_POP:
+        return m.fifo_out[n][0] if m.fifo_out[n] else None
     return None
+
+
+def host_after(m, frame, before):
+    cmd, arg, data = frame
+    n = arg & 3
+    if cmd == CMD_PUSH and before:
+        m.fifo_in[n].append(data & 0xFFFF)
+    elif cmd == CMD_POP and before is not None:
+        word = m.fifo_out[n].popleft()
+        assert word == before, "the model FIFO head changed in the slot"
 
 
 def frame_bits(cmd, arg, data):

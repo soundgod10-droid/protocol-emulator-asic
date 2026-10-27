@@ -980,6 +980,9 @@ async def test_core_random(dut):
         all_words += sum(len(p) for p in popped)
     dut._log.info(f"random streams: seeds {seeds}, {RANDOM_CYCLES} cycles each; {all_changes} pin changes, "
                   f"{all_words} host words in total; instruction groups executed in total {dict(sorted(total.items()))}")
+    # The random programs must reach the pins: 748 pin changes for the 24
+    # RTL seeds in the first run with this generator (2026-10-27).
+    assert all_changes >= 5 * len(seeds), f"only {all_changes} pin changes in the random programs"
     groups = {k.split(".")[0] for k in total}
     missing = [f"{op:X}" for op in range(16) if f"{op:X}" not in groups]
     assert not missing, f"opcodes never executed: {missing}"

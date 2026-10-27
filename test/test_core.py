@@ -178,11 +178,14 @@ def model_only(scn, data_addrs=None):
 
         m._store = guarded
     for c in range(scn.cycles):
-        if c and c % TP_BITS == 0:
-            apply_host(m, scn.host(c // TP_BITS - 1))
+        # Host frame i has its last bit in model cycle 26 x (i + 1) - 1.
+        fr = scn.host((c + 1) // TP_BITS - 1) if (c + 1) % TP_BITS == 0 else None
+        before = host_before(m, fr) if fr is not None else None
         ui, uio = scn.stimulus(c)
         m.set_inputs(ui, uio)
         m.step()
+        if fr is not None:
+            host_after(m, fr, before)
     return m
 
 

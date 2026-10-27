@@ -723,7 +723,7 @@ def i2c_target(ack):
 
     It records START, STOP and each bit (SDA at the SCL rising edge) with the cycle.
     """
-    st = {"scl": 1, "sda": 1, "drive": 0, "pos": 0, "events": []}
+    st = {"scl": 1, "sda": 1, "drive": 0, "pos": 0, "events": [], "high_after_bit": False}
 
     def bus(c, uo, uio, oe):
         scl = 0 if ((oe >> P_SCL) & 1 and not (uio >> P_SCL) & 1) else 1

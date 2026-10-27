@@ -371,7 +371,14 @@ module pe_core (
 
   assign mem_wdata  = ra;
   assign fifo_wdata = ra;
-  assign ev_load    = o_load ? (15'd1 << pin) : 15'd0;
+  // One-hot slot select as a decoder, not "1 << pin" (no shift cell for
+  // the SHARE pass, see the shifter).
+  genvar gp;
+  generate
+    for (gp = 0; gp < 15; gp = gp + 1) begin : g_evload
+      assign ev_load[gp] = o_load && (pin == gp);
+    end
+  endgenerate
 
   reg [15:0] alu_res;  // result of the ALU instructions that set Z and N
 

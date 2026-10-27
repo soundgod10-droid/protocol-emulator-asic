@@ -774,7 +774,8 @@ async def test_core_barrel(dut):
     m, popped, _ = await run_lockstep(dut, scn)
     assert_ended(m, popped, threads=(0, 1, 2, 3), min_words=12)
     for n in range(4):
-        assert popped[n] == [n + 4, n + 12, n], f"thread {n}: {popped[n]}"
+        # NOW in the first slot (cycle n) and in the third slot (cycle n + 8).
+        assert popped[n] == [n, n + 8, n], f"thread {n}: {popped[n]}"
 
 
 # ----- random instruction streams -----

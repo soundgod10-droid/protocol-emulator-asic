@@ -25,6 +25,9 @@ read -formal pe_cycle_counter.v
 read -formal pe_sync.v
 read -formal pe_timed_out.v
 read -formal pe_uart_tx_seq.v
+read -formal pe_test_port.v
+read -formal pe_config.v
+read -formal m1_proc_stub.v
 read -formal project.v
 read -formal uart_tx_fv.v
 hierarchy -top uart_tx_fv

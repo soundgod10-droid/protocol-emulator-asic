@@ -77,7 +77,7 @@ module pe_lat (
     output wire q
 );
 
-`ifdef PE_BEHAVIORAL_CELLS
+`ifdef PE_CELLS_BEHAVIORAL
   reg q_l;
   always @* if (g) q_l = d;
   assign q = q_l;

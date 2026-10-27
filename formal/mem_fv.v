@@ -28,11 +28,12 @@
 //   data flip-flop to 0 while the word is open, so that word gets 0. The
 //   harness has no such reset (M2b_core.md, open items).
 
-// Size: the default is the chip size. mem_small.sby sets WORDS = 8 for
-// the k-induction proof (the solver did not finish the proof of 2,048
-// latches in 30 minutes); each word has the same generated logic, and
-// the word address of the properties is free, so the small proof checks
-// the same structure. mem.sby checks the chip size with a bounded depth.
+// Size: the default is the chip size 128 x 16. Z3 did not finish a proof
+// or a 4-cycle bounded check of the 2,048 latches in 25 to 30 minutes.
+// Thus two jobs check the two dimensions: mem_small.sby 8 words x 16
+// bits (full word width) and mem.sby 128 words x 2 bits (full address
+// decoder and 128:1 read port). Each word and each bit has the same
+// generated logic, and the word address of the properties is free.
 
 // FREE_RESET = 1 (mem_reset.sby): the reset can also come at each later
 // clock level change. This shows the effect of a reset during a store.

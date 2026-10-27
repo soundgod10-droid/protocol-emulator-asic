@@ -34,7 +34,7 @@
         .equ    SCK, UIO3       ; clock
         .equ    H, 25           ; half SCK period in cycles: 50 MHz / 50 = 1 MHz
         .equ    SDLY, 2         ; sample offset: SAMPLE at T + 2 reads the pin level of cycle T
-        .equ    MARGIN, 32      ; the first OUT after TSYNC is 6 instructions later: 6 x 4 + 4 = 28, rounded up
+        .equ    MARGIN, 32      ; OUT MOSI at time T is 6 instructions after TSYNC: 6 x 4 + 4 = 28, rounded up
 
 start:  TNOW    MARGIN          ; T starts near now
         OUT     CS, 1           ; CS high: no transfer

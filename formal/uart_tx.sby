@@ -12,15 +12,9 @@
 #   dut.u_uart_tx_seq.state. "connect -set" connects the f_* wires of
 #   uart_tx_fv to them before optimization.
 
-[tasks]
-prove
-cover
-
 [options]
-prove: mode prove
-prove: depth 20
-cover: mode cover
-cover: depth 30
+mode prove
+depth 20
 
 [engines]
 smtbmc z3

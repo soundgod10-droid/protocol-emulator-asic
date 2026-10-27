@@ -1,0 +1,19 @@
+# M2b: cover check of the event slot harness (timed_out_fv.v). It shows
+# that an event with lead 4 occurs and that an event changes the pin, so
+# the properties of timed_out.sby are not empty.
+
+[options]
+mode cover
+depth 12
+
+[engines]
+smtbmc z3
+
+[script]
+read -formal pe_cycle_counter.v pe_timed_out.v timed_out_fv.v
+prep -top timed_out_fv
+
+[files]
+../src/pe_cycle_counter.v
+../src/pe_timed_out.v
+timed_out_fv.v

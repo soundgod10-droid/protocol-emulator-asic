@@ -100,6 +100,14 @@ module uart_tx_fv (
       assume (uio_in == $past(uio_in));
     end
 
+  // The same rule for TX_REQ without $past: while the design has the new
+  // TX_REQ level in synchronizer stage 0 and TX_ACK is not yet equal to
+  // it, the host keeps TX_REQ at that level. Each host that obeys the rule
+  // above also obeys this rule. Reason: k-induction can start in a state
+  // where the $past values are not valid (f_past_valid is 0); then only
+  // this rule stops TX_REQ from changing in the cycle of the take.
+  always @(*) assume ((f_rq[0] == f_ack) || (f_req == f_rq[0]));
+
   // ---------------------------------------------------------------------
   // Monitor: a reference UART receiver on the UART_TX pin.
   // ---------------------------------------------------------------------

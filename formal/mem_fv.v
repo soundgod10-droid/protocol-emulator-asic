@@ -52,10 +52,10 @@ module mem_fv #(
   reg rst_n = 1'b0;  // reset in the first cycle only
   always @(posedge clk) rst_n <= 1'b1;
 
-  reg        we = 1'b0;
-  reg [6:0]  waddr;
-  reg [15:0] wdata;
-  reg [6:0]  raddr;
+  reg          we = 1'b0;
+  reg [AW-1:0] waddr;
+  reg [15:0]   wdata;
+  reg [AW-1:0] raddr;
   always @(posedge clk) begin
     we    <= we_in;
     waddr <= waddr_in;

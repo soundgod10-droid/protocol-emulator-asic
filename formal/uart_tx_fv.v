@@ -253,9 +253,9 @@ module uart_tx_fv (
   //     before t_next, it is 0 to B-1 cycles in the future, and its value
   //     is that bit of the frame.
   always @(*)
-    if (f_v)
-      assert ((f_send || f_stop) && (f_w >= 4'd1) && (f_te == f_tnext - B) &&
-              ((f_te - f_now) <= B - 16'd1) && (f_ve == f_word[f_w - 4'd1]));
+    assert (!f_v ||
+            ((f_send || f_stop) && (f_w >= 4'd1) && (f_te == f_tnext - B) &&
+             ((f_te - f_now) <= B - 16'd1) && (f_ve == f_word[f_w - 4'd1])));
 
   // I8: In SEND with an empty slot after the first event, the last event
   //     occurred in the cycle before, so t_next is B-1 cycles away.

@@ -66,8 +66,8 @@ module mem_fv #(
   wire [15:0] rdata;
 
   pe_latch_ram #(
-      .WORDS(128),
-      .AW   (7),
+      .WORDS(WORDS),
+      .AW   (AW),
       .WIDTH(16)
   ) u_mem (
       .clk  (clk),

@@ -883,9 +883,9 @@ def rand_insn(rng, lo, hi, d0, own_pins=()):
     if k == "tadd":
         return [0x6000 | (rng.randrange(64) if rng.random() < 0.85 else rng.randrange(4096))]
     if k == "time":
-        return [0x7000 | rng.choice([0, 1, 2, 3, 4, 4, 5, 5]) << 9 | r() << 7 | rng.randrange(128)]
+        return [0x7000 | rng.choice([0, 1, 2, 2, 3, 3, 4, 4, 5, 5, 5]) << 9 | r() << 7 | rng.randrange(128)]
     if k == "twait":
-        return [0x7C00 | dash(9)]
+        return [tnow(), 0x7C00 | dash(9)]
     if k == "time_bad":
         return [0x7E00 | dash(9)]
     if k == "bcc":

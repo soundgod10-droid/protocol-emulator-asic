@@ -42,7 +42,7 @@ module pe_cg (
     output wire gclk
 );
 
-`ifdef PE_BEHAVIORAL_CELLS
+`ifdef PE_CELLS_BEHAVIORAL
   reg en_l;
   // Same function as the library cell: a latch that is open while clk is
   // low, and an AND gate.

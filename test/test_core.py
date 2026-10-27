@@ -384,7 +384,8 @@ async def test_core_alu_flags(dut):
         ("ANDI r1, 0xA5", "r1"), ("ORI r1, 0x5A", "r1"), ("XORI r1, 0xFF", "r1"),
         ("LDI r0, 0x3FF", None), ("ADD r0, r1", "r0"), ("SUB r0, r2", "r0"), ("ADDI r0, -300", "r0"),
     ]
-    scn = Scenario("alu_flags", asm((program(ops), 0)), cycles=1400, host=pop_round_robin([0]))
+    # 64 host words; the host reads one word every 26 cycles.
+    scn = Scenario("alu_flags", asm((program(ops), 0)), cycles=2200, host=pop_round_robin([0]))
     m, popped, _ = await run_lockstep(dut, scn)
     assert_ended(m, popped, min_words=60)
 

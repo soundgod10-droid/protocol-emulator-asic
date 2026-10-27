@@ -688,7 +688,9 @@ async def test_core_sample_wait(dut):
                    owner=owners({6: 1}), cycles=cycles, host=pop_round_robin([0, 1]),
                    stimulus=sample_wait_stimulus(cycles))
     m, popped, _ = await run_lockstep(dut, scn)
-    assert_ended(m, popped, want_status=(0, 0, 0, 0), threads=(0, 1), min_words=40)
+    # Thread 0 ends with LATE: the SAMPLE of input 13 has T + 0, which is
+    # already past after the SAMPLE at T + 5 (isa 4.3).
+    assert_ended(m, popped, want_status=(1, 0, 0, 0), threads=(0, 1), min_words=40)
 
 
 @cocotb.test()

@@ -31,19 +31,19 @@ hierarchy -top uart_tx_fv
 proc
 flatten
 cd uart_tx_fv
-connect -set f_rst_i  dut.rst_n_int
-connect -set f_rsync  dut.u_reset_sync.stage
-connect -set f_count  dut.cycle_count
-connect -set f_take   dut.u_uart_tx_seq.take
-connect -set f_state  dut.u_uart_tx_seq.state
-connect -set f_frame  dut.u_uart_tx_seq.frame
-connect -set f_nbits  dut.u_uart_tx_seq.nbits
-connect -set f_tnext  dut.u_uart_tx_seq.t_next
-connect -set f_v      dut.u_tx_channel.ev_valid
-connect -set f_te     dut.u_tx_channel.ev_time_q
-connect -set f_ve     dut.u_tx_channel.ev_value_q
-connect -set f_eoe    dut.u_tx_channel.ev_oe_q
-connect -set f_pin_oe dut.u_tx_channel.pin_oe
+connect -nounset -set f_rst_i  dut.rst_n_int
+connect -nounset -set f_rsync  dut.u_reset_sync.stage
+connect -nounset -set f_count  dut.cycle_count
+connect -nounset -set f_take   dut.u_uart_tx_seq.take
+connect -nounset -set f_state  dut.u_uart_tx_seq.state
+connect -nounset -set f_frame  dut.u_uart_tx_seq.frame
+connect -nounset -set f_nbits  dut.u_uart_tx_seq.nbits
+connect -nounset -set f_tnext  dut.u_uart_tx_seq.t_next
+connect -nounset -set f_v      dut.u_tx_channel.ev_valid
+connect -nounset -set f_te     dut.u_tx_channel.ev_time_q
+connect -nounset -set f_ve     dut.u_tx_channel.ev_value_q
+connect -nounset -set f_eoe    dut.u_tx_channel.ev_oe_q
+connect -nounset -set f_pin_oe dut.u_tx_channel.pin_oe
 cd ..
 prep -top uart_tx_fv
 

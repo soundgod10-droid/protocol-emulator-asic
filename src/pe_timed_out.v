@@ -177,10 +177,15 @@ module pe_timed_out #(
     end
   end
 
+  // The covers are for the harness of this slot only (timed_out_cover.sby
+  // defines the macro). In the M1 proof the sequencer leads are hundreds
+  // of cycles, so a lead of 4 is not reachable in its cover depth.
+`ifdef PE_TIMED_OUT_COVER
   always @* begin
     cover (m_due && f_ok && (m_d == 17'd4));  // an event with lead 4 occurs
     cover (m_due && f_ok && (m_pv != m_v));   // an event changes the pin
   end
+`endif
 `endif
 
 endmodule

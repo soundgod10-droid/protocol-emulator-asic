@@ -842,7 +842,14 @@ def rand_insn(rng, lo, hi, d0, own_pins=()):
         return rng.randrange(13) if rng.random() < 0.95 else rng.randrange(16)
 
     def tgt():
-        return rng.randint(lo, hi)
+        # Forward targets only (lo is the address of this instruction), so
+        # that the program does not stay in a short loop; the code of each
+        # thread ends with a JMP to its start.
+        return rng.randint(min(lo + 1, hi), hi)
+
+    def tnow():
+        # TNOW 8 to 127: T near now, so that a following wait is short.
+        return 0x7000 | 4 << 9 | rng.randrange(8, 128)
 
     def dash(bits):
         return rng.randrange(1 << bits)

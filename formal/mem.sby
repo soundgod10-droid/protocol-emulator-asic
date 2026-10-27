@@ -11,10 +11,11 @@
 
 [options]
 mode prove
+depth 8
 multiclock on
 
 [engines]
-abc pdr
+smtbmc z3
 
 [script]
 read -formal pe_cells.v pe_latch_ram.v mem_fv.v

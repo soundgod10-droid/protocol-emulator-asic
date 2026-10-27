@@ -881,21 +881,23 @@ def random_scenario(seed, cycles):
     """A random program for 4 threads that the model accepts. Returns (scenario, attempts)."""
     rng = random.Random(seed)
     for attempt in range(1, 200):
+        # Pin owners first: 1 pin in 10 has no owner.
+        owner = [rng.choice([0, 1, 2, 3]) if rng.random() < 0.9 else None for _ in range(pe_model.N_OUT)]
+        od = [rng.random() < 0.3 for _ in range(pe_model.N_OUT)]
         image = [0] * 128
         data_addrs = set()
         for n in range(4):
             lo, hi, d0 = 32 * n, 32 * n + 27, 32 * n + 28
+            mine = [p for p in range(pe_model.N_OUT) if owner[p] == n]
             words = []
             while len(words) < 28:
-                words += rand_insn(rng, lo, hi, d0)
+                words += rand_insn(rng, lo, hi, d0, mine)
             image[lo:lo + 28] = words[:28]
             image[d0:d0 + 4] = [rng.randrange(0x10000) for _ in range(4)]
             data_addrs.update(range(d0, d0 + 4))
         run = [rng.random() < 0.9 for _ in range(4)]
         run[rng.randrange(4)] = True
         start_pc = [32 * n + rng.randrange(4) for n in range(4)]
-        owner = [rng.choice([None, 0, 1, 2, 3]) for _ in range(pe_model.N_OUT)]
-        od = [rng.random() < 0.3 for _ in range(pe_model.N_OUT)]
         host_rng = random.Random(seed * 1000 + attempt)
         host_frames = []
         for _ in range(cycles // TP_BITS + 2):

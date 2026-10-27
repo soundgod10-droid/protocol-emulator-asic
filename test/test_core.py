@@ -992,3 +992,62 @@ async def test_core_random(dut):
     groups = {k.split(".")[0] for k in total}
     missing = [f"{op:X}" for op in range(16) if f"{op:X}" not in groups]
     assert not missing, f"opcodes never executed: {missing}"
+
+
+# ----- firmware on the RTL -----
+
+
+def m1_test_module():
+    """test/test.py (M1 test): its UART receiver model and frame checks are independent of the processor."""
+    mod = sys.modules.get("test")
+    if mod is not None and hasattr(mod, "UartRx"):
+        return mod
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("m1_uart_test", os.path.join(ROOT, "test", "test.py"))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+FW_UART_BYTES = [0x55, 0x00, 0xFF, 0xAA, 0x01, 0x80, 0x0F, 0xF0, 0x3C, 0xC3, 0x12, 0xED]
+
+
+@cocotb.test()
+async def test_core_fw_uart_tx(dut):
+    """fw/uart_tx.s on the RTL: 12 back-to-back frames on UART_TX, decoded by the receiver of test/test.py.
+
+    The firmware runs on thread 0 and owns pin 12 (UO4 = uo_out[4]). The host
+    gives 4 bytes at once (the FIFO depth), then one byte every 160 frames
+    (4,160 cycles, shorter than one UART frame of 4,340 cycles), so the FIFO
+    never becomes empty and the frames are back to back. The run is also in
+    lockstep with the model.
+    """
+    m1 = m1_test_module()
+    prog = pe_asm.assemble_file(os.path.join(ROOT, "fw", "uart_tx.s"))
+    pushes = {i: b for i, b in enumerate(FW_UART_BYTES[:4])}
+    for k, b in enumerate(FW_UART_BYTES[4:]):
+        pushes[4 + 160 * (k + 1)] = b
+
+    def host(i):
+        if i in pushes:
+            return (CMD_PUSH, 0, pushes[i])
+        return (CMD_NOP, 0, 0)
+
+    frame_cycles = 10 * m1.BIT_CYCLES
+    cycles = (len(FW_UART_BYTES) + 1) * frame_cycles + 600
+    scn = Scenario("fw uart_tx", prog.image(), owner=owners({12: 0}), cycles=cycles, host=host)
+    mon = m1.LineMonitor(dut.uart_tx)
+    rx = m1.UartRx(dut.uart_tx)
+
+    def start_monitors():
+        cocotb.start_soon(mon.run())
+        cocotb.start_soon(rx.run())
+
+    m, _, _ = await run_lockstep(dut, scn, after_reset=start_monitors)
+    dut._log.info(f"fw/uart_tx.s: {prog.size} words; UART_TX changes recorded: {len(mon.changes)}")
+    m1.check_stream(dut._log, mon, rx, FW_UART_BYTES, "fw uart_tx on the RTL", back_to_back=True)
+    t0 = rx.frames[0][0]
+    dut._log.info(f"fw uart_tx on the RTL: first start edge (0x55) at {t0} ps, second at {rx.frames[1][0]} ps; "
+                  f"frame start to next start {rx.frames[1][0] - t0} ps = {(rx.frames[1][0] - t0) / m1.CLK_PS:.1f} cycles")
+    th = m.threads[0]
+    assert th.run and th.status == 0, f"thread 0: run {th.run}, status {th.status}"

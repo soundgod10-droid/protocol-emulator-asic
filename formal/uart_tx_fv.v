@@ -367,6 +367,7 @@ module uart_tx_fv (
     cover (f_take);
     cover (f_start);
     cover (m_busy && (m_bit == 4'd0) && (m_cnt == 16'd2));
+    cover (h_req && f_send);  // a request waits while a frame is sent (P8)
   end
 
 endmodule

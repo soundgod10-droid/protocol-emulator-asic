@@ -100,4 +100,48 @@ module pe_latch_ram #(
   wire [AW+WB-1:0] rbase = {raddr, {WB{1'b0}}};
   assign rdata = q[rbase+:WIDTH];
 
+`ifdef FORMAL
+  // ---------------------------------------------------------------------
+  // Formal properties (formal/mem.sby with the harness formal/mem_fv.v).
+  // Only Yosys with the FORMAL macro reads this block. The harness gives
+  // a clock signal that changes at each solver step (multiclock), so the
+  // latches and the clock gates are checked at both clock levels, not as
+  // flip-flops. The solver chooses one word f_a; the properties hold for
+  // each word because f_a is free.
+  // ---------------------------------------------------------------------
+  (* anyconst *) reg [AW-1:0] f_a;
+  reg              f_valid = 1'b0;  // a write request to word f_a occurred
+  reg  [WIDTH-1:0] f_word;          // the data of the last such request
+  wire [WIDTH-1:0] f_q = q[{f_a, {WB{1'b0}}}+:WIDTH];  // the latches of word f_a
+
+  always @(posedge clk) begin
+    if (we && (waddr == f_a)) begin
+      f_valid <= 1'b1;
+      f_word  <= wdata;
+    end
+  end
+
+  always @* begin
+    // M1: At most one word is open, and only while clk is 1 (the first
+    //     half of a cycle). Thus, a store writes one word only.
+    assert ((f_gclk & (f_gclk - 1'b1)) == {WORDS{1'b0}});
+    assert (clk || (f_gclk == {WORDS{1'b0}}));
+    // M2: Word f_a is open only in the cycle after a write request to it,
+    //     and then the latch input is the data of that request.
+    if (f_gclk[f_a]) assert (f_valid && (wdata_q == f_word));
+    // M3: After a write request, word f_a has its data from the clock
+    //     edge at the end of the request cycle until the next request to
+    //     f_a. No request to an other word and no clock edge changes it.
+    //     Before the first request the content is not defined (no reset,
+    //     docs/isa.md 2.4).
+    if (f_valid) assert (f_q == f_word);
+    // M4: The read port gives word raddr.
+    if (f_valid && (raddr == f_a)) assert (rdata == f_word);
+  end
+
+  always @* begin
+    cover (f_valid && f_gclk[f_a] && (raddr == f_a));  // read of the word while it is written
+  end
+`endif
+
 endmodule

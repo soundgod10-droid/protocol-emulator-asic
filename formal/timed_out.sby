@@ -1,0 +1,24 @@
+# M2b: formal proof of the event slot properties (pe_timed_out `ifdef
+# FORMAL: T1 to T6) with the harness timed_out_fv.v. The monitor keeps the
+# cycle count of the event in the slot, so the properties are inductive
+# with a small depth: the proof holds for all leads 1 to 65,536 cycles,
+# not only for the leads that a bounded check can reach.
+
+[options]
+mode prove
+depth 4
+
+[engines]
+smtbmc z3
+
+[script]
+read -formal pe_cycle_counter.v pe_timed_out.v timed_out_fv.v
+prep -top timed_out_fv
+# The job stops with an error if Yosys removed properties (9 asserts are
+# written in pe_timed_out).
+select -assert-min 9 t:$check t:$assert
+
+[files]
+../src/pe_cycle_counter.v
+../src/pe_timed_out.v
+timed_out_fv.v

@@ -288,11 +288,9 @@ module uart_tx_fv (
 
   // I13: Activity after reset means that a byte was taken; the reset
   //      synchronizer releases stage 1 only after stage 0.
-  always @(*) begin
-    if (!f_idle || m_busy || m_pend) assert (m_seen);
-    if (f_rsync[1]) assert (f_rsync[0]);
-    assert (!(f_start && f_take));
-  end
+  always @(*) assert (f_idle && !m_busy && !m_pend || m_seen);
+  always @(*) assert (!f_rsync[1] || f_rsync[0]);
+  always @(*) assert (!(f_start && f_take));
 
   // ---------------------------------------------------------------------
   // Cover: the frame start can occur (the properties are not empty).

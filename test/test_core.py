@@ -262,6 +262,7 @@ async def run_lockstep(dut, scn):
     ro, ro_known = 0, 0x1FFFF  # copy of the readout register; known bits
     t0 = None  # test bench cycle of model cycle 0
     popped = [[] for _ in range(4)]
+    pop_result = {}  # test bench cycle of a POP command -> word (or None)
     pin_changes = 0
     last_pins = RESET_PINS
     compared_states = 0

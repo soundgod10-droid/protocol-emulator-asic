@@ -824,7 +824,7 @@ KINDS = {
 
 
 def rand_insn(rng, lo, hi, d0, own_pins=()):
-    """Words of one random instruction (or a short sequence) for code at lo..hi, data at d0..d0+3.
+    """Words of one random instruction (or a short sequence) at address lo; code ends at hi, data at d0..d0+3.
 
     own_pins: output pins that the thread owns. Most OUT instructions use
     them, so that the event slots and pins change (an OUT to a pin of an

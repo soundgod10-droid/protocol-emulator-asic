@@ -78,6 +78,7 @@ module tt_um_soundgod10_droid_protocol_emulator (
 
   // D2 cycle counter: the common time base of all pin events.
   wire [31:0] cycle_count;
+  wire        tp_start;  // test port START (declared here, used by the counter)
   pe_cycle_counter #(
       .WIDTH(32)
   ) u_cycle_counter (

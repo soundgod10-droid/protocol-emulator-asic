@@ -817,7 +817,7 @@ async def test_fw_i2c_outline(dut):
     b.run(2000)
     check_i2c(dut._log, st, words + [0x355], [0, 0, 0, 1], "i2c outline")
     assert b.words(0) == [0, 0, 0, 1], b.words(0)
-    check_i2c_times(dut._log, st, "i2c outline")
+    check_i2c_times(dut._log, st, b.changes("scl"), "i2c outline")
     assert_status_clean(m, [0])
 
 

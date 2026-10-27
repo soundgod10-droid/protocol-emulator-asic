@@ -15,9 +15,6 @@ ifneq ($(GATES),yes)
 # RTL simulation:
 SIM_BUILD				= sim_build/rtl
 VERILOG_SOURCES += $(addprefix $(SRC_DIR)/,$(PROJECT_SOURCES))
-# Behavioral models of the latch and clock-gate cells (src/pe_cells.v);
-# the gate-level simulation uses the library cell models.
-COMPILE_ARGS    += -DPE_BEHAVIORAL_CELLS
 
 else
 

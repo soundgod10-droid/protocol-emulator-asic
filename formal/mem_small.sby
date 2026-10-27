@@ -1,0 +1,28 @@
+# M2b: k-induction proof of the latch memory properties (pe_latch_ram
+# `ifdef FORMAL: M1 to M4) on an 8 x 16 instance of the same module, with
+# the harness mem_fv.v. The word address of the properties is free and
+# each word has the same generated logic, so this checks the structure of
+# the 128 x 16 chip memory. mem.sby checks the chip size (bounded).
+# multiclock: the clock is a signal that changes at each solver step, and
+# the latches are level-sensitive elements, not flip-flops.
+
+[options]
+mode prove
+depth 8
+multiclock on
+
+[engines]
+smtbmc z3
+
+[script]
+read -formal pe_cells.v pe_latch_ram.v mem_fv.v
+chparam -set WORDS 8 -set AW 3 mem_fv
+prep -top mem_fv
+# The job stops with an error if Yosys removed properties (5 asserts are
+# written in pe_latch_ram).
+select -assert-min 5 t:$check t:$assert
+
+[files]
+../src/pe_cells.v
+../src/pe_latch_ram.v
+mem_fv.v

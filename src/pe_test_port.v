@@ -15,8 +15,8 @@
 //   most significant bit first:
 //     frame[25:23] command, frame[22:16] argument, frame[15:0] data
 //   Commands:
-//     1 MEMW   memory word \"argument\" = data
-//     2 CFG    configuration register \"argument\" = data (pe_config)
+//     1 MEMW   memory word at address argument = data
+//     2 CFG    configuration register at address argument = data (pe_config)
 //     3 START  clear the cycle counter and start the threads (pe_core)
 //     4 PUSH   write data into the host-to-thread FIFO of thread argument[1:0]
 //     5 POP    take the head word of the thread-to-host FIFO of thread

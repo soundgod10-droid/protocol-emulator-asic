@@ -91,6 +91,10 @@ module uart_tx_fv (
   // The check starts in reset.
   initial assume (!rst_n);
 
+  // M1 mode (M2b): CORE_SEL = ui_in[7] is 0, so the M1 pins are on
+  // uo_out and uio. The M2b processor and its test port are then off.
+  always @(*) assume (!ui_in[7]);
+
   // The host sets TX_REQ to 0 during reset (TX_ACK is 0 after reset).
   always @(*) if (!rst_n) assume (!f_req);
 

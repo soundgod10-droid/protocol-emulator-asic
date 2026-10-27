@@ -59,10 +59,10 @@ module mem_fv #(
   always @(posedge clk) rst_q <= 1'b1;
   wire rst_n = (FREE_RESET != 0) ? (rst_q && rst_in) : rst_q;
 
-  reg          we = 1'b0;
-  reg [AW-1:0] waddr;
-  reg [15:0]   wdata;
-  reg [AW-1:0] raddr;
+  reg             we = 1'b0;
+  reg [AW-1:0]    waddr;
+  reg [WIDTH-1:0] wdata;
+  reg [AW-1:0]    raddr;
   always @(posedge clk) begin
     we    <= we_in;
     waddr <= waddr_in;

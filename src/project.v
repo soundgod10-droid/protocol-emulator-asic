@@ -83,6 +83,7 @@ module tt_um_soundgod10_droid_protocol_emulator (
   ) u_cycle_counter (
       .clk  (clk),
       .rst_n(rst_n_int),
+      .clear(tp_start),    // thread start: first thread cycle is cycle 0
       .count(cycle_count)
   );
 

@@ -144,17 +144,125 @@ module tt_um_soundgod10_droid_protocol_emulator (
       .pin_oe   (tx_oe)
   );
 
-  // All output pins must be assigned. If not used, assign to 0.
-  //   uo_out[7:6] = 0, [5] = TX_ACK, [4] = UART_TX, [3:0] = 0
-  assign uo_out  = {2'b00, tx_ack, tx_pin, 4'b0000};
-  assign uio_out = 8'h00;
-  assign uio_oe  = 8'h00;  // all uio pins are inputs (TX_DATA)
+  // ---------------------------------------------------------------------
+  // M2b processor and its TEMPORARY test port
+  // ---------------------------------------------------------------------
 
-  // Signals with no load in M1:
+  // CORE_SEL, TP_CLK and TP_DAT come from the test bench without a
+  // relation to our clock: 2-stage synchronizers. TP_CLK and TP_DAT have
+  // the same delay, so each bit arrives with its clock level change.
+  wire core_sel;
+  wire tp_clk;
+  wire tp_dat;
+  pe_sync2 u_core_sel_sync (
+      .clk  (clk),
+      .rst_n(rst_n_int),
+      .d    (ui_in[7]),
+      .q    (core_sel)
+  );
+  pe_sync2 u_tp_clk_sync (
+      .clk  (clk),
+      .rst_n(rst_n_int),
+      .d    (ui_in[6]),
+      .q    (tp_clk)
+  );
+  pe_sync2 u_tp_dat_sync (
+      .clk  (clk),
+      .rst_n(rst_n_int),
+      .d    (ui_in[5]),
+      .q    (tp_dat)
+  );
+
+  wire        tp_mem_we;
+  wire        tp_cfg_we;
+  wire        tp_push;
+  wire        tp_pop;
+  wire [6:0]  tp_arg;
+  wire [15:0] tp_data;
+  wire        tp_out;
+  wire        h_out_valid;
+  wire [15:0] h_out_data;
+
+  // TEMPORARY: M2c replaces it with the host SPI port (A1 block D7).
+  pe_test_port u_test_port (
+      .clk           (clk),
+      .rst_n         (rst_n_int),
+      .active        (core_sel),
+      .tp_clk        (tp_clk),
+      .tp_dat        (tp_dat),
+      .ro_bit        (tp_out),
+      .mem_we        (tp_mem_we),
+      .cfg_we        (tp_cfg_we),
+      .start         (tp_start),
+      .fifo_push     (tp_push),
+      .fifo_pop      (tp_pop),
+      .arg           (tp_arg),
+      .data          (tp_data),
+      .fifo_out_valid(h_out_valid),
+      .fifo_out_data (h_out_data)
+  );
+
+  wire [27:0] start_pc;
+  wire [3:0]  run_mask;
+  wire [29:0] pin_owner;
+  wire [14:0] pin_en;
+  wire [14:0] pin_od;
+  pe_config u_config (
+      .clk      (clk),
+      .rst_n    (rst_n_int),
+      .we       (tp_cfg_we),
+      .addr     (tp_arg),
+      .data     (tp_data),
+      .start_pc (start_pc),
+      .run_mask (run_mask),
+      .pin_owner(pin_owner),
+      .pin_en   (pin_en),
+      .pin_od   (pin_od)
+  );
+
+  wire [14:0] pin_v;
+  wire [14:0] pin_oe;
+  pe_proc u_proc (
+      .clk        (clk),
+      .rst_n      (rst_n_int),
+      .now        (cycle_count[15:0]),
+      .start      (tp_start),
+      .start_pc   (start_pc),
+      .run_mask   (run_mask),
+      .pin_owner  (pin_owner),
+      .pin_en     (pin_en),
+      .pin_od     (pin_od),
+      .h_mem_we   (tp_mem_we),
+      .h_mem_addr (tp_arg),
+      .h_mem_data (tp_data),
+      .h_tid      (tp_arg[1:0]),
+      .h_push     (tp_push),
+      .h_wdata    (tp_data),
+      .h_pop      (tp_pop),
+      .h_out_valid(h_out_valid),
+      .h_out_data (h_out_data),
+      .ui_in      (ui_in[4:0]),
+      .uio_in     (uio_in),
+      .pin_v      (pin_v),
+      .pin_oe     (pin_oe)
+  );
+
+  // All output pins must be assigned. If not used, assign to 0.
+  // M1 mode:        uo_out[7:6] = 0, [5] = TX_ACK, [4] = UART_TX, [3:0] = 0,
+  //                 uio all inputs.
+  // Processor mode: uo_out[7] = TP_OUT, [6:0] = V of pins 14 to 8; uio_out
+  //                 and uio_oe = V and OE of pins 7 to 0. A uo_out pin has
+  //                 no enable, so a released pin shows V = 1 (docs/isa.md 4.5).
+  // core_sel is a flip-flop output, so the selection does not change in a cycle.
+  assign uo_out  = core_sel ? {tp_out, pin_v[14:8]} : {2'b00, tx_ack, tx_pin, 4'b0000};
+  assign uio_out = core_sel ? pin_v[7:0] : 8'h00;
+  assign uio_oe  = core_sel ? pin_oe[7:0] : 8'h00;
+
+  // Signals with no load:
   //   ena: always 1 (template).
-  //   ui_in[7:1]: host SPI and protocol inputs come in later milestones.
-  //   cycle_count[31:16]: M2 time capture will read them.
-  //   tx_oe: uo_out pins have no output enable; uio pins will use it.
-  wire _unused = &{ena, ui_in[7:1], cycle_count[31:16], tx_oe, 1'b0};
+  //   cycle_count[31:16]: docs/isa.md uses only the low 16 bits (now).
+  //   tx_oe: uo_out pins have no output enable.
+  //   pin_oe[14:8]: the same for the processor pins on uo_out.
+  wire _unused = &{ena, cycle_count[31:16], tx_oe, pin_oe[14:8], 1'b0};
 
 endmodule

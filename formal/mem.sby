@@ -10,8 +10,7 @@
 # reads in each half cycle.
 
 [options]
-mode bmc
-depth 8
+mode prove
 multiclock on
 
 [engines]

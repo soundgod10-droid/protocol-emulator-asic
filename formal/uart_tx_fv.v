@@ -149,6 +149,26 @@ module uart_tx_fv (
     end
   end
 
+  // m_age:  clock cycles from the last take (stops at the maximum value).
+  // h_wait: clock cycles that the sampled request level (synchronizer
+  //         stage 0) is not equal to TX_ACK, that is, how long a host
+  //         request waits for its acknowledge.
+  reg [15:0] m_age;
+  reg [15:0] h_wait;
+  wire       h_req = (f_rq[0] != f_ack);  // a request was sampled and waits
+
+  always @(posedge clk or negedge f_rst_i) begin
+    if (!f_rst_i) begin
+      m_age  <= 16'd0;
+      h_wait <= 16'd0;
+    end else begin
+      if (f_take) m_age <= 16'd0;
+      else if (m_age != 16'hFFFF) m_age <= m_age + 16'd1;
+      if (!h_req) h_wait <= 16'd0;
+      else if (h_wait != 16'hFFFF) h_wait <= h_wait + 16'd1;
+    end
+  end
+
   reg f_pin_q;
   always @(posedge clk) f_pin_q <= f_pin;
 

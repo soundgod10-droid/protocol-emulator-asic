@@ -1,10 +1,9 @@
 # uart_tx.sby: formal check of the M1 UART transmitter (SymbiYosys, Z3).
 #
-# Tasks:
-#   prove  k-induction. It proves P1 to P6 and the invariants I0 to I13
-#          in uart_tx_fv.v for all time, not only for a number of cycles.
-#   cover  It shows that a byte is taken and that a frame starts, so the
-#          properties are not true only because nothing occurs.
+# Mode: prove (k-induction). It proves P1 to P6 and the invariants I0 to
+# I13 in uart_tx_fv.v for all time, not only for a number of cycles.
+# uart_tx_cover.sby shows that a byte is taken and that a frame starts,
+# so the properties are not true only because nothing occurs.
 #
 # Why the script flattens the design and uses "connect -set":
 #   The Yosys on this workstation does not read hierarchical names in a

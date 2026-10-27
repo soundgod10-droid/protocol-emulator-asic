@@ -55,14 +55,14 @@ pinout:
   uo[7]: "TP_OUT (M2b test port, temporary)"
 
   # Bidirectional pins
-  uio[0]: "TX_DATA[0] in (M1, temporary)"
-  uio[1]: "TX_DATA[1] in (M1, temporary)"
-  uio[2]: "TX_DATA[2] in (M1, temporary)"
-  uio[3]: "TX_DATA[3] in (M1, temporary)"
-  uio[4]: "TX_DATA[4] in (M1, temporary)"
-  uio[5]: "TX_DATA[5] in (M1, temporary)"
-  uio[6]: "TX_DATA[6] in (M1, temporary)"
-  uio[7]: "TX_DATA[7] in (M1, temporary)"
+  uio[0]: "TX_DATA[0] in (M1, temporary) / processor pin 0"
+  uio[1]: "TX_DATA[1] in (M1, temporary) / processor pin 1"
+  uio[2]: "TX_DATA[2] in (M1, temporary) / processor pin 2"
+  uio[3]: "TX_DATA[3] in (M1, temporary) / processor pin 3"
+  uio[4]: "TX_DATA[4] in (M1, temporary) / processor pin 4"
+  uio[5]: "TX_DATA[5] in (M1, temporary) / processor pin 5"
+  uio[6]: "TX_DATA[6] in (M1, temporary) / processor pin 6"
+  uio[7]: "TX_DATA[7] in (M1, temporary) / processor pin 7"
 
 # Do not change!
 yaml_version: 6

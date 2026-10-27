@@ -58,5 +58,8 @@ prep -top uart_tx_fv
 ../src/pe_sync.v
 ../src/pe_timed_out.v
 ../src/pe_uart_tx_seq.v
+../src/pe_test_port.v
+../src/pe_config.v
+m1_proc_stub.v
 ../src/project.v
 uart_tx_fv.v

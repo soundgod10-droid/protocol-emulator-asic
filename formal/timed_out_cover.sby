@@ -10,7 +10,7 @@ depth 12
 smtbmc z3
 
 [script]
-read -formal pe_cycle_counter.v pe_timed_out.v timed_out_fv.v
+read -formal -DPE_TIMED_OUT_COVER pe_cycle_counter.v pe_timed_out.v timed_out_fv.v
 prep -top timed_out_fv
 
 [files]

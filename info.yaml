@@ -30,7 +30,6 @@ project:
     - "pe_test_port.v"
     - "pe_core.v"
     - "pe_proc.v"
-    - "pe_rf_alt.v"
 
 # The pinout of your project. Leave unused pins blank. DO NOT delete or add any pins.
 # This section is for the datasheet/website. Use descriptive names (e.g., RX, TX, MOSI, SCL, SEG_A, etc.).

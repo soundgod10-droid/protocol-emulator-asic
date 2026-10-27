@@ -1,13 +1,11 @@
-# M2b: bounded check of the latch memory properties (pe_latch_ram `ifdef
-# FORMAL: M1 to M4) at the chip size 128 x 16 with the harness mem_fv.v.
-# multiclock: the clock is a signal that changes at each solver step, and
-# the latches are level-sensitive elements, not flip-flops.
-# Bounded, not a proof: k-induction of the 2,048 latches gave no result
-# in 30 minutes. The proof for all time is mem_small.sby (8 x 16, same
-# generated logic for each word, free word address). This job checks
-# that the chip-size address decoder and the 128:1 read port agree.
-# 8 steps = 4 clock cycles: a write request, the write, an overwrite and
-# reads in each half cycle.
+# M2b: k-induction proof of the latch memory properties (pe_latch_ram
+# `ifdef FORMAL: M1 to M4) with all 128 words of the chip and a 2-bit
+# word (mem_fv.v WIDTH = 2), so that the full address decoder, the 128
+# clock gates and the 128:1 read port are checked. mem_small.sby checks
+# the full 16-bit word width with 8 words. Z3 did not finish the 128 x 16
+# instance (proof: no result in 30 minutes; 4-cycle BMC: no result in 25
+# minutes). multiclock: the clock is a signal that changes at each solver
+# step, and the latches are level-sensitive elements, not flip-flops.
 
 [options]
 mode prove

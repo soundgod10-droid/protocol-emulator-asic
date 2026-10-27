@@ -325,6 +325,33 @@ module uart_tx_fv (
   always @(*) assert (!f_rsync[1] || f_rsync[0]);
   always @(*) assert (!(f_start && f_take));
 
+  // H1: A request that is in stage 0 but not yet in stage 1 of the
+  //     synchronizer arrived in this cycle, so its wait is 0.
+  always @(*) assert (!(h_req && (f_rq[1] == f_ack)) || (h_wait == 16'd0));
+
+  // H2: While a request waits in stage 1, stage 0 has the same level
+  //     (the host does not change TX_REQ before TX_ACK).
+  always @(*) assert ((f_rq[1] == f_ack) || (f_rq[0] == f_rq[1]));
+
+  // H3: A request that waits came after the last take, so its wait is
+  //     not longer than the age of the last take.
+  always @(*) assert (!h_req || (h_wait <= m_age));
+
+  // H4: Before the start bit is on the pin, the age of the take and the
+  //     cycles to the start bit together are not more than B-2.
+  always @(*)
+    assert (!(f_send && !f_started) ||
+            ((m_age <= B - 16'd2) && (f_until <= B - 16'd2 - m_age)));
+
+  // H5: After the start bit, the age of the take is not more than the
+  //     time from the start bit plus B-2.
+  always @(*) assert (!f_started || (m_age <= f_since + B - 16'd2));
+
+  // H6: In IDLE, a request in stage 1 waited not more than 11*B-1 cycles
+  //     (it came in the frame before, or in the cycle before).
+  always @(*)
+    assert (!(f_idle && (f_rq[1] != f_ack)) || (h_wait <= B * 16'd11 - 16'd1));
+
   // ---------------------------------------------------------------------
   // Cover: the frame start can occur (the properties are not empty).
   // ---------------------------------------------------------------------

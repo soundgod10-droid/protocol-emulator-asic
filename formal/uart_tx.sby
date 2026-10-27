@@ -1,0 +1,61 @@
+# uart_tx.sby: formal check of the M1 UART transmitter (SymbiYosys, Z3).
+#
+# Tasks:
+#   prove  k-induction. It proves P1 to P6 and the invariants I0 to I13
+#          in uart_tx_fv.v for all time, not only for a number of cycles.
+#   cover  It shows that a byte is taken and that a frame starts, so the
+#          properties are not true only because nothing occurs.
+#
+# Why the script flattens the design and uses "connect -set":
+#   The Yosys on this workstation does not read hierarchical names in a
+#   property. After "flatten", the internal registers have names such as
+#   dut.u_uart_tx_seq.state. "connect -set" connects the f_* wires of
+#   uart_tx_fv to them before optimization.
+
+[tasks]
+prove
+cover
+
+[options]
+prove: mode prove
+prove: depth 20
+cover: mode cover
+cover: depth 30
+
+[engines]
+smtbmc z3
+
+[script]
+read -formal pe_cycle_counter.v
+read -formal pe_sync.v
+read -formal pe_timed_out.v
+read -formal pe_uart_tx_seq.v
+read -formal project.v
+read -formal uart_tx_fv.v
+hierarchy -top uart_tx_fv
+proc
+flatten
+cd uart_tx_fv
+connect -set f_rst_i  dut.rst_n_int
+connect -set f_rsync  dut.u_reset_sync.stage
+connect -set f_count  dut.cycle_count
+connect -set f_take   dut.u_uart_tx_seq.take
+connect -set f_state  dut.u_uart_tx_seq.state
+connect -set f_frame  dut.u_uart_tx_seq.frame
+connect -set f_nbits  dut.u_uart_tx_seq.nbits
+connect -set f_tnext  dut.u_uart_tx_seq.t_next
+connect -set f_v      dut.u_tx_channel.ev_valid
+connect -set f_te     dut.u_tx_channel.ev_time_q
+connect -set f_ve     dut.u_tx_channel.ev_value_q
+connect -set f_eoe    dut.u_tx_channel.ev_oe_q
+connect -set f_pin_oe dut.u_tx_channel.pin_oe
+cd ..
+prep -top uart_tx_fv
+
+[files]
+../src/pe_cycle_counter.v
+../src/pe_sync.v
+../src/pe_timed_out.v
+../src/pe_uart_tx_seq.v
+../src/project.v
+uart_tx_fv.v

@@ -821,12 +821,23 @@ async def test_fw_i2c_outline(dut):
     assert_status_clean(m, [0])
 
 
-def check_i2c_times(log, st, label):
-    """SCL high >= 30 cycles (0.6 us), SCL low >= 65 cycles (1.3 us), bit time 126 cycles (A1 section 3)."""
-    bits = [e[0] for e in st["events"] if e[1] == "BIT"]
-    period = {b - a for a, b in zip(bits, bits[1:]) if b - a < 200}
-    assert period == {126}, f"{label}: bit periods {sorted(period)} cycles"
-    log.info(f"{label}: SCL period 126 cycles (396.8 kHz)")
+def check_i2c_times(log, st, scl, label):
+    """Bit period 126 cycles in each byte; SCL high >= 30 cycles (0.6 us), low >= 65 cycles (1.3 us) (A1 section 3)."""
+    groups, bits = [], []
+    for e in st["events"]:
+        if e[1] != "BIT":
+            bits = []
+            continue
+        bits.append(e[0])
+        if len(bits) == 9:
+            groups.append(bits)
+            bits = []
+    periods = {b - a for g in groups for a, b in zip(g, g[1:])}
+    assert periods == {126}, f"{label}: bit periods {sorted(periods)} cycles"
+    highs = [b[0] - a[0] for a, b in zip(scl, scl[1:]) if a[1] == 2]  # 2 = released: the pull-up makes SCL high
+    lows = [b[0] - a[0] for a, b in zip(scl, scl[1:]) if a[1] == 0]
+    assert min(highs) >= 30 and min(lows) >= 65, f"{label}: SCL high min {min(highs)}, low min {min(lows)} cycles"
+    log.info(f"{label}: {len(groups)} bytes, bit period 126 cycles (396.8 kHz), SCL high min {min(highs)}, low min {min(lows)} cycles")
 
 
 @cocotb.test()

@@ -672,16 +672,23 @@ async def test_fw_uart_tx_word_near_end_of_stop_bit(dut):
     b, _ = tx_bench()
     rng = random.Random(15)
     data = []
-    for delay in range(FRAME - 64, FRAME + 16, 4):
+    deltas = list(range(-64, 16, 4))  # host word time minus end of the stop bit, in cycles
+    t_end = 0
+    for delta in deltas:
         byte = rng.randrange(256)
         data.append(byte)
         b.send(0, byte)
-        while b.to_thread[0] or b.m.fifo_in[0]:  # until the thread took the word
+        while True:  # run until the start edge of this frame (first 0 after the end of the last frame)
             b.run(1)
-        b.run(delay)
+            c, v = b.changes("tx")[-1]
+            if v == 0 and c >= t_end:
+                break
+        t_end = c + FRAME  # cycle in which the line can show the next start bit (end of the stop bit)
+        b.run(t_end + delta - b.m.cycle)
     b.run(12 * BIT_CYCLES)
     frames = uart_frames(b.changes("tx"))
     gaps = check_uart(dut._log, b.changes("tx"), frames, data, "uart_tx word near end of stop bit", back_to_back=False)
+    dut._log.info("uart_tx word near end of stop bit: (delta, start-to-start) " + str(list(zip(deltas, gaps))))
     assert min(gaps) == FRAME and max(gaps) > FRAME, f"both cases (chained, idle gap) must occur: {sorted(set(gaps))}"
     assert_status_clean(b.m, [0])
 

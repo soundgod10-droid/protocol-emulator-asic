@@ -21,10 +21,20 @@
 //   near the clock edge, and the glitch can write a wrong word. The
 //   integrated clock gate cell of the library (sg13cmos5l_lgcp_1) cannot.
 //
-// PE_BEHAVIORAL_CELLS:
-//   The RTL simulation (test/Makefile) and the formal checks define it and
-//   use the behavioral model. Synthesis, the linter and the gate-level
-//   simulation use the library cell.
+// Behavioral model or library cell (PE_CELLS_BEHAVIORAL below):
+//   Synthesis (Yosys defines SYNTHESIS) and the linter (VERILATOR) use the
+//   library cell. The formal checks (FORMAL) and the RTL simulation (no
+//   macro) use the behavioral model. The gate-level simulation does not
+//   read this file. The selection is in the file, because the local test
+//   runner does not use the COMPILE_ARGS of test/Makefile.
+
+`ifdef FORMAL
+`define PE_CELLS_BEHAVIORAL
+`elsif SYNTHESIS
+`elsif VERILATOR
+`else
+`define PE_CELLS_BEHAVIORAL
+`endif
 
 module pe_cg (
     input  wire clk,

@@ -339,6 +339,10 @@ module uart_tx_fv (
   always @(*) assert (!f_rsync[1] || f_rsync[0]);
   always @(*) assert (!(f_start && f_take));
 
+  // I14 (M2b): In M1 mode the CORE_SEL synchronizer holds 0, so the test
+  //      port is off and never clears the cycle counter (START).
+  always @(*) assert ((f_csel == 2'b00) && !f_tp_start);
+
   // H1: A request that is in stage 0 but not yet in stage 1 of the
   //     synchronizer arrived in this cycle, so its wait is 0.
   always @(*) assert (!(h_req && (f_rq[1] == f_ack)) || (h_wait == 16'd0));

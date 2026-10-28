@@ -165,7 +165,7 @@ endmodule
 // ---------------------------------------------------------------------------
 // Timed input (register line C-05): the A1 block D3 plan, a 16-bit sample
 // time, a 16-bit capture register and a pin select for each thread. The
-// capture takes \"now\" at the sample time or at an edge of the selected
+// capture takes the cycle count (now) at the sample time or at an edge of the selected
 // pin. M2b uses a shared 5-cycle input history instead.
 // ---------------------------------------------------------------------------
 module g1_capture (

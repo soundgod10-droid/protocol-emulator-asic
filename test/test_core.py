@@ -225,18 +225,15 @@ def model_only(scn, data_addrs=None):
 
 
 async def start_chip(dut):
-    """Clock, reset, then CORE_SEL = 1 (processor pins)."""
+    """Clock and reset. The host SPI pins are idle (CS_N high, SCK low)."""
     dut.ena.value = 1
-    dut.ui_in.value = 0
+    dut.ui_in.value = 1 << hs.CS_N_BIT
     dut.uio_in.value = 0
     dut.rst_n.value = 0
     cocotb.start_soon(Clock(dut.clk, CLK_NS, unit="ns").start())
     await ClockCycles(dut.clk, 5)
     await FallingEdge(dut.clk)
     dut.rst_n.value = 1
-    await ClockCycles(dut.clk, 3)
-    await FallingEdge(dut.clk)
-    dut.ui_in.value = 0x80
     await ClockCycles(dut.clk, 4)
 
 

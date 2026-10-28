@@ -745,6 +745,8 @@ module pe_core (
       st2 <= {CW{1'b0}};
       st3 <= {CW{1'b0}};
       ir  <= 16'h0000;
+      sa  <= 2'd0;  // f_sa(16'h0000)
+      sb  <= 2'd0;  // f_sb(16'h0000)
     end else begin
       // Each entry loads in every cycle from one source: no enable mux.
       st3 <= start ? at_start(nc, start_pc[27:21], run_mask[3]) : nc;
@@ -752,8 +754,27 @@ module pe_core (
       st1 <= start ? at_start(st2, start_pc[13:7], run_mask[1]) : st2;
       st0 <= start ? at_start(st1, start_pc[6:0], run_mask[0]) : st1;
       ir  <= mem_rdata;
+      sa  <= f_sa(mem_rdata);
+      sb  <= f_sb(mem_rdata);
     end
   end
+
+  // Status of each thread for the host port. Ring entry stN holds the
+  // thread tid + N (B1), so thread n is in entry (n - tid) mod 4.
+  wire [2:0] ss0 = {st0[F_ERR], st0[F_LATE], st0[F_RUN]};
+  wire [2:0] ss1 = {st1[F_ERR], st1[F_LATE], st1[F_RUN]};
+  wire [2:0] ss2 = {st2[F_ERR], st2[F_LATE], st2[F_RUN]};
+  wire [2:0] ss3 = {st3[F_ERR], st3[F_LATE], st3[F_RUN]};
+  genvar gs;
+  generate
+    for (gs = 0; gs < 4; gs = gs + 1) begin : g_status
+      wire [1:0] e = gs[1:0] - tid;
+      wire [2:0] s = (e == 2'd0) ? ss0 : (e == 2'd1) ? ss1 : (e == 2'd2) ? ss2 : ss3;
+      assign th_run[gs]  = s[0];
+      assign th_late[gs] = s[1];
+      assign th_err[gs]  = s[2];
+    end
+  endgenerate
 
 `ifdef FORMAL
   // ---------------------------------------------------------------------

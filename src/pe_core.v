@@ -768,7 +768,8 @@ module pe_core (
   genvar gs;
   generate
     for (gs = 0; gs < 4; gs = gs + 1) begin : g_status
-      wire [1:0] e = gs[1:0] - tid;
+      localparam [1:0] N = gs;
+      wire [1:0] e = N - tid;
       wire [2:0] s = (e == 2'd0) ? ss0 : (e == 2'd1) ? ss1 : (e == 2'd2) ? ss2 : ss3;
       assign th_run[gs]  = s[0];
       assign th_late[gs] = s[1];

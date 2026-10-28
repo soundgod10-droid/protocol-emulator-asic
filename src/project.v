@@ -47,18 +47,9 @@ module tt_um_soundgod10_droid_protocol_emulator (
     input  wire       rst_n     // reset_n - low to reset
 );
 
-  // Bit time in clock cycles (A1 section 3):
-  //   50,000,000 / 115,200 = 434.03 cycles. We use 434.
-  //   50,000,000 / 434 = 115,207.4 bit/s. Error: +0.0064 %.
-  //   Our part of the UART clock-error budget is +/-1 % (A1 section 3).
-  localparam [15:0] BIT_CYCLES = 16'd434;
-
-  // Minimum number of cycles from an event write to the event time.
-  // A1 section 4.4 sets 4 cycles for the threads; M1 uses the same value.
-  localparam [15:0] EVENT_LEAD = 16'd4;
-
-  // Reset: assert at once (the UART pin goes high also without a clock),
-  // release on a clock edge (all flip-flops leave reset in the same cycle).
+  // Reset: assert at once (the pins go to the reset level also without a
+  // clock), release on a clock edge (all flip-flops leave reset in the
+  // same cycle).
   wire rst_n_int;
   pe_reset_sync u_reset_sync (
       .clk      (clk),
@@ -66,73 +57,104 @@ module tt_um_soundgod10_droid_protocol_emulator (
       .rst_n_out(rst_n_int)
   );
 
-  // D2 cycle counter: the common time base of all pin events.
+  // Host SPI pins. They come from the host without a relation to our
+  // clock: 2-stage synchronizers (M1 pe_sync2), all three with the same
+  // delay, so the port sees MOSI and CS_N in the same cycle as the SCK
+  // edge that goes with them. Two stages: the measured metastability
+  // constant of dfrbpq_1 (103 ps at the slow corner, spice/m2c_sync_tau_ss.sp)
+  // gives a mean time between failures of more than 1e70 s (M2c_loader.md
+  // section 1). CS_N is inverted before its synchronizer, so the reset
+  // value 0 means "no transaction".
+  wire host_sck;
+  wire host_cs;
+  wire host_mosi;
+  pe_sync2 u_sck_sync (
+      .clk  (clk),
+      .rst_n(rst_n_int),
+      .d    (ui_in[7]),
+      .q    (host_sck)
+  );
+  pe_sync2 u_cs_sync (
+      .clk  (clk),
+      .rst_n(rst_n_int),
+      .d    (~ui_in[6]),
+      .q    (host_cs)
+  );
+  pe_sync2 u_mosi_sync (
+      .clk  (clk),
+      .rst_n(rst_n_int),
+      .d    (ui_in[5]),
+      .q    (host_mosi)
+  );
+
+  wire        host_miso;
+  wire        running;
+  wire        h_start;
+  wire        h_mem_we;
+  wire [6:0]  h_mem_addr;
+  wire [15:0] h_mem_wdata;
+  wire [15:0] h_mem_rdata;
+  wire        h_cfg_we;
+  wire [6:0]  h_cfg_addr;
+  wire [15:0] h_cfg_wdata;
+  wire [1:0]  h_tid;
+  wire        h_push;
+  wire [15:0] h_wdata;
+  wire        h_in_full;
+  wire        h_pop;
+  wire [15:0] h_out_data;
+  wire [11:0] h_cnt_in;
+  wire [11:0] h_cnt_out;
+  wire [3:0]  th_run;
+  wire [3:0]  th_late;
+  wire [3:0]  th_err;
+
+  // A1 block D7: host SPI port (docs/host_port.md).
+  pe_host_port u_host_port (
+      .clk          (clk),
+      .rst_n        (rst_n_int),
+      .sck          (host_sck),
+      .cs           (host_cs),
+      .mosi         (host_mosi),
+      .miso         (host_miso),
+      .running      (running),
+      .start        (h_start),
+      .mem_we       (h_mem_we),
+      .mem_addr     (h_mem_addr),
+      .mem_wdata    (h_mem_wdata),
+      .mem_rdata    (h_mem_rdata),
+      .cfg_we       (h_cfg_we),
+      .cfg_addr     (h_cfg_addr),
+      .cfg_wdata    (h_cfg_wdata),
+      .fifo_tid     (h_tid),
+      .fifo_push    (h_push),
+      .fifo_wdata   (h_wdata),
+      .fifo_in_full (h_in_full),
+      .fifo_pop     (h_pop),
+      .fifo_out_data(h_out_data),
+      .cnt_in       (h_cnt_in),
+      .cnt_out      (h_cnt_out),
+      .th_run       (th_run),
+      .th_late      (th_late),
+      .th_err       (th_err)
+  );
+
+  // D2 cycle counter: the common time base of all pin events. START
+  // clears it, so the first thread cycle is cycle 0 (docs/isa.md 3.1).
   wire [31:0] cycle_count;
-  wire        tp_start;  // test port START (declared here, used by the counter)
   pe_cycle_counter #(
       .WIDTH(32)
   ) u_cycle_counter (
       .clk  (clk),
       .rst_n(rst_n_int),
-      .clear(tp_start),    // thread start: first thread cycle is cycle 0
+      .clear(h_start),
       .count(cycle_count)
   );
 
-  // TX_REQ comes from the host without a relation to our clock.
-  // TX_DATA needs no synchronizer: the host keeps it stable while
-  // TX_REQ is not equal to TX_ACK, and the sequencer reads it only then,
-  // at least 2 cycles after TX_REQ changed.
-  wire tx_req;
-  pe_sync2 u_tx_req_sync (
-      .clk  (clk),
-      .rst_n(rst_n_int),
-      .d    (ui_in[0]),
-      .q    (tx_req)
-  );
-
-  // Event path from the sequencer to the timed output channel.
-  wire        ev_load;
-  wire [15:0] ev_time;
-  wire        ev_value;
-  wire        ev_ready;
-  wire        tx_ack;
-
-  // TEMPORARY: does the work of one M2 program thread (see the module).
-  pe_uart_tx_seq #(
-      .BIT_CYCLES(BIT_CYCLES),
-      .LEAD      (EVENT_LEAD)
-  ) u_uart_tx_seq (
-      .clk     (clk),
-      .rst_n   (rst_n_int),
-      .now     (cycle_count[15:0]),
-      .req     (tx_req),
-      .data    (uio_in),
-      .ack     (tx_ack),
-      .ev_load (ev_load),
-      .ev_time (ev_time),
-      .ev_value(ev_value),
-      .ev_ready(ev_ready)
-  );
-
-  // D2 timed output channel for the UART TX pin. Reset value 1 is the
-  // UART idle level. The pin is a flip-flop output, so it has no glitches.
-  wire tx_pin;
-  wire tx_oe;
-  pe_timed_out #(
-      .RESET_VALUE(1'b1),
-      .RESET_OE   (1'b1)
-  ) u_tx_channel (
-      .clk      (clk),
-      .rst_n    (rst_n_int),
-      .now      (cycle_count[15:0]),
-      .ev_load  (ev_load),
-      .ev_time  (ev_time),
-      .ev_value (ev_value),
-      .ev_oe    (1'b1),      // uo_out pins are always outputs
-      .ev_ready (ev_ready),
-      .pin_value(tx_pin),
-      .pin_oe   (tx_oe)
-  );
+  // Processor reset: the chip reset, or the threads stop. Both inputs are
+  // flip-flop outputs (pe_reset_sync, pe_host_port), so the AND has no
+  // glitch, and the release is at a clock edge.
+  wire run_rst_n = rst_n_int & running;
 
   // ---------------------------------------------------------------------
   // M2b processor and its TEMPORARY test port

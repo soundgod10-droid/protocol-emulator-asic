@@ -14,8 +14,8 @@
 //   so one clock cycle is 2 steps (high half, then low half). The write
 //   request (we, waddr, wdata) and the read address are free values that
 //   change only at the rising clock edge, because in the chip they come
-//   from flip-flops (pe_core, pe_test_port). The reset is applied in the
-//   first cycle only. The properties are in pe_latch_ram (`ifdef FORMAL:
+//   from flip-flops (pe_core, pe_host_port). The reset is applied in the
+//   first cycle (and with FREE_RESET = 1 at any later step). The properties are in pe_latch_ram (`ifdef FORMAL:
 //   M1 to M4).
 //
 // Why:

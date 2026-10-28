@@ -339,20 +339,32 @@ async def run_lockstep(dut, scn, after_reset=None):
             raise AssertionError(
                 f"{scn.label} {where}: pins uo_out[6:0] {uo_s[1:]} uio_out {uio_s} uio_oe {oe_s}, "
                 f"model {want_uo} {want_uio} {want_oe} (model PCs {pcs})")
-        if (ro_known >> 16) & 1:
-            want7 = str((ro >> 16) & 1)
-            assert uo_s[0] == want7, f"{scn.label} cycle {t}: readout uo_out[7] {uo_s[0]}, expected {want7}"
         if c is not None and exp != last_pins:
             pin_changes += 1
             last_pins = exp
         t += 1
-        _ = sent
+
+    # The words that the host read on HOST_MISO in each complete PULL agree
+    # with the model: count byte, the words, and 0 after the count.
+    checked = 0
+    nbytes = 3 + 2 * PULL_WORDS
+    for k, n in pulls:
+        if not all(len(miso_bits.get((k, b), [])) == 8 for b in range(nbytes)):
+            continue  # the transaction ends after the last model cycle
+        got = [int("".join(map(str, miso_bits[(k, b)])), 2) for b in range(nbytes)]
+        cnt = counts[k]
+        words = hs.bytes_to_words(got[3:])
+        want = pull_words.get(k, []) + [0] * (PULL_WORDS - len(pull_words.get(k, [])))
+        assert got[:2] == [0, 0] and got[2] == cnt and words == want, (
+            f"{scn.label}: PULL of thread {n} (transaction {k}): MISO {[f'{b:02X}' for b in got]}, "
+            f"model count {cnt}, words {[f'{w:04X}' for w in want]}")
+        checked += 1
 
     log.info(
         f"{scn.label}: {scn.cycles} cycles in lockstep "
-        f"({'pins, readout and thread state' if st0 is not None else 'pins and readout (gate level)'}); "
+        f"({'pins, PULL words and thread state' if st0 is not None else 'pins and PULL words (gate level)'}); "
         f"{compared_states} state comparisons; {pin_changes} pin changes; "
-        f"host words per thread {[len(p) for p in popped]}; "
+        f"host words per thread {[len(p) for p in popped]} ({checked} PULL transactions checked on MISO); "
         f"threads run {[th.run for th in m.threads]}, status {[th.status for th in m.threads]}, "
         f"PC {[th.pc for th in m.threads]}")
     log.info(f"{scn.label}: instruction groups executed {dict(sorted(m.coverage.items()))}")

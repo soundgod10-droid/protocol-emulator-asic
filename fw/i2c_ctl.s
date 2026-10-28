@@ -75,7 +75,8 @@ ok:     TADD    THIGH2
         TADD    TSUSTA
         OUT     SDA, 0
         JMP     start2
-stop:   OUT     SDA, 0, HD
+stop:   TSYNC   16              ; the last SCL low is 6 instructions back: lead for the next event
+        OUT     SDA, 0, HD
         TADD    TLOW
         OUT     SCL, 1
         WAIT    SCL, RISE, r1, CT

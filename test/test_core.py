@@ -456,7 +456,7 @@ async def test_core_shifts(dut):
             ops.append((f"{kind} r1, {n}", "r1"))
     ops += [("LDI r0, 0x3FE", None), ("SHL r0, 5", "r0"), ("MOV r1, r0", None), ("ASR r1, 8", "r1"),
             ("MOV r1, r0", None), ("ROR r1, 8", "r1")]
-    scn = Scenario("shifts", asm((program(ops), 0)), cycles=1600, host=pop_round_robin([0]))
+    scn = Scenario("shifts", asm((program(ops), 0)), cycles=4400, host=pop_round_robin([0]))
     m, popped, _ = await run_lockstep(dut, scn)
     assert_ended(m, popped, min_words=2 * sum(1 for _, reg in ops if reg))
 

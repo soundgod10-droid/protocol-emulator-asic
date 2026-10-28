@@ -24,7 +24,7 @@
 //
 // clear (added in M2b):
 //   1 in a cycle sets the counter to 0 at the end of that cycle. The host
-//   starts the threads with it (pe_test_port START), so that the first
+//   starts the threads with it (pe_host_port START, M2c), so that the first
 //   cycle of the threads is cycle 0, thread 0 has the first slot and the
 //   cycle numbers agree with the reference model (docs/isa.md 3.1).
 

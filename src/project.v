@@ -183,44 +183,48 @@ module tt_um_soundgod10_droid_protocol_emulator (
   pe_proc u_proc (
       .clk        (clk),
       .rst_n      (rst_n_int),
+      .run_rst_n  (run_rst_n),
       .now        (cycle_count[15:0]),
-      .start      (tp_start),
+      .start      (h_start),
       .start_pc   (start_pc),
       .run_mask   (run_mask),
       .pin_owner  (pin_owner),
       .pin_en     (pin_en),
       .pin_od     (pin_od),
-      .h_mem_we   (tp_mem_we),
-      .h_mem_addr (tp_arg),
-      .h_mem_data (tp_data),
-      .h_tid      (tp_arg[1:0]),
-      .h_push     (tp_push),
-      .h_wdata    (tp_data),
-      .h_pop      (tp_pop),
-      .h_out_valid(h_out_valid),
+      .h_mem_host (!running),
+      .h_mem_we   (h_mem_we),
+      .h_mem_addr (h_mem_addr),
+      .h_mem_data (h_mem_wdata),
+      .h_mem_rdata(h_mem_rdata),
+      .h_tid      (h_tid),
+      .h_push     (h_push),
+      .h_wdata    (h_wdata),
+      .h_in_full  (h_in_full),
+      .h_pop      (h_pop),
       .h_out_data (h_out_data),
+      .h_cnt_in   (h_cnt_in),
+      .h_cnt_out  (h_cnt_out),
+      .th_run     (th_run),
+      .th_late    (th_late),
+      .th_err     (th_err),
       .ui_in      (ui_in[4:0]),
       .uio_in     (uio_in),
       .pin_v      (pin_v),
       .pin_oe     (pin_oe)
   );
 
-  // All output pins must be assigned. If not used, assign to 0.
-  // M1 mode:        uo_out[7:6] = 0, [5] = TX_ACK, [4] = UART_TX, [3:0] = 0,
-  //                 uio all inputs.
-  // Processor mode: uo_out[7] = TP_OUT, [6:0] = V of pins 14 to 8; uio_out
-  //                 and uio_oe = V and OE of pins 7 to 0. A uo_out pin has
-  //                 no enable, so a released pin shows V = 1 (docs/isa.md 4.5).
-  // core_sel is a flip-flop output, so the selection does not change in a cycle.
-  assign uo_out  = core_sel ? {tp_out, pin_v[14:8]} : {2'b00, tx_ack, tx_pin, 4'b0000};
-  assign uio_out = core_sel ? pin_v[7:0] : 8'h00;
-  assign uio_oe  = core_sel ? pin_oe[7:0] : 8'h00;
+  // All output pins are assigned. uo_out[7] = HOST_MISO (a flip-flop
+  // output), uo_out[6:0] = V of pins 14 to 8; uio_out and uio_oe = V and
+  // OE of pins 7 to 0. A uo_out pin has no enable, so a released pin
+  // shows V = 1 (docs/isa.md 4.5).
+  assign uo_out  = {host_miso, pin_v[14:8]};
+  assign uio_out = pin_v[7:0];
+  assign uio_oe  = pin_oe[7:0];
 
   // Signals with no load:
   //   ena: always 1 (template).
   //   cycle_count[31:16]: docs/isa.md uses only the low 16 bits (now).
-  //   tx_oe: uo_out pins have no output enable.
-  //   pin_oe[14:8]: the same for the processor pins on uo_out.
-  wire _unused = &{ena, cycle_count[31:16], tx_oe, pin_oe[14:8], 1'b0};
+  //   pin_oe[14:8]: uo_out pins have no output enable.
+  wire _unused = &{ena, cycle_count[31:16], pin_oe[14:8], 1'b0};
 
 endmodule

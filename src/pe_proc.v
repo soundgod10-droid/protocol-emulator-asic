@@ -168,7 +168,9 @@ module pe_proc (
       .h_in_full  (h_in_full),
       .h_pop      (h_pop),
       .h_out_valid(h_out_valid),
-      .h_out_data (h_out_data)
+      .h_out_data (h_out_data),
+      .cnt_in     (h_cnt_in),
+      .cnt_out    (h_cnt_out)
   );
 
   // docs/isa.md 2.4: after reset each output pin has V = 1, OE = 0. Thus

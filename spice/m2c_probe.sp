@@ -9,7 +9,9 @@ VSS vss 0 0
 VCLK clk 0 PULSE(0 {vdd} 5n 50p 50p 10n 20n)
 VD d 0 PULSE(0 {vdd} 2n 50p 50p 30n 80n)
 VR rb 0 {vdd}
-X1 clk d q rb vdd vss sg13cmos5l_dfrbpq_1
+* First try "CLK D Q RESET_B" gave Q = 0.647 V and 236 uA into the CLK
+* source (an output on the CLK node). Second try: the Verilog port order.
+X1 q d rb clk vdd vss sg13cmos5l_dfrbpq_1
 CL q 0 5f
 
 .tran 10p 100n

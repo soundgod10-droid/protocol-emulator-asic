@@ -43,7 +43,8 @@
 idle:   TSYNC   16              ; keep T near now (isa 7)
         PULL.NB r0
         BEC     idle
-byte:   OUT     CS, 0
+byte:   TADD    r3              ; CS low H after the last SCK edge (or after CS high)
+        OUT     CS, 0
         SHL     r0, 8           ; data to bits 15 to 8; C = bit 8 (CS high after)
         LDI     r2, 8
 bit:    TADD    r3

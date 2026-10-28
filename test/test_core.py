@@ -247,6 +247,16 @@ def state_handle(dut):
         return None
 
 
+def counter_handle(dut):
+    """Handle of the cycle counter in RTL simulation (model cycle 0 check), None at gate level."""
+    try:
+        h = dut.user_project.u_cycle_counter.count
+        _ = h.value
+        return h
+    except AttributeError:
+        return None
+
+
 def ctx_fields(v):
     return {
         "r": [(v >> (16 * i)) & 0xFFFF for i in range(4)],

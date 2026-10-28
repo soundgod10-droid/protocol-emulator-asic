@@ -277,68 +277,38 @@ async def run_lockstep(dut, scn, after_reset=None):
     if after_reset is not None:
         after_reset()
     st0 = state_handle(dut)
+    counter = counter_handle(dut)
     m = scn.new_model()
+    sched, t0, ops, pulls = build_schedule(scn)
 
-    bits = deque()
-    for fr in scn.load_frames():
-        bb = frame_bits(*fr)
-        for i, b in enumerate(bb):
-            bits.append((b, (fr, None) if i == TP_BITS - 1 else None))
-    for i in range(scn.cycles // TP_BITS + 2):
-        fr = scn.host(i)
-        bb = frame_bits(*fr)
-        for k, b in enumerate(bb):
-            bits.append((b, (fr, i) if k == TP_BITS - 1 else None))
-
-    t = 0  # test bench cycle
-    tp_clk = 0
-    tp_dat = 0
-    arrive = {}  # cycle -> frame info: the bit is in pe_test_port in that cycle
-    ro, ro_known = 0, 0x1FFFF  # copy of the readout register; known bits
-    t0 = None  # test bench cycle of model cycle 0
+    t = 0  # test bench cycle; model cycle c = t - t0
+    miso_bits = {}  # (transaction, byte) -> MISO bits that the host took
+    counts = {}  # PULL transaction -> count of the model
+    pull_words = {}  # PULL transaction -> words that the model gave
     popped = [[] for _ in range(4)]
-    pop_result = {}  # test bench cycle of a POP command -> word (or None)
     pin_changes = 0
     last_pins = RESET_PINS
     compared_states = 0
 
     while True:
         await FallingEdge(dut.clk)
-        sent = False
-        if bits:
-            b, info = bits.popleft()
-            tp_clk ^= 1
-            tp_dat = b
-            arrive[t + 2] = info  # 2 synchronizer stages
-            sent = True
-        # The bit that was in the test port in cycle t-1 had its effect at
-        # the clock edge at the end of that cycle: readout register and START.
-        if (t - 1) in arrive:
-            info = arrive.pop(t - 1)
-            if info is not None and info[0][0] == CMD_START:
-                t0 = t
-            if info is not None and info[0][0] == CMD_POP:
-                word = pop_result.pop(t - 1)
-                ro = (0x10000 | word) if word is not None else 0
-                ro_known = 0x1FFFF if word is not None else 0x10000
-            else:
-                ro = (ro << 1) & 0x1FFFF
-                ro_known = ((ro_known << 1) | 1) & 0x1FFFF
-        c = (t - t0) if t0 is not None else None
+        c = (t - t0) if t >= t0 else None
         if c is not None and c >= scn.cycles:
             break
+        if t in sched.samples:
+            v = dut.uo_out.value
+            assert v.is_resolvable, f"{scn.label} cycle {t}: uo_out has X or Z ({v})"
+            miso_bits.setdefault(sched.samples[t][:2], []).append((v.to_unsigned() >> hs.MISO_BIT) & 1)
+        sck, cs_n, mosi = sched.pins[t] if t < len(sched.pins) else (0, 1, 0)
         ui, uio = scn.stimulus(c) if c is not None else (0, 0)
-        dut.ui_in.value = 0x80 | (tp_clk << 6) | (tp_dat << 5) | (ui & 0x1F)
+        dut.ui_in.value = (sck << hs.SCK_BIT) | (cs_n << hs.CS_N_BIT) | (mosi << hs.MOSI_BIT) | (ui & 0x1F)
         dut.uio_in.value = uio & 0xFF
 
         if c is not None:
-            # A host frame whose last bit is in the test port in this cycle
-            # acts at the end of this cycle (see host_before).
-            info = arrive.get(t)
-            fr = info[0] if info is not None and info[0][0] != CMD_START else None
-            if fr is not None:
-                assert c == TP_BITS * (info[1] + 1) - 1, f"{scn.label}: host frame {info[1]} at model cycle {c}"
-                before = host_before(m, fr)
+            if c == 0 and counter is not None:
+                assert counter.value.to_unsigned() == 0, f"{scn.label}: cycle counter {counter.value} at model cycle 0"
+            # Host operations that act at the end of this cycle (see host_before).
+            acts = [(op, host_before(m, op, counts)) for op in ops.get(c, [])]
             m.set_inputs(ui, uio)
             th = m.threads[c % 4]
             if st0 is not None:

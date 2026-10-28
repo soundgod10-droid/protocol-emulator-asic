@@ -9,57 +9,44 @@ You can also include images in this folder and reference them in the markdown. E
 
 ## How it works
 
-This design is milestone M1 of a programmable protocol emulator. M1 is a UART transmitter.
-
-The chip sends UART frames on `uo_out[4]` (UART_TX). Each frame has 1 start bit (0), 8 data bits (LSB first) and 1 stop bit (1). There is no parity bit. When the line is idle, it is high.
-
-The bit time is 434 clock cycles. With the design clock of 50 MHz:
-
-| Item | Value |
-|---|---|
-| Bit rate | 50,000,000 / 434 = 115,207.4 bit/s |
-| Error against 115,200 bit/s | +0.0064 % |
-| Bit time | 8.680 us |
-| Frame (10 bits) | 86.800 us |
-
-With a different clock frequency f, the bit rate is f / 434.
+This design is a programmable protocol emulator (milestone M2). It has no fixed protocol block: a small processor makes the pin waveforms, and the host loads its program.
 
 The design has these blocks:
 
-1. A free-running cycle counter. All pin changes use this one time base.
-2. A timed output channel for UART_TX. It holds one pin event: a 16-bit cycle time and a pin value. When the counter is equal to the event time, the channel changes the pin flip-flop. The pin is the output of a flip-flop, so it has no glitches.
-3. A sequencer (temporary, M1 only). For each bit of the frame, it writes one event into the channel, with the times t0, t0 + 434, t0 + 868 and so on. Thus, the bit time comes from the event times only.
+1. A barrel processor with 4 threads (docs/isa.md). Thread n executes one 16-bit instruction in each clock cycle c with c mod 4 = n. The program and the data are in one memory of 128 words of 16 bits (latches).
+2. A timed I/O unit. A thread does not set a pin at once: it writes a pin event with a 16-bit cycle time (OUT pin at T + offset). When the free-running cycle counter is equal to the event time, the pin flip-flop changes. Thus each pin edge is exact to one clock cycle, also with 4 threads. SAMPLE and WAIT read the inputs at a given cycle in the same way.
+3. Host FIFOs: 4 words in each direction for each thread (PULL and PUSH instructions).
+4. A host SPI port (docs/host_port.md). The host (the RP2350 of the demo board) stops and starts the threads, writes and reads the memory, writes the configuration (start address of each thread, owner of each output pin), reads the chip ID and the status, and gives and takes FIFO words.
 
-In later milestones, program threads write the pin events, and the sequencer and the M1 handshake are removed. The cycle counter and the timed output channel stay.
+The chip changes a protocol pin only when a program tells it to. Example: fw/uart_tx.s (12 words) makes thread 0 a UART transmitter on `uo_out[4]`: 8 data bits, LSB first, 1 start bit, 1 stop bit, bit time 434 cycles (115,207 bit/s at 50 MHz, +0.0064 %), one byte from the host FIFO for each frame.
 
-Reset: when `rst_n` is low, UART_TX is high. The reset is asynchronous, so UART_TX goes high at once, also when the clock is stopped. After reset, UART_TX stays high until the host gives a byte.
+Reset: when `rst_n` is low, and while the threads stop, each processor output has the value 1 and no output enable: `uo_out[6:0]` = 1 (a UART TX line is idle high), all `uio` pins are inputs. The reset is asynchronous, so the pins go to this state at once, also when the clock is stopped. The memory does not change at reset.
 
 ## How to test
 
-Pins in M1:
+Pins:
 
 | Pin | Name | Direction | Function |
 |---|---|---|---|
-| `uo_out[4]` | UART_TX | output | UART data |
-| `uo_out[5]` | TX_ACK | output | Acknowledge level (temporary, M1) |
-| `ui_in[0]` | TX_REQ | input | Request level (temporary, M1) |
-| `uio[7:0]` | TX_DATA | input | Byte to send (temporary, M1). All uio pins are inputs. |
+| `ui_in[7]` | HOST_SCK | input | host SPI clock (mode 0) |
+| `ui_in[6]` | HOST_CS_N | input | host SPI chip select, active low |
+| `ui_in[5]` | HOST_MOSI | input | host SPI data in |
+| `uo_out[7]` | HOST_MISO | output | host SPI data out |
+| `ui_in[4:0]` | IN8 to IN12 | input | processor inputs (`ui_in[3]`: default UART RX) |
+| `uo_out[6:0]` | OUT8 to OUT14 | output | processor outputs (`uo_out[4]`: default UART TX) |
+| `uio[7:0]` | PIN0 to PIN7 | in/out | processor pins (SPI on `uio[3:0]`, I2C on `uio[7:6]` in the example firmware) |
 
-All other outputs are 0.
+Procedure (UART transmitter, clock 50 MHz):
 
-Procedure:
-
-1. Set the clock to 50 MHz.
-2. Set `ui_in[0]` (TX_REQ) to 0. Set `rst_n` to 0 for at least 10 clock cycles, then set it to 1.
-3. Connect a UART receiver (115,200 bit/s, 8 data bits, no parity, 1 stop bit, 3.3 V) to `uo_out[4]`.
-4. To send a byte:
-   1. Put the byte on `uio[7:0]`.
-   2. Change the level of `ui_in[0]` (0 to 1, or 1 to 0).
-   3. Wait until `uo_out[5]` is equal to `ui_in[0]`. Keep the byte on `uio[7:0]` stable until then.
-5. To send bytes with no gap, give the next byte immediately after step 4.3. If the next byte comes before the stop bit ends, the next frame starts exactly at the end of the stop bit.
-
-The UART receiver must show the same bytes. Each frame is 86.8 us long at 50 MHz.
+1. Set HOST_CS_N high and HOST_SCK low. Set `rst_n` to 0 for at least 10 clock cycles, then set it to 1. `uo_out[4]` must stay high.
+2. Use SPI mode 0, MSB first, SCK 10 MHz or less (docs/host_port.md sections 3 and 6).
+3. READ_ID: send 0x1E and 4 more bytes. MISO gives 0x50 0x45 0x02 0x03.
+4. WRITE_MEM: send 0x5A, 0x00, then the words of fw/uart_tx.s (assembled with asm/pe_asm.py), high byte first. READ_MEM (0x69, 0x00, then 2 dummy bytes for each word) must give the same words.
+5. WRITE_CFG: send 0x78, 0x00, then 5 words: 0, 0, 0, 0 (start addresses), 0x0001 (thread 0 runs). Then send 0x78, 0x1C (address 28 = pin 12), 0x00, 0x04 (owner thread 0, enabled).
+6. START: send 0x4B. READ_STATUS (0x2D and 7 dummy bytes): byte 0 bit 0 = 1, byte 1 = 0x01.
+7. Connect a UART receiver (115,200 bit/s, 8N1, 3.3 V) to `uo_out[4]`. For each byte: read status byte 3 (bits 2:0 = words in the FIFO of thread 0); if it is less than 4, send PUSH: 0x87, 0x00, 0x00, the byte. The receiver must show the same bytes. With 4 words in the FIFO the frames are back to back (86.8 us each).
+8. STOP (0x3C) stops the threads: `uo_out[4]` goes high at once.
 
 ## External hardware
 
-A UART receiver for 3.3 V logic levels, for example a USB-to-UART adapter or the RP2350 on the demo board.
+The RP2350 of the demo board (or an other SPI host) on `ui_in[7:5]` and `uo_out[7]`. A UART receiver for 3.3 V logic levels on `uo_out[4]`, for example a USB-to-UART adapter or the RP2350.

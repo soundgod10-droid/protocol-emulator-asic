@@ -22,18 +22,28 @@
 // Why:
 //   All pin changes come from the event slots, so each pin edge is at
 //   the cycle of its event time and comes from a flip-flop (no glitch).
-//   The host side (memory write, configuration, start, FIFO access) is a
-//   separate port, so that M2c can connect the host SPI port in place of
-//   the TEMPORARY M2b test port.
+//   The host side (memory write and read, configuration, start, FIFO
+//   access) is a separate port for the host SPI port (pe_host_port).
 //
-// Memory write port:
+// Resets (M2c):
+//   rst_n is the chip reset. run_rst_n is 0 while the host port stops the
+//   threads (and during the chip reset). It resets the core, the FIFOs
+//   and the event slots with their pin registers, so STOP gives the state
+//   after a chip reset and the next START has no old event and no old
+//   FIFO word (M2b open item 3). The memory keeps its words (docs/isa.md
+//   2.4) and the input synchronizers keep running (rst_n only), so the
+//   input history at START is the real pin history.
+//
+// Memory ports:
 //   A store of the core and a host write use the same write port. A
-//   store has priority. The host writes only while the threads stop
-//   (test port rule), so the two do not occur in one cycle.
+//   store has priority. The host writes and reads only while the threads
+//   stop (h_mem_host = 1): then the core is in reset and does not store,
+//   and the read port reads h_mem_addr for the host.
 
 module pe_proc (
     input  wire        clk,
-    input  wire        rst_n,       // active low, asynchronous assert
+    input  wire        rst_n,       // chip reset, active low, asynchronous assert
+    input  wire        run_rst_n,   // 0 = threads stopped (processor in reset)
     input  wire [15:0] now,         // low 16 bits of the cycle counter
     // Host side
     input  wire        start,
@@ -42,15 +52,22 @@ module pe_proc (
     input  wire [29:0] pin_owner,
     input  wire [14:0] pin_en,
     input  wire [14:0] pin_od,
+    input  wire        h_mem_host,  // 1 = the host uses the memory ports
     input  wire        h_mem_we,
     input  wire [6:0]  h_mem_addr,
     input  wire [15:0] h_mem_data,
+    output wire [15:0] h_mem_rdata, // word at h_mem_addr while h_mem_host = 1
     input  wire [1:0]  h_tid,
     input  wire        h_push,
     input  wire [15:0] h_wdata,
+    output wire        h_in_full,
     input  wire        h_pop,
-    output wire        h_out_valid,
     output wire [15:0] h_out_data,
+    output wire [11:0] h_cnt_in,
+    output wire [11:0] h_cnt_out,
+    output wire [3:0]  th_run,
+    output wire [3:0]  th_late,
+    output wire [3:0]  th_err,
     // Chip pins
     input  wire [4:0]  ui_in,       // ui_in[4:0]: inputs 8 to 12
     input  wire [7:0]  uio_in,

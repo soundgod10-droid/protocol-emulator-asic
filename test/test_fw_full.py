@@ -58,10 +58,10 @@ OUTLINE = ("uart_tx.s", "uart_rx.s", "spi_mode0.s", "i2c_write.s")
 I2C_EQU = {
     ("Fm", 50): dict(HD=4, TLOW=75, TSMP=16, THIGH2=32, TSUSTA=32, THDSTA=32, TSUSTO=32, TBUF=68),
     ("Sm", 50): dict(HD=4, TLOW=260, TSMP=16, THIGH2=221, TSUSTA=235, THDSTA=205, TSUSTO=200, TBUF=240),
-    ("Fm", 40): dict(HD=4, TLOW=60, TSMP=16, THIGH2=28, TSUSTA=24, THDSTA=25, TSUSTO=24, TBUF=53),
+    ("Fm", 40): dict(HD=4, TLOW=60, TSMP=16, THIGH2=32, TSUSTA=24, THDSTA=25, TSUSTO=24, TBUF=53),
 }
-# Firmware limits (G1 model runs): TSMP >= 16 (SAMPLE lead after the WAIT) and THIGH2 >= 32 - HD
-# (the SDA event after the SCL fall is 3 instructions after the SCL-low event).
+# Firmware limits (G1 model runs): TSMP >= 16 (SAMPLE lead after the WAIT) and THIGH2 + HD >= 36:
+# the SDA event after the SCL fall is issued up to TSMP + 32 cycles after the SCL rise.
 # Minimum times in us (fSCL: maximum clock in kHz), NXP UM10204 I2C-bus specification,
 # table of SDA and SCL bus characteristics (A1 [I2C]; G1 step 3d gives the revision and page).
 I2C_LIMITS = {

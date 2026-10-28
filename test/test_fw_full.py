@@ -702,14 +702,11 @@ async def test_fw_full_uart_rx(dut):
             assert ok, f"{name} {rate} bit/s {fmt}, sender {err * 100:+.1f} %: words {[hex(w) for w in words]}"
             dut._log.info(f"{name} {f_clk / 1e6:.0f} MHz {rate} bit/s {fmt} (B {b} = {k} x {c}, H {h}): "
                           f"sender {err * 100:+.1f} %, {n} back-to-back frames correct, 3-cycle glitch ignored")
-    for f_clk in (50e6,):
-        b = round(f_clk / 1e6)
-        ok, words, m, frames, nd1 = rx_run(b, round(0.35 * b), "8N1", b, [0x55, 0xAA])
-        frames[1][1][9] = 0
     data = [0x3C, 0xC3]
     line_bits = [frame_bits(d, "8N1") for d in data]
     line_bits[0][9] = 0  # stop bit 0: framing error
-    frames = [(2000 + i * 10 * 434, bits) for i, bits in enumerate(line_bits)]
+    line_bits[0].append(1)  # one idle bit, so that the next start bit has a falling edge
+    frames = [(2000, line_bits[0]), (2000 + 11 * 434, line_bits[1])]
     line = uart_line(frames, 434)
     m = pe_model.PeModel(assemble("uart_rx_full.s").words)
     bench = Bench(m, inputs=lambda c, uo, uio, oe: (value_at(line, c) << UI_RX, 0))

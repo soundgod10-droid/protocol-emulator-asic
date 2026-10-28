@@ -29,7 +29,13 @@
 ;   The first byte after STOP or start always has a START.
 ; Word to the host, one for each byte: bits 8 to 0 = bus levels of the 9
 ;   bits (write: bit 0 is the ACK of the target, 0 = ACK; read: bits 8 to 1
-;   are the data). Bit 15 = 1: arbitration lost in this byte.
+;   are the data). Bit 15 = 1: arbitration lost in this byte (in bits 1 to
+;   8; a loss in bit 9, a NACK against an ACK, shows as bit 0 = 0).
+;   After a loss the thread takes the next host word as a new transfer
+;   with START: the host must not queue words after a byte that can lose.
+; Limits of the .equ values (G1 model runs): TSMP 16 or more, THIGH2 + HD
+;   36 or more. No input spike filter: a 40 ns spike on SCL or SDA breaks
+;   a transfer (G1 test_fw_full_i2c_spikes).
 ; Registers: r0 byte word, r1 WAIT time and return address, r2 check
 ;   word, r3 bus levels and bit count mark.
 

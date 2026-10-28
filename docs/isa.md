@@ -54,7 +54,7 @@ Sources:
 | Pin configuration | 15 | For each output pin: owner thread (2 bits), owner enable, open-drain mode. The host writes it (section 5). |
 | Start address | 4 x 7 | For each thread: the PC value at start. The host writes it. |
 
-The host loads the memory and the configuration while the threads stop. Then the host sets RUN. The host port is milestone M2c. This document does not specify it.
+The host loads the memory and the configuration while the threads stop. Then the host sets RUN. The host SPI port (milestone M2c) is specified in docs/host_port.md: commands STOP, START, WRITE_MEM, READ_MEM, WRITE_CFG, READ_ID, READ_STATUS, PUSH, PULL, CLEAR. STOP puts the threads, the FIFOs, the event slots and the output pins into the state after reset; the memory and the configuration do not change.
 
 ### 2.3 Register count and area
 

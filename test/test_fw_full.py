@@ -523,7 +523,6 @@ class I2cBus:
             elif self.state == "read" and 1 <= self.pos <= 7:
                 self._drive(c, not (self.read_data[self.read_i - 1] >> (7 - self.pos)) & 1)
         self.prev = (scl, sda)
-        return 0, (scl << P_SCL) | (sda << P_SDA)
 
 
 def i2c_times(changes):

@@ -86,7 +86,6 @@ module pe_host_fifo (
       .WIDTH(16)
   ) u_in_ram (
       .clk  (clk),
-      .rst_n(rst_n),
       .we   (in_we),
       .waddr({h_tid, in_wp_h}),
       .wdata(h_wdata),

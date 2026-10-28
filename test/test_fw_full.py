@@ -261,7 +261,7 @@ def rx_run(b, h, fmt, b_tx, data, slow_k=None, glitch=False, t0=2000):
         prog = assemble("uart_rx_slow.s", ND1=nd1, K=slow_k)
         host = [b // slow_k, h // slow_k]
     frames = []
-    t = 2000
+    t = t0 + (h if glitch else 0)
     for d in data:
         bits = frame_bits(d, fmt)
         frames.append((t, bits))

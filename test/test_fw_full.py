@@ -768,7 +768,7 @@ async def test_fw_full_i2c(dut):
 @cocotb.test(skip=GL)
 async def test_fw_full_i2c_arbitration(dut):
     """fw/i2c_ctl.s: another controller pulls SDA low in a bit where we send 1; we stop at once and report it."""
-    words = i2c_write(I2C_ADDR << 1, start=True) + i2c_write(0x3C, stop=True)
+    words = i2c_write(I2C_ADDR << 1, start=True)  # the host queues no word after a byte that can lose
     for bit in (1, 3):  # address 0xA0: bits 1 and 3 are 1
         bench, m, bus = i2c_run("Fm", 50, 0, words)
         bus.lose_at = (0, bit)

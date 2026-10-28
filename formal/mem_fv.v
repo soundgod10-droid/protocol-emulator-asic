@@ -23,10 +23,13 @@
 //   clock signal the check sees when each latch is open, not only the
 //   values at the clock edges. The memory has the size of the chip.
 //
-// Not in this check:
-//   A reset in the first half of the cycle after a store sets the write
-//   data flip-flop to 0 while the word is open, so that word gets 0. The
-//   harness has no such reset (M2b_core.md, open items).
+// Reset (M2c, M2b open item 2):
+//   The memory has no reset (the write-data flip-flops have none since
+//   M2c). The chip reset clears only the flip-flops that make the write
+//   request (pe_proc, pe_host_port). The harness does the same: its
+//   request register \"we\" has an asynchronous reset. With FREE_RESET = 1
+//   the reset can come at any solver step, also in the first half of the
+//   cycle after a store, while the word is open.
 
 // Size: the default is the chip size 128 x 16. Z3 did not finish a proof
 // or a 4-cycle bounded check of the 2,048 latches in 25 to 30 minutes.

@@ -296,30 +296,33 @@ async def test_reset_during_frame(dut):
 
 @cocotb.test()
 async def test_fixed_patterns(dut):
-    """0x00, 0xFF, 0x55, 0xAA, each as a single frame with idle time between."""
-    mon = await start(dut)
+    """fw/uart_tx.s: 0x00, 0xFF, 0x55, 0xAA, each as a single frame with idle time between."""
+    mon, host = await start(dut)
+    await load_uart_tx(dut, host)
     rx = UartRx(dut.uart_tx)
     cocotb.start_soon(rx.run())
-    host = Host(dut)
     patterns = [0x00, 0xFF, 0x55, 0xAA]
     for byte in patterns:
-        await host.send(byte)
+        await send_bytes(host, [byte])
         await Timer(12 * T_DUT_PS, unit="ps")  # frame plus idle time
-    check_stream(dut._log, mon, rx, patterns, "fixed patterns", back_to_back=False)
+    check_stream(dut._log, mon, rx, patterns, "fixed patterns (firmware)", back_to_back=False)
+    st = await host.read_status()
+    assert st["late"] == [0, 0, 0, 0] and st["err"] == [0, 0, 0, 0], f"status {st}"
 
 
 @cocotb.test()
 async def test_counter_sequence(dut):
-    """256 bytes 0x00 to 0xFF back-to-back: each frame exactly 10 bit times."""
-    mon = await start(dut)
+    """fw/uart_tx.s: 256 bytes 0x00 to 0xFF back-to-back: each frame exactly 10 bit times."""
+    mon, host = await start(dut)
+    await load_uart_tx(dut, host)
     rx = UartRx(dut.uart_tx)
     cocotb.start_soon(rx.run())
-    host = Host(dut)
     data = list(range(256))
-    for byte in data:
-        await host.send(byte)
-    await Timer(12 * T_DUT_PS, unit="ps")
-    check_stream(dut._log, mon, rx, data, "counter sequence", back_to_back=True)
+    await send_bytes(host, data)
+    await Timer(5 * FRAME_BITS * T_DUT_PS, unit="ps")  # the last 4 bytes in the FIFO, plus idle
+    check_stream(dut._log, mon, rx, data, "counter sequence (firmware)", back_to_back=True)
+    st = await host.read_status()
+    assert st["late"] == [0, 0, 0, 0] and st["err"] == [0, 0, 0, 0] and not st["push_drop"], f"status {st}"
 
 
 @cocotb.test()

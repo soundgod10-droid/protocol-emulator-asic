@@ -171,18 +171,35 @@ module pe_core (
   // Register read ports. Port A is the register that the instruction
   // writes or uses first; its field position depends on the opcode.
   // Port B is rs of the ALU register instructions and ra of LDX/STX.
+  //
+  // The selects sa and sb are flip-flops. They are decoded from the
+  // memory word in the prefetch cycle, at the same time as ir, so sa =
+  // f_sa(ir) and sb = f_sb(ir) in each cycle (formal property B5).
+  // Reason (G1 4.5, M2b open item 10): in gds #12 the slow-corner setup
+  // violation (-2.292 ns) starts at ir[13]; the select of the register
+  // read multiplexer arrived 7.25 ns after ir through the decode and 8
+  // fanout buffers. With flip-flops the decode is in the prefetch cycle,
+  // whose path (128:1 latch read into ir) is not critical.
   // ---------------------------------------------------------------------
-  reg [1:0] sa;
-  always @* begin
-    case (op)
-      4'h0, 4'hC, 4'hD: sa = ir[7:6];
-      4'h7:             sa = ir[8:7];
-      4'hB:             sa = ir[10:9];
-      4'hE:             sa = ir[9:8];
-      default:          sa = ir[11:10];
-    endcase
-  end
-  wire [1:0] sb = (op == 4'h3) ? ir[9:8] : ir[5:4];
+  function [1:0] f_sa(input [15:0] w);
+    begin
+      case (w[15:12])
+        4'h0, 4'hC, 4'hD: f_sa = w[7:6];
+        4'h7:             f_sa = w[8:7];
+        4'hB:             f_sa = w[10:9];
+        4'hE:             f_sa = w[9:8];
+        default:          f_sa = w[11:10];
+      endcase
+    end
+  endfunction
+
+  function [1:0] f_sb(input [15:0] w);
+    begin
+      f_sb = (w[15:12] == 4'h3) ? w[9:8] : w[5:4];
+    end
+  endfunction
+
+  reg [1:0] sa, sb;
 
   reg [15:0] ra, rb;
   always @* begin

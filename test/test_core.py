@@ -116,58 +116,82 @@ class Scenario:
         m._execute = counting
         return m
 
-    def load_frames(self):
-        """Test port frames that load the memory and the configuration, then START."""
-        frames = [(CMD_MEMW, a, w) for a, w in enumerate(self.image)]
-        frames += [(CMD_CFG, n, self.start_pc[n]) for n in range(4)]
-        frames.append((CMD_CFG, 4, sum(1 << n for n in range(4) if self.run[n])))
-        for p in range(pe_model.N_OUT):
-            own = self.owner[p]
-            if own is not None or self.od[p]:
-                val = ((own or 0) & 3) | ((own is not None) << 2) | (self.od[p] << 3)
-                frames.append((CMD_CFG, 16 + p, val))
-        frames.append((CMD_START, 0, 0))
-        return frames
+    def load_transactions(self):
+        """Host SPI transactions that load the memory and the configuration, then START (docs/host_port.md)."""
+        head, pins = hs.config_words(self.start_pc, self.run, self.owner, self.od)
+        return [hs.t_write_mem(0, self.image), hs.t_write_cfg(0, head), hs.t_write_cfg(16, pins), [hs.START]]
 
 
 def pop_round_robin(threads):
     return lambda i: (CMD_POP, threads[i % len(threads)], 0)
 
 
-# Host commands and the slot of the same cycle:
-#   The test port command occurs at the clock edge at the end of the cycle
-#   k of its last bit. pe_host_fifo then decides with the FIFO state of
-#   cycle k, and the slot thread of cycle k also sees the state of cycle
-#   k: a host POP does not get a word that the thread pushes in cycle k,
-#   and a host PUSH to a FIFO that is full in cycle k has no effect, also
-#   if the thread pulls a word in cycle k. host_before() reads the model
-#   FIFO before the step of cycle k, host_after() changes it after the step.
+# Host operations and the slot of the same cycle:
+#   The port acts on a byte at the clock edge at the end of cycle k (2
+#   cycles after the cycle of its last rising SCK edge). pe_host_fifo then
+#   decides with the FIFO state of cycle k, and the slot thread of cycle k
+#   also sees the state of cycle k: a PULL count or pop does not see a word
+#   that the thread pushes in cycle k, and a PUSH to a FIFO that is full in
+#   cycle k is dropped, also if the thread pulls a word in cycle k
+#   (docs/host_port.md, FIFO rule). host_before() reads the model FIFO
+#   before the step of cycle k, host_after() changes it after the step.
 
 
-def host_before(m, frame):
-    """PUSH: True if the in-FIFO has space. POP: the head word of the out-FIFO, or None."""
-    cmd, arg, _ = frame
-    n = arg & 3
-    if cmd == CMD_PUSH:
+def build_schedule(scn):
+    """Host SPI pins for each test-bench cycle, model cycle 0, and the host operations in model cycles.
+
+    Returns (sched, t0, ops, pulls): ops[c] = list of operations that act at
+    the end of model cycle c; pulls = list of (txn, thread) of the PULL
+    transactions after START.
+    """
+    sched = hs.Schedule(SCK_PERIOD)
+    sched.idle(2)
+    txns = scn.load_transactions()
+    for t in txns[:-1]:
+        sched.add(t, "load")
+    n_start = sched.add(txns[-1], "START")
+    t0 = sched.act_cycle(n_start, 0) + 2  # START: release at the end of k0, start pulse in k0 + 1
+    ops = {}
+    pulls = []
+    i = 0
+    while len(sched.pins) < t0 + scn.cycles + 8:
+        cmd, arg, data = scn.host(i)
+        n = arg & 3
+        if cmd == CMD_PUSH:
+            k = sched.add(hs.t_push(n, [data & 0xFFFF]), "PUSH")
+            ops.setdefault(sched.act_cycle(k, 3) - t0, []).append(("push", n, data & 0xFFFF, k, 0))
+        elif cmd == CMD_POP:
+            k = sched.add(hs.t_pull(n, PULL_WORDS), "PULL")
+            pulls.append((k, n))
+            ops.setdefault(sched.act_cycle(k, 1) - t0, []).append(("count", n, 0, k, 0))
+            for w in range(PULL_WORDS):
+                ops.setdefault(sched.act_cycle(k, 2 + 2 * w) - t0, []).append(("pop", n, 0, k, w))
+        else:
+            sched.idle(data if data else NOP_CYCLES)
+        i += 1
+    return sched, t0, ops, pulls
+
+
+def host_before(m, op, counts):
+    """push: True if the in-FIFO has space. count: the word count. pop: the head word, or None."""
+    kind, n, _, k, w = op
+    if kind == "push":
         return len(m.fifo_in[n]) < pe_model.FIFO_DEPTH
-    if cmd == CMD_POP:
-        return m.fifo_out[n][0] if m.fifo_out[n] else None
+    if kind == "count":
+        counts[k] = len(m.fifo_out[n])
+        return counts[k]
+    if kind == "pop":
+        return m.fifo_out[n][0] if w < counts[k] else None
     return None
 
 
-def host_after(m, frame, before):
-    cmd, arg, data = frame
-    n = arg & 3
-    if cmd == CMD_PUSH and before:
-        m.fifo_in[n].append(data & 0xFFFF)
-    elif cmd == CMD_POP and before is not None:
+def host_after(m, op, before):
+    kind, n, data, _, _ = op
+    if kind == "push" and before:
+        m.fifo_in[n].append(data)
+    elif kind == "pop" and before is not None:
         word = m.fifo_out[n].popleft()
         assert word == before, "the model FIFO head changed in the slot"
-
-
-def frame_bits(cmd, arg, data):
-    value = (cmd << 23) | ((arg & 0x7F) << 16) | (data & 0xFFFF)
-    return [(value >> (TP_BITS - 1 - i)) & 1 for i in range(TP_BITS)]
 
 
 def model_only(scn, data_addrs=None):

@@ -921,3 +921,183 @@ async def test_fw_full_all_four(dut):
     check_all_four(dut._log, r, "all four, 40 MHz, UART sender 0 %")
     r = all_four(50e6, TOL, rx_name="uart_rx_slow.s", rate=1_200, slow_k=2)
     check_all_four(dut._log, r, "all four with uart_rx_slow, 50 MHz, 1,200 bit/s, UART sender +3.3 %")
+
+
+# ----- G1 step 3e: D4 choices against an alternative, measured in the model -----
+
+
+class SpikeFilter:
+    """Input filter of g1_spike_filter (src/g1_meas.v) in front of the model inputs of some uio pins.
+
+    A filtered bit takes a new level only after K samples in a row that differ from it. Thus a
+    spike of K - 1 cycles or less has no effect: K = 3 removes 40 ns at 50 MHz and 50 ns at 40 MHz
+    (UM10204 Rev. 7.0 Table 10 note [8], page 44: spikes of less than 50 ns).
+    """
+
+    def __init__(self, inner, pins, k=3):
+        self.inner, self.pins, self.k = inner, pins, k
+        self.mask = sum(1 << p for p in pins)
+        self.q = {p: 1 for p in pins}
+        self.cnt = {p: 0 for p in pins}
+
+    def __call__(self, c, uo, uio, oe):
+        ui, uio_in = self.inner(c, uo, uio, oe)
+        out = uio_in & ~self.mask
+        for p in self.pins:
+            d = (uio_in >> p) & 1
+            if d == self.q[p]:
+                self.cnt[p] = 0
+            elif self.cnt[p] == self.k - 1:
+                self.q[p], self.cnt[p] = d, 0
+            else:
+                self.cnt[p] += 1
+            out |= self.q[p] << p
+        return ui, out
+
+
+@cocotb.test(skip=GL)
+async def test_g1_i2c_spike_filter(dut):
+    """D4 item 8: fw/i2c_ctl.s with a 3-sample input filter on SCL and SDA; normal transfers and the spike cases."""
+    words, replies, events = i2c_script()
+    for mode, f_mhz in (("Fm", 50), ("Sm", 50), ("Fm", 40)):
+        for stretch in (0, 300):
+            bench, m, bus = i2c_run(mode, f_mhz, stretch, words)
+            bench.inputs = SpikeFilter(bus, (P_SCL, P_SDA))
+            bench.run(30_000 if mode == "Fm" else 80_000)
+            assert bench.words(0) == replies, f"{mode} {f_mhz}: replies {[hex(w) for w in bench.words(0)]}"
+            assert i2c_events(bus) == events, f"{mode} {f_mhz}: bus events {i2c_events(bus)}"
+            assert_status_clean(m, [0])
+            check_i2c_times(dut._log, bus.changes, mode, f_mhz, f"i2c_ctl {mode} stretch {stretch}, 3-sample filter")
+    results = []
+    for line, width in (("SCL", 2), ("SCL", 3), ("SDA", 2), ("SDA", 3)):
+        bench, m, bus = i2c_run("Fm", 50, 300, words)
+        bench.inputs = SpikeFilter(bus, (P_SCL, P_SDA))
+        if line == "SCL":
+            bus.spike_after_ack = (1, 150, width)
+        else:
+            bus.sda_spike_at = (0, 1, I2C_EQU[("Fm", 50)]["TSMP"] - 1, width)
+        bench.run(30_000)
+        ok = bench.words(0) == replies and i2c_events(bus) == events and status_clean(m, [0])
+        results.append((line, width, ok))
+        dut._log.info(f"i2c_ctl Fm with the 3-sample filter, {width}-cycle ({width * 20} ns) spike on {line}: "
+                      f"{'transfer correct' if ok else 'transfer NOT correct'}; replies {[hex(w) for w in bench.words(0)]}")
+    assert all(ok for _, width, ok in results if width == 2), f"a 40 ns spike broke a filtered transfer: {results}"
+
+
+@cocotb.test(skip=GL)
+async def test_g1_lead(dut):
+    """D4 item 4: LEAD 4 (isa 4.2) against LEAD 2 and 1 in the model: SPI smallest half period, UART receiver tolerance."""
+    saved = pe_model.LEAD
+    rows = []
+    try:
+        for lead in (4, 2, 1):
+            pe_model.LEAD = lead
+            h_spi = {}
+            for d in (0, 7):
+                for h in range(4, 80):
+                    bench, m, dev = spi_run(0, 0, h, d)
+                    if spi_ok(bench, m, dev):
+                        h_spi[d] = h
+                        break
+            best = (0.0, 0, 0.0, 0.0)
+            for h in range(6, 22):
+                fast, slow = rx_limits(50, h)
+                if min(fast, slow) > best[0]:
+                    best = (min(fast, slow), h, fast, slow)
+            rows.append((lead, h_spi, best))
+            dut._log.info(f"LEAD {lead}: spi_ctl mode 0 smallest H {h_spi.get(0)} (D 0), {h_spi.get(7)} (D 7); "
+                          f"uart_rx_full 50 MHz 1 Mbit/s best H {best[1]}: accepts -{best[2] * 100:.1f} % "
+                          f"to +{best[3] * 100:.1f} %")
+    finally:
+        pe_model.LEAD = saved
+    assert rows[0][1].get(0) == 25, f"LEAD 4 must give the step 3a result H 25: {rows[0]}"
+
+
+def uart_decode(changes, b, nbits):
+    """Independent receiver: each start edge, then bit k at start + (k + 0.5) x b."""
+    out, ready = [], -1.0
+    for i in range(1, len(changes)):
+        c, v = changes[i]
+        if v == 0 and changes[i - 1][1] == 1 and c > ready:
+            out.append((c, [value_at(changes, int(c + (k + 0.5) * b)) for k in range(nbits)]))
+            ready = c + (nbits - 0.5) * b
+    return out
+
+
+def no_tsync(text):
+    """The firmware text with each TSYNC replaced by NOP (the alternative without TSYNC, D4 item 9)."""
+    return re.sub(r"\bTSYNC\b[^;\n]*", "NOP ", text, flags=re.I)
+
+
+def tsync_count(prog):
+    """TSYNC words in an assembled program (isa 11.2: opcode 7, function 5)."""
+    return sum(1 for w in prog.words.values() if (w >> 12) == 7 and ((w >> 9) & 7) == 5)
+
+
+GAP = 40_000  # host gap in cycles, more than the 32,767-cycle horizon (isa 4.2)
+
+
+def gap_uart_tx(edit):
+    k, c, b = uart_cfg(50e6, 115_200)
+    m = pe_model.PeModel(pe_asm.assemble(edit(source("uart_tx_full.s")), "uart_tx_full.s", 0).words,
+                         owner=owners({P_TX: 0}))
+    bench = Bench(m)
+    bench.watch("tx", lambda uo, uio, oe: (uo >> 4) & 1)
+    frames = [frame_bits(d, "8N1") for d in (0x55, 0xA3, 0x0F, 0xC6)]
+    bench.send(0, c, k, frame_word(frames[0]), frame_word(frames[1]))
+    bench.run(200 + 20 * b + GAP)
+    t_send = m.cycle
+    bench.send(0, frame_word(frames[2]), frame_word(frames[3]))
+    bench.run(70_000)
+    got = uart_decode(bench.changes("tx"), b, 10)
+    after = [t for t, _ in got if t >= t_send]
+    ok = [bits for _, bits in got] == frames
+    return ok, (after[0] - t_send) if after else None, m.threads[0].status
+
+
+def gap_spi(edit):
+    h = 25
+    prog = pe_asm.assemble(edit(source("spi_ctl.s", CPOL=0, CL=0, D=0)), "spi_ctl.s", 0)
+    m = pe_model.PeModel(prog.words, owner=owners({P_CS: 0, P_MOSI: 0, P_SCK: 0}))
+    dev = SpiDevice(0, 0, SPI_DEV)
+    bench = Bench(m, inputs=dev)
+    bench.watch("cs", lambda uo, uio, oe: level(uio, oe, P_CS))
+    bench.send(0, h, *SPI_WORDS[:3])
+    bench.run(400 + 3 * (20 * h + 120) + GAP)
+    t_send = m.cycle
+    bench.send(0, SPI_WORDS[3])
+    bench.run(70_000)
+    falls = [c for i, (c, v) in enumerate(bench.changes("cs")) if i and v == 0 and c >= t_send]
+    return spi_ok(bench, m, dev), (falls[0] - t_send) if falls else None, m.threads[0].status
+
+
+def gap_i2c(edit):
+    first = i2c_write(I2C_ADDR << 1, start=True) + i2c_write(0x3C, stop=True)
+    second = i2c_write(0x51 << 1, start=True, stop=True)
+    prog = pe_asm.assemble(edit(source("i2c_ctl.s", **I2C_EQU[("Fm", 50)])), "i2c_ctl.s", 0)
+    m = pe_model.PeModel(prog.words, owner=owners({P_SCL: 0, P_SDA: 0}), open_drain=open_drain({P_SCL, P_SDA}))
+    bus = I2cBus(I2C_ADDR, I2C_READ)
+    bench = Bench(m, inputs=bus)
+    bench.send(0, *first)
+    bench.run(10_000 + GAP)
+    t_send = m.cycle
+    bench.send(0, *second)
+    bench.run(70_000)
+    starts = [e[0] for e in bus.events if e[1] == "START" and e[0] >= t_send]
+    expect = ["START", ("ADDR", I2C_ADDR, 0, 1), ("W", 0x3C), "STOP", "START", ("ADDR", 0x51, 0, 0), "STOP"]
+    return i2c_events(bus) == expect, (starts[0] - t_send) if starts else None, m.threads[0].status
+
+
+@cocotb.test(skip=GL)
+async def test_g1_tsync(dut):
+    """D4 item 9: TSYNC words in the firmware, and a host gap of 40,000 cycles with and without TSYNC."""
+    for name in sorted(set(FULL + SLOW)):
+        prog = pe_asm.assemble_file(os.path.join(ROOT, "fw", name))
+        dut._log.info(f"fw/{name}: {tsync_count(prog)} TSYNC of {prog.size} words")
+    for label, run in (("uart_tx_full 115,200 bit/s", gap_uart_tx), ("spi_ctl H 25", gap_spi), ("i2c_ctl Fm", gap_i2c)):
+        ok, delay, status = run(lambda t: t)
+        ok2, delay2, status2 = run(no_tsync)
+        dut._log.info(f"{label}, host gap {GAP} cycles: with TSYNC {'correct' if ok else 'NOT correct'}, first pin "
+                      f"change {delay} cycles after the host word, status {status}; TSYNC replaced by NOP: "
+                      f"{'correct' if ok2 else 'NOT correct'}, {delay2} cycles, status {status2}")
+        assert ok and status == 0 and delay is not None and delay < 2_000, (label, ok, delay, status)

@@ -42,7 +42,6 @@ module pe_latch_ram #(
     parameter integer WIDTH = 16
 ) (
     input  wire             clk,
-    input  wire             rst_n,  // active low, asynchronous assert (write-data flip-flops only)
     input  wire             we,     // 1 = write wdata to waddr
     input  wire [AW-1:0]    waddr,
     input  wire [WIDTH-1:0] wdata,

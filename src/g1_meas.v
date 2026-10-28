@@ -571,7 +571,9 @@ module g1_helper_store (
       assign stuff[h] = (sc[3*h+:3] == 3'd6);
     end
   endgenerate
-  assign rdata = si[16*tid+:16];
+  assign rdata  = si[16*tid+:16];
+  assign bcount = bc[5*tid+:5];
+  assign state  = st[4*tid+:4];
 endmodule
 
 // ---------------------------------------------------------------------------

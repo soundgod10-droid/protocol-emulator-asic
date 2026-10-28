@@ -62,8 +62,8 @@ I2C_EQU = {
 }
 # Firmware limits (G1 model runs): TSMP >= 16 (SAMPLE lead after the WAIT) and THIGH2 + HD >= 36:
 # the SDA event after the SCL fall is issued up to TSMP + 32 cycles after the SCL rise.
-# Minimum times in us (fSCL: maximum clock in kHz), NXP UM10204 I2C-bus specification,
-# table of SDA and SCL bus characteristics (A1 [I2C]; G1 step 3d gives the revision and page).
+# Minimum times in us (fSCL: maximum clock in kHz): NXP UM10204 I2C-bus specification and user
+# manual, Rev. 7.0 (1 October 2021), Table 11, PDF page 44 (read in G1 step 3d).
 I2C_LIMITS = {
     "Sm": dict(f_khz=100, hd_sta=4.0, low=4.7, high=4.0, su_sta=4.7, hd_dat=0.0, su_dat=0.25, su_sto=4.0, buf=4.7),
     "Fm": dict(f_khz=400, hd_sta=0.6, low=1.3, high=0.6, su_sta=0.6, hd_dat=0.0, su_dat=0.1, su_sto=0.6, buf=1.3),

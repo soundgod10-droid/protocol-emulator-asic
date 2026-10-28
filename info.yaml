@@ -34,34 +34,34 @@ project:
 # This section is for the datasheet/website. Use descriptive names (e.g., RX, TX, MOSI, SCL, SEG_A, etc.).
 pinout:
   # Inputs
-  ui[0]: "TX_REQ (M1, temporary) / processor input 8"
-  ui[1]: "processor input 9"
-  ui[2]: "processor input 10"
-  ui[3]: "processor input 11 (UART_RX)"
-  ui[4]: "processor input 12"
-  ui[5]: "TP_DAT (M2b test port, temporary)"
-  ui[6]: "TP_CLK (M2b test port, temporary)"
-  ui[7]: "CORE_SEL (M2b, temporary): 1 = processor pins"
+  ui[0]: "IN8 processor input"
+  ui[1]: "IN9 processor input"
+  ui[2]: "IN10 processor input"
+  ui[3]: "IN11 processor input (default UART RX)"
+  ui[4]: "IN12 processor input"
+  ui[5]: "HOST_MOSI"
+  ui[6]: "HOST_CS_N"
+  ui[7]: "HOST_SCK"
 
   # Outputs
-  uo[0]: "processor output 8"
-  uo[1]: "processor output 9"
-  uo[2]: "processor output 10"
-  uo[3]: "processor output 11"
-  uo[4]: "UART_TX (M1) / processor output 12"
-  uo[5]: "TX_ACK (M1, temporary) / processor output 13"
-  uo[6]: "processor output 14"
-  uo[7]: "TP_OUT (M2b test port, temporary)"
+  uo[0]: "OUT8 processor output"
+  uo[1]: "OUT9 processor output"
+  uo[2]: "OUT10 processor output"
+  uo[3]: "OUT11 processor output"
+  uo[4]: "OUT12 processor output (default UART TX)"
+  uo[5]: "OUT13 processor output"
+  uo[6]: "OUT14 processor output"
+  uo[7]: "HOST_MISO"
 
   # Bidirectional pins
-  uio[0]: "TX_DATA[0] in (M1, temporary) / processor pin 0"
-  uio[1]: "TX_DATA[1] in (M1, temporary) / processor pin 1"
-  uio[2]: "TX_DATA[2] in (M1, temporary) / processor pin 2"
-  uio[3]: "TX_DATA[3] in (M1, temporary) / processor pin 3"
-  uio[4]: "TX_DATA[4] in (M1, temporary) / processor pin 4"
-  uio[5]: "TX_DATA[5] in (M1, temporary) / processor pin 5"
-  uio[6]: "TX_DATA[6] in (M1, temporary) / processor pin 6"
-  uio[7]: "TX_DATA[7] in (M1, temporary) / processor pin 7"
+  uio[0]: "PIN0 processor pin (example SPI CS)"
+  uio[1]: "PIN1 processor pin (example SPI MOSI)"
+  uio[2]: "PIN2 processor pin (example SPI MISO)"
+  uio[3]: "PIN3 processor pin (example SPI SCK)"
+  uio[4]: "PIN4 processor pin"
+  uio[5]: "PIN5 processor pin"
+  uio[6]: "PIN6 processor pin (example I2C SCL)"
+  uio[7]: "PIN7 processor pin (example I2C SDA)"
 
 # Do not change!
 yaml_version: 6

@@ -719,7 +719,7 @@ async def test_fw_full_uart_rx_tolerance(dut):
                           f"accepts sender bit time -{fast * 100:.1f} % to +{slow * 100:.1f} %")
         h = rx_h(b)
         fast, slow = rx_limits(b, h)
-        dut._log.info(f"uart_rx_full {f_clk / 1e6:.0f} MHz, 1 Mbit/s, B {b}, H {h} (rule (9 B - 135) / 19): "
+        dut._log.info(f"uart_rx_full {f_clk / 1e6:.0f} MHz, 1 Mbit/s, B {b}, H {h} (rule 9 (B - 18) / 19): "
                       f"accepts -{fast * 100:.1f} % to +{slow * 100:.1f} % (A1 needs +/-{TOL * 100:.1f} %)")
         assert min(fast, slow) >= max(rows)[0], "the rule is not as good as the best measured H"
         if f_clk == 50e6:

@@ -69,6 +69,9 @@ module pe_host_fifo (
   wire [2:0] out_cnt_t = out_cnt[3*t_tid+:3];
   wire [2:0] out_cnt_h = out_cnt[3*h_tid+:3];
 
+  assign cnt_in  = in_cnt;
+  assign cnt_out = out_cnt;
+
   assign t_in_valid  = (in_cnt_t != 3'd0);
   assign t_out_full  = (out_cnt_t == 3'd4);
   assign h_in_full   = (in_cnt_h == 3'd4);

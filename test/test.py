@@ -326,27 +326,126 @@ async def test_counter_sequence(dut):
 
 
 @cocotb.test()
-async def test_request_near_end_of_stop_bit(dut):
-    """The next byte comes in the last cycles of the stop bit and later.
+async def test_host_id_status_rules(dut):
+    """READ_ID, status after reset, command codes that are not valid, and the command rules."""
+    mon, host = await start(dut)
+    log = dut._log
+    chip_id = await host.read_id()
+    log.info(f"READ_ID: {[f'{b:02X}' for b in chip_id]}")
+    assert chip_id == hs.CHIP_ID, f"chip ID {chip_id}, expected {hs.CHIP_ID}"
+    st = await host.read_status()
+    assert st == hs.parse_status([0] * hs.STATUS_BYTES), f"status after reset: {st}"
 
-    The module chains the next frame only with more than LEAD cycles left.
-    Otherwise it starts the frame after the stop bit. In both cases the stop
-    bit must be complete and the data correct.
+    # A known word at address 5, to check that no invalid byte writes the memory.
+    await host.write_mem(5, [0x1234])
+    # Not valid: stuck MOSI (0x00, 0xFF), one wrong bit in each valid code, and
+    # each valid code with the WRITE_MEM data after it (it must do nothing).
+    bad = [0x00, 0xFF] + [c ^ (1 << b) for c in hs.ALL_COMMANDS for b in range(8)]
+    assert not any(hs.code_ok(b) for b in bad), "test fault: a code in the bad list is valid"
+    for b in bad:
+        await host.transaction([b, 5, 0xAB, 0xCD])
+        st = await host.read_status()
+        assert st["cmd_err"] == 1 and st["running"] == 0, f"code {b:02X}: status {st}"
+        await host.clear()
+    assert await host.read_mem(5, 1) == [0x1234], "a code that is not valid changed the memory"
+    log.info(f"{len(bad)} codes that are not valid (0x00, 0xFF, every code with 1 wrong bit): CMD_ERR, no effect")
+
+    # Rules while stopped: PUSH and PULL are refused.
+    for t in ([hs.PUSH, 0, 0x00, 0x41], [hs.PULL, 0, 0, 0, 0]):
+        got = await host.transaction(t)
+        st = await host.read_status()
+        assert st["cmd_err"] == 1 and st["in_cnt"] == [0, 0, 0, 0], f"{t[0]:02X} while stopped: {st}, MISO {got}"
+        await host.clear()
+
+    # Start with no thread running (RUN mask 0): the threads "run" for the port.
+    await host.write_cfg(4, [0])
+    await host.start()
+    st = await host.read_status()
+    assert st["running"] == 1 and st["run"] == [0, 0, 0, 0] and not st["cmd_err"], f"after START: {st}"
+    # Rules while running: WRITE_MEM, READ_MEM, WRITE_CFG and START are refused.
+    await host.write_mem(5, [0xBEEF])
+    assert (await host.read_status())["cmd_err"] == 1
+    await host.clear()
+    got = await host.transaction(hs.t_read_mem(5, 1))
+    assert got[2:] == [0, 0] and (await host.read_status())["cmd_err"] == 1, f"READ_MEM while running: {got}"
+    await host.clear()
+    await host.start()
+    assert (await host.read_status())["cmd_err"] == 1
+    await host.clear()
+    # PUSH 5 words into the 4-word FIFO of thread 0 (no program pulls): the 5th is dropped.
+    await host.push(0, [1, 2, 3, 4, 5])
+    st = await host.read_status()
+    assert st["in_cnt"][0] == 4 and st["push_drop"] == 1 and not st["cmd_err"], f"PUSH 5 words: {st}"
+    await host.stop()
+    st = await host.read_status()
+    assert st["running"] == 0 and st["in_cnt"] == [0, 0, 0, 0], f"after STOP: {st}"
+    assert await host.read_mem(5, 1) == [0x1234], "WRITE_MEM while running changed the memory"
+    await host.clear()
+    assert await host.read_status() == hs.parse_status([0] * hs.STATUS_BYTES)
+    assert not mon.changes, f"UART_TX changed with no program: {mon.changes}"
+    log.info("command rules: refused commands set CMD_ERR and change nothing; the 5th PUSH word sets PUSH_DROP")
+
+
+@cocotb.test()
+async def test_host_load_readback(dut):
+    """WRITE_MEM of 128 random words, READ_MEM in one transaction and with the address wrap 127 -> 0."""
+    _, host = await start(dut)
+    rng = random.Random(2610)
+    words = [rng.randrange(0x10000) for _ in range(128)]
+    await host.write_mem(0, words)
+    back = await host.read_mem(0, 128)
+    assert back == words, f"read-back differs at {[a for a in range(128) if back[a] != words[a]][:8]}"
+    assert await host.read_mem(126, 4) == words[126:] + words[:2], "address wrap 127 -> 0"
+    # Two words written across the wrap.
+    await host.write_mem(127, [0xA5A5, 0x5A5A])
+    assert await host.read_mem(127, 2) == [0xA5A5, 0x5A5A]
+    dut._log.info("128 words written and read back; the address wraps from 127 to 0")
+
+
+@cocotb.test()
+async def test_host_sck_limit(dut):
+    """READ_ID and READ_MEM at SCK periods of 100, 90 and 80 ns with the MISO allowance (docs/host_port.md).
+
+    At 100 ns (10 MHz) the read must be correct. The shorter periods show where
+    the 3-cycle MISO delay plus the 27.4 ns allowance no longer fits (logged).
     """
-    mon = await start(dut)
+    _, host = await start(dut)
+    await host.write_mem(0, [0x8001, 0x7FFE, 0xC3C3, 0x3C3C])
+    results = {}
+    for period in (100, 90, 80):
+        h = hs.SpiTimed(dut, period_ns=period)
+        ok = (await h.read_id()) == hs.CHIP_ID and (await h.read_mem(0, 4)) == [0x8001, 0x7FFE, 0xC3C3, 0x3C3C]
+        results[period] = ok
+    dut._log.info(f"SCK period (ns) -> READ_ID and READ_MEM correct with a 27.4 ns MISO allowance: {results}")
+    assert results[100], "10 MHz host SCK does not work"
+
+
+@cocotb.test()
+async def test_stop_start(dut):
+    """STOP in a frame releases UART_TX at once; START after STOP runs the program as after a reset."""
+    mon, host = await start(dut)
+    await load_uart_tx(dut, host)
     rx = UartRx(dut.uart_tx)
+    await send_bytes(host, [0x00])
+    await FallingEdge(dut.uart_tx)
+    await Timer(int(4.5 * T_DUT_PS), unit="ps")
+    assert str(dut.uart_tx.value) == "0", "UART_TX is not low inside the 0x00 frame"
+    t_stop = now_ps()
+    await host.stop()
+    st = await host.read_status()
+    assert st["running"] == 0 and st["run"] == [0, 0, 0, 0], f"status after STOP: {st}"
+    changes = [c for c in mon.changes if c[0] >= t_stop]
+    assert len(changes) == 1 and changes[0][1] == "1", f"UART_TX after STOP: {changes}"
+    dut._log.info(f"STOP: UART_TX high {(changes[0][0] - t_stop) / 1000:.1f} ns after the STOP transaction began")
+    await Timer(3 * FRAME_BITS * T_DUT_PS, unit="ps")
+    assert [c for c in mon.changes if c[0] > changes[0][0]] == [], "UART_TX changed while the threads stop"
+    # START again with the same memory and configuration: frames as after a reset.
     cocotb.start_soon(rx.run())
-    host = Host(dut)
-    rng = random.Random(15)
-    data = []
-    frame_cycles = FRAME_BITS * BIT_CYCLES
-    # TX_ACK changes when the byte is taken. The start bit is LEAD cycles
-    # later, so the stop bit ends LEAD + 10 * BIT_CYCLES cycles after TX_ACK.
-    # TX_REQ needs 2 cycles (synchronizer) plus 1 cycle (data set-up in Host.send).
-    for delay in range(frame_cycles + LEAD_CYCLES - 12, frame_cycles + LEAD_CYCLES + 4):
-        byte = rng.randrange(256)
-        data.append(byte)
-        await host.send(byte)
-        await ClockCycles(dut.clk, delay)
-    await Timer(12 * T_DUT_PS, unit="ps")
-    check_stream(dut._log, mon, rx, data, "request near end of stop bit", back_to_back=False)
+    t_restart = now_ps()
+    await host.start()
+    data = [0x55, 0xAA, 0x0F]
+    await send_bytes(host, data)
+    await Timer(5 * FRAME_BITS * T_DUT_PS, unit="ps")
+    mon_after = LineMonitor(dut.uart_tx)
+    mon_after.changes = [c for c in mon.changes if c[0] > t_restart]
+    check_stream(dut._log, mon_after, rx, data, "after STOP and START", back_to_back=True)

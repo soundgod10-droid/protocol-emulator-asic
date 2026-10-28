@@ -11,10 +11,12 @@
 ; Why:
 ;   G1 step 3a: measured word count of the full firmware for the memory
 ;   size (decision D2, D4 item 13). The host makes the frame word, so the
-;   same 16 words send 8N1, 8E1, 8N2 and other formats (A1 section 8.2).
+;   same 15 words send 8N1, 8E1, 8N2 and other formats (A1 section 8.2).
+;   OUT does not wait for its event, so the thread waits for each event
+;   time (TWAIT) before it moves T: then each lead is C or less.
 ;
 ; Host words to this thread:
-;   1. C: chunk time in cycles, 32 to 32,767.
+;   1. C: chunk time in cycles, 40 to 32,767.
 ;   2. K: number of chunks in each bit, 1 or more.
 ;   3. Then one frame word for each frame. Bit 0 is the first bit on the
 ;      line (start bit 0), then the data bits LSB first, the parity bit if

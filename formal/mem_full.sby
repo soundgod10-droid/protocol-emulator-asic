@@ -1,0 +1,31 @@
+# mem_full: proof of the latch memory at the chip size, 128 words x 16 bits
+# (M2b open item, G1 register M2b-06).
+#
+# What it does:
+#   The same harness and properties (M1 to M4 in pe_latch_ram.v) as
+#   mem.sby (128 x 2) and mem_small.sby (8 x 16), with the default
+#   parameters of formal/mem_fv.v: 128 x 16, as in the chip.
+#
+# Why depth 3:
+#   mem.sby (128 x 2) proves the properties by induction with 2 steps
+#   ("Trying induction in step 8, 7 ... successful", M2c run 2026-10-28).
+#   In M2b, Z3 did not finish 8 steps (4 cycles) at 128 x 16 in 25 to 30
+#   minutes. Depth 3 is the smallest depth that holds the 2 induction
+#   steps, so the base case is as short as possible.
+
+[options]
+mode prove
+depth 3
+multiclock on
+
+[engines]
+smtbmc z3
+
+[script]
+read -formal pe_cells.v pe_latch_ram.v mem_fv.v
+prep -top mem_fv
+
+[files]
+../src/pe_cells.v
+../src/pe_latch_ram.v
+mem_fv.v

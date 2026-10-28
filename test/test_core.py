@@ -319,12 +319,11 @@ async def run_lockstep(dut, scn, after_reset=None):
                 assert got == want, f"{scn.label} cycle {c}, thread {c % 4}: RTL state {got}, model {want}"
                 compared_states += 1
             exp = m.step()
-            if fr is not None:
-                host_after(m, fr, before)
-                if fr[0] == CMD_POP:
-                    pop_result[t] = before
-                    if before is not None:
-                        popped[fr[1] & 3].append(before)
+            for op, before in acts:
+                host_after(m, op, before)
+                if op[0] == "pop" and before is not None:
+                    popped[op[1]].append(before)
+                    pull_words.setdefault(op[3], []).append(before)
         else:
             exp = RESET_PINS
 

@@ -5,6 +5,12 @@
 
 `default_nettype none
 
+// REMOVED IN M2c. This file is not a source of the chip any more: info.yaml
+// and test/Makefile do not list it, and no module instantiates it. The host
+// SPI port (src/pe_host_port.v, docs/host_port.md) replaces it. The text
+// below is the last version (chip commit 634b990 and earlier), kept only
+// as a record until the file is deleted with git rm.
+//
 // pe_test_port: TEMPORARY serial test port of milestone M2b.
 //
 // What it does:

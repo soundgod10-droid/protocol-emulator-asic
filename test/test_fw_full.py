@@ -389,10 +389,24 @@ def spi_run(cpol, cpha, h, d, words=SPI_WORDS, dev_data=SPI_DEV):
     return bench, m, dev
 
 
+def spi_fault(bench, m, dev, words=SPI_WORDS, dev_data=SPI_DEV):
+    """Text of the first fault of an SPI run, or None if the run is correct."""
+    th = m.threads[0]
+    if th.status or not th.run:
+        return f"thread status {th.status}, run {th.run}, {th.stop_reason}"
+    if dev.errors:
+        return f"device: {dev.errors[:3]}"
+    if dev.rx != [w & 0xFF for w in words]:
+        return f"device received {[hex(x) for x in dev.rx]}"
+    if [w & 0xFF for w in bench.words(0)] != dev_data[: len(words)]:
+        return f"controller received {[hex(w) for w in bench.words(0)]}"
+    if dev.cs_low != sum(1 for w in words if w & 0x100):
+        return f"{dev.cs_low} CS low periods"
+    return None
+
+
 def spi_ok(bench, m, dev, words=SPI_WORDS, dev_data=SPI_DEV):
-    return (status_clean(m, [0]) and not dev.errors and dev.rx == [w & 0xFF for w in words]
-            and [w & 0xFF for w in bench.words(0)] == dev_data[: len(words)]
-            and dev.cs_low == sum(1 for w in words if w & 0x100))
+    return spi_fault(bench, m, dev, words, dev_data) is None
 
 
 def spi_half_periods(bench):

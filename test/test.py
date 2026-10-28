@@ -52,7 +52,8 @@ T_DUT_PS = BIT_CYCLES * CLK_PS  # 8,680,000 ps: bit time that the design must ma
 RATE_TOL = 0.01  # +/-1 % (A1 section 3)
 EDGE_TOL_PS = 1_000  # an edge must be within 1 ns of a bit boundary
 FRAME_BITS = 10  # start + 8 data + stop
-LEAD_CYCLES = 4  # design value: start bit LEAD cycles after the byte is taken
+P_TX = 12  # UART_TX = uo_out[4] = output pin 12 (docs/isa.md 5.1)
+RESET_UO = 0x7F  # isa 2.4: V = 1 on uo_out[6:0]; uo_out[7] = HOST_MISO = 0 with no transaction
 
 
 def now_ps():

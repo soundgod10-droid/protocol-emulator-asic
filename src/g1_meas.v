@@ -733,7 +733,7 @@ module g1_evrec (
     output wire [6:0]  waddr,
     output wire [15:0] wdata
 );
-  reg [15:0] prev, tlat, chg;
+  reg [15:0] prev, chg;  // the time word is \"now\" of the change cycle
   reg [6:0]  addr;
   reg        ph;
   wire change = en && (pins != prev) && !ph;

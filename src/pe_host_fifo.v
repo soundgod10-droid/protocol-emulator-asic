@@ -99,7 +99,6 @@ module pe_host_fifo (
       .WIDTH(16)
   ) u_out_ram (
       .clk  (clk),
-      .rst_n(rst_n),
       .we   (t_push),
       .waddr({t_tid, out_wp_t}),
       .wdata(t_wdata),

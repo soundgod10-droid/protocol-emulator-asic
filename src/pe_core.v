@@ -331,7 +331,7 @@ module pe_core (
   // c - t = -tdiff is 1 to 4, and the bit is s(t) = hp[c - t - 1].
   wire       smp_due = (tdiff[15:2] == 14'h3FFF);
   wire [1:0] smp_k1  = ~tdiff[1:0];  // c - t - 1
-  wire       smp_bit = (h_ps == PS_SMPL2) ? hp[3] : hp[smp_k1];
+  wire       smp_bit = (h_ps == PS_SMPL2) ? hp[3] : hp[{1'b0, smp_k1}];
 
   // WAIT: an edge at cycle c - k (k = 1 to 4) is between s(c-k-1) =
   // hp[k] and s(c-k) = hp[k-1] (isa 6.3). With TO, the edge counts only

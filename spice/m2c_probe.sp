@@ -18,6 +18,7 @@ CL q 0 5f
 
 .tran 10p 100n
 .control
+listing deck > deck_listing.txt
 run
 meas tran q1 FIND v(q) AT=14n
 meas tran q2 FIND v(q) AT=54n

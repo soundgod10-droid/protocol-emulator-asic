@@ -775,7 +775,8 @@ async def test_fw_full_spi(dut):
                 h = spi_h_min(cpol, cpha, d)
                 for hh in range(h, h + 12):
                     bench, m, dev = spi_run(cpol, cpha, hh, d)
-                    assert spi_ok(bench, m, dev), f"mode {cpol}{cpha} D {d}: H {hh} fails, H {h} passes"
+                    fault = spi_fault(bench, m, dev)
+                    assert fault is None, f"mode {cpol}{cpha} D {d}: H {hh} fails, H {h} passes: {fault}"
                 bench, m, dev = spi_run(cpol, cpha, h, d)
                 periods, n = spi_half_periods(bench)
                 assert periods == {h} and n == 16 * len(SPI_WORDS), (periods, n)

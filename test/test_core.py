@@ -2,20 +2,24 @@
 """Milestone M2b lockstep test: processor RTL against the M2a reference model.
 
 What it does:
-  Each scenario loads a program into the chip through the TEMPORARY test
-  port (src/pe_test_port.v: CORE_SEL ui_in[7], TP_CLK ui_in[6], TP_DAT
-  ui_in[5], readout uo_out[7]) and starts the threads. Then, in each clock
-  cycle, the test gives the same input pin values to the RTL and to the
-  reference model (model/pe_model.py) and compares:
+  Each scenario loads a program into the chip through the host SPI port
+  (M2c, docs/host_port.md) with the independent host model test/host_spi.py:
+  WRITE_MEM of all 128 words, WRITE_CFG of the start addresses, the RUN
+  mask and the 15 pin words, then START. Then, in each clock cycle, the
+  test gives the same input pin values to the RTL and to the reference
+  model (model/pe_model.py) and compares:
     - the pins uo_out[6:0], uio_out and uio_oe,
-    - the readout pin uo_out[7] with a copy of the readout register that
-      the test calculates from the words that the model gives to the host,
+    - the words that the host reads with PULL (decoded from HOST_MISO)
+      with the words that the model gives to the host,
     - in RTL simulation only: the state of the slot thread (r0 to r3, T,
       PC, Z C N E, LATE, ERR, RUN) with the model thread.
-  The host commands (PUSH a word to a thread, POP a word from a thread)
-  go through the test port, back to back after START, so host frame i
-  occurs before model cycle 26 x (i + 1). The test gives the same command
-  to the model before that cycle.
+  The host commands after START (PUSH a word to a thread, PULL up to 4
+  words from a thread) are SPI transactions on a fixed schedule: SCK
+  period 4 clock cycles, pins changed at the falling clock edge. The port
+  acts on a byte 2 cycles (synchronizer) after the cycle of its last
+  rising SCK edge; the test gives the same operation to the model in that
+  cycle. Model cycle 0 is 2 cycles after the cycle in which the port acts
+  on the START byte (docs/host_port.md, START).
 
 Why:
   A1 section 8.1 level L4: instruction streams in lockstep with the L1

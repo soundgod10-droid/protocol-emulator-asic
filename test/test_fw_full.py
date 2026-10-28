@@ -726,7 +726,7 @@ async def test_fw_full_uart_rx(dut):
         k, c, b = uart_cfg(f_clk, rate)
         if slow_k is not None:
             assert k == slow_k, (rate, k)
-        h = k * round(0.35 * c)
+        h = rx_h(b) if k == 1 else k * round(9 * c / 19)
         n = 1 if rate == 300 else 2 if slow_k else 6  # 300 bit/s: 1.8 million cycles for each frame
         for err in (-TOL, TOL):
             data = [rng.randrange(256) for _ in range(n)]

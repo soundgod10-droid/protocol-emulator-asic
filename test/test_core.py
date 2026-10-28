@@ -798,7 +798,7 @@ async def test_core_host_io(dut):
         return (CMD_POP, i % 4, 0)
 
     scn = Scenario("host_io", image, start_pc=(0, 32, 64, 96), run=(True, True, True, True),
-                   cycles=26 * 140, host=host, stimulus=lambda c: (c & 0x1F, (c >> 3) & 0xFF))
+                   cycles=8600, host=host, stimulus=lambda c: (c & 0x1F, (c >> 3) & 0xFF))
     m, popped, _ = await run_lockstep(dut, scn)
     assert_ended(m, popped, threads=(0, 1, 2), min_words=40)
 

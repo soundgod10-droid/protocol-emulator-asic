@@ -533,6 +533,8 @@ module g1_helper_store (
     input  wire [3:0]  shift_in,   // one bit in, for each helper
     input  wire [3:0]  din,
     output wire [15:0] rdata,      // shift-in register of the slot thread
+    output wire [4:0]  bcount,     // bit count of the slot thread
+    output wire [3:0]  state,      // state of the slot thread
     output wire [3:0]  dout,
     output wire [3:0]  stuff       // six 1 bits sent: insert a 0
 );

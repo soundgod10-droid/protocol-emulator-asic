@@ -258,7 +258,7 @@ async def test_reset_keeps_line_idle(dut):
     assert mon.after(t_reset) == [], f"UART_TX changed during or after reset: {mon.after(t_reset)}"
     assert not mon.not_01(), f"X or Z on UART_TX: {mon.not_01()}"
     assert dut.uo_out.value.is_resolvable, f"uo_out has X or Z: {dut.uo_out.value}"
-    assert dut.uo_out.value == 0x10, f"uo_out is {dut.uo_out.value}, expected 00010000"
+    assert dut.uo_out.value == RESET_UO, f"uo_out is {dut.uo_out.value}, expected 01111111 (isa 2.4)"
     assert dut.uio_oe.value == 0, f"uio_oe is {dut.uio_oe.value}, expected 0"
 
 

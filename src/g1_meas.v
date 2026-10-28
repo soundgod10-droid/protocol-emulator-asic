@@ -740,7 +740,6 @@ module g1_evrec (
   always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
       prev <= 16'd0;
-      tlat <= 16'd0;
       chg  <= 16'd0;
       addr <= 7'd0;
       ph   <= 1'b0;

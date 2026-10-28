@@ -125,6 +125,11 @@ class SpiTimed:
         self.dut.ui_in.value = ((self.sck << SCK_BIT) | (self.cs_n << CS_N_BIT) | (self.mosi << MOSI_BIT)
                                 | (self.inputs & 0x1F))
 
+    @staticmethod
+    async def _wait(ns):
+        # Whole picoseconds: the simulator precision is 1 ps (12.6 ns as a float is not exact).
+        await Timer(round(ns * 1000), unit="ps")
+
     def miso(self):
         v = self.dut.uo_out.value
         assert v.is_resolvable, f"uo_out has X or Z: {v}"

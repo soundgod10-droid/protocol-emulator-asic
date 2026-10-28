@@ -23,10 +23,13 @@ module tb ();
   wire [7:0] uio_out;
   wire [7:0] uio_oe;
 
-  // Names for the two M1 output pins. These are chip pins, not internal
-  // signals, so the cocotb test can use them to decide pass or fail.
-  wire uart_tx = uo_out[4];  // UART_TX
-  wire tx_ack  = uo_out[5];  // TX_ACK (M1, temporary handshake)
+  // Names for chip pins (not internal signals), so the cocotb tests can use
+  // them to decide pass or fail and the waveform shows them by name.
+  wire uart_tx   = uo_out[4];  // UART_TX of fw/uart_tx.s (output pin 12)
+  wire host_sck  = ui_in[7];   // host SPI port (docs/host_port.md)
+  wire host_cs_n = ui_in[6];
+  wire host_mosi = ui_in[5];
+  wire host_miso = uo_out[7];
 
   tt_um_soundgod10_droid_protocol_emulator user_project (
       .ui_in  (ui_in),    // Dedicated inputs

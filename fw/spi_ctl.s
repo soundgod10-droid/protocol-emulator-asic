@@ -58,8 +58,7 @@ bit:    TADD    r3
         TADD    r3
         OUT     SCK, IDLE
         BCC     next            ; C from SHL: no flag instruction since then
-        OUT     CS, 1, 7
-        TADD    r3              ; CS stays high H - 7 cycles before the next CS low
+        OUT     CS, 1, 7        ; CS stays high H - 7 cycles before the next CS low
 next:   PULL.NB r0
         BES     byte
         JMP     idle

@@ -130,8 +130,14 @@ module pe_proc (
       .fifo_wdata   (fifo_wdata),
       .fifo_in_valid(fifo_in_valid),
       .fifo_in_data (fifo_in_data),
-      .fifo_out_full(fifo_out_full)
+      .fifo_out_full(fifo_out_full),
+      .th_run       (th_run),
+      .th_late      (th_late),
+      .th_err       (th_err)
   );
+
+  assign mem_raddr   = h_mem_host ? h_mem_addr : c_mem_raddr;
+  assign h_mem_rdata = mem_rdata;
 
   pe_latch_ram #(
       .WORDS(128),
@@ -139,7 +145,6 @@ module pe_proc (
       .WIDTH(16)
   ) u_mem (
       .clk  (clk),
-      .rst_n(rst_n),
       .we   (c_mem_we || h_mem_we),
       .waddr(c_mem_we ? c_mem_waddr : h_mem_addr),
       .wdata(c_mem_we ? c_mem_wdata : h_mem_data),
@@ -149,7 +154,7 @@ module pe_proc (
 
   pe_host_fifo u_fifo (
       .clk        (clk),
-      .rst_n      (rst_n),
+      .rst_n      (run_rst_n),
       .t_tid      (now[1:0]),
       .t_pull     (fifo_pull),
       .t_push     (fifo_push),

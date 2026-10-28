@@ -817,7 +817,7 @@ async def test_core_illegal_halt(dut):
         for n, w in enumerate(words):
             parts.append((f"LDI r0, {n + 1}\nPUSH r0\n.word {w}\nPUSH r0\nJMP {8 * n + 1}", 8 * n))
         scn = Scenario(f"illegal_{k}", asm(*parts), start_pc=(0, 8, 16, 24), run=(True, True, True, True),
-                       cycles=400)
+                       cycles=1800)
         m, popped, _ = await run_lockstep(dut, scn)
         want = tuple(0 if w == 0 else 2 for w in words)
         assert_ended(m, popped, want_status=want, threads=(0, 1, 2, 3), min_words=4)

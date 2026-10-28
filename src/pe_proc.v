@@ -100,11 +100,12 @@ module pe_proc (
   wire        fifo_in_valid;
   wire [15:0] fifo_in_data;
   wire        fifo_out_full;
-  wire        h_in_full;
+  wire        h_out_valid;
+  wire [6:0]  c_mem_raddr;
 
   pe_core u_core (
       .clk          (clk),
-      .rst_n        (rst_n),
+      .rst_n        (run_rst_n),
       .now          (now),
       .start        (start),
       .start_pc     (start_pc),

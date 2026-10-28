@@ -15,7 +15,8 @@
 ;
 ; Host words to this thread:
 ;   1. C: chunk time in cycles, 64 to 32,767. B = K x C.
-;   2. HC: chunk of the first wait. H = K x HC (about 0.35 x B).
+;   2. HC: chunk of the first wait. H = K x HC (about 9 x B / 19, see the
+;      H rule of fw/uart_rx_full.s; the wait latency is small against B).
 ; .equ K: chunks in each bit (6 for 300 bit/s at 50 MHz).
 ; Word to the host: as fw/uart_rx_full.s.
 ; Registers: r0 frame, r1 chunk count and WAIT time, r2 C, r3 HC and bit count.

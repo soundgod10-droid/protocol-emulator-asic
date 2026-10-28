@@ -53,12 +53,16 @@ from cocotb.triggers import ClockCycles, FallingEdge
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "model"))
 sys.path.insert(0, os.path.join(ROOT, "asm"))
+sys.path.insert(0, os.path.join(ROOT, "test"))
+import host_spi as hs  # noqa: E402
 import pe_asm  # noqa: E402
 import pe_model  # noqa: E402
 
 CLK_NS = 20  # 50 MHz (A1 section 2.3)
-TP_BITS = 26  # test port frame: command 3, argument 7, data 16
-CMD_NOP, CMD_MEMW, CMD_CFG, CMD_START, CMD_PUSH, CMD_POP = 0, 1, 2, 3, 4, 5
+CMD_NOP, CMD_PUSH, CMD_POP = 0, 4, 5  # host operations of a scenario after START
+SCK_PERIOD = 4  # clock cycles for each SCK period in the lockstep tests (2 low, 2 high)
+PULL_WORDS = 4  # each host POP is a PULL of this many words (fixed length: the schedule does not depend on data)
+NOP_CYCLES = 20  # idle cycles of a host NOP (data 0)
 RESET_PINS = (0x7F, 0xFF, 0x00)  # isa 2.4: V = 1, OE = 0 on all output pins
 
 # Random instruction streams: seeds and cycles. At gate level the

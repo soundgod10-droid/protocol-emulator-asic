@@ -236,11 +236,11 @@ def check_stream(log, mon, rx, expected, label, back_to_back):
 
 @cocotb.test()
 async def test_reset_keeps_line_idle(dut):
-    """UART_TX is high during and after reset, with no change and no X or Z."""
+    """UART_TX is high during and after reset, before any program is loaded, with no change and no X or Z."""
     mon = LineMonitor(dut.uart_tx)
     cocotb.start_soon(mon.run())
     dut.ena.value = 1
-    dut.ui_in.value = 0
+    dut.ui_in.value = 1 << hs.CS_N_BIT  # host port idle
     dut.uio_in.value = 0
     dut.rst_n.value = 0
     cocotb.start_soon(Clock(dut.clk, CLK_NS, unit="ns").start())

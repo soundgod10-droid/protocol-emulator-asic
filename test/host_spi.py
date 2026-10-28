@@ -142,11 +142,11 @@ class SpiTimed:
         example a PULL that reads only the words the count byte gives).
         """
         await RisingEdge(self.clk)
-        await Timer(self.lag_ns, unit="ns")
+        await self._wait(self.lag_ns)
         # CS_N low; the first rising SCK edge is 3 clock cycles later.
         self.cs_n, self.sck, self.mosi = 0, 0, (out_bytes[0] >> 7) & 1 if out_bytes else 0
         self._drive()
-        await Timer(60 - self.half_ns if self.half_ns < 60 else 10, unit="ns")
+        await self._wait(60 - self.half_ns if self.half_ns < 60 else 10)
         in_bytes = []
         k = 0
         out = list(out_bytes)
@@ -155,12 +155,12 @@ class SpiTimed:
             for i in range(8):
                 self.mosi = (out[k] >> (7 - i)) & 1
                 self._drive()
-                await Timer(self.half_ns - self.allow_ns, unit="ns")
+                await self._wait(self.half_ns - self.allow_ns)
                 value = (value << 1) | self.miso()  # MISO allow_ns before the rising edge
-                await Timer(self.allow_ns, unit="ns")
+                await self._wait(self.allow_ns)
                 self.sck = 1
                 self._drive()
-                await Timer(self.half_ns, unit="ns")
+                await self._wait(self.half_ns)
                 self.sck = 0
                 self._drive()
             in_bytes.append(value)
@@ -169,11 +169,11 @@ class SpiTimed:
                 if new is not None:
                     out = out[:k + 1] + list(new)
             k += 1
-        # CS_N high 60 ns after the last rising edge (50 ns low phase + 10 ns).
-        await Timer(10, unit="ns")
+        # CS_N high 60 ns after the last rising edge (low phase + the rest of 60 ns).
+        await self._wait(max(10, 60 - self.half_ns))
         self.cs_n, self.mosi = 1, 0
         self._drive()
-        await Timer(60, unit="ns")
+        await self._wait(60)
         return in_bytes
 
     # ----- commands (docs/host_port.md) -----

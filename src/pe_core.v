@@ -834,6 +834,14 @@ module pe_core (
     end
   end
 
+  // B5: The register selects (flip-flops loaded in the prefetch cycle,
+  //     M2c) are the fields of the instruction in ir: the same function
+  //     as the M2b decode from ir.
+  always @* begin
+    assert (sa == f_sa(ir));
+    assert (sb == f_sb(ir));
+  end
+
   // B4: A thread with RUN = 0 does nothing in its slot: its state does not
   //     change and it has no side effect (isa 3.1).
   always @* begin

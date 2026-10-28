@@ -690,23 +690,28 @@ async def test_fw_full_uart_rate_error(dut):
 @cocotb.test(skip=GL)
 async def test_fw_full_uart_rx_tolerance(dut):
     """fw/uart_rx_full.s at 1 Mbit/s: sender bit-time error that it accepts, for first-sample times H = x B."""
-    best = {}
     for f_clk in (50e6, 40e6):
         b = round(f_clk / 1_000_000)
         rows = []
         for x in (0.30, 0.35, 0.40, 0.45, 0.50):
             h = max(12, round(x * b))
             fast, slow = rx_limits(b, h)
-            rows.append((min(fast, slow), x, h, fast, slow))
+            rows.append((min(fast, slow), h, fast, slow))
             dut._log.info(f"uart_rx_full {f_clk / 1e6:.0f} MHz, 1 Mbit/s, B {b}, H {h} ({x:.2f} B): "
                           f"accepts sender bit time -{fast * 100:.1f} % to +{slow * 100:.1f} %")
-        best[f_clk] = max(rows)
-        _, x, h, fast, slow = best[f_clk]
-        dut._log.info(f"uart_rx_full {f_clk / 1e6:.0f} MHz, 1 Mbit/s: best H {h} ({x:.2f} B): "
-                      f"-{fast * 100:.1f} % to +{slow * 100:.1f} % (A1 needs +/-{TOL * 100:.1f} %)")
-    h35 = round(0.35 * 50)
-    fast, slow = rx_limits(50, h35)
-    assert fast >= TOL and slow >= TOL, f"50 MHz, H {h35}: -{fast:.3f} to +{slow:.3f}"
+        h = rx_h(b)
+        fast, slow = rx_limits(b, h)
+        dut._log.info(f"uart_rx_full {f_clk / 1e6:.0f} MHz, 1 Mbit/s, B {b}, H {h} (rule (9 B - 135) / 19): "
+                      f"accepts -{fast * 100:.1f} % to +{slow * 100:.1f} % (A1 needs +/-{TOL * 100:.1f} %)")
+        assert min(fast, slow) >= max(rows)[0], "the rule is not as good as the best measured H"
+        if f_clk == 50e6:
+            assert fast >= TOL and slow >= TOL, f"50 MHz, H {h}: -{fast:.3f} to +{slow:.3f}"
+    for rate in (115_200, 9_600):
+        b = round(50e6 / rate)
+        fast, slow = rx_limits(b, rx_h(b), nframes=4, step=0.002)
+        dut._log.info(f"uart_rx_full 50 MHz, {rate} bit/s, B {b}, H {rx_h(b)}: "
+                      f"accepts -{fast * 100:.1f} % to +{slow * 100:.1f} %")
+        assert fast >= TOL and slow >= TOL
 
 
 @cocotb.test(skip=GL)

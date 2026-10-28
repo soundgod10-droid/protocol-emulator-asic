@@ -264,27 +264,31 @@ async def test_reset_keeps_line_idle(dut):
 
 @cocotb.test()
 async def test_reset_during_frame(dut):
-    """Reset in the middle of a frame sets UART_TX high at once and keeps it high."""
-    mon = await start(dut)
-    host = Host(dut)
-    await host.send(0x00)  # line is low for 9 bit times
+    """Chip reset in a frame: UART_TX high at once and stays high; the memory keeps the program; threads stop."""
+    mon, host = await start(dut)
+    await load_uart_tx(dut, host)
+    _, image = uart_tx_image()
+    await send_bytes(host, [0x00])  # line is low for 9 bit times
     await FallingEdge(dut.uart_tx)
     # 3.3 bit times into the frame, not on a clock edge (+7 ns).
     await Timer(int(3.3 * T_DUT_PS) + 7_000, unit="ps")
     assert str(dut.uart_tx.value) == "0", "UART_TX is not low inside the 0x00 frame"
     t_assert = now_ps()
     dut.rst_n.value = 0
-    dut.ui_in.value = 0  # TX_REQ = 0 during reset
-    host.req = 0
     await Timer(1, unit="ns")
     assert str(dut.uart_tx.value) == "1", "UART_TX is not high 1 ns after reset"
     for _ in range(50):
         await FallingEdge(dut.clk)
         assert str(dut.uart_tx.value) == "1", "UART_TX is not high during reset"
     dut.rst_n.value = 1
+    await ClockCycles(dut.clk, 5)
+    st = await host.read_status()
+    assert st["running"] == 0 and st["run"] == [0, 0, 0, 0], f"status after reset: {st}"
+    back = await host.read_mem(0, 128)
+    assert back == image, "the memory changed at the chip reset (docs/isa.md 2.4)"
     await Timer(2 * FRAME_BITS * T_DUT_PS, unit="ps")
     changes = [c for c in mon.changes if c[0] >= t_assert]
-    dut._log.info(f"UART_TX changes from reset assert at {t_assert} ps: {changes}")
+    dut._log.info(f"UART_TX changes from reset assert at {t_assert} ps: {changes}; memory unchanged after reset")
     # Exactly one change: to 1, at the reset assert time (asynchronous reset).
     assert changes == [(t_assert, "1")], f"UART_TX changes after reset: {changes}"
     assert not mon.not_01(), f"X or Z on UART_TX: {mon.not_01()}"

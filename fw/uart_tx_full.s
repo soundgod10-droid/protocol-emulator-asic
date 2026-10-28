@@ -37,12 +37,11 @@ idle:   TSYNC   16              ; keep T near now while the line is idle (isa 7)
         BEC     idle
 bit:    OUT     TX, r0>>        ; this bit at time T
         MOV     r1, r3
-chunk:  TADD    r2
-        DJNZ    r1, long        ; K > 1: wait after each chunk
+chunk:  TWAIT                   ; wait for T, so that the next T is C or less after now
+        TADD    r2
+        DJNZ    r1, chunk
         CMPI    r0, 2
         BCS     bit             ; bits left
         PULL.NB r0              ; next frame at the end of the stop bit
         BES     bit
         JMP     idle
-long:   TWAIT
-        JMP     chunk

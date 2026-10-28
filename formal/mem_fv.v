@@ -63,12 +63,17 @@ module mem_fv #(
   always @(posedge clk) rst_q <= 1'b1;
   wire rst_n = (FREE_RESET != 0) ? (rst_q && rst_in) : rst_q;
 
+  // The write request comes from flip-flops with the asynchronous chip
+  // reset (pe_proc, pe_host_port): the reset clears it at once.
   reg             we = 1'b0;
   reg [AW-1:0]    waddr;
   reg [WIDTH-1:0] wdata;
   reg [AW-1:0]    raddr;
+  always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) we <= 1'b0;
+    else        we <= we_in;
+  end
   always @(posedge clk) begin
-    we    <= we_in;
     waddr <= waddr_in;
     wdata <= wdata_in;
     raddr <= raddr_in;
@@ -82,7 +87,6 @@ module mem_fv #(
       .WIDTH(WIDTH)
   ) u_mem (
       .clk  (clk),
-      .rst_n(rst_n),
       .we   (we),
       .waddr(waddr),
       .wdata(wdata),

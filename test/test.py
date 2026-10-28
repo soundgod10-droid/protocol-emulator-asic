@@ -1,28 +1,47 @@
 # SPDX-FileCopyrightText: © 2024 Tiny Tapeout
 # SPDX-License-Identifier: Apache-2.0
 
-"""Milestone M1 test: UART transmitter on uo_out[4] (UART_TX).
+"""Milestone M2c test: host SPI port, and the UART transmitter as firmware.
 
-The test uses only chip pins to decide pass or fail:
+What it does:
+  The chip has no fixed UART any more. The tests load fw/uart_tx.s through
+  the host SPI port (docs/host_port.md) with an independent host model
+  (test/host_spi.py), read it back and compare, write the configuration
+  (thread 0 owns pin 12 = uo_out[4]), start the threads and give the bytes
+  through the host FIFO of thread 0. Then UART_TX is decoded with the
+  receiver model of M1, which does not use the processor.
+  Other tests check the protocol: chip ID, status, command rules, codes
+  that are not valid, the SCK period limit, STOP and START, and the reset.
+
+  The tests decide pass or fail only from chip pins:
   - uo_out[4] UART_TX (tb wire "uart_tx")
-  - uo_out[5] TX_ACK  (tb wire "tx_ack"), only for the host handshake
-A UART receiver model decodes UART_TX. It finds the start edge, then
-samples each bit at its middle (start edge + (k + 0.5) bit times).
-A line monitor records each change of UART_TX with its simulation time.
-The test uses these records to measure the bit time and to find glitches,
-X and Z values.
+  - ui_in[7:5], uo_out[7]: host SPI port (HOST_SCK, HOST_CS_N, HOST_MOSI,
+    HOST_MISO, A1 section 2.2)
+  A UART receiver model decodes UART_TX. It finds the start edge, then
+  samples each bit at its middle (start edge + (k + 0.5) bit times).
+  A line monitor records each change of UART_TX with its simulation time.
+  The test uses these records to measure the bit time and to find
+  glitches, X and Z values.
 
 Values from A1_architecture.md:
-  - clock 50 MHz (section 2.3), 115,200 bit/s, 434 cycles for each bit,
-    our part of the clock-error budget +/-1 % (section 3).
+  - clock 50 MHz (section 2.3), 115,200 bit/s, 434 cycles for each bit
+    (fw/uart_tx.s), our part of the clock-error budget +/-1 % (section 3).
 """
 
+import os
 import random
+import sys
 
 import cocotb
 from cocotb.clock import Clock
-from cocotb.triggers import ClockCycles, FallingEdge, First, RisingEdge, Timer
+from cocotb.triggers import ClockCycles, FallingEdge, RisingEdge, Timer
 from cocotb.utils import get_sim_time
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(ROOT, "asm"))
+sys.path.insert(0, os.path.join(ROOT, "test"))
+import host_spi as hs  # noqa: E402
+import pe_asm  # noqa: E402
 
 CLK_NS = 20  # 50 MHz
 CLK_PS = CLK_NS * 1000

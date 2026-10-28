@@ -113,7 +113,7 @@ module pe_proc (
       .pin_owner    (pin_owner),
       .pin_en       (pin_en),
       .pin_od       (pin_od),
-      .mem_raddr    (mem_raddr),
+      .mem_raddr    (c_mem_raddr),
       .mem_rdata    (mem_rdata),
       .mem_we       (c_mem_we),
       .mem_waddr    (c_mem_waddr),

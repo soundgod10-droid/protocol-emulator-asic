@@ -746,7 +746,6 @@ module g1_evrec (
     end else begin
       if (!ph) prev <= pins;
       if (change) begin
-        tlat <= now;
         chg  <= pins;
         ph   <= 1'b1;
         addr <= addr + 7'd1;

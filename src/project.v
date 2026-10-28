@@ -157,62 +157,8 @@ module tt_um_soundgod10_droid_protocol_emulator (
   wire run_rst_n = rst_n_int & running;
 
   // ---------------------------------------------------------------------
-  // M2b processor and its TEMPORARY test port
+  // Configuration and processor
   // ---------------------------------------------------------------------
-
-  // CORE_SEL, TP_CLK and TP_DAT come from the test bench without a
-  // relation to our clock: 2-stage synchronizers. TP_CLK and TP_DAT have
-  // the same delay, so each bit arrives with its clock level change.
-  wire core_sel;
-  wire tp_clk;
-  wire tp_dat;
-  pe_sync2 u_core_sel_sync (
-      .clk  (clk),
-      .rst_n(rst_n_int),
-      .d    (ui_in[7]),
-      .q    (core_sel)
-  );
-  pe_sync2 u_tp_clk_sync (
-      .clk  (clk),
-      .rst_n(rst_n_int),
-      .d    (ui_in[6]),
-      .q    (tp_clk)
-  );
-  pe_sync2 u_tp_dat_sync (
-      .clk  (clk),
-      .rst_n(rst_n_int),
-      .d    (ui_in[5]),
-      .q    (tp_dat)
-  );
-
-  wire        tp_mem_we;
-  wire        tp_cfg_we;
-  wire        tp_push;
-  wire        tp_pop;
-  wire [6:0]  tp_arg;
-  wire [15:0] tp_data;
-  wire        tp_out;
-  wire        h_out_valid;
-  wire [15:0] h_out_data;
-
-  // TEMPORARY: M2c replaces it with the host SPI port (A1 block D7).
-  pe_test_port u_test_port (
-      .clk           (clk),
-      .rst_n         (rst_n_int),
-      .active        (core_sel),
-      .tp_clk        (tp_clk),
-      .tp_dat        (tp_dat),
-      .ro_bit        (tp_out),
-      .mem_we        (tp_mem_we),
-      .cfg_we        (tp_cfg_we),
-      .start         (tp_start),
-      .fifo_push     (tp_push),
-      .fifo_pop      (tp_pop),
-      .arg           (tp_arg),
-      .data          (tp_data),
-      .fifo_out_valid(h_out_valid),
-      .fifo_out_data (h_out_data)
-  );
 
   wire [27:0] start_pc;
   wire [3:0]  run_mask;

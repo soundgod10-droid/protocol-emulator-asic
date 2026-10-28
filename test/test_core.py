@@ -966,7 +966,7 @@ def random_scenario(seed, cycles):
         start_pc = [32 * n + rng.randrange(4) for n in range(4)]
         host_rng = random.Random(seed * 1000 + attempt)
         host_frames = []
-        for _ in range(cycles // TP_BITS + 2):
+        for _ in range(cycles // NOP_CYCLES + 2):  # more operations than the schedule can use
             if host_rng.random() < 0.45:
                 host_frames.append((CMD_PUSH, host_rng.randrange(4), host_rng.randrange(0x10000)))
             else:

@@ -866,7 +866,7 @@ def all_four(f_clk, err, rx_name="uart_rx_full.s", rate=1_000_000, slow_k=None):
     bench = Bench(m, inputs=inputs)
     bench.watch("tx", lambda uo, uio, oe: (uo >> 4) & 1)
     bench.send(0, c, k, *[frame_word(f) for f in tx_frames])
-    bench.send(1, *([b, k * round(0.35 * c)] if slow_k is None else [c, round(0.35 * c)]))
+    bench.send(1, *([b, rx_h(b)] if slow_k is None else [c, round(9 * c / 19)]))
     bench.send(2, h_spi, *SPI_WORDS)
     bench.send(3, *words)
     bench.run(max(t, len(tx_frames) * 10 * b) + 3 * b + 30_000)

@@ -5,6 +5,13 @@
 
 `default_nettype none
 
+// REMOVED IN M2c. This file is not a source of the chip any more: info.yaml
+// and test/Makefile do not list it, and no module instantiates it. The UART
+// transmitter is now firmware (fw/uart_tx.s) that the host loads through
+// the host SPI port (src/pe_host_port.v). The text below is the last
+// version (chip commit 634b990 and earlier), kept only as a record until
+// the file is deleted with git rm.
+//
 // pe_uart_tx_seq: TEMPORARY UART frame sequencer (milestone M1).
 //
 // What it does:

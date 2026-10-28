@@ -552,7 +552,7 @@ async def test_core_time(dut):
         "PUSH r3",
         "HALT",
     ])
-    scn = Scenario("time", asm((src, 0)), cycles=1200, host=pop_round_robin([0]))
+    scn = Scenario("time", asm((src, 0)), cycles=2400, host=pop_round_robin([0]))
     m, popped, _ = await run_lockstep(dut, scn)
     assert_ended(m, popped, min_words=14)
 

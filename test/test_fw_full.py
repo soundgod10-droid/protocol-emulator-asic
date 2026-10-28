@@ -423,7 +423,8 @@ def spi_h_min(cpol, cpha, d):
         bench, m, dev = spi_run(cpol, cpha, h, d)
         if spi_ok(bench, m, dev):
             return h
-    raise AssertionError("no SCK half period up to 80 cycles works")
+    raise AssertionError(f"mode {cpol}{cpha} D {d}: no SCK half period up to 80 cycles works; H 79: "
+                         f"{spi_fault(bench, m, dev)}")
 
 
 # ----- I2C -----

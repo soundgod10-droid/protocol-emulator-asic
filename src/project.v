@@ -168,9 +168,9 @@ module tt_um_soundgod10_droid_protocol_emulator (
   pe_config u_config (
       .clk      (clk),
       .rst_n    (rst_n_int),
-      .we       (tp_cfg_we),
-      .addr     (tp_arg),
-      .data     (tp_data),
+      .we       (h_cfg_we),
+      .addr     (h_cfg_addr),
+      .data     (h_cfg_wdata),
       .start_pc (start_pc),
       .run_mask (run_mask),
       .pin_owner(pin_owner),

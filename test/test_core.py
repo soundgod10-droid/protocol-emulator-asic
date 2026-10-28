@@ -739,7 +739,7 @@ async def test_core_sample_wait(dut):
         "        PUSH r1",
         "        HALT",
     ])
-    cycles = 3000
+    cycles = 8000  # 40 host words of 2 threads: about 20 PULL transactions of 358 cycles
     scn = Scenario("sample_wait", asm((t0, 0), (t1, 100)), start_pc=(0, 100, 0, 0), run=(True, True, False, False),
                    owner=owners({6: 1}), cycles=cycles, host=pop_round_robin([0, 1]),
                    stimulus=sample_wait_stimulus(cycles))

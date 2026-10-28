@@ -319,7 +319,8 @@ async def test_counter_sequence(dut):
     cocotb.start_soon(rx.run())
     data = list(range(256))
     await send_bytes(host, data)
-    await Timer(5 * FRAME_BITS * T_DUT_PS, unit="ps")  # the last 4 bytes in the FIFO, plus idle
+    # Up to 4 bytes in the FIFO and 1 in the line when send_bytes returns, plus idle.
+    await Timer(7 * FRAME_BITS * T_DUT_PS, unit="ps")
     check_stream(dut._log, mon, rx, data, "counter sequence (firmware)", back_to_back=True)
     st = await host.read_status()
     assert st["late"] == [0, 0, 0, 0] and st["err"] == [0, 0, 0, 0] and not st["push_drop"], f"status {st}"

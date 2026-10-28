@@ -209,15 +209,15 @@ def model_only(scn, data_addrs=None):
             store(addr, word, c)
 
         m._store = guarded
+    _, _, ops, _ = build_schedule(scn)
+    counts = {}
     for c in range(scn.cycles):
-        # Host frame i has its last bit in model cycle 26 x (i + 1) - 1.
-        fr = scn.host((c + 1) // TP_BITS - 1) if (c + 1) % TP_BITS == 0 else None
-        before = host_before(m, fr) if fr is not None else None
+        acts = [(op, host_before(m, op, counts)) for op in ops.get(c, [])]
         ui, uio = scn.stimulus(c)
         m.set_inputs(ui, uio)
         m.step()
-        if fr is not None:
-            host_after(m, fr, before)
+        for op, before in acts:
+            host_after(m, op, before)
     return m
 
 

@@ -208,8 +208,8 @@ module pe_proc (
       .s_hist(s_hist)
   );
 
-  // A host write to a full FIFO has no effect; the test bench knows the
-  // FIFO state from the model, so the flag has no load here.
-  wire _unused = &{h_in_full, 1'b0};
+  // The host port reads the word counts (PULL count byte), not the valid
+  // flag of the selected out-FIFO.
+  wire _unused = &{h_out_valid, 1'b0};
 
 endmodule

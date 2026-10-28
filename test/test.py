@@ -102,42 +102,58 @@ class UartRx:
             self.frames.append((t0, samples))
 
 
-class Host:
-    """Host side of the TEMPORARY M1 handshake (TX_REQ, TX_DATA, TX_ACK)."""
-
-    def __init__(self, dut):
-        self.dut = dut
-        self.req = 0
-
-    async def send(self, byte):
-        """Gives one byte and waits until the chip took it."""
-        dut = self.dut
-        dut.uio_in.value = byte
-        # The data is stable for one clock before TX_REQ changes.
-        await RisingEdge(dut.clk)
-        self.req ^= 1
-        dut.ui_in.value = self.req
-        deadline = now_ps() + 2 * FRAME_BITS * T_DUT_PS
-        while str(dut.tx_ack.value) != str(self.req):
-            timeout = Timer(deadline - now_ps(), unit="ps")
-            fired = await First(dut.tx_ack.value_change, timeout)
-            if fired is timeout:
-                raise AssertionError(f"TX_ACK did not change to {self.req} for byte 0x{byte:02X}")
-
-
 async def start(dut):
-    """Starts the clock and the line monitor, then resets the chip."""
+    """Starts the clock and the line monitor, then resets the chip. Host pins idle: CS_N high, SCK low."""
     mon = LineMonitor(dut.uart_tx)
     cocotb.start_soon(mon.run())
     cocotb.start_soon(Clock(dut.clk, CLK_NS, unit="ns").start())
     dut.ena.value = 1
-    dut.ui_in.value = 0  # TX_REQ = 0 during reset (TX_ACK resets to 0)
+    dut.ui_in.value = 1 << hs.CS_N_BIT
     dut.uio_in.value = 0
     dut.rst_n.value = 0
     await ClockCycles(dut.clk, 10)
     dut.rst_n.value = 1
     await ClockCycles(dut.clk, 5)  # reset synchronizer: 2 cycles
-    return mon
+    return mon, hs.SpiTimed(dut)
+
+
+def uart_tx_image():
+    """fw/uart_tx.s as a 128-word memory image (words after the program are 0 = HALT)."""
+    prog = pe_asm.assemble_file(os.path.join(ROOT, "fw", "uart_tx.s"))
+    image = list(prog.image())
+    return prog, image + [0] * (128 - len(image))
+
+
+async def load_uart_tx(dut, host):
+    """Loads fw/uart_tx.s through the host port, reads it back, configures pin 12 for thread 0, starts."""
+    prog, image = uart_tx_image()
+    await host.write_mem(0, image)
+    back = await host.read_mem(0, 128)
+    bad = [a for a in range(128) if back[a] != image[a]]
+    assert not bad, f"read-back differs at {len(bad)} addresses, first {bad[0]}: {back[bad[0]]:04X} not {image[bad[0]]:04X}"
+    owner = [None] * 15
+    owner[P_TX] = 0
+    head, pins = hs.config_words((0, 0, 0, 0), (True, False, False, False), owner, [False] * 15)
+    await host.write_cfg(0, head)
+    await host.write_cfg(16, pins)
+    await host.start()
+    st = await host.read_status()
+    assert st["running"] == 1 and st["run"] == [1, 0, 0, 0] and not st["cmd_err"], f"status after START: {st}"
+    dut._log.info(f"fw/uart_tx.s: {prog.size} words loaded and read back through the host port; status {st}")
+    return prog
+
+
+async def send_bytes(host, data):
+    """Gives the bytes to thread 0: reads the free space of its in-FIFO (status), then pushes that many."""
+    i = 0
+    while i < len(data):
+        st = await host.read_status(4)
+        assert not st["push_drop"] and not st["cmd_err"], f"status {st}"
+        free = 4 - st["in_cnt"][0]
+        if free > 0:
+            n = min(free, len(data) - i)
+            await host.push(0, data[i:i + n])
+            i += n
 
 
 def edge_offsets(frames, changes):

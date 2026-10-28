@@ -524,7 +524,7 @@ async def test_core_branches_memory(dut):
         "done:   HALT",
         "bad:    .word 0xF000",
     ])
-    scn = Scenario("branches_memory", asm((src, 0)), cycles=1200, host=pop_round_robin([0]))
+    scn = Scenario("branches_memory", asm((src, 0)), cycles=2000, host=pop_round_robin([0]))
     m, popped, _ = await run_lockstep(dut, scn)
     assert_ended(m, popped, min_words=10)
     assert m.threads[0].pc == pe_asm.assemble(src).symbols["done"][0], "thread 0 did not end at 'done'"

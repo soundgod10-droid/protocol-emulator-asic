@@ -452,14 +452,20 @@ class I2cBus:
         sda = int(not ((oe >> P_SDA) & 1 and not (uio >> P_SDA) & 1) and not self.sda_low)
         if any(a <= c < b for a, b in self.other_sda):
             sda = 0
+        return scl, sda
+
+    def __call__(self, c, uo, uio, oe):
+        """Bus levels to the controller inputs. Spikes reach only the controller input: the target
+        filters them, as a Fast-mode device must (UM10204 tSP)."""
+        scl, sda = self.lines(c, uio, oe)
+        self._target(c, scl, sda)
         if any(a <= c < b for a, b in self.scl_spikes):
             scl = 1
         if any(a <= c < b for a, b in self.sda_spikes):
             sda = 0
-        return scl, sda
+        return 0, (scl << P_SCL) | (sda << P_SDA)
 
-    def __call__(self, c, uo, uio, oe):
-        scl, sda = self.lines(c, uio, oe)
+    def _target(self, c, scl, sda):
         pscl, psda = self.prev
         if (scl, sda) != self.prev:
             self.changes.append((c, (scl, sda)))

@@ -278,20 +278,27 @@ def rx_run(b, h, fmt, b_tx, data, slow_k=None, glitch=False, t0=2000):
 
 
 def rx_limits(b, h, nframes=8, step=0.001, stop=0.08):
-    """Largest sender bit-time errors (fast: shorter bits, slow: longer bits) that the receiver accepts."""
+    """Largest sender bit-time errors (fast: shorter bits, slow: longer bits) that the receiver accepts.
+
+    Binary search in steps of 0.1 %, then a check that the limit passes and the next step fails.
+    """
     rng = random.Random(b * 1000 + h)
     data = [rng.randrange(256) for _ in range(nframes)]
+
+    def ok(sign, n):
+        return rx_run(b, h, "8N1", b * (1 + sign * n * step), data, t0=200)[0]
+
     result = []
     for sign in (-1, 1):
-        last = 0.0
-        e = step
-        while e <= stop + 1e-12:
-            ok, *_ = rx_run(b, h, "8N1", b * (1 + sign * e), data)
-            if not ok:
-                break
-            last = e
-            e += step
-        result.append(last)
+        lo, hi = 0, round(stop / step)  # ok(lo) is true; hi is the search end
+        if ok(sign, hi):
+            result.append(hi * step)
+            continue
+        while hi - lo > 1:
+            mid = (lo + hi) // 2
+            lo, hi = (mid, hi) if ok(sign, mid) else (lo, mid)
+        assert lo == 0 or ok(sign, lo)
+        result.append(lo * step)
     return result  # [fast limit, slow limit]
 
 

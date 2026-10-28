@@ -11,7 +11,9 @@ VD d 0 PULSE(0 {vdd} 2n 50p 50p 30n 80n)
 VR rb 0 {vdd}
 * First try "CLK D Q RESET_B" gave Q = 0.647 V and 236 uA into the CLK
 * source (an output on the CLK node). Second try: the Verilog port order.
-X1 q d rb clk vdd vss sg13cmos5l_dfrbpq_1
+* Second try "Q D RESET_B CLK" gave small currents but Q = 0 at all
+* times (the clock source on RESET_B resets the cell). Third try:
+X1 q d clk rb vdd vss sg13cmos5l_dfrbpq_1
 CL q 0 5f
 
 .tran 10p 100n

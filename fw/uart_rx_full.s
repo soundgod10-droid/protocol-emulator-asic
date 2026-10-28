@@ -10,14 +10,17 @@
 ;
 ; Why:
 ;   G1 step 3a: measured word count of the full firmware for the memory
-;   size (decision D2, D4 item 13). The WAIT for the next start edge is
-;   12 cycles after the stop-bit sample (DJNZ, PUSH). H sets the sample
-;   point. G1 measured the sender bit-time error that this firmware accepts
-;   in the model (test/test_fw_full.py); the host uses H of about 0.35 x B.
+;   size (decision D2, D4 item 13). The WAIT for the next start edge comes
+;   12 to 16 cycles after the stop-bit sample (DJNZ, PUSH, slot phase). H
+;   sets the sample point. G1 measured in the model the sender bit-time
+;   error that this firmware accepts (test/test_fw_full.py): slow sender up
+;   to H / 9B, fast sender up to (B - H - 18) / 10B. 1 Mbit/s at 50 MHz,
+;   H 15: -4.0 % to +3.4 %. 1 Mbit/s at 40 MHz, H 12: -3.1 % to +3.4 %.
 ;
 ; Host words to this thread:
 ;   1. B: bit time in cycles, 40 to 32,767.
-;   2. H: cycles from the start edge to the first sample point, 10 or more.
+;   2. H: cycles from the start edge to the first sample point, 12 or more.
+;      Use H = 9 x (B - 18) / 19 (equal fast and slow limits).
 ;      Bit k (start bit k = 0) is sampled at start edge + H + k x B; the
 ;      start bit is sampled 4 cycles later than that.
 ; Word to the host, one for each frame (ND = 8): bit 15 stop bit, bits 14

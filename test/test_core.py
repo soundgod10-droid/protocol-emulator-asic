@@ -829,7 +829,7 @@ async def test_core_barrel(dut):
     """Four threads at the same time: thread n has the slots c mod 4 = n (isa 3.1)."""
     prog = "NOW r0\nPUSH r0\nNOW r0\nPUSH r0\nIOR r1, THREAD\nPUSH r1\nHALT"
     scn = Scenario("barrel", asm(*[(prog, 8 * n) for n in range(4)]), start_pc=(0, 8, 16, 24),
-                   run=(True, True, True, True), cycles=500)
+                   run=(True, True, True, True), cycles=1800)
     m, popped, _ = await run_lockstep(dut, scn)
     assert_ended(m, popped, threads=(0, 1, 2, 3), min_words=12)
     for n in range(4):

@@ -281,12 +281,13 @@ def rx_h(b):
     """First-sample time H for the bit time b (fw/uart_rx_full.s header rule).
 
     The receiver accepts a slow sender up to H / (9 B) and a fast sender up to
-    (B - H - 15) / (10 B): 15 cycles from the stop-bit sample to the WAIT for the next
-    start edge, a fit to the limits that test_fw_full_uart_rx_tolerance measures. Both
-    are equal at H = (9 B - 135) / 19. H is 12 or more, so that the start-bit SAMPLE is
-    issued 4 cycles before its time.
+    (B - H - L) / (10 B), with L the cycles from the stop-bit sample to the first WAIT
+    slot for the next start edge (12 to 16 with the slot phase, plus the edge
+    detection). Both are equal at H = 9 (B - L) / 19. L = 18 gives the best H that
+    test_fw_full_uart_rx_tolerance measures at 1 Mbit/s (15 at 50 MHz, 12 at 40 MHz).
+    H is 12 or more, so that the start-bit SAMPLE is issued 4 cycles before its time.
     """
-    return max(12, round((9 * b - 135) / 19))
+    return max(12, round(9 * (b - 18) / 19))
 
 
 def rx_limits(b, h, nframes=8, step=0.001, stop=0.08):

@@ -6,45 +6,35 @@
 `default_nettype none
 
 // tt_um_soundgod10_droid_protocol_emulator: top level of the protocol
-// emulator chip. Milestone M1: UART transmitter.
+// emulator chip. Milestone M2 (run M2c): programmable processor with a
+// host SPI port.
 //
 // What it does:
-//   The chip sends UART frames (8 data bits, LSB first, 1 start bit,
-//   1 stop bit, no parity) on uo_out[4]. With a 50 MHz clock the bit rate
-//   is 115,207 bit/s. The host gives each byte on uio_in[7:0] and changes
-//   the level of ui_in[0]. The chip sets uo_out[5] to the level of ui_in[0]
-//   when it took the byte.
+//   The chip is a 4-thread barrel processor with timed pin I/O
+//   (docs/isa.md). The host loads the program and the configuration
+//   through the host SPI port, starts the threads, and gives and takes
+//   data words through the host FIFOs (docs/host_port.md). The chip
+//   changes a protocol pin only when a program tells it to. Example:
+//   fw/uart_tx.s makes thread 0 a UART transmitter on uo_out[4].
 //
 // Why it has this structure:
-//   Architecture D (A1_architecture.md section 4.4) changes the pins only
-//   through the timed I/O unit. M1 contains the first parts of that unit
-//   (block D2): the free-running cycle counter and one timed output
-//   channel. A TEMPORARY fixed sequencer does the work of a program thread
-//   until milestone M2 adds the threads. The host handshake on ui_in[0],
-//   uio_in and uo_out[5] is also TEMPORARY (M2: host SPI port, block D7).
+//   Architecture D (A1_architecture.md section 4.4): the threads change
+//   the pins only through the timed I/O unit (event slots), so each pin
+//   edge is at the cycle of its event time. The host SPI port (A1 block
+//   D7) replaces the TEMPORARY M1 sequencer and the TEMPORARY M2b test
+//   port (removed in M2c).
 //
-// Pins in M1 mode (CORE_SEL = 0; A1 section 2.2 gives uo_out[4] as the
-// default UART TX pin):
-//   uo_out[4]  UART_TX  UART data out. High when idle and during reset.
-//   uo_out[5]  TX_ACK   TEMPORARY. Equal to ui_in[0] when the chip took the byte.
-//   ui_in[0]   TX_REQ   TEMPORARY. Change its level to send the byte on uio_in.
-//   uio_in     TX_DATA  TEMPORARY. Byte to send. All uio pins are inputs.
-//   All other outputs are 0.
-//
-// Milestone M2b adds the processor (pe_proc: barrel core, latch memory,
-// host FIFOs, timed I/O unit, docs/isa.md). M2c removes the M1 sequencer
-// and connects the host SPI port. Until then a TEMPORARY selection pin
-// gives the pins to the processor:
-//   ui_in[7]   CORE_SEL TEMPORARY. 1 = processor mode: uo_out[6:0] and
-//                       uio are the processor output pins 8 to 14 and 0
-//                       to 7 (docs/isa.md 5.1). 0 = M1 mode (above).
-//   ui_in[6]   TP_CLK   TEMPORARY test port (pe_test_port): each level
-//                       change is one bit.
-//   ui_in[5]   TP_DAT   TEMPORARY test port: bit value.
-//   uo_out[7]  TP_OUT   TEMPORARY test port readout (processor mode).
-//   ui_in[4:0], uio    processor input pins 8 to 12 and 0 to 7.
-// Reason: the M1 tests and the GitHub gate-level test stay green, and the
-// M2b tests use only chip pins (also at gate level).
+// Pins (A1 section 2.2, docs/isa.md 5.1):
+//   ui_in[7]     HOST_SCK   host SPI clock (SPI mode 0)
+//   ui_in[6]     HOST_CS_N  host SPI chip select, active low
+//   ui_in[5]     HOST_MOSI  host SPI data, host to chip
+//   uo_out[7]    HOST_MISO  host SPI data, chip to host
+//   ui_in[4:0]   processor inputs 8 to 12 (ui_in[3]: default UART RX)
+//   uo_out[6:0]  processor outputs 8 to 14 (uo_out[4]: default UART TX)
+//   uio[7:0]     processor pins 0 to 7 (output with enable, and input)
+//   During and after reset, and while the threads stop, each processor
+//   output has V = 1, OE = 0: uo_out[6:0] = 1 (UART TX idle level) and
+//   all uio pins are inputs (docs/isa.md 2.4).
 
 module tt_um_soundgod10_droid_protocol_emulator (
     input  wire [7:0] ui_in,    // Dedicated inputs

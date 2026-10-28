@@ -247,8 +247,12 @@ def rx_bits(word, nd1):
     return [(word >> (15 - nd1 + j)) & 1 for j in range(nd1 + 1)]
 
 
-def rx_run(b, h, fmt, b_tx, data, slow_k=None, glitch=False):
-    """Receiver firmware with bit time b and first sample h; sender with bit time b_tx, back-to-back frames."""
+def rx_run(b, h, fmt, b_tx, data, slow_k=None, glitch=False, t0=2000):
+    """Receiver firmware with bit time b and first sample h; sender with bit time b_tx, back-to-back frames.
+
+    With glitch, a 3-cycle low pulse comes at cycle 1000 and the first frame starts h cycles
+    later than t0, after the receiver has rejected the pulse.
+    """
     nd1 = len(frame_bits(0, fmt)) - int(fmt[2])  # data, parity, and one stop bit
     if slow_k is None:
         prog = assemble("uart_rx_full.s", ND1=nd1)

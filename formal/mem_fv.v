@@ -27,7 +27,7 @@
 //   The memory has no reset (the write-data flip-flops have none since
 //   M2c). The chip reset clears only the flip-flops that make the write
 //   request (pe_proc, pe_host_port). The harness does the same: its
-//   request register \"we\" has an asynchronous reset. With FREE_RESET = 1
+//   request register "we" has an asynchronous reset. With FREE_RESET = 1
 //   the reset can come at any solver step, also in the first half of the
 //   cycle after a store, while the word is open.
 

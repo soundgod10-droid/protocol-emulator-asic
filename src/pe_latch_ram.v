@@ -33,8 +33,9 @@
 //   path then goes through the open latch, and STA checks it.
 //
 // Reset:
-//   The latches have no reset (docs/isa.md 2.4: the memory does not change
-//   at reset). The host must write a word before it is read.
+//   The latches and the write-data flip-flops have no reset (docs/isa.md
+//   2.4: the memory does not change at reset; formal/mem_reset.sby). The
+//   host must write a word before it is read.
 
 module pe_latch_ram #(
     parameter integer WORDS = 128,

@@ -328,6 +328,8 @@ See section 7. No time instruction changes the flags.
 | IOR rd, port | rd = value of the I/O port (section 10) | none |
 | IOW rs, port | write rs to the I/O port (section 10) | only port FLAGS |
 
+Host side of the FIFOs (docs/host_port.md section 9): the host PUSH and PULL use the FIFO state of the clock cycle in which the host port acts, at the same clock edge as the slot of that cycle. A host word for a full host-to-thread FIFO is dropped and the host port sets PUSH_DROP; a host that reads the FIFO count first never loses a word.
+
 ## 9 Flags and conditions
 
 ### 9.1 Flags

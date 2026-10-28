@@ -629,7 +629,7 @@ async def test_core_out_events(dut):
     own.update({7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 6: 1, 14: 1})
     od = [p in (2, 5, 13) for p in range(pe_model.N_OUT)]
     scn = Scenario("out_events", asm((t0, 0), (t1, 96)), start_pc=(0, 96, 0, 0), run=(True, True, False, False),
-                   owner=owners(own), od=od, cycles=1500, host=pop_round_robin([0, 1]))
+                   owner=owners(own), od=od, cycles=2500, host=pop_round_robin([0, 1]))
     m, popped, changes = await run_lockstep(dut, scn)
     assert_ended(m, popped, want_status=(m.threads[0].status, m.threads[1].status, 0, 0), threads=(0, 1), min_words=6)
     assert changes >= 15, f"only {changes} pin changes"

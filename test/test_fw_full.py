@@ -1135,32 +1135,30 @@ def r2_rx_ok(b, h, nd1, b_tx, data):
 
 
 def r2_rx_limits(b, h, nd1, data=R2_RX_DATA, step=0.001, stop=0.12):
-    """Largest sender errors [fast, slow] that pass, in 0.1 % steps (binary search as rx_limits)."""
+    """Largest sender errors [fast, slow] such that every 0.1 % step from 0 to it passes.
+
+    Linear scan: pass and fail are not monotonic in the error (the first R2 run found 50 MHz,
+    H 15: a binary search gave 3.8 % or more, but -3.8 % fails), so a binary search can give
+    a limit that fails. -1 means that the run with no error fails.
+    """
+    if not r2_rx_ok(b, h, nd1, b, data):
+        return [-1, -1]
     result = []
     for sign in (-1, 1):
-        lo, hi = 0, round(stop / step)
-        if r2_rx_ok(b, h, nd1, b * (1 + sign * hi * step), data):
-            result.append(hi * step)
-            continue
-        while hi - lo > 1:
-            mid = (lo + hi) // 2
-            lo, hi = (mid, hi) if r2_rx_ok(b, h, nd1, b * (1 + sign * mid * step), data) else (lo, mid)
-        result.append(lo * step)
+        n = 0
+        while (n + 1) * step <= stop and r2_rx_ok(b, h, nd1, b * (1 + sign * (n + 1) * step), data):
+            n += 1
+        result.append(n * step)
     return result
 
 
 def r2_rx_best(b, nd1, h_range):
-    """Best first-sample time H in h_range: largest min(fast, slow). Then every 0.1 % step from 0 to
-    each limit is run, so that the limit is not a binary-search artefact."""
+    """Best first-sample time H in h_range: largest min(fast, slow) of the contiguous limits."""
     best = None
     for h in h_range:
         fast, slow = r2_rx_limits(b, h, nd1)
         if best is None or min(fast, slow) > min(best[1], best[2]):
             best = (h, fast, slow)
-    h, fast, slow = best
-    for sign, lim in ((-1, fast), (1, slow)):
-        for n in range(round(lim / 0.001) + 1):
-            assert r2_rx_ok(b, h, nd1, b * (1 + sign * n * 0.001), R2_RX_DATA), (b, h, nd1, sign, n)
     return best
 
 

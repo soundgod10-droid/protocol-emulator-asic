@@ -68,7 +68,7 @@ module tt_um_soundgod10_droid_protocol_emulator (
   wire host_sck;
   wire host_cs;
   wire host_mosi;
-  pe_sync2 u_sck_sync (
+  pe_sync2n u_sck_sync (
       .clk  (clk),
       .rst_n(rst_n_int),
       .d    (ui_in[7]),

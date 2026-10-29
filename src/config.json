@@ -41,6 +41,9 @@
   "PL_RESIZER_SETUP_SLACK_MARGIN": 0,
   "RUN_MAGIC_DRC": 0,
 
+  "//": "R2 experiment E7 (research branch only): timing-driven global placement (template resolved value false).",
+  "PL_TIMING_DRIVEN": 1,
+
   "//": "Configuration docs: https://librelane.readthedocs.io/en/latest/reference/configuration.html",
 
   "//": "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",

@@ -1,0 +1,21 @@
+# host_port_cover: reachability of the host port properties (M2c step 5).
+#
+# Each cover is a case that a property of formal/host_port.sby checks: a
+# memory word written, a configuration word written, a PUSH word (needs a
+# START transaction first) and the last bit of the 4th ID byte. Depth: a
+# rising SCK edge needs 2 cycles (SCK low, then high), so START (8 edges)
+# and a 4-byte PUSH (32 edges) with the CS_N changes need about 84 cycles.
+
+[options]
+mode cover
+depth 90
+
+[engines]
+smtbmc z3
+
+[script]
+read -formal -D PE_HOST_PORT_COVER pe_host_port.v
+prep -top pe_host_port
+
+[files]
+../src/pe_host_port.v

@@ -1241,3 +1241,149 @@ async def test_r2_clock_margins(dut):
     # G1 rule H gives -4.0 / +3.4 % at 50 MHz and -3.1 / +3.4 % at 40 MHz with the G1 data.
     assert [round(x, 3) for x in rx_limits(50, rx_h(50))] == [0.040, 0.034]
     assert [round(x, 3) for x in rx_limits(40, rx_h(40))] == [0.031, 0.034]
+
+
+# ----- R2 question 5b: host words per second that each protocol needs -----
+# R2_decisions.md section 5b. The bench gives a word as soon as the FIFO has space and takes
+# each reply at once (an infinitely fast host), so the rates are what the firmware takes and
+# makes at its highest protocol rate. fw/ and model/ are not changed.
+
+
+class R2Bench(Bench):
+    """Bench that also records the cycle in which each host word enters a host-to-thread FIFO."""
+
+    def __init__(self, model, inputs=None):
+        super().__init__(model, inputs)
+        self.taken = [[] for _ in range(pe_model.N_THREADS)]
+
+    def run(self, cycles):
+        m = self.m
+        watches = list(self.watches.values())
+        for _ in range(cycles):
+            c = m.cycle
+            if self.inputs is not None:
+                ui, uio = self.inputs(c, *m.pins())
+                m.set_inputs(ui, uio)
+            for n in range(pe_model.N_THREADS):
+                q = self.to_thread[n]
+                if q and m.fifo_push(n, q[0]):
+                    q.popleft()
+                    self.taken[n].append(c)
+            pins = m.step()
+            for n in range(pe_model.N_THREADS):
+                w = m.fifo_pop(n)
+                while w is not None:
+                    self.from_thread[n].append((c, w))
+                    w = m.fifo_pop(n)
+            for fn, ch in watches:
+                v = fn(*pins)
+                if not ch or ch[-1][1] != v:
+                    ch.append((c, v))
+
+
+def r2_rate(times, f_clk, skip):
+    """Steady words per second from word times in cycles, after the first `skip` words
+    (set-up words and the first fill of the 4-word FIFO)."""
+    t = times[skip:]
+    assert len(t) > 4, f"too few words to measure a rate: {len(t)}"
+    return (len(t) - 1) * f_clk / (t[-1] - t[0])
+
+
+def r2_need_setup(f_clk, which, n=48):
+    """Streams at the highest rate of each protocol (A1 section 3, G1 4.1): UART TX and RX 1 Mbit/s
+    8N1 back-to-back, SPI mode 0 at the smallest H in one long transfer (CS low for all bytes),
+    I2C Fast-mode write with no clock stretching. `which` is a subset of 0 (UART TX), 1 (UART RX),
+    2 (SPI), 3 (I2C); each protocol is on that thread, as in all_four()."""
+    f_mhz = round(f_clk / 1e6)
+    files = ("uart_tx_full.s", "uart_rx_full.s", "spi_ctl.s", "i2c_ctl.s")
+    equ = (dict(), dict(ND1=9), dict(CPOL=0, CL=0, D=0), I2C_EQU[("Fm", f_mhz)])
+    bases, image, addr = [], {}, 0
+    for f, e in zip(files, equ):
+        prog = assemble(f, addr, **e)
+        bases.append(addr)
+        image.update(prog.words)
+        addr += prog.size
+    m = pe_model.PeModel(image, start_pc=tuple(bases), run=tuple(n_ in which for n_ in range(4)),
+                         owner=owners({P_TX: 0, P_CS: 2, P_MOSI: 2, P_SCK: 2, P_SCL: 3, P_SDA: 3}),
+                         open_drain=open_drain({P_SCL, P_SDA}))
+    rng = random.Random(55)
+    k, c, b = uart_cfg(f_clk, 1_000_000)
+    tx_frames = [frame_bits(rng.randrange(256), "8N1") for _ in range(n)]
+    rx_frames, t = [], 300
+    for _ in range(n):
+        rx_frames.append((t, frame_bits(rng.randrange(256), "8N1")))
+        t += 10 * b
+    line = uart_line(rx_frames, b)
+    h_spi = spi_h_min(0, 0, 0)
+    spi_out = [rng.randrange(256) for _ in range(n)]
+    spi_words = [x for x in spi_out[:-1]] + [spi_out[-1] | 0x100]
+    spi = SpiDevice(0, 0, [rng.randrange(256) for _ in range(n)])
+    i2c_data = [rng.randrange(256) for _ in range(n // 2)]
+    i2c_words = i2c_write(I2C_ADDR << 1, start=True)
+    for j, d in enumerate(i2c_data):
+        i2c_words += i2c_write(d, stop=j == len(i2c_data) - 1)
+    bus = I2cBus(I2C_ADDR, I2C_READ, stretch=0)
+
+    def inputs(cy, uo, uio, oe):
+        _, miso = spi(cy, uo, uio, oe)
+        _, i2c = bus(cy, uo, uio, oe)
+        return value_at(line, cy) << UI_RX, miso | i2c
+
+    bench = R2Bench(m, inputs=inputs)
+    bench.watch("tx", lambda uo, uio, oe: (uo >> 4) & 1)
+    if 0 in which:
+        bench.send(0, c, k, *[frame_word(f) for f in tx_frames])
+    if 1 in which:
+        bench.send(1, b, rx_h(b))
+    if 2 in which:
+        bench.send(2, h_spi, *spi_words)
+    if 3 in which:
+        bench.send(3, *i2c_words)
+    bench.run(max(t + 3 * b, n * 10 * b + 1_000, n * (16 * h_spi + 120), (n // 2 + 1) * 9 * 160 + 3_000))
+    # Results must be correct before the rates count.
+    assert_status_clean(m, sorted(which))
+    if 0 in which:
+        check_tx(cocotb.log, bench.changes("tx"), b, f_clk / 1e6, tx_frames, f"r2 need uart_tx {f_mhz} MHz")
+    if 1 in which:
+        assert [rx_bits(w, 9) for w in bench.words(1)] == [bits[:10] for _, bits in rx_frames]
+    if 2 in which:
+        assert spi.rx == spi_out and not spi.errors and [w & 0xFF for w in bench.words(2)] == spi.data
+    if 3 in which:
+        assert [e for e in i2c_events(bus) if e[0] == "W"] == [("W", d) for d in i2c_data]
+        assert len(bench.words(3)) == len(i2c_data) + 1
+    rates = {}
+    if 0 in which:
+        rates["UART TX"] = (r2_rate(bench.taken[0], f_clk, 2 + 6), 0.0)
+    if 1 in which:
+        rates["UART RX"] = (0.0, r2_rate([cy for cy, _ in bench.from_thread[1]], f_clk, 2))
+    if 2 in which:
+        rates["SPI"] = (r2_rate(bench.taken[2], f_clk, 1 + 6), r2_rate([cy for cy, _ in bench.from_thread[2]], f_clk, 2))
+    if 3 in which:
+        rates["I2C"] = (r2_rate(bench.taken[3], f_clk, 2 + 6), r2_rate([cy for cy, _ in bench.from_thread[3]], f_clk, 2))
+    return rates, h_spi
+
+
+@cocotb.test(skip=GL)
+async def test_r2_host_need(dut):
+    """R2 question 5b: host words per second (to the chip, from the chip) that each protocol needs at its
+    highest rate, alone and all four at the same time, at 50 MHz, in the model."""
+    log = dut._log
+    alone = {}
+    for n_ in range(4):
+        rates, h_spi = r2_need_setup(50e6, {n_})
+        alone.update(rates)
+    together, _ = r2_need_setup(50e6, {0, 1, 2, 3})
+    for name in ("UART TX", "UART RX", "SPI", "I2C"):
+        a_in, a_out = alone[name]
+        t_in, t_out = together[name]
+        log.info(f"R2 host need {name}: alone {a_in:,.0f} words/s to the chip, {a_out:,.0f} from the chip; "
+                 f"all four at once {t_in:,.0f} / {t_out:,.0f}")
+    tot_in = sum(v[0] for v in together.values())
+    tot_out = sum(v[1] for v in together.values())
+    log.info(f"R2 host need all four (UART 1 Mbit/s both ways, SPI H {h_spi}, I2C Fm no stretching): "
+             f"{tot_in:,.0f} words/s to the chip + {tot_out:,.0f} from the chip = {tot_in + tot_out:,.0f} words/s "
+             f"(G1 calculation: about 580,000)")
+    # Each thread has its own slot (isa 3.1), so a protocol needs the same alone and with the others.
+    for name in alone:
+        for x, y in zip(alone[name], together[name]):
+            assert abs(x - y) <= 0.01 * max(x, y, 1.0), (name, alone[name], together[name])

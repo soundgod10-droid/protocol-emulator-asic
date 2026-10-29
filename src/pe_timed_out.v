@@ -159,13 +159,21 @@ module pe_timed_out #(
     //     value of the last event that occurred. Thus, the pin changes only
     //     at the clock edge at the end of an event cycle, and it gets the
     //     value of that event.
-    assert ((pin_value == m_pv) && (pin_oe == m_pe));
+    //     One assert for each signal, so that formal/timed_out.sby counts
+    //     9 property cells (select -assert-min 9) and a failure names the
+    //     signal.
+    assert (pin_value == m_pv);
+    assert (pin_oe == m_pe);
     // T2: The slot is full exactly while the monitor has an event that did
     //     not occur. Thus, a write into an empty slot is never lost, and the
     //     slot is empty again after the event cycle.
     assert (ev_ready == !m_pend);
     // T3: The slot keeps the time, value and output enable of the write.
-    if (m_pend) assert ((ev_time_q == m_t) && (ev_value_q == m_v) && (ev_oe_q == m_e));
+    if (m_pend) begin
+      assert (ev_time_q == m_t);
+      assert (ev_value_q == m_v);
+      assert (ev_oe_q == m_e);
+    end
     if (m_pend && f_ok) begin
       // T4: The event did not occur early or late: 1 <= j <= d.
       assert ((m_j >= 17'd1) && (m_j <= m_d) && (m_d >= 17'd1) && (m_d <= 17'h10000));

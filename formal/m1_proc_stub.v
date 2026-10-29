@@ -5,6 +5,11 @@
 
 `default_nettype none
 
+// REMOVED IN M2c. Used only by formal/uart_tx.sby (M1 sequencer proof),
+// which M2c removed with the sequencer (see formal/uart_tx_fv.v). The
+// ports below are those of M2b and no longer agree with src/pe_proc.v.
+// Kept only as a record until the file is deleted with git rm.
+//
 // pe_proc (formal stub for the M1 UART proof, formal/uart_tx.sby only).
 //
 // What it does:

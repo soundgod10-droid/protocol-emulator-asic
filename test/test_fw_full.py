@@ -1289,7 +1289,7 @@ def r2_rate(times, f_clk, skip):
     return (len(t) - 1) * f_clk / (t[-1] - t[0])
 
 
-def r2_need_setup(f_clk, which, n=48):
+def r2_need_setup(f_clk, which, log, n=48):
     """Streams at the highest rate of each protocol (A1 section 3, G1 4.1): UART TX and RX 1 Mbit/s
     8N1 back-to-back, SPI mode 0 at the smallest H in one long transfer (CS low for all bytes),
     I2C Fast-mode write with no clock stretching. `which` is a subset of 0 (UART TX), 1 (UART RX),

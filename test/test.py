@@ -453,7 +453,7 @@ async def test_stop_start(dut):
     check_stream(dut._log, mon_after, rx, data, "after STOP and START", back_to_back=True)
 
 
-@cocotb.test()
+@cocotb.test(skip=os.environ.get("GATES") == "yes")  # gate level has no delays (-DFUNCTIONAL): same result, 3.8 ms of simulation
 async def test_r2_host_sck_clocks(dut):
     """R2 question 1: smallest host SCK period at a system clock of 40, 48, 50 and 60 MHz (RTL).
 

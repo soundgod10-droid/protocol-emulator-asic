@@ -589,7 +589,7 @@ async def test_r2_host_throughput(dut):
     await host.start()
     n = 64
     lines = []
-    for period in (100, 90):
+    for period in (100, 90, 80):  # r2-hostsync: 80 ns, below the 87.4 ns limit of pe_sync2
         h = hs.SpiTimed(dut, period_ns=period)
         rates = {}
         # S1: status-first PUSH (READ_STATUS of bytes 0 to 3, then PUSH of the free words)

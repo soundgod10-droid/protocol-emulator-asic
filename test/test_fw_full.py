@@ -1101,3 +1101,137 @@ async def test_g1_tsync(dut):
                       f"change {delay} cycles after the host word, status {status}; TSYNC replaced by NOP: "
                       f"{'correct' if ok2 else 'NOT correct'}, {delay2} cycles, status {status2}")
         assert ok and status == 0 and delay is not None and delay < 2_000, (label, ok, delay, status)
+
+
+# ----- R2 question 1: protocol margins at each candidate system clock -----
+# R2_decisions.md section 1. Only host words and .equ values change (the host
+# chooses them for its clock); fw/ and model/ are not changed.
+
+R2_CLOCKS = (40e6, 48e6, 50e6, 60e6)
+R2_RX_DATA = [0x55, 0xAA, 0x00, 0xFF, 0x7F, 0x80, 0x3C, 0xC3, 0x01, 0xFE]  # each bit next to both levels
+# I2C Fm .equ at 48 MHz: the 50 MHz cycle counts (all times longer, fSCL lower).
+# At 60 MHz: the 50 MHz values x 1.2, rounded up (fSCL must stay at 400 kHz or less).
+I2C_EQU[("Fm", 48)] = dict(I2C_EQU[("Fm", 50)])
+I2C_EQU[("Fm", 60)] = dict(HD=4, TLOW=90, TSMP=16, THIGH2=39, TSUSTA=39, THDSTA=39, TSUSTO=39, TBUF=82)
+
+
+def r2_rx_ok(b, h, nd1, b_tx, data):
+    """fw/uart_rx_full.s with ND1 samples after the start bit (9: the stop bit is sampled, 8: it is not),
+    8N1 sender with bit time b_tx, back-to-back frames. True if every word has the sent bits."""
+    prog = assemble("uart_rx_full.s", ND1=nd1)
+    frames, t = [], 200
+    for d in data:
+        bits = frame_bits(d, "8N1")
+        frames.append((t, bits))
+        t += round(len(bits) * b_tx)
+    line = uart_line(frames, b_tx)
+    m = pe_model.PeModel(prog.words)
+    bench = Bench(m, inputs=lambda c, uo, uio, oe: (value_at(line, c) << UI_RX, 0))
+    bench.send(0, b, h)
+    bench.run(t + 3 * b)
+    words = bench.words(0)
+    return status_clean(m, [0]) and len(words) == len(frames) and all(
+        rx_bits(w, nd1) == bits[: nd1 + 1] for w, (_, bits) in zip(words, frames))
+
+
+def r2_rx_limits(b, h, nd1, data=R2_RX_DATA, step=0.001, stop=0.12):
+    """Largest sender errors [fast, slow] that pass, in 0.1 % steps (binary search as rx_limits)."""
+    result = []
+    for sign in (-1, 1):
+        lo, hi = 0, round(stop / step)
+        if r2_rx_ok(b, h, nd1, b * (1 + sign * hi * step), data):
+            result.append(hi * step)
+            continue
+        while hi - lo > 1:
+            mid = (lo + hi) // 2
+            lo, hi = (mid, hi) if r2_rx_ok(b, h, nd1, b * (1 + sign * mid * step), data) else (lo, mid)
+        result.append(lo * step)
+    return result
+
+
+def r2_rx_best(b, nd1, h_range):
+    """Best first-sample time H in h_range: largest min(fast, slow). Then every 0.1 % step from 0 to
+    each limit is run, so that the limit is not a binary-search artefact."""
+    best = None
+    for h in h_range:
+        fast, slow = r2_rx_limits(b, h, nd1)
+        if best is None or min(fast, slow) > min(best[1], best[2]):
+            best = (h, fast, slow)
+    h, fast, slow = best
+    for sign, lim in ((-1, fast), (1, slow)):
+        for n in range(round(lim / 0.001) + 1):
+            assert r2_rx_ok(b, h, nd1, b * (1 + sign * n * 0.001), R2_RX_DATA), (b, h, nd1, sign, n)
+    return best
+
+
+def r2_grid_error_ns(f_clk, interval_ns, n=1000):
+    """Largest distance (ns) of an ideal edge k x interval from the nearest clock edge, k = 0 to n."""
+    t_ns = 1e9 / f_clk
+    return max(abs(round(k * interval_ns / t_ns) * t_ns - k * interval_ns) for k in range(n + 1))
+
+
+@cocotb.test(skip=GL)
+async def test_r2_clock_margins(dut):
+    """R2 question 1: protocol margins of A1 section 3 at 40, 48, 50 and 60 MHz, measured in the model."""
+    log = dut._log
+    lines = []
+    h_spi0, h_spi7 = spi_h_min(0, 0, 0), spi_h_min(0, 0, 7)
+    rates = [300, 600, 1_200, 2_400, 4_800, 9_600, 14_400, 19_200, 38_400, 57_600, 115_200, 230_400,
+             460_800, 921_600, 1_000_000]
+    words, replies, events = i2c_script()
+    for f_clk in R2_CLOCKS:
+        f_mhz = round(f_clk / 1e6)
+        # UART divider error (A1 share +/-1 %)
+        div = max(((r, f_clk / r / uart_cfg(f_clk, r)[2] - 1) for r in rates), key=lambda x: abs(x[1]))
+        # UART receiver, sender tolerance against the receiver bit time B
+        rx = {}
+        for rate in (1_000_000, 921_600):
+            b = uart_cfg(f_clk, rate)[2]
+            err_div = f_clk / rate / b - 1  # nominal bit time against B: shifts the sender window
+            r9 = r2_rx_best(b, 9, range(12, rx_h(b) + 7))
+            r8 = r2_rx_best(b, 8, range(round(0.35 * b), round(0.6 * b) + 1))
+            rx[rate] = (b, err_div, r9, r8)
+        b115 = uart_cfg(f_clk, 115_200)[2]
+        f115, s115 = rx_limits(b115, rx_h(b115), nframes=4, step=0.002)
+        # I2C Fast-mode: Table 11 minimum times, with and without clock stretching
+        i2c = "pass"
+        for stretch in (0, 300):
+            bench, m, bus = i2c_run("Fm", f_mhz, stretch, words)
+            bench.run(36_000)
+            try:
+                assert bench.words(0) == replies and i2c_events(bus) == events
+                assert_status_clean(m, [0])
+                check_i2c_times(log, bus.changes, "Fm", f_mhz, f"r2 i2c_ctl Fm {f_mhz} MHz stretch {stretch}")
+            except AssertionError as e:
+                i2c = f"FAIL ({e})"
+        period = min(i2c_times(bus.changes)["period"])
+        # All four protocols at the same time, UART 1 Mbit/s, sender -3.3 % and +3.3 % (stop bit sampled)
+        four = []
+        for err in (-TOL, TOL):
+            try:
+                check_all_four(log, all_four(f_clk, err), f"r2 all four {f_mhz} MHz {err * 100:+.1f} %")
+                four.append(f"{err * 100:+.1f} % pass")
+            except AssertionError:
+                four.append(f"{err * 100:+.1f} % FAIL")
+        # Low-speed USB: integer bit time n (USB 2.0 Table 7-10: 1.5 Mbit/s +/-1.5 %)
+        n_usb = round(f_clk / 1.5e6)
+        usb_err = f_clk / n_usb / 1.5e6 - 1
+        # 10BASE-T: Manchester half bit 50 ns on the clock grid (IEEE 802.3 14.3.1.2.3: +/-8 ns into 100 ohm)
+        eth = r2_grid_error_ns(f_clk, 50.0)
+        lines.append(
+            f"{f_mhz} MHz: UART divider largest {div[1] * 100:+.3f} % at {div[0]} bit/s; "
+            + "; ".join(f"RX {rate} B {b} (nominal {err_div * 100:+.3f} %): stop sampled best H {r9[0]} "
+                        f"-{r9[1] * 100:.1f}/+{r9[2] * 100:.1f} %, stop not sampled best H {r8[0]} "
+                        f"-{r8[1] * 100:.1f}/+{r8[2] * 100:.1f} %" for rate, (b, err_div, r9, r8) in rx.items())
+            + f"; RX 115200 B {b115} H {rx_h(b115)} -{f115 * 100:.1f}/+{s115 * 100:.1f} %"
+            + f"; SPI D0 H {h_spi0} = {f_clk / 2e3 / h_spi0:.0f} kHz, D7 H {h_spi7} = {f_clk / 2e3 / h_spi7:.0f} kHz"
+            + f"; I2C Fm {i2c}, SCL period {period} cycles = {f_clk / 1e3 / period:.1f} kHz"
+            + f"; all four {', '.join(four)}"
+            + f"; USB LS {n_usb} cycles/bit {usb_err * 100:+.2f} %"
+            + f"; 10BASE-T half bit {50e-9 * f_clk:.2f} cycles, edge grid error {eth:.2f} ns")
+    for text in lines:
+        log.info("R2 " + text)
+    # Cross-check with G1 (G1_ground_register.md 4.1): the stop-sampled receiver at 1 Mbit/s with the
+    # G1 rule H gives -4.0 / +3.4 % at 50 MHz and -3.1 / +3.4 % at 40 MHz with the G1 data.
+    assert [round(x, 3) for x in rx_limits(50, rx_h(50))] == [0.040, 0.034]
+    assert [round(x, 3) for x in rx_limits(40, rx_h(40))] == [0.031, 0.034]

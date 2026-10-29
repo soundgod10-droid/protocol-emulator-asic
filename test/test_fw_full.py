@@ -1370,9 +1370,9 @@ async def test_r2_host_need(dut):
     log = dut._log
     alone = {}
     for n_ in range(4):
-        rates, h_spi = r2_need_setup(50e6, {n_})
+        rates, h_spi = r2_need_setup(50e6, {n_}, log)
         alone.update(rates)
-    together, _ = r2_need_setup(50e6, {0, 1, 2, 3})
+    together, _ = r2_need_setup(50e6, {0, 1, 2, 3}, log)
     for name in ("UART TX", "UART RX", "SPI", "I2C"):
         a_in, a_out = alone[name]
         t_in, t_out = together[name]

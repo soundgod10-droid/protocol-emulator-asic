@@ -5,6 +5,17 @@
 
 `default_nettype none
 
+// REMOVED IN M2c. This harness and its jobs (formal/uart_tx.sby,
+// formal/uart_tx_cover.sby, with formal/m1_proc_stub.v) prove the M1
+// sequencer pe_uart_tx_seq and its handshake (TX_REQ, TX_ACK, CORE_SEL),
+// which M2c removed from the chip. Yosys now stops at "connect -set" of
+// dut.u_uart_tx_seq.take (2026-10-28). The UART transmitter is firmware
+// (fw/uart_tx.s); its frames are checked by test/test.py and
+// test/test_core.py, the pin events by formal/core.sby and
+// formal/timed_out.sby, the host port by formal/host_port.sby. The text
+// below is the last version, kept only as a record until the files are
+// deleted with git rm.
+//
 // uart_tx_fv: formal check of the M1 UART transmitter.
 //
 // What it does:

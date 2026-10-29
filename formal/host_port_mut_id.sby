@@ -1,0 +1,22 @@
+# host_port_mut_id: check of the check (M2c step 5). The RTL gets a wrong
+# chip ID (version byte 0x04 in place of 0x03) with chparam. The monitor
+# in src/pe_host_port.v has the ID of docs/host_port.md as literal values,
+# so H6 must fail. "expect fail" makes this job PASS only if the solver
+# finds the counterexample; a PASS of host_port.sby thus cannot come from
+# an empty or too weak H6.
+
+[options]
+mode bmc
+depth 90
+expect fail
+
+[engines]
+smtbmc z3
+
+[script]
+read -formal pe_host_port.v
+chparam -set CHIP_ID 32'h50450204 pe_host_port
+prep -top pe_host_port
+
+[files]
+../src/pe_host_port.v

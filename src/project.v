@@ -80,7 +80,7 @@ module tt_um_soundgod10_droid_protocol_emulator (
       .d    (~ui_in[6]),
       .q    (host_cs)
   );
-  pe_sync2 u_mosi_sync (
+  pe_sync2n u_mosi_sync (
       .clk  (clk),
       .rst_n(rst_n_int),
       .d    (ui_in[5]),

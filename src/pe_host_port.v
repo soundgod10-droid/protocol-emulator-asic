@@ -309,4 +309,188 @@ module pe_host_port #(
     end
   end
 
+`ifdef FORMAL
+  // ---------------------------------------------------------------------
+  // Formal properties (formal/host_port.sby, formal/host_port_cover.sby).
+  // Only Yosys with the FORMAL macro reads this block; synthesis, the
+  // linter and the simulations do not.
+  //
+  // A monitor (m_*) decodes the SPI pins after the synchronizers as
+  // docs/host_port.md tells: bytes MSB first at the rising SCK edge, CS_N
+  // high ends the transaction, byte 0 is the command, byte 1 the address
+  // or thread, then words (high byte first) at address A, A + 1, ...
+  // (wrap 127 to 0). STOP and START change RUNNING (START only when
+  // stopped). The monitor does not use the port registers. The ID bytes
+  // below are the values of docs/host_port.md section 4, not CHIP_ID.
+  //
+  // H1 to H7 are the properties. J1 to J8 are invariants: they connect
+  // the port registers to the monitor, so that k-induction can prove H1
+  // to H7 for all time and all SPI pin sequences (the pins are free in
+  // each clock cycle, also faster than the timing rules allow).
+  // ---------------------------------------------------------------------
+  initial assume (!rst_n);  // the check starts in reset; later resets are free
+
+  reg        m_sck_q;   // SCK in the cycle before
+  reg        m_cs_q;    // cs in the cycle before
+  reg [2:0]  m_bit;     // bits of this byte received so far
+  reg [6:0]  m_sr;      // these bits
+  reg [2:0]  m_nb;      // complete bytes in this transaction (stops at 7)
+  reg [7:0]  m_cmd;     // byte 0 of this transaction
+  reg [6:0]  m_addr;    // address of the next word
+  reg [1:0]  m_tid;     // thread of PUSH and PULL
+  reg        m_lo;      // 1 = the next data byte is the low byte of a word
+  reg [7:0]  m_hi;      // high byte of the word
+  reg        m_run;     // RUNNING from the STOP and START commands
+
+  wire        m_rise  = cs && sck && !m_sck_q;
+  wire        m_done  = m_rise && (m_bit == 3'd7);
+  wire [7:0]  m_byte  = {m_sr, mosi};
+  wire [15:0] m_word  = {m_hi, m_byte};
+  wire        m_wword = m_done && (m_nb >= 3'd2) && m_lo;  // last bit of a word
+
+  always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+      m_sck_q <= 1'b0;
+      m_cs_q  <= 1'b0;
+      m_bit   <= 3'd0;
+      m_sr    <= 7'd0;
+      m_nb    <= 3'd0;
+      m_cmd   <= 8'd0;
+      m_addr  <= 7'd0;
+      m_tid   <= 2'd0;
+      m_lo    <= 1'b0;
+      m_hi    <= 8'd0;
+      m_run   <= 1'b0;
+    end else begin
+      m_sck_q <= sck;
+      m_cs_q  <= cs;
+      if (!cs) begin
+        m_bit <= 3'd0;
+        m_nb  <= 3'd0;
+        m_lo  <= 1'b0;
+      end else if (m_rise) begin
+        m_sr  <= m_byte[6:0];
+        m_bit <= m_bit + 3'd1;
+        if (m_done) begin
+          if (m_nb != 3'd7) m_nb <= m_nb + 3'd1;
+          case (m_nb)
+            3'd0: begin
+              m_cmd <= m_byte;
+              if (m_byte == 8'h3C) m_run <= 1'b0;                 // STOP
+              else if ((m_byte == 8'h4B) && !m_run) m_run <= 1'b1; // START
+            end
+            3'd1: begin
+              m_addr <= m_byte[6:0];
+              m_tid  <= m_byte[1:0];
+              m_lo   <= 1'b0;
+            end
+            default: begin
+              if (!m_lo) m_hi <= m_byte;
+              else m_addr <= m_addr + 7'd1;
+              m_lo <= !m_lo;
+            end
+          endcase
+        end
+      end
+    end
+  end
+
+  // ID byte of response byte m_nb (docs/host_port.md section 4).
+  reg [7:0] m_idb;
+  always @* begin
+    case (m_nb)
+      3'd1:    m_idb = 8'h50;
+      3'd2:    m_idb = 8'h45;
+      3'd3:    m_idb = 8'h02;
+      3'd4:    m_idb = 8'h03;
+      default: m_idb = 8'h00;
+    endcase
+  end
+
+  // Expected port state from the monitor (for the invariant J4).
+  wire      m_ok  = (m_cmd[3:0] == ~m_cmd[7:4]);
+  wire [3:0] m_c  = m_cmd[7:4];
+  wire      m_wr  = m_ok && (m_nb >= 3'd2) &&
+                    ((((m_c == K_WRITE_MEM) || (m_c == K_WRITE_CFG)) && !m_run) ||
+                     ((m_c == K_PUSH) && m_run));
+  reg [3:0] m_st;
+  always @* begin
+    if (m_nb == 3'd0) m_st = S_CMD;
+    else if (!m_ok) m_st = S_IGN;
+    else begin
+      case (m_c)
+        K_READ_ID, K_READ_STATUS: m_st = S_RESP;
+        K_WRITE_MEM, K_WRITE_CFG:
+          m_st = m_run ? S_IGN : (m_nb == 3'd1) ? S_ARG : (m_lo ? S_WLO : S_WHI);
+        K_READ_MEM:
+          m_st = m_run ? S_IGN : (m_nb == 3'd1) ? S_ARG : (m_lo ? S_RDB : S_RDA);
+        K_PUSH:
+          m_st = !m_run ? S_IGN : (m_nb == 3'd1) ? S_ARG : (m_lo ? S_WLO : S_WHI);
+        K_PULL:
+          m_st = !m_run ? S_IGN : (m_nb == 3'd1) ? S_ARG : (m_lo ? S_PLB : S_PLA);
+        default: m_st = S_IGN;
+      endcase
+    end
+  end
+
+  always @* begin
+    // H1: The memory is written only by the last bit of a word of a
+    //     WRITE_MEM (0x5A) while the threads stop, and each such word is
+    //     written, at address A + n (wrap 127 to 0) with its two bytes.
+    assert (mem_we == (m_wword && (m_cmd == 8'h5A) && !m_run));
+    if (mem_we) assert (mem_addr == m_addr);
+    if (mem_we) assert (mem_wdata == m_word);
+    // H2: The same for the configuration (WRITE_CFG 0x78).
+    assert (cfg_we == (m_wword && (m_cmd == 8'h78) && !m_run));
+    if (cfg_we) assert (cfg_addr == m_addr);
+    if (cfg_we) assert (cfg_wdata == m_word);
+    // H3: A word goes into a host FIFO only from a PUSH (0x87) while the
+    //     threads run, into the FIFO of the thread in byte 1.
+    assert (fifo_push == (m_wword && (m_cmd == 8'h87) && m_run));
+    if (fifo_push) assert (fifo_tid == m_tid);
+    if (fifo_push) assert (fifo_wdata == m_word);
+    // H4: RUNNING follows STOP and START (START only while stopped).
+    assert (running == m_run);
+    // H5: No write into the memory or the configuration while the
+    //     threads run.
+    assert (!(mem_we && running));
+    assert (!(cfg_we && running));
+    // H6: READ_ID gives the constant ID 0x50 0x45 0x02 0x03, then 0x00:
+    //     at each rising SCK edge of response byte k, MISO is bit 7 - b of
+    //     ID byte k (b = bits of the byte before this edge).
+    if (m_rise && (m_nb != 3'd0) && (m_cmd == 8'h1E)) assert (miso == m_idb[3'd7 - m_bit]);
+    // H7: MISO (all of its shift register) is 0 in the cycle after a
+    //     cycle with CS_N high.
+    if (!m_cs_q) assert (tx == 8'd0);
+
+    // J1 to J3: the bit counter and the receive register agree.
+    assert (sck_q == m_sck_q);
+    assert (nbit == m_bit);
+    assert (sr == m_sr);
+    // J4: the transaction state agrees with the monitor.
+    assert (st == m_st);
+    // J5: the command register holds byte 0.
+    if (m_nb != 3'd0) assert (cmd == m_c);
+    // J6: the response index is the number of complete bytes.
+    if (st == S_RESP) assert (idx == m_nb);
+    // J7: address, high byte and thread of a write.
+    if (m_wr) assert (addr == m_addr);
+    if (m_wr && m_lo) assert (hold == m_hi);
+    if (m_ok && (m_nb >= 3'd2) && m_run && ((m_c == K_PUSH) || (m_c == K_PULL))) assert (tid == m_tid);
+    // J8: in READ_ID the shift register holds the rest of the ID byte.
+    if ((m_nb != 3'd0) && (m_cmd == 8'h1E)) assert (tx == (m_idb << m_bit));
+  end
+
+  // Covers (formal/host_port_cover.sby defines the macro): each property
+  // has a reachable case, so the proof is not empty.
+`ifdef PE_HOST_PORT_COVER
+  always @* begin
+    cover (mem_we);                                               // a word written
+    cover (cfg_we);                                               // a configuration word
+    cover (fifo_push);                                            // START, then PUSH
+    cover (m_rise && (m_cmd == 8'h1E) && (m_nb == 3'd4) && (m_bit == 3'd7));  // last ID bit
+  end
+`endif
+`endif
+
 endmodule

@@ -1343,7 +1343,7 @@ def r2_need_setup(f_clk, which, n=48):
     # Results must be correct before the rates count.
     assert_status_clean(m, sorted(which))
     if 0 in which:
-        check_tx(cocotb.log, bench.changes("tx"), b, f_clk / 1e6, tx_frames, f"r2 need uart_tx {f_mhz} MHz")
+        check_tx(log, bench.changes("tx"), b, f_clk / 1e6, tx_frames, f"r2 need uart_tx {f_mhz} MHz")
     if 1 in which:
         assert [rx_bits(w, 9) for w in bench.words(1)] == [bits[:10] for _, bits in rx_frames]
     if 2 in which:

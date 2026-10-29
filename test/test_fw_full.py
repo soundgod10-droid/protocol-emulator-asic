@@ -1227,6 +1227,13 @@ async def test_r2_clock_margins(dut):
             + f"; all four {', '.join(four)}"
             + f"; USB LS {n_usb} cycles/bit {usb_err * 100:+.2f} %"
             + f"; 10BASE-T half bit {50e-9 * f_clk:.2f} cycles, edge grid error {eth:.2f} ns")
+    # G1 values again with the G1 data (rx_limits: 8 random frames, seed b x 1000 + h), now as
+    # contiguous limits (every 0.1 % step from 0 passes).
+    for b in (50, 40):
+        rng = random.Random(b * 1000 + rx_h(b))
+        g1_data = [rng.randrange(256) for _ in range(8)]
+        fast, slow = r2_rx_limits(b, rx_h(b), 9, data=g1_data)
+        lines.append(f"G1 data, B {b}, H {rx_h(b)}, stop sampled: contiguous -{fast * 100:.1f}/+{slow * 100:.1f} %")
     for text in lines:
         log.info("R2 " + text)
     # Cross-check with G1 (G1_ground_register.md 4.1): the stop-sampled receiver at 1 Mbit/s with the

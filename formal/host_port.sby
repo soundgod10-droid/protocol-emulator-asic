@@ -1,0 +1,24 @@
+# host_port: proof of the host SPI port properties H1 to H7 (with the
+# invariants J1 to J8) in src/pe_host_port.v, against the monitor that
+# decodes the SPI pins as docs/host_port.md tells (M2c step 5).
+#
+# The SPI pins after the synchronizers and all other inputs are free in
+# each clock cycle. The check starts in reset; later resets are free.
+# The job stops if fewer than 25 property cells (24 asserts, 1 assume)
+# reach the solver, so a PASS cannot come from properties that Yosys
+# removed.
+
+[options]
+mode prove
+depth 4
+
+[engines]
+smtbmc z3
+
+[script]
+read -formal pe_host_port.v
+prep -top pe_host_port
+select -assert-min 25 t:$check t:$assert
+
+[files]
+../src/pe_host_port.v

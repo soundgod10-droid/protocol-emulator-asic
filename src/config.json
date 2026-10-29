@@ -40,6 +40,8 @@
   "//": "Save some time",
   "RUN_KLAYOUT_XOR": 0,
   "RUN_KLAYOUT_DRC": 0,
+  "//": "R2 experiment E3 (research branch only): no Magic DRC in the flow; the precheck job still runs the SG13CMOS5L KLayout DRC.",
+  "RUN_MAGIC_DRC": 0,
 
   "//": "Don't put clock buffers on the outputs",
   "DESIGN_REPAIR_BUFFER_OUTPUT_PORTS": 0,

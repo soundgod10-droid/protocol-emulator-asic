@@ -41,6 +41,9 @@
   "PL_RESIZER_SETUP_SLACK_MARGIN": 0,
   "RUN_MAGIC_DRC": 0,
 
+  "//": "R2 experiment E6 (research branch only): Yosys/ABC timing-oriented mapping instead of the template default AREA 0.",
+  "SYNTH_STRATEGY": "DELAY 1",
+
   "//": "Configuration docs: https://librelane.readthedocs.io/en/latest/reference/configuration.html",
 
   "//": "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",

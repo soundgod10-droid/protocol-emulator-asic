@@ -474,12 +474,20 @@ async def test_r2_host_sck_clocks(dut):
         dut.rst_n.value = 1
         await ClockCycles(dut.clk, 5)
         await hs.SpiTimed(dut, period_ns=200).write_mem(0, words)
-        ok = {}
-        for period in range(140, 58, -2):
-            h = hs.SpiTimed(dut, period_ns=period)
-            ok[period] = (await h.read_id()) == hs.CHIP_ID and (await h.read_mem(0, 4)) == words
-        smallest = min(p for p in ok if all(ok[q] for q in ok if q >= p))
+        # When the period is a whole number of clock cycles, every SCK edge has the same phase to
+        # the clock, so each period is run with host phases (lag after a rising clock edge) from
+        # 0.5 ns to T in 2 ns steps: the first run (one phase) passed 100 ns at 40 MHz only
+        # because its edges were 11 ns after a clock edge.
         t_ns = clk_ps / 1000
+        lags = [0.5 + 2 * k for k in range(int((t_ns - 0.5) // 2) + 1)]
+        ok = {}
+        for period in range(round(3 * t_ns + 40) // 2 * 2, round(3 * t_ns + 10) // 2 * 2 - 2, -2):
+            good = True
+            for lag in lags:
+                h = hs.SpiTimed(dut, period_ns=period, lag_ns=lag)
+                good = good and (await h.read_id()) == hs.CHIP_ID and (await h.read_mem(0, 4)) == words
+            ok[period] = good
+        smallest = min(p for p in ok if all(ok[q] for q in ok if q >= p))
         results.append(f"{1e6 / clk_ps:.2f} MHz: smallest correct SCK period {smallest} ns "
                        f"({1000 / smallest:.2f} MHz); 3 T + 27.4 = {3 * t_ns + 27.4:.1f} ns, 4 T = {4 * t_ns:.1f} ns; "
                        f"fails at {sorted(p for p in ok if not ok[p])[-3:]}")

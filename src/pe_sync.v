@@ -73,3 +73,47 @@ module pe_sync2 (
   assign q = stage[1];
 
 endmodule
+
+// pe_sync2n: two flip-flop synchronizer with the first stage on the falling
+// clock edge (R2 question 5b, research branch r2-hostsync only).
+//
+// What it does:
+//   The output is the input 1 to 1.5 clock cycles later (pe_sync2: 1 to 2).
+//
+// Why:
+//   The host MISO delay is 3 T worst case with pe_sync2 (docs/host_port.md 6).
+//   This variant takes half a cycle out of it. The first stage has T/2 (not T)
+//   to become stable: at the slow corner tau = 102.7 ps, T0 = 1.7e-11 s
+//   (M2c_loader.md M2c-01) and a resolution time of 10 - 0.37 - 0.3 - 0.73 =
+//   8.6 ns give MTBF = exp(8.6 ns / 102.7 ps) / (T0 x 50 MHz x 2.5e7 /s),
+//   about 1e32 s.
+
+module pe_sync2n (
+    input  wire clk,
+    input  wire rst_n,  // active low, asynchronous assert
+    input  wire d,      // asynchronous input
+    output wire q       // synchronized output
+);
+
+  reg first;
+  reg second;
+
+  always @(negedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+      first <= 1'b0;
+    end else begin
+      first <= d;
+    end
+  end
+
+  always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+      second <= 1'b0;
+    end else begin
+      second <= first;
+    end
+  end
+
+  assign q = second;
+
+endmodule

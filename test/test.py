@@ -551,3 +551,86 @@ async def test_r2_stop_pins(dut):
                   f"changes in 2,000 cycles while stopped: {changes}; status {st}")
     assert st["running"] == 0
     assert after[0] == 0 and (after[2] & 0x7F) == 0x7F and changes == 0
+
+
+R2_TP_FW = """
+; R2 question 5b: threads that take and make host words faster than the host SPI port can move them
+cons:   PULL r0             ; thread 0: takes each word of its in-FIFO
+        JMP cons
+prod:   PUSH r1             ; thread 1: fills its out-FIFO with 0, 1, 2, ...
+        ADDI r1, 1
+        JMP prod
+echo:   PULL r0             ; thread 2: gives each word back
+        PUSH r0
+        JMP echo
+"""
+
+
+@cocotb.test(skip=os.environ.get("GATES") == "yes")  # gate level has no delays (-DFUNCTIONAL): same result
+async def test_r2_host_throughput(dut):
+    """R2 question 5b: host words per second through the host SPI port (RTL), for each host method.
+
+    The threads take and make words in 2 to 3 slots (8 to 12 cycles), much faster than the port,
+    so the port and the host method set the rate. SCK periods 100 ns (rated, docs/host_port.md) and
+    90 ns (shortest period that R2 measured correct at all host phases at 50 MHz is 88 ns).
+    The host model adds 60 ns from CS_N low to the first SCK edge, 60 ns from the last edge to
+    CS_N high and 60 ns CS_N high (the rule is 40 ns each).
+    Methods: S1 status-first PUSH (M2c send_bytes); S2 PUSH of 4 words with no status read (the
+    host knows that the thread empties the FIFO faster than one PUSH); S3 PULL with the count byte;
+    S4 PUSH 4 and PULL 4 to one thread in turn.
+    """
+    _, host = await start(dut)
+    prog = pe_asm.assemble(R2_TP_FW, "r2_throughput")
+    await host.write_mem(0, prog.image())
+    sym = {k: v[0] for k, v in prog.symbols.items()}
+    head, _ = hs.config_words((sym["cons"], sym["prod"], sym["echo"], 0), (True, True, True, False),
+                              [None] * 15, [False] * 15)
+    await host.write_cfg(0, head)
+    await host.start()
+    n = 64
+    lines = []
+    for period in (100, 90):
+        h = hs.SpiTimed(dut, period_ns=period)
+        rates = {}
+        # S1: status-first PUSH (READ_STATUS of bytes 0 to 3, then PUSH of the free words)
+        t0, i = now_ps(), 0
+        while i < n:
+            st = await h.read_status(4)
+            free = 4 - st["in_cnt"][0]
+            if free:
+                k = min(free, n - i)
+                await h.push(0, list(range(i, i + k)))
+                i += k
+        rates["S1 status-first PUSH"] = n * 1e12 / (now_ps() - t0)
+        # S2: PUSH 4 words with no status read
+        t0 = now_ps()
+        for j in range(n // 4):
+            await h.push(0, [j] * 4)
+        rates["S2 PUSH 4, no status"] = n * 1e12 / (now_ps() - t0)
+        st = await h.read_status(4)
+        assert not st["push_drop"] and not st["cmd_err"], f"S2 dropped a word: {st}"
+        # S3: PULL with the count byte from the producer
+        got, t0 = [], now_ps()
+        while len(got) < n:
+            words, _ = await h.pull(1, 4)
+            got += words
+        rates["S3 PULL 4 with count"] = len(got) * 1e12 / (now_ps() - t0)
+        assert all((b - a) & 0xFFFF == 1 for a, b in zip(got, got[1:])), f"S3 words not in order: {got[:12]}"
+        # S4: PUSH 4, then PULL the words back (echo), in turn
+        sent, back, t0 = [], [], now_ps()
+        for j in range(n // 4):
+            w = [(period * 256 + 4 * j + q) & 0xFFFF for q in range(4)]
+            await h.push(2, w)
+            sent += w
+            words, _ = await h.pull(2, 4)
+            back += words
+        while len(back) < len(sent):
+            words, _ = await h.pull(2, 4)
+            back += words
+        rates["S4 PUSH 4 + PULL 4, words both ways"] = (len(sent) + len(back)) * 1e12 / (now_ps() - t0)
+        assert back == sent, f"S4 echo differs: {back[:8]} against {sent[:8]}"
+        st = await h.read_status()
+        assert not st["push_drop"] and not st["cmd_err"] and st["late"] == [0] * 4 and st["err"] == [0] * 4, st
+        lines.append(f"SCK {period} ns: " + "; ".join(f"{k} {v:,.0f} words/s" for k, v in rates.items()))
+    for text in lines:
+        dut._log.info("R2 host throughput " + text)

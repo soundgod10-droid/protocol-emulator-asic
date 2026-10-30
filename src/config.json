@@ -31,6 +31,18 @@
   "//": "https://tinytapeout.com/faq/#how-can-i-map-an-additional-external-clock-to-one-of-the-gpios",
   "CLOCK_PORT": "clk",
 
+  "//": "R2 experiment E1 (research branch only): LibreLane 3.1.0.dev3 passes '-threads None' to OpenROAD when this is unset (steps/openroad.py line 519), so detailed routing runs on one thread.",
+  "OPENROAD_THREADS": 4,
+
+  "//": "R2 experiment E0 (research branch only): signoff STA with separate flip-flop and latch path groups; the PnR steps keep the default SDC.",
+  "SIGNOFF_SDC_FILE": "dir::r2_signoff.sdc",
+
+  "//": "R2 experiment E4 (research branch only): development flow = E0 + E2 (post-CTS setup margin 0) + E3 (no Magic DRC).",
+  "PL_RESIZER_SETUP_SLACK_MARGIN": 0,
+  "RUN_MAGIC_DRC": 0,
+
+  "//": "R2 experiment E10 (research branch only): the r2-hostsync RTL (falling-edge first synchronizer stage) with the E4 flow, so the only difference against E4 (gds 40955889046) is the RTL.",
+
   "//": "Configuration docs: https://librelane.readthedocs.io/en/latest/reference/configuration.html",
 
   "//": "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",

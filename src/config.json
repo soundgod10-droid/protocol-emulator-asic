@@ -41,6 +41,10 @@
   "PL_RESIZER_SETUP_SLACK_MARGIN": 0,
   "RUN_MAGIC_DRC": 0,
 
+  "//": "R2 experiment E8 (research branch only): resizer after global routing (rsz_timing_postgrt.tcl uses estimate_parasitics -global_routing; the post-CTS resizer uses placement estimates only and missed -1.77 ns at the slow corner in E5). Setup margin 0 so the 2,560 latch endpoints with borrow slack 0.000 are not repaired in a loop.",
+  "RUN_POST_GRT_RESIZER_TIMING": 1,
+  "GRT_RESIZER_SETUP_SLACK_MARGIN": 0,
+
   "//": "Configuration docs: https://librelane.readthedocs.io/en/latest/reference/configuration.html",
 
   "//": "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",

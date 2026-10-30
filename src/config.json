@@ -41,6 +41,9 @@
   "PL_RESIZER_SETUP_SLACK_MARGIN": 0,
   "RUN_MAGIC_DRC": 0,
 
+  "//": "R2 experiment E9 (research branch only): timing-driven global placement at 60 MHz; at 50 MHz (E7) it raised the slow-corner flip-flop slack from +1.560 to +3.478 ns.",
+  "PL_TIMING_DRIVEN": 1,
+
   "//": "Configuration docs: https://librelane.readthedocs.io/en/latest/reference/configuration.html",
 
   "//": "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",

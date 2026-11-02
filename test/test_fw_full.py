@@ -1112,7 +1112,8 @@ R2_RX_DATA = [0x55, 0xAA, 0x00, 0xFF, 0x7F, 0x80, 0x3C, 0xC3, 0x01, 0xFE]  # eac
 # I2C Fm .equ at 48 MHz: the 50 MHz cycle counts (all times longer, fSCL lower).
 # At 60 MHz: the 50 MHz values x 1.2, rounded up (fSCL must stay at 400 kHz or less).
 I2C_EQU[("Fm", 48)] = dict(I2C_EQU[("Fm", 50)])
-I2C_EQU[("Fm", 60)] = dict(HD=4, TLOW=90, TSMP=16, THIGH2=39, TSUSTA=39, THDSTA=39, TSUSTO=39, TBUF=82)
+I2C_EQU[("Fm", 60)] = dict(HD=4, TLOW=92, TSMP=16, THIGH2=39, TSUSTA=39, THDSTA=39, TSUSTO=39, TBUF=82)
+# TLOW 92, not 90: with 90 the SCL period was 148 cycles (405.4 kHz, over 400 kHz) when the target stretches.
 
 
 def r2_rx_ok(b, h, nd1, b_tx, data):

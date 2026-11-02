@@ -147,3 +147,21 @@ RTL measurement of the pins (test_r2_stop_pins, fw/spi_ctl.s on thread 0, STOP 1
 - PUSH: a word for an in-FIFO that has 4 words in the cycle of the word is dropped and PUSH_DROP becomes 1. The thread side can only take words out, so a host that reads the count of the in-FIFO (status byte 3 + n) and then pushes 4 - count words or fewer never loses a word, also when the thread pulls in the same cycle.
 - PULL: the count byte K is the number of words in the out-FIFO when the port sees the thread byte. Only the thread adds words, so the first K words are valid. The port takes a word from the FIFO when it loads it into MISO; words after the first K are 0x0000 and nothing is taken.
 - PUSH and PULL use the FIFO state of the clock cycle in which the port acts, at the same clock edge as the thread slot of that cycle (docs/isa.md 8.5, M2b_core.md 9 item 1).
+
+## 10 Host throughput
+
+Use the fast methods:
+
+- PUSH without a status read when the host knows the free space: the host reads the in-FIFO count once (status byte 3 + n), then keeps its own count (it adds the words it pushes; only the thread takes words out, so the real free space is never less than the host count). Push 4 - count words in one PUSH transaction.
+- PULL with the count byte: one PULL transaction gives the count K and the K words (no READ_STATUS before it).
+
+Measured port rates at 50 MHz (RTL, test_r2_host_throughput, host words per second, 4 words per transaction):
+
+| Host method | SCK 100 ns (10 MHz) | SCK 90 ns |
+|---|---|---|
+| READ_STATUS, then PUSH of the free words (status first) | 327,869 | 363,616 |
+| PUSH of 4 words, no status read | 493,827 | 547,945 |
+| PULL of 4 words with the count byte | 449,438 | 498,753 |
+| PUSH 4 and PULL 4 in turn | 470,588 | 522,193 |
+
+Limit: any three protocols at full rate, not all four. The host words that the example firmware needs at its highest rates (model, test_r2_host_need: UART 1 Mbit/s 8N1 both ways, SPI H 25, I2C Fast-mode with no clock stretching) are 297,349 words/s to the chip and 253,210 words/s from the chip, 550,559 words/s in total. With the fast methods at SCK 10 MHz this is 297,349 / 493,827 + 253,210 / 449,438 = 116.5 % of the port: all four at full rate do not fit. Each set of three fits: UART RX + SPI + I2C 96.3 % (the largest, almost no margin), UART TX + SPI + I2C 94.3 %, UART TX + UART RX + SPI 89.7 %, UART TX + UART RX + I2C 69.3 %. To run all four, lower the rate of one protocol (for example SPI) until the total is under 100 %.

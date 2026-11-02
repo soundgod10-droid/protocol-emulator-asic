@@ -150,6 +150,8 @@ RTL measurement of the pins (test_r2_stop_pins, fw/spi_ctl.s on thread 0, STOP 1
 
 ## 10 Host throughput
 
+The tests named in this section are on the research branch r2-timing; the numbers are copied from their logs.
+
 Use the fast methods:
 
 - PUSH without a status read when the host knows the free space: the host reads the in-FIFO count once (status byte 3 + n), then keeps its own count (it adds the words it pushes; only the thread takes words out, so the real free space is never less than the host count). Push 4 - count words in one PUSH transaction.

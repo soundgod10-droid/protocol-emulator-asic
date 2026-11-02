@@ -23,6 +23,18 @@
   "PL_RESIZER_HOLD_SLACK_MARGIN": 0.1,
   "GRT_RESIZER_HOLD_SLACK_MARGIN": 0.05,
 
+  "//": "Setup slack margin 0 after CTS: with 0.05 ns the 2,560 latch endpoints (borrow slack 0.000)",
+  "//": "are setup 'violators' and the resizer loops for 4 h 19 min with no change (gds 40793488418);",
+  "//": "margin 0 gives identical final metrics in 2 h 47 min (gds 40955756051).",
+  "PL_RESIZER_SETUP_SLACK_MARGIN": 0,
+
+  "//": "OpenROAD threads: unset gives '-threads None' in LibreLane 3.1.0.dev3 (one thread);",
+  "//": "4 = the GitHub ubuntu-24.04 runner CPUs (gds 40955889046: identical final metrics).",
+  "OPENROAD_THREADS": 4,
+
+  "//": "Signoff STA only: path groups so the flip-flop setup slack is reported (layout unchanged).",
+  "SIGNOFF_SDC_FILE": "dir::signoff.sdc",
+
   "//": "RUN_LINTER, LINTER_INCLUDE_PDK_MODELS - Disabling the linter is not recommended!",
   "RUN_LINTER": 1,
   "LINTER_INCLUDE_PDK_MODELS": 1,

@@ -451,3 +451,61 @@ async def test_stop_start(dut):
     mon_after = LineMonitor(dut.uart_tx)
     mon_after.changes = [c for c in mon.changes if c[0] > t_restart]
     check_stream(dut._log, mon_after, rx, data, "after STOP and START", back_to_back=True)
+
+
+@cocotb.test()
+async def test_r2_stop_pins(dut):
+    """Pin states before and after STOP (processor held in reset), the base of the host STOP rules.
+
+    Thread 0 runs fw/spi_ctl.s (mode 0: CS uio[0], MOSI uio[1], SCK uio[3]) and thread 1
+    fw/uart_tx_full.s (UART_TX uo_out[4]). STOP comes while CS is low in a transfer. The
+    test records uio_oe, uio_out and uo_out in the cycle before the STOP transaction and
+    after it, and for 2,000 cycles after (no change allowed while stopped). All uio pins
+    must be released (OE = 0), so the level of a CS line while stopped comes from the board
+    (docs/host_port.md section 8).
+    """
+    sys.path.insert(0, os.path.join(ROOT, "model"))
+    import test_fw_full as F  # noqa: E402  (firmware helpers; its tests do not run here)
+
+    _, host = await start(dut)
+    spi = F.assemble("spi_ctl.s", 0, CPOL=0, CL=0, D=0)
+    uart = F.assemble("uart_tx_full.s", spi.size)
+    image = [0] * 128
+    for a, w in list(spi.words.items()) + list(uart.words.items()):
+        image[a] = w
+    await host.write_mem(0, image)
+    owner = [None] * 15
+    owner[0] = owner[1] = owner[3] = 0
+    owner[12] = 1
+    head, pins = hs.config_words((0, spi.size, 0, 0), (True, True, False, False), owner, [False] * 15)
+    await host.write_cfg(0, head)
+    await host.write_cfg(16, pins)
+    await host.start()
+    k, c, _ = F.uart_cfg(50e6, 115_200)
+    await host.push(0, [100, 0x13C, 0x1A5])  # H = 100 cycles (SCK 250 kHz), 2 one-byte transfers
+    await host.push(1, [c, k, F.frame_word(F.frame_bits(0x00, "8N1"))])
+
+    def pins_now():
+        return (dut.uio_oe.value.to_unsigned(), dut.uio_out.value.to_unsigned(), dut.uo_out.value.to_unsigned())
+
+    for _ in range(20_000):  # wait until CS (uio[0]) is driven low
+        await FallingEdge(dut.clk)
+        oe, out, _ = pins_now()
+        if oe & 1 and not out & 1:
+            break
+    assert pins_now()[0] & 1 and not pins_now()[1] & 1, "CS was never driven low"
+    await ClockCycles(dut.clk, 150)  # inside the byte
+    before = pins_now()
+    await host.stop()
+    await ClockCycles(dut.clk, 2)
+    after = pins_now()
+    changes = 0
+    for _ in range(2_000):
+        await FallingEdge(dut.clk)
+        changes += pins_now() != after
+    st = await host.read_status()
+    dut._log.info(f"STOP pins: before uio_oe {before[0]:08b} uio_out {before[1]:08b} uo_out {before[2]:08b}; "
+                  f"after uio_oe {after[0]:08b} uio_out {after[1]:08b} uo_out {after[2]:08b}; "
+                  f"changes in 2,000 cycles while stopped: {changes}; status {st}")
+    assert st["running"] == 0
+    assert after[0] == 0 and (after[2] & 0x7F) == 0x7F and changes == 0

@@ -509,3 +509,50 @@ async def test_r2_stop_pins(dut):
                   f"changes in 2,000 cycles while stopped: {changes}; status {st}")
     assert st["running"] == 0
     assert after[0] == 0 and (after[2] & 0x7F) == 0x7F and changes == 0
+
+
+@cocotb.test(skip=os.environ.get("GATES") == "yes")  # gate level has no delays (-DFUNCTIONAL): same result, 3.8 ms of simulation
+async def test_r2_host_sck_clocks(dut):
+    """Smallest host SCK period at a system clock of 40, 48, 50 and 60 MHz (RTL), against docs/host_port.md 11.
+
+    MISO changes up to 3 T after a rising SCK edge, and the host needs the 27.4 ns allowance, so
+    the smallest period is 3 T + 27.4 ns (102.4 ns at 40 MHz: the rated 10 MHz does not fit). The
+    SCK levels must also be 2 T or more (period 4 T or more). The test measures the smallest period
+    from which every longer period (2 ns steps) is correct at every host phase, and checks the
+    documented limits: 102 ns at 40 MHz and 88 ns at 50 MHz.
+    """
+    words = [0x8001, 0x7FFE, 0xC3C3, 0x3C3C]
+    results, smallest_ns = [], {}
+    for clk_ps in (25_000, 20_834, 20_000, 16_666):
+        clock = cocotb.start_soon(Clock(dut.clk, clk_ps, unit="ps").start())
+        dut.ena.value = 1
+        dut.ui_in.value = 1 << hs.CS_N_BIT
+        dut.uio_in.value = 0
+        dut.rst_n.value = 0
+        await ClockCycles(dut.clk, 10)
+        dut.rst_n.value = 1
+        await ClockCycles(dut.clk, 5)
+        await hs.SpiTimed(dut, period_ns=200).write_mem(0, words)
+        # When the period is a whole number of clock cycles, every SCK edge has the same phase to
+        # the clock, so each period runs with host phases (lag after a rising clock edge) from
+        # 0.5 ns to T in 2 ns steps.
+        t_ns = clk_ps / 1000
+        lags = [0.5 + 2 * k for k in range(int((t_ns - 0.5) // 2) + 1)]
+        ok = {}
+        for period in range(round(3 * t_ns + 40) // 2 * 2, round(3 * t_ns + 10) // 2 * 2 - 2, -2):
+            good = True
+            for lag in lags:
+                h = hs.SpiTimed(dut, period_ns=period, lag_ns=lag)
+                good = good and (await h.read_id()) == hs.CHIP_ID and (await h.read_mem(0, 4)) == words
+            ok[period] = good
+        smallest = min(p for p in ok if all(ok[q] for q in ok if q >= p))
+        smallest_ns[clk_ps] = smallest
+        results.append(f"{1e6 / clk_ps:.2f} MHz: smallest correct SCK period {smallest} ns "
+                       f"({1000 / smallest:.2f} MHz); 3 T + 27.4 = {3 * t_ns + 27.4:.1f} ns, 4 T = {4 * t_ns:.1f} ns; "
+                       f"fails at {sorted(p for p in ok if not ok[p])[-3:]}")
+        clock.cancel()
+        await Timer(100, unit="ns")
+    for text in results:
+        dut._log.info("host SCK: " + text)
+    assert smallest_ns[25_000] <= 102, f"40 MHz: 102 ns host SCK (docs/host_port.md 11) fails: {results[0]}"
+    assert smallest_ns[20_000] <= 88, f"50 MHz: 88 ns host SCK fails: {results[2]}"

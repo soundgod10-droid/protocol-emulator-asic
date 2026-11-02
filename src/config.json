@@ -28,6 +28,10 @@
   "//": "margin 0 gives identical final metrics in 2 h 47 min (gds 40955756051). All runs, tape-out included.",
   "PL_RESIZER_SETUP_SLACK_MARGIN": 0,
 
+  "//": "OpenROAD threads: unset gives '-threads None' in LibreLane 3.1.0.dev3 (steps/openroad.py,",
+  "//": "get_command), so detailed routing runs on one thread; 4 = CPUs of the ubuntu-24.04 runner.",
+  "OPENROAD_THREADS": 4,
+
   "//": "RUN_LINTER, LINTER_INCLUDE_PDK_MODELS - Disabling the linter is not recommended!",
   "RUN_LINTER": 1,
   "LINTER_INCLUDE_PDK_MODELS": 1,

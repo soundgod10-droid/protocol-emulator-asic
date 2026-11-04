@@ -30,6 +30,8 @@
 
 `ifdef FORMAL
 `define PE_CELLS_BEHAVIORAL
+`elsif SYNTH
+`define PE_CELLS_BEHAVIORAL
 `elsif SYNTHESIS
 `elsif VERILATOR
 `else

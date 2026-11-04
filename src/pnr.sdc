@@ -8,3 +8,6 @@
 source $::env(FALLBACK_SDC)
 
 set_false_path -setup -to [all_registers -level_sensitive -data_pins]
+
+# Slew limit for the repair steps only: gds 41901058875 has 1 net 0.5 % over the slow-corner liberty limit.
+set_max_transition 1.2 [current_design]

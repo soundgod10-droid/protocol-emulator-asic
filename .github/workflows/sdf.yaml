@@ -75,7 +75,7 @@ jobs:
           vvp /tmp/cell.vvp 2>&1 | tail -n 5 | tee -a test/plain_cell.log || true
           cd test
           rm -f results.xml
-          GATES=yes make SDF_FILE="$SDF" COCOTB_TEST_MODULES=test_r3_sdf,test FST= 2>&1 | tee sdf_run.log
+          GATES=yes make SDF_FILE=/tmp/cell_only.sdf COCOTB_TEST_MODULES=test_r3_sdf,test FST= 2>&1 | tee sdf_run.log
 
       - name: results
         if: always()

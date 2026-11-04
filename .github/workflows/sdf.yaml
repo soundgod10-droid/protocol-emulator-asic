@@ -11,6 +11,9 @@ jobs:
   sdf:
     runs-on: ubuntu-24.04
     timeout-minutes: 340
+    permissions:
+      actions: read
+      contents: read
     strategy:
       fail-fast: false
       matrix:

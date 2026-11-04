@@ -85,3 +85,5 @@ jobs:
           path: |
             test/results.xml
             test/sdf_run.log
+            test/plain_full.log
+            test/plain_cell.log

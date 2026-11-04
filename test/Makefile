@@ -21,7 +21,11 @@ else
 # Gate level simulation:
 SIM_BUILD				= sim_build/gl
 COMPILE_ARGS    += -DGL_TEST
+ifeq ($(SDF_FILE),)
 COMPILE_ARGS    += -DFUNCTIONAL
+else
+COMPILE_ARGS    += -gspecify -DSDF_FILE='"$(SDF_FILE)"'
+endif
 COMPILE_ARGS    += -DSIM
 VERILOG_SOURCES += $(PDK_ROOT)/ihp-sg13cmos5l/libs.ref/sg13cmos5l_io/verilog/sg13cmos5l_io.v
 VERILOG_SOURCES += $(PDK_ROOT)/ihp-sg13cmos5l/libs.ref/sg13cmos5l_stdcell/verilog/sg13cmos5l_udp.v

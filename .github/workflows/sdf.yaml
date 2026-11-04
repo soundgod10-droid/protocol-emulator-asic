@@ -20,6 +20,7 @@ jobs:
         corner: [nom_slow_1p08V_125C, nom_typ_1p20V_25C, nom_fast_1p32V_m40C]
     env:
       PDK_ROOT: /home/runner/pdk
+      SDF_DELAYS: 1
     steps:
       - name: checkout repo
         uses: actions/checkout@v6

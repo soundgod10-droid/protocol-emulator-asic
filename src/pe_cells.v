@@ -46,9 +46,14 @@ module pe_cg (
 
 `ifdef PE_CELLS_BEHAVIORAL
   reg en_l;
+`ifdef SYNTH
+  // FPGA build: the flow refuses latches (Yosys "ERROR: Latch inferred", run 41816387640).
+  always @(negedge clk) en_l <= en;
+`else
   // Same function as the library cell: a latch that is open while clk is
   // low, and an AND gate.
   always @* if (!clk) en_l = en;
+`endif
   assign gclk = clk & en_l;
 `else
   sg13cmos5l_lgcp_1 u_cell (

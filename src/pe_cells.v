@@ -86,7 +86,11 @@ module pe_lat (
 
 `ifdef PE_CELLS_BEHAVIORAL
   reg q_l;
+`ifdef SYNTH
+  always @(negedge g) q_l <= d;
+`else
   always @* if (g) q_l = d;
+`endif
   assign q = q_l;
 `else
   sg13cmos5l_dlhq_1 u_cell (

@@ -39,6 +39,10 @@
   "//": "Signoff STA only: path groups so the flip-flop setup slack is reported (layout unchanged).",
   "SIGNOFF_SDC_FILE": "dir::signoff.sdc",
 
+  "//": "Research branch: D8 reserve option. Timing-driven placement with a 40 % slew margin in the design repair after placement.",
+  "PL_TIMING_DRIVEN": 1,
+  "DESIGN_REPAIR_MAX_SLEW_PCT": 40,
+
   "//": "RUN_LINTER, LINTER_INCLUDE_PDK_MODELS - Disabling the linter is not recommended!",
   "RUN_LINTER": 1,
   "LINTER_INCLUDE_PDK_MODELS": 1,

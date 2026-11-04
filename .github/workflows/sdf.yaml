@@ -79,3 +79,4 @@ jobs:
             test/sdf_run.log
             test/sdf_run_counter.log
             test/sdf_names.log
+            test/sdf_head.log

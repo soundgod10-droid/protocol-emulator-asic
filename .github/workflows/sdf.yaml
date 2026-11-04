@@ -58,15 +58,14 @@ jobs:
           cp "$SDF" /tmp/cell_only.sdf
           python test/sdf_names.py test/gate_level_netlist.v /tmp/cell_only.sdf | tee test/sdf_names.log
           cd test
-          # The long test last and on its own, so a job limit cannot lose the other results.
+          # The lines that give the 4 "SDF ERROR" messages of run 41871325339.
+          head -n 24 /tmp/cell_only.sdf > sdf_head.log
           rm -f results.xml
-          GATES=yes SDF_SKIP_COUNTER=1 make SDF_FILE=/tmp/cell_only.sdf COCOTB_TEST_MODULES=test_r3_sdf,test FST= 2>&1 | tee sdf_run.log || true
+          # test_r3_sdf and test passed at all corners in run 41871325339 (273a548). This run adds test_core.
+          GATES=yes make SDF_FILE=/tmp/cell_only.sdf COCOTB_TEST_MODULES=test_core FST= 2>&1 | grep -v "SDF WARNING" | tee sdf_run.log || true
           mv results.xml results_main.xml
-          # Annotation errors in the first run: the count must be 0, or some cells have no delays.
           grep -c "SDF ERROR" sdf_run.log | tee -a sdf_names.log || true
-          GATES=yes COCOTB_TEST_FILTER='test_counter_sequence' make SDF_FILE=/tmp/cell_only.sdf COCOTB_TEST_MODULES=test FST= 2>&1 | grep -v "SDF " | tee sdf_run_counter.log || true
-          mv results.xml results_counter.xml
-          ! grep -q "<failure" results_main.xml results_counter.xml
+          ! grep -q "<failure" results_main.xml
 
       - name: results
         if: always()

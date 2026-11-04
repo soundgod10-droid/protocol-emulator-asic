@@ -1,0 +1,56 @@
+name: sdf
+
+# Research branch: gate-level tests with the SDF delays of the cmos5l layout (gds run 41404293323),
+# at each STA corner, with no new gds run. Icarus Verilog applies the delays; it does not run the
+# timing checks of the cell models, so the signoff STA stays the setup and hold check.
+
+on:
+  push:
+
+jobs:
+  sdf:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 340
+    strategy:
+      fail-fast: false
+      matrix:
+        corner: [nom_slow_1p08V_125C, nom_typ_1p20V_25C, nom_fast_1p32V_m40C]
+    env:
+      PDK_ROOT: /home/runner/pdk
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v6
+
+      - name: netlist and SDF of the gds run
+        uses: actions/download-artifact@v7
+        with:
+          name: GDS_logs
+          path: gds_logs
+          run-id: 41404293323
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: tools
+        run: |
+          git clone --depth 1 --branch ihp-cmos5l https://github.com/TinyTapeout/tt-gds-action tt-gds-action
+          bash tt-gds-action/install_sg13cmos5l.sh
+          wget -q https://github.com/TinyTapeout/iverilog/releases/download/v13.0/iverilog_13.0-1_amd64.deb
+          sudo apt-get update -y
+          sudo apt-get install -y ./iverilog_13.0-1_amd64.deb
+          pip install -r test/requirements.txt
+
+      - name: run tests
+        run: |
+          cp gds_logs/runs/wokwi/final/nl/tt_um_soundgod10_droid_protocol_emulator.nl.v test/gate_level_netlist.v
+          SDF="$GITHUB_WORKSPACE/gds_logs/runs/wokwi/final/sdf/${{ matrix.corner }}/tt_um_soundgod10_droid_protocol_emulator__${{ matrix.corner }}.sdf"
+          cd test
+          rm -f results.xml
+          GATES=yes make SDF_FILE="$SDF" COCOTB_TEST_MODULES=test_r3_sdf,test FST= 2>&1 | tee sdf_run.log
+
+      - name: results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: sdf_${{ matrix.corner }}
+          path: |
+            test/results.xml
+            test/sdf_run.log

@@ -60,7 +60,7 @@ jobs:
           cd test
           # The long test last and on its own, so a job limit cannot lose the other results.
           rm -f results.xml
-          GATES=yes COCOTB_TEST_FILTER='^(?!.*test_counter_sequence)' make SDF_FILE=/tmp/cell_only.sdf COCOTB_TEST_MODULES=test_r3_sdf,test FST= 2>&1 | tee sdf_run.log || true
+          GATES=yes SDF_SKIP_COUNTER=1 make SDF_FILE=/tmp/cell_only.sdf COCOTB_TEST_MODULES=test_r3_sdf,test FST= 2>&1 | tee sdf_run.log || true
           mv results.xml results_main.xml
           # Annotation errors in the first run: the count must be 0, or some cells have no delays.
           grep -c "SDF ERROR" sdf_run.log | tee -a sdf_names.log || true

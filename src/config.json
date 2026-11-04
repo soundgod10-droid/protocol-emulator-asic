@@ -27,7 +27,7 @@
   "//": "are setup 'violators' and the resizer loops for 4 h 19 min with no change (gds 40793488418);",
   "//": "margin 0 gives identical final metrics in 2 h 47 min (gds 40955756051). All runs, tape-out included.",
   "//": "Research branch: D8 reserve without timing-driven placement. Latch D pins out of the PnR setup checks, so the resizer can work on the flip-flop paths up to this margin.",
-  "PL_RESIZER_SETUP_SLACK_MARGIN": 3,
+  "PL_RESIZER_SETUP_SLACK_MARGIN": 5.5,
   "PNR_SDC_FILE": "dir::pnr.sdc",
 
   "//": "OpenROAD threads: unset gives '-threads None' in LibreLane 3.1.0.dev3 (steps/openroad.py,",

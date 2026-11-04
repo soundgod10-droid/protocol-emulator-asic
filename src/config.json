@@ -39,6 +39,10 @@
   "//": "Signoff STA only: path groups so the flip-flop setup slack is reported (layout unchanged).",
   "SIGNOFF_SDC_FILE": "dir::signoff.sdc",
 
+  "//": "Research branch: D8 reserve option. Timing-driven placement with design repair after global routing.",
+  "PL_TIMING_DRIVEN": 1,
+  "RUN_POST_GRT_DESIGN_REPAIR": 1,
+
   "//": "RUN_LINTER, LINTER_INCLUDE_PDK_MODELS - Disabling the linter is not recommended!",
   "RUN_LINTER": 1,
   "LINTER_INCLUDE_PDK_MODELS": 1,

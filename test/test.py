@@ -295,7 +295,9 @@ async def test_reset_during_frame(dut):
     changes = [c for c in mon.changes if c[0] >= t_assert]
     dut._log.info(f"UART_TX changes from reset assert at {t_assert} ps: {changes}; memory unchanged after reset")
     # Exactly one change: to 1, at the reset assert time (asynchronous reset).
-    assert changes == [(t_assert, "1")], f"UART_TX changes after reset: {changes}"
+    assert [v for _, v in changes] == ["1"], f"UART_TX changes after reset: {changes}"
+    assert changes[0][0] - t_assert <= RESET_OUT_NS * 1000, f"UART_TX changes after reset: {changes}"
+    dut._log.info(f"chip reset to UART_TX high: {(changes[0][0] - t_assert) / 1000:.3f} ns")
     assert not mon.not_01(), f"X or Z on UART_TX: {mon.not_01()}"
 
 

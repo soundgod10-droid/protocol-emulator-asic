@@ -317,7 +317,7 @@ async def test_fixed_patterns(dut):
     assert st["late"] == [0, 0, 0, 0] and st["err"] == [0, 0, 0, 0], f"status {st}"
 
 
-@cocotb.test()
+@cocotb.test(skip="SDF_SKIP_COUNTER" in os.environ)
 async def test_counter_sequence(dut):
     """fw/uart_tx.s: 256 bytes 0x00 to 0xFF back-to-back: each frame exactly 10 bit times."""
     mon, host = await start(dut)

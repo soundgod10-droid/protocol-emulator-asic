@@ -29,6 +29,11 @@ jobs:
           run-id: 41404293323
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
       - name: tools
         run: |
           git clone --depth 1 --branch ihp-cmos5l https://github.com/TinyTapeout/tt-gds-action tt-gds-action

@@ -47,6 +47,7 @@ jobs:
           pip install -r test/requirements.txt
 
       - name: run tests
+        shell: bash
         run: |
           cp gds_logs/runs/wokwi/final/nl/tt_um_soundgod10_droid_protocol_emulator.nl.v test/gate_level_netlist.v
           SDF="$GITHUB_WORKSPACE/gds_logs/runs/wokwi/final/sdf/${{ matrix.corner }}/tt_um_soundgod10_droid_protocol_emulator__${{ matrix.corner }}.sdf"

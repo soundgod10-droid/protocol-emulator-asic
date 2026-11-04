@@ -74,7 +74,9 @@ jobs:
         with:
           name: sdf_${{ matrix.corner }}
           path: |
+            test/results_main.xml
+            test/results_counter.xml
             test/results.xml
             test/sdf_run.log
-            test/plain_full.log
-            test/plain_cell.log
+            test/sdf_run_counter.log
+            test/sdf_names.log

@@ -20,6 +20,7 @@ Syntax:
   .org expression             the next word goes to this address
   .word expression            one data word
   An expression is numbers (123, 0x7B, 0b1111011) and names with + and -.
+  The WAIT edge is FALL, RISE, ANY or an expression with the value 0, 1, 2.
 """
 
 import re

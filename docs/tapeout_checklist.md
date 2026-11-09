@@ -45,7 +45,10 @@ The exit criteria of the architecture note (A1 8.3) with the 5 additions of desi
 
 ## 5 Reading the result (decision D9)
 
-- [ ] Read the timing from `55-openroad-stapostpnr/summary.rpt` at all three corners, not from the job status: the flow fails only on violations at the typical corner (`TIMING_VIOLATION_CORNERS` `*typ*`).
-- [ ] Read the slow-corner flip-flop setup slack from the first path (group `flops`) of `55-openroad-stapostpnr/nom_slow_1p08V_125C/checks.rpt` (constraints in `src/signoff.sdc`).
-- [ ] Check `final/metrics.csv`: route DRC 0, antenna violations 0, LVS errors 0, Magic DRC errors 0, max slew violations 0.
-- [ ] Precheck: all checks pass (`precheck_reports/results.md`); gl_test passes.
+- [ ] Read the timing from `55-openroad-stapostpnr/summary.rpt` and from `checks.rpt` of each of the three corners (`nom_slow_1p08V_125C`, `nom_typ_1p20V_25C`, `nom_fast_1p32V_m40C`), not from the job status: the flow fails only on violations at the typical corner (`TIMING_VIOLATION_CORNERS` `*typ*`), so a slow-corner setup violation or a fast-corner hold violation gives a green job (E3).
+- [ ] Read the slow-corner flip-flop setup slack from the first path (group `flops`) of `55-openroad-stapostpnr/nom_slow_1p08V_125C/checks.rpt` (constraints in `src/signoff.sdc`), and the worst hold slack at the fast corner. Reserve rule (decisions D8, D13): if the slow-corner flip-flop slack is less than the measured spread of the flow (0.55 to 1.1 ns for the same RTL), use the reserve with no slew violation: timing-driven placement with `set_max_transition 1.2` in the PnR SDC (gds 41856662241: +2.620 ns, hold +0.0722 ns, 0 slew violations); the stronger reserve is setup margin 8 with the PnR SDC (gds 41910131846), and its max-slew pins must be read on that netlist.
+- [ ] Check `final/metrics.csv`: route DRC 0, antenna violations 0, LVS errors 0, Magic DRC errors 0, max slew violations 0 (E5, E8).
+- [ ] Max fanout "violations" (E8): they must be the clock-leaf set only (gds 41404293323: 73 at each corner, 71 of them clock leaf buffers buf_8 with fanout 12 to 19 against 8; not a timing fault). Read the list if the count changes.
+- [ ] Lint: `01-verilator-lint/verilator-lint.log` has no warning.
+- [ ] Global placement: read `GPL-0047` (weighted routing congestion) in the `openroad-globalplacement` log; routing, not cell area, is the first limit (gds 41404293323: 1.0490 at the start, 1.0095 after 6 routability loops). Use the final `design__instance__utilization` (30.6 % in gds 41404293323) for area headroom, not the summary value of GPL-0019 (decision D13, design note R3 S3).
+- [ ] Precheck: all checks pass (`precheck_reports/results.md`, E4); gl_test passes (E2).

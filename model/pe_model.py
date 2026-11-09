@@ -151,7 +151,8 @@ class PeModel:
     def step(self):
         """Executes cycle self.cycle. Returns the pins of that cycle (see pins())."""
         c = self.cycle
-        s = self.sync2
+        fmask = sum(1 << p for p in FILTER_PINS)
+        s = (self.sync2 & ~fmask) | self.filt
         level = self._input_level()
         pins = self.pins()
 

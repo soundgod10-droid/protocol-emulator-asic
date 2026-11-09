@@ -191,7 +191,7 @@ def measure_bit_time(log, frames, changes, label):
         f"spread {spread:.1f} ps; bit rate {rate:.1f} bit/s, error {err * 100:+.4f} %"
     )
     assert abs(err) < RATE_TOL, f"{label}: bit-rate error {err * 100:+.4f} % is more than 1 %"
-    assert abs(t_bit - T_DUT_PS) < 1, f"{label}: bit time {t_bit} ps is not {BIT_CYCLES} cycles"
+    assert abs(t_bit - T_DUT_PS) < BIT_TIME_TOL_PS, f"{label}: bit time {t_bit} ps is not {BIT_CYCLES} cycles"
     assert spread < 2 * EDGE_TOL_PS / FRAME_BITS, f"{label}: bit time is not constant"
     return t_bit
 

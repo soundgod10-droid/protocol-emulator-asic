@@ -94,6 +94,7 @@ The reset is the chip reset rst_n (asynchronous assert, release at a clock edge 
 | Output event slots | empty |
 | Output pins | V = 1, OE = 0 ("released") |
 | Input synchronizer | 0 |
+| Input spike filters | output 0, count 0 |
 | Sample and wait units | empty |
 | FIFOs | empty |
 | Pin configuration | no owner, push-pull |

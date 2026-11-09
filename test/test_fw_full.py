@@ -1342,8 +1342,8 @@ async def test_m3_i2c_stuck_scl(dut):
     words, replies, events = i2c_script()
     bench, m, bus = i2c_run("Fm", 50, 0, words)
     bench.run(30_000)
-    starts = [c for c, *_ in bus.events if _ and _[0] == "START"]
-    byte_cycles = max(b - a for a, b in zip([c for c, _ in bench.from_thread[0]], [c for c, _ in bench.from_thread[0]][1:2]))
+    t_reply = [c for c, _ in bench.from_thread[0]]
+    byte_cycles = t_reply[1] - t_reply[0]  # the second byte (0x3C) has no START: one byte of 9 bits
     bench, m, bus = i2c_run("Fm", 50, 10**9, words)  # stretch for ever after the ACK of the first byte
     bench.run(1_000_000)  # 20 ms at 50 MHz
     got = bench.words(0)

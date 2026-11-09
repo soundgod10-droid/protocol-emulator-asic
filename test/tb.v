@@ -13,6 +13,11 @@ module tb ();
     #1;
   end
 
+  // SDF job only (test/Makefile SDF_FILE): annotate the cell delays of the layout.
+`ifdef SDF_FILE
+  initial $sdf_annotate(`SDF_FILE, user_project);
+`endif
+
   // Wire up the inputs and outputs:
   reg clk;
   reg rst_n;

@@ -1,9 +1,10 @@
 # M2b: bounded check of the latch memory (8 x 16) with a free reset
-# (mem_fv.v FREE_RESET = 1). Expected result: FAIL of M2/M3. A reset in
-# the first half of the cycle after a store sets the write data
-# flip-flop to 0 while the word is open, so the word gets 0 and not the
-# stored data. This job documents the open item of M2b_core.md; it is not
-# a check that must pass.
+# (mem_fv.v FREE_RESET = 1). Expected result: PASS (10 steps).
+# In M2b it failed M2/M3: a reset in the first half of the cycle after a
+# store set the write data flip-flop to 0 while the word was open, so the
+# word got 0 and not the stored data. M2c removed the reset of the write
+# data flip-flops (decision D6), and the check now passes. The proof at the
+# chip size, 128 x 16, for all time is mem_full_reset.sby.
 
 [options]
 mode bmc

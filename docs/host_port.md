@@ -195,3 +195,24 @@ The declared and timed clock is 50 MHz (info.yaml clock_hz, src/config.json CLOC
 | I2C Fast-mode (UM10204 Table 11 minimum times) | pass, 360.4 kHz | pass, 396.8 kHz |
 
 Thus at 40 MHz the UART receiver at 921,600 and 1,000,000 bit/s must not sample the stop bit (assemble fw/uart_rx_full.s with ND1 = 8; there is then no framing-error report), and the host SCK must be 102 ns or longer. Do not use 60 MHz: the slow-corner flip-flop setup slack at 60 MHz was -1.773 ns and -1.219 ns in two gds runs, and +0.344 ns only with timing-driven placement and 10 max-slew violations; at 50 MHz it is +1.560 ns (gds 40955889046, nom_slow_1p08V_125C).
+
+## 12 Host program and firmware format (decision D12)
+
+Host program: on the demo board the host port is on RP2350 GPIO 24 (HOST_SCK), 23 (HOST_CS_N), 22 (HOST_MOSI) and 40 (HOST_MISO) (tt-micropython-firmware, src/ttboard/pins/gpio_map_dbv3.py, read in design note R3). GPIO24 has no SPI clock function (RP2350 data sheet RP-008373-DS-3, Table 731 GPIO24_CTRL FUNCSEL, printed page 584: spi1_rx, uart1_tx, i2c0_sda, pwm, sio, pio0 to pio2, clocks_gpout_2, usb), so no RP2350 SPI block can drive HOST_SCK. The host is a PIO program, and a PIO program sets the time at which it samples MISO.
+
+Rules for the PIO host:
+
+1. Sample MISO a set time after each rising SCK edge, not before the next edge. The next bit comes to MISO 2 T to 3 T after the rising edge at the pin (section 6), so the window is about one SCK period less one clock cycle wide. RTL measurement, no pad delay, sample times that are correct at all 10 host phases (test_r3_host_late_sample; R3 on branch r3-host-load, and the same result on the M3a RTL):
+
+   | SCK period | Sample time after the rising SCK edge that passes |
+   |---|---|
+   | 100, 90, 80 ns | 0.5 to 39 ns (every time tried) |
+   | 70 ns | 0.5 to 30 ns |
+   | 60 ns | 0.5 to 25 ns |
+   | 50 ns | 10 to 20 ns |
+   | 44 ns | 20 ns |
+
+2. Rating: SCK 100 ns (10 MHz) until bring-up step T05. At T05, sweep the sample time at SCK 100 ns and 80 ns and use the middle of the passing window; use 80 ns (12.5 MHz) only after T05 shows a window there. The SCK level rule of section 3 (2 T or more for each level) gives 80 ns as the shortest period. Shorter periods in the table are RTL results only.
+3. A host that samples before its next rising edge (an SPI block, or the model SpiTimed of the tests) keeps the limits of section 6 (87.4 ns, rated 100 ns).
+
+Firmware format: the default is the present format of the firmware files (one host word for each UART frame and each SPI byte, two words for each I2C byte; file headers). fw/uart_tx_full.s 15 + fw/uart_rx_full.s 13 + fw/spi_ctl.s 26 + fw/i2c_ctl.s 49 = 103 of 128 words, 25 words free (test_fw_full_word_count). The packed files with two bytes in one host word (fw/spi_pack.s, fw/uart_tx_pack.s, fw/uart_rx_pack.s, on the research branch a2-fw-pack) are optional loads that a host can choose after fabrication; SPI first, because it gives the largest load reduction for its words (+4 words, all-four load 116.0 % to 88.4 % at SCK 100 ns, design note R3 3.2). They are not needed: no requirement asks for all four protocols at full rate at the same time (section 10).

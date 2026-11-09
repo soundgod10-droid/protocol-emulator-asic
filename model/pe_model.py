@@ -114,6 +114,8 @@ class PeModel:
         self.uio_in = 0
         self.sync1 = 0  # synchronizer stage 1: pin level of the last cycle
         self.sync2 = 0  # stage 2: s(c), pin level two cycles before (isa 6.1)
+        self.filt = 0  # outputs of the spike filters at the bits of FILTER_PINS (isa 6.1)
+        self.fcnt = {p: 0 for p in FILTER_PINS}  # samples in a row that differ from the filter output
         self.s_prev = 0  # s(c - 1), for edge detection (isa 6.3)
         self.samples = {}  # sample cycle -> list of thread numbers
 

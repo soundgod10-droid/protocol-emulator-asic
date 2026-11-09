@@ -1248,3 +1248,84 @@ async def test_r2_clock_margins(dut):
     # G1 rule H gives -4.0 / +3.4 % at 50 MHz and -3.1 / +3.4 % at 40 MHz with the G1 data.
     assert [round(x, 3) for x in rx_limits(50, rx_h(50))] == [0.040, 0.034]
     assert [round(x, 3) for x in rx_limits(40, rx_h(40))] == [0.031, 0.034]
+
+
+# ----- R3: I2C bus clear -----
+# UM10204 Rev. 7.0, 3.1.16 "Bus clear": if SDA is stuck low, the controller sends nine clock pulses.
+# fw/i2c_ctl.s needs no new code: the host sends one byte word with START, nine released bits and
+# STOP, and the check word 0 (docs/host_port.md). R3_open_questions.md row M3.
+
+I2C_CLEAR = [(1 << 15) | (0x1FF << 6) | (1 << 5), 0]  # host words of the bus clear; check word 0: no arbitration check
+
+
+def r3_i2c_bench(bus, offset=0):
+    prog = assemble("i2c_ctl.s", 0, **I2C_EQU[("Fm", 50)])
+    m = pe_model.PeModel(prog.words, start_pc=(0, 0, 0, 0),
+                         owner=owners({P_SCL: 0, P_SDA: 0}), open_drain=open_drain({P_SCL, P_SDA}))
+    return Bench(m, inputs=lambda c, uo, uio, oe: bus(c + offset, uo, uio, oe)), m
+
+
+def r3_i2c_cut(kind, pos, scl_low):
+    """A transfer that a host STOP cuts at bit `pos` of a byte: the same target stays on the bus, with SDA as it was."""
+    bus = I2cBus(I2C_ADDR, [0x00, 0x00])
+    if kind == "read":
+        words = i2c_write((I2C_ADDR << 1) | 1, start=True) + i2c_read(True)
+    else:
+        words = i2c_write(I2C_ADDR << 1, start=True) + i2c_write(0x3C)
+    bench, m = r3_i2c_bench(bus)
+    bench.send(0, *words)
+    for _ in range(20_000):
+        bench.run(1)
+        if bus.state == kind and bus.pos == pos:
+            break
+    else:
+        raise AssertionError(f"{kind} bit {pos} not reached: {bus.state} {bus.pos}")
+    bench.run(60 if scl_low else 5)
+    return bus, m.cycle
+
+
+@cocotb.test(skip=GL)
+async def test_r3_i2c_bus_clear(dut):
+    """UM10204 3.1.16 bus clear from the host with fw/i2c_ctl.s unchanged: START, nine released bits, STOP."""
+    normal = i2c_write(I2C_ADDR << 1, start=True) + i2c_write(0x3C, stop=True)
+    replies = [I2C_ADDR << 2, 0x3C << 1]
+    tail = ["START", ("ADDR", I2C_ADDR, 0, 1), ("W", 0x3C), "STOP"]
+    held = plain_fail = 0
+    for kind, pos in [("read", k) for k in range(1, 9)] + [("write", k) for k in (1, 8)]:
+        for scl_low in (False, True):
+            # Without the bus clear: the next transfer directly after the cut.
+            bus, c0 = r3_i2c_cut(kind, pos, scl_low)
+            bench, m = r3_i2c_bench(bus, c0)
+            bench.send(0, *normal)
+            bench.run(4000)
+            plain = bench.words(0) == replies and i2c_events(bus)[-4:] == tail
+            plain_fail += not plain
+            # With the bus clear.
+            bus, c0 = r3_i2c_cut(kind, pos, scl_low)
+            bench, m = r3_i2c_bench(bus, c0)
+            bench.run(20)
+            low_at_cut = bus.sda_low
+            held += low_at_cut
+            n0 = len(bus.changes)
+            bench.send(0, *I2C_CLEAR)
+            bench.run(2500)
+            scl = [v[0] for _, v in bus.changes[n0 - 1:]]
+            first = scl.index(0)
+            rises = sum(1 for a, b in zip(scl[first:], scl[first + 1:]) if (a, b) == (0, 1))
+            label = f"{kind} bit {pos}, SCL {'low' if scl_low else 'high'} at the cut"
+            assert rises == 10, f"{label}: {rises} SCL pulses, expected 9 and the one of the STOP"
+            assert not bus.sda_low and i2c_events(bus)[-1] == "STOP", f"{label}: {i2c_events(bus)[-3:]}"
+            assert_status_clean(m, [0])
+            check_i2c_times(dut._log, bus.changes[n0 - 1:], "Fm", 50, f"bus clear, {label}")
+            reply = bench.words(0)
+            bench.send(0, *normal)
+            bench.run(4000)
+            assert bench.words(0)[1:] == replies, f"{label}: replies {[hex(w) for w in bench.words(0)]}"
+            assert i2c_events(bus)[-4:] == tail, f"{label}: {i2c_events(bus)[-4:]}"
+            assert_status_clean(m, [0])
+            dut._log.info(f"bus clear, {label}: SDA low at the cut {bool(low_at_cut)}, without the clear the next "
+                          f"transfer is {'correct' if plain else 'NOT correct'}; with it 9 pulses + STOP, reply "
+                          f"0x{reply[0]:04X}, next transfer correct")
+    dut._log.info(f"bus clear: SDA held low at {held} of 20 cuts; next transfer fails without the clear at "
+                  f"{plain_fail} of 20 cuts; correct with the clear at 20 of 20")
+    assert held and plain_fail, "the test does not make the fault"

@@ -287,7 +287,7 @@ class _Assembler:
                     raise _LineError(f"WAIT option must be TO or CT, not '{o}'")
             if len(set(opts)) != len(opts):
                 raise _LineError("WAIT option is given two times")
-            return 0xD000 | pin << 8 | reg << 6 | EDGES[edge] << 4 | ("TO" in opts) << 3 | ("CT" in opts) << 2
+            return 0xD000 | pin << 8 | reg << 6 | edge << 4 | ("TO" in opts) << 3 | ("CT" in opts) << 2
         if mnem in ("PULL", "PULL.NB", "PUSH", "PUSH.NB"):
             need(1)
             fn = 0 if mnem.startswith("PULL") else 1

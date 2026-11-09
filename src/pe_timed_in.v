@@ -11,7 +11,10 @@
 //   For each of the 13 thread input pins (docs/isa.md 5.1: uio[7:0] =
 //   inputs 0 to 7, ui_in[4:0] = inputs 8 to 12), a 2-stage synchronizer
 //   (pe_sync2) gives s(c), the pin level of cycle c - 2 (docs/isa.md
-//   6.1). A shift register keeps the last 5 values s(c-1) to s(c-5).
+//   6.1). Inputs 6 and 7 (I2C SCL and SDA) also go through a spike filter
+//   (pe_spike_filter, K = 4): their s(c) changes only after 4 samples in
+//   a row of the new level, 4 cycles later than the other inputs.
+//   A shift register keeps the last 5 values s(c-1) to s(c-5).
 //   s_hist[13*i +: 13] is s(c-1-i).
 //
 // Why:

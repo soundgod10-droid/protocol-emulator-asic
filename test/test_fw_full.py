@@ -826,24 +826,50 @@ async def test_fw_full_i2c_arbitration(dut):
                       f"SCL and SDA released from cycle {own[-1][0]}, no more low level")
 
 
+SPIKE_SCL_AT = range(140, 161, 4)  # SCL spike start, cycles after the SCL fall of the ACK (target stretches 300)
+SPIKE_SDA_AT = range(8, 25, 2)  # SDA spike start, cycles after the SCL rise of the first address bit (1)
+
+
+def i2c_spike_run(f_mhz, line, at, width):
+    """fw/i2c_ctl.s, Fast-mode with 300-cycle stretching, one spike that the controller input sees (the target
+    filters it, as a Fast-mode device must). True if the replies, the bus events and the status are correct."""
+    words, replies, events = i2c_script()
+    bench, m, bus = i2c_run("Fm", f_mhz, 300, words)
+    if line == "SCL":
+        bus.spike_after_ack = (1, at, width)  # SCL reads 1 inside the stretch after the data byte 0x3C
+    else:
+        bus.sda_spike_at = (0, 1, at, width)  # SDA reads 0 in the first address bit, where the controller sends 1
+    bench.run(30_000)
+    return bench.words(0) == replies and i2c_events(bus) == events and status_clean(m, [0])
+
+
+def spike_breaks(f_mhz, line, width):
+    """Spike start times (SPIKE_SCL_AT or SPIKE_SDA_AT) at which a spike of this many samples breaks the transfer."""
+    places = SPIKE_SCL_AT if line == "SCL" else SPIKE_SDA_AT
+    return [at for at in places if not i2c_spike_run(f_mhz, line, at, width)]
+
+
 @cocotb.test(skip=GL)
 async def test_fw_full_i2c_spikes(dut):
-    """D4 item 8 measurement: 40 ns and 60 ns spikes (2, 3 cycles at 50 MHz) on SCL and SDA, no input filter."""
-    words, replies, events = i2c_script()
-    results = []
-    for line, width in (("SCL", 2), ("SCL", 3), ("SDA", 2), ("SDA", 3)):
-        bench, m, bus = i2c_run("Fm", 50, 300, words)
-        if line == "SCL":
-            bus.spike_after_ack = (1, 150, width)  # in the stretch after the data byte 0x3C
-        else:
-            bus.sda_spike_at = (0, 1, I2C_EQU[("Fm", 50)]["TSMP"] - 1, width)  # first address bit (1): sample point
-        bench.run(30_000)
-        ok = bench.words(0) == replies and i2c_events(bus) == events and status_clean(m, [0])
-        results.append((line, width, ok))
-        dut._log.info(f"i2c_ctl Fm, {width}-cycle ({width * 20} ns) spike on {line}: "
-                      f"{'transfer correct' if ok else 'transfer NOT correct'}; replies "
-                      f"{[hex(w) for w in bench.words(0)]}; bus events {i2c_events(bus)[:6]}")
-    assert not any(ok for _, _, ok in results), f"a spike had no effect: {results}"
+    """Input spike filter (isa 6.1): spikes on SCL and SDA that are sampled 1 to FILTER_K - 1 times have no effect on
+    Fast-mode transfers, at each start time tried, at 50 MHz and 40 MHz.
+
+    A spike of width w is sampled floor(w / T) or ceil(w / T) times. UM10204 Rev. 7.0, Table 10 tSP and note [8]
+    (PDF pages 43, 44): a Fast-mode input filter suppresses spikes of less than 50 ns. At 50 MHz those give up to
+    3 samples, at 40 MHz up to 2; so FILTER_K - 1 = 3 samples covers both clocks.
+    """
+    k = pe_model.FILTER_K
+    for f_mhz in (50, 40):
+        t_ns = 1000 / f_mhz
+        need = math.ceil(50 / t_ns)  # samples of a spike just under 50 ns, worst phase
+        assert k - 1 >= need, f"FILTER_K {k}: a spike under 50 ns can give {need} samples at {f_mhz} MHz"
+        for line in ("SCL", "SDA"):
+            for width in range(1, k):
+                bad = spike_breaks(f_mhz, line, width)
+                assert not bad, f"{f_mhz} MHz: {width}-sample spike on {line} breaks the transfer at start {bad}"
+            dut._log.info(f"i2c_ctl Fm {f_mhz} MHz, filter K {k}: spikes of 1 to {k - 1} samples (every spike shorter "
+                          f"than {(k - 1) * t_ns:.0f} ns) on {line}: transfer correct at each of "
+                          f"{len(SPIKE_SCL_AT if line == 'SCL' else SPIKE_SDA_AT)} start times")
 
 
 def all_four(f_clk, err, rx_name="uart_rx_full.s", rate=1_000_000, slow_k=None):

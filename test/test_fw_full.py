@@ -952,62 +952,42 @@ async def test_fw_full_all_four(dut):
 # ----- G1 step 3e: D4 choices against an alternative, measured in the model -----
 
 
-class SpikeFilter:
-    """Input filter of g1_spike_filter (src/g1_meas.v) in front of the model inputs of some uio pins.
-
-    A filtered bit takes a new level only after K samples in a row that differ from it. Thus a
-    spike of K - 1 cycles or less has no effect: K = 3 removes 40 ns at 50 MHz and 50 ns at 40 MHz
-    (UM10204 Rev. 7.0 Table 10 note [8], page 44: spikes of less than 50 ns).
-    """
-
-    def __init__(self, inner, pins, k=3):
-        self.inner, self.pins, self.k = inner, pins, k
-        self.mask = sum(1 << p for p in pins)
-        self.q = {p: 1 for p in pins}
-        self.cnt = {p: 0 for p in pins}
-
-    def __call__(self, c, uo, uio, oe):
-        ui, uio_in = self.inner(c, uo, uio, oe)
-        out = uio_in & ~self.mask
-        for p in self.pins:
-            d = (uio_in >> p) & 1
-            if d == self.q[p]:
-                self.cnt[p] = 0
-            elif self.cnt[p] == self.k - 1:
-                self.q[p], self.cnt[p] = d, 0
-            else:
-                self.cnt[p] += 1
-            out |= self.q[p] << p
-        return ui, out
-
-
 @cocotb.test(skip=GL)
-async def test_g1_i2c_spike_filter(dut):
-    """D4 item 8: fw/i2c_ctl.s with a 3-sample input filter on SCL and SDA; normal transfers and the spike cases."""
+async def test_m3_i2c_filter_k(dut):
+    """Filter length K (isa 6.1) against the alternatives in the model: no filter (K 1), K 3 (G1 4.6) and K 4.
+
+    For each K: the longest spike (in samples) that has no effect at every start time tried, on SCL and on SDA,
+    at 50 MHz; and the Fast-mode SCL period and times of a normal transfer with stretching. A spike under 50 ns
+    gives up to 3 samples at 50 MHz (UM10204 Rev. 7.0 Table 10 tSP, note [8]).
+    """
+    saved = pe_model.FILTER_K
     words, replies, events = i2c_script()
-    for mode, f_mhz in (("Fm", 50), ("Sm", 50), ("Fm", 40)):
-        for stretch in (0, 300):
-            bench, m, bus = i2c_run(mode, f_mhz, stretch, words)
-            bench.inputs = SpikeFilter(bus, (P_SCL, P_SDA))
-            bench.run(30_000 if mode == "Fm" else 80_000)
-            assert bench.words(0) == replies, f"{mode} {f_mhz}: replies {[hex(w) for w in bench.words(0)]}"
-            assert i2c_events(bus) == events, f"{mode} {f_mhz}: bus events {i2c_events(bus)}"
+    rows = {}
+    try:
+        for k in (1, 3, 4):
+            pe_model.FILTER_K = k
+            longest = {}
+            for line in ("SCL", "SDA"):
+                longest[line] = 0
+                for width in range(1, 6):
+                    if spike_breaks(50, line, width):
+                        break
+                    longest[line] = width
+            bench, m, bus = i2c_run("Fm", 50, 0, words)
+            bench.run(30_000)
+            assert bench.words(0) == replies and i2c_events(bus) == events
             assert_status_clean(m, [0])
-            check_i2c_times(dut._log, bus.changes, mode, f_mhz, f"i2c_ctl {mode} stretch {stretch}, 3-sample filter")
-    results = []
-    for line, width in (("SCL", 2), ("SCL", 3), ("SDA", 2), ("SDA", 3)):
-        bench, m, bus = i2c_run("Fm", 50, 300, words)
-        bench.inputs = SpikeFilter(bus, (P_SCL, P_SDA))
-        if line == "SCL":
-            bus.spike_after_ack = (1, 150, width)
-        else:
-            bus.sda_spike_at = (0, 1, I2C_EQU[("Fm", 50)]["TSMP"] - 1, width)
-        bench.run(30_000)
-        ok = bench.words(0) == replies and i2c_events(bus) == events and status_clean(m, [0])
-        results.append((line, width, ok))
-        dut._log.info(f"i2c_ctl Fm with the 3-sample filter, {width}-cycle ({width * 20} ns) spike on {line}: "
-                      f"{'transfer correct' if ok else 'transfer NOT correct'}; replies {[hex(w) for w in bench.words(0)]}")
-    assert all(ok for _, width, ok in results if width == 2), f"a 40 ns spike broke a filtered transfer: {results}"
+            check_i2c_times(dut._log, bus.changes, "Fm", 50, f"i2c_ctl Fm 50 MHz, K {k}")
+            period = min(i2c_times(bus.changes)["period"])
+            rows[k] = (longest, period)
+            dut._log.info(f"K {k}: longest spike with no effect at every start time: SCL {longest['SCL']}, "
+                          f"SDA {longest['SDA']} samples (every spike shorter than "
+                          f"{min(longest.values()) * 20} ns at 50 MHz); Fm SCL period {period} cycles "
+                          f"({50e3 / period:.1f} kHz)")
+    finally:
+        pe_model.FILTER_K = saved
+    assert min(rows[4][0].values()) >= 3, f"K 4 must suppress 3-sample spikes: {rows[4]}"
+    assert min(rows[3][0].values()) < 3, f"K 3 suppressed 3-sample spikes, against the calculation: {rows[3]}"
 
 
 @cocotb.test(skip=GL)

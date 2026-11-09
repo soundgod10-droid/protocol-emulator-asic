@@ -35,8 +35,10 @@
 ;   After a loss the thread takes the next host word as a new transfer
 ;   with START: the host must not queue words after a byte that can lose.
 ; Limits of the .equ values (G1 model runs): TSMP 16 or more, THIGH2 + HD
-;   36 or more. No input spike filter: a 40 ns spike on SCL or SDA breaks
-;   a transfer (G1 test_fw_full_i2c_spikes).
+;   36 or more. SCL and SDA have the input spike filter of docs/isa.md 6.1:
+;   spikes of 1 to 3 samples (every spike shorter than 60 ns at 50 MHz,
+;   UM10204 Fast-mode needs less than 50 ns) have no effect
+;   (test_fw_full_i2c_spikes); Fast-mode SCL period 130 cycles at 50 MHz.
 ; Registers: r0 byte word, r1 WAIT time and return address, r2 check
 ;   word, r3 bus levels and bit count mark.
 

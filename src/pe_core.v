@@ -203,6 +203,7 @@ module pe_core (
       f_sb = (w[15:12] == 4'h3) ? w[9:8] : w[5:4];
     end
   endfunction
+  /* verilator lint_on UNUSEDSIGNAL */
 
   reg [1:0] sa, sb;
 

@@ -5,8 +5,8 @@ What it does:
   The model executes the instruction set of docs/isa.md. It has 4 threads
   in barrel order: thread n executes one instruction in each clock cycle c
   with c mod 4 = n. It also has the timed output unit (one event slot for
-  each output pin), the timed input unit (2-stage synchronizer, SAMPLE and
-  WAIT) and the host FIFOs. step() executes one clock cycle and gives the
+  each output pin), the timed input unit (2-stage synchronizer, the spike
+  filter of inputs 6 and 7, SAMPLE and WAIT) and the host FIFOs. step() executes one clock cycle and gives the
   pin values of that cycle.
 
 Why:

@@ -749,6 +749,52 @@ async def test_core_sample_wait(dut):
     assert_ended(m, popped, want_status=(1, 0, 0, 0), threads=(0, 1), min_words=40)
 
 
+FILTER_PULSES = {6: (100, [1, 2, 3, 4, 5, 3, 7, 2]), 7: (175, [3, 4, 1, 5, 2, 8])}  # pin: (first start, widths)
+FILTER_GAP = 150  # cycles from one pulse start to the next
+
+
+def filter_stimulus(cycles):
+    """uio[6]: 0 with high pulses; uio[7]: 1 with low pulses (FILTER_PULSES), from model cycle 0."""
+    table = []
+    for c in range(cycles):
+        uio = 0x80
+        for pin, (first, widths) in FILTER_PULSES.items():
+            for i, w in enumerate(widths):
+                p = first + i * FILTER_GAP
+                if p <= c < p + w:
+                    uio ^= 1 << pin
+        table.append((0, uio))
+    return lambda c: table[c]
+
+
+@cocotb.test()
+async def test_core_spike_filter(dut):
+    """Spike filter of inputs 6 and 7 (isa 6.1): pulses of 1 to 3 cycles give no edge; a pulse of w >= 4 cycles
+    that starts at cycle p gives edges at p + 6 and p + w + 6 (2 synchronizer stages + 4 filter samples).
+
+    The expected edge cycles come from the rule, not from the model; the lockstep also compares the model.
+    """
+    k = pe_model.FILTER_K
+    srcs = [("UIO6", "RISE"), ("UIO6", "FALL"), ("UIO7", "FALL"), ("UIO7", "RISE")]
+    parts = [(f"w{n}: WAIT {pin}, {edge}, r0\nPUSH r0\nJMP w{n}", 8 * n) for n, (pin, edge) in enumerate(srcs)]
+    cycles = 3600
+    scn = Scenario("spike_filter", asm(*parts), start_pc=(0, 8, 16, 24), run=(True, True, True, True),
+                   cycles=cycles, host=pop_round_robin([0, 1, 2, 3]), stimulus=filter_stimulus(cycles))
+    m, popped, _ = await run_lockstep(dut, scn)
+    want = [[], [], [], [6]]  # uio[7] is 1 from model cycle 0 and 0 before: one rise at 0 + 6
+    for pin, (first, widths) in FILTER_PULSES.items():
+        for i, w in enumerate(widths):
+            if w < k:
+                continue
+            p = first + i * FILTER_GAP
+            lead, trail = (0, 1) if pin == 6 else (2, 3)
+            want[lead].append(p + 2 + k)
+            want[trail].append(p + w + 2 + k)
+    assert popped == want, f"edge cycles {popped}, expected {want}"
+    dut._log.info(f"spike_filter: K {k}; pulses of 1 to {k - 1} cycles gave no edge; edges of the longer pulses at "
+                  f"start + {2 + k} and end + {2 + k} cycles: {popped}")
+
+
 @cocotb.test()
 async def test_core_host_io(dut):
     """PULL, PULL.NB, PUSH, PUSH.NB (empty, data, full) on 4 threads; IOR and IOW of all port kinds."""

@@ -272,8 +272,14 @@ class _Assembler:
                 raise _LineError(f"WAIT needs 3 to 5 operands, not {len(ops)}")
             pin = self.pin(ops[0], "in")
             edge = ops[1].strip().upper()
-            if edge not in EDGES:
-                raise _LineError(f"edge must be FALL, RISE or ANY, not '{ops[1].strip()}'")
+            if edge in EDGES:
+                edge = EDGES[edge]
+            else:
+                # A value 0 to 2 (FALL, RISE, ANY), for example an .equ that the host sets for a mode.
+                try:
+                    edge = self.number(ops[1], 0, 2, "edge")
+                except _LineError:
+                    raise _LineError(f"edge must be FALL, RISE or ANY, or a value 0 to 2, not '{ops[1].strip()}'") from None
             reg = self.reg(ops[2])
             opts = [o.strip().upper() for o in ops[3:]]
             for o in opts:

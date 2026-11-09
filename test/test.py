@@ -54,6 +54,12 @@ EDGE_TOL_PS = 1_000  # an edge must be within 1 ns of a bit boundary
 FRAME_BITS = 10  # start + 8 data + stop
 P_TX = 12  # UART_TX = uo_out[4] = output pin 12 (docs/isa.md 5.1)
 RESET_UO = 0x7F  # isa 2.4: V = 1 on uo_out[6:0]; uo_out[7] = HOST_MISO = 0 with no transaction
+# The SDF job sets SDF_DELAYS. These two limits are zero-delay values: a rise and a fall at the
+# pin differ by about 66 ps at the slow corner, and a reset takes some ns to reach the pin
+# (SDF run 41871325339: 4.760 ns slow, 2.900 ns typ, 1.900 ns fast).
+SDF_DELAYS = "SDF_DELAYS" in os.environ
+RESET_OUT_NS = 20 if SDF_DELAYS else 1  # chip reset to UART_TX high
+BIT_TIME_TOL_PS = 5 if SDF_DELAYS else 1  # mean bit time against the design value
 
 
 def now_ps():

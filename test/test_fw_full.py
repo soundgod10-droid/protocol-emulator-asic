@@ -54,7 +54,8 @@ SLOW = ("uart_tx_full.s", "uart_rx_slow.s", "spi_ctl.s", "i2c_ctl.s")
 OUTLINE = ("uart_tx.s", "uart_rx.s", "spi_mode0.s", "i2c_write.s")
 
 # I2C .equ values (cycles) of fw/i2c_ctl.s for each mode and clock. Times after
-# a WAIT start 2 cycles after the pin edge, so the bus time is the value + 3.
+# a WAIT start 6 cycles after the pin edge (synchronizer and spike filter, isa 6.1),
+# so the bus time is the value + 7.
 I2C_EQU = {
     ("Fm", 50): dict(HD=4, TLOW=75, TSMP=16, THIGH2=32, TSUSTA=32, THDSTA=32, TSUSTO=32, TBUF=68),
     ("Sm", 50): dict(HD=4, TLOW=260, TSMP=16, THIGH2=221, TSUSTA=235, THDSTA=205, TSUSTO=200, TBUF=240),

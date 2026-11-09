@@ -200,6 +200,19 @@ class PeModel:
 
     # ----- internal -----
 
+    def _filter(self, y):
+        """Spike filters at the clock edge (isa 6.1): a filtered input takes the synchronized level y
+        only after FILTER_K samples in a row that differ from its output."""
+        for p in FILTER_PINS:
+            bit = 1 << p
+            if not (y ^ self.filt) & bit:
+                self.fcnt[p] = 0
+            elif self.fcnt[p] == FILTER_K - 1:
+                self.filt ^= bit
+                self.fcnt[p] = 0
+            else:
+                self.fcnt[p] += 1
+
     def _input_level(self):
         """Pin level of the input pins in this cycle (isa 5.1): uio pins with OE = 1 read V."""
         oe = self.pin_oe & 0xFF

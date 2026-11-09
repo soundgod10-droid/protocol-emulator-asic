@@ -41,6 +41,7 @@ module pe_timed_in (
 );
 
   wire [12:0] level = {ui_in, (uio_in & ~pin_oe) | (pin_v & pin_oe)};
+  wire [12:0] y;  // synchronizer outputs
 
   genvar i;
   generate
@@ -49,8 +50,22 @@ module pe_timed_in (
           .clk  (clk),
           .rst_n(rst_n),
           .d    (level[i]),
-          .q    (s_now[i])
+          .q    (y[i])
       );
+      // Inputs 6 and 7 (uio[6], uio[7]: I2C SCL and SDA, docs/isa.md 5.1)
+      // have a spike filter after the synchronizer (docs/isa.md 6.1).
+      if ((i == 6) || (i == 7)) begin : g_filter
+        pe_spike_filter #(
+            .K(4)
+        ) u_filter (
+            .clk  (clk),
+            .rst_n(rst_n),
+            .d    (y[i]),
+            .q    (s_now[i])
+        );
+      end else begin : g_direct
+        assign s_now[i] = y[i];
+      end
     end
   endgenerate
 

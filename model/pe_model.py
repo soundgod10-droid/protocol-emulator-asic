@@ -26,6 +26,8 @@ N_OUT = 15  # output pins 0 to 14 (isa 5.1)
 LEAD = 4  # minimum lead of a pin event in cycles (isa 4.2)
 HORIZON = 0x8000  # a lead of 32,768 or more is a time in the past (isa 4.2)
 FIFO_DEPTH = 4  # words in each host FIFO (isa 2.2)
+FILTER_PINS = (6, 7)  # inputs with a spike filter after the synchronizer: uio[6], uio[7] (isa 6.1)
+FILTER_K = 4  # a filtered input changes after this many samples in a row of the new level (isa 6.1)
 
 STATUS_LATE = 0x1  # port STATUS bit 0 (isa 10)
 STATUS_ERR = 0x2  # port STATUS bit 1 (isa 10)

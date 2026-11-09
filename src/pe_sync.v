@@ -73,3 +73,49 @@ module pe_sync2 (
   assign q = stage[1];
 
 endmodule
+
+// pe_spike_filter: input spike filter for one synchronized bit.
+//
+// What it does:
+//   The output q takes the level of d only after d has differed from q in
+//   K clock samples in a row. Thus a pulse that is sampled K - 1 times or
+//   less does not reach q, and a clean level change reaches q K cycles
+//   after the first sample of the new level.
+//
+// Why:
+//   I2C Fast-mode needs input filters on SDA and SCL that suppress spikes
+//   of less than 50 ns (NXP UM10204 Rev. 7.0, Table 10 tSP and note [8],
+//   PDF pages 43 and 44). A pulse of width w is sampled floor(w / T) or
+//   ceil(w / T) times, depending on its phase, so at 50 MHz (T = 20 ns) a
+//   41 to 49 ns spike can give 3 samples. K = 4 suppresses every spike
+//   shorter than 3 T: 60 ns at 50 MHz, 75 ns at 40 MHz. The input d must
+//   come from a synchronizer (pe_sync2).
+
+module pe_spike_filter #(
+    parameter integer K = 4  // samples in a row for a change, 2 to 4
+) (
+    input  wire clk,
+    input  wire rst_n,  // active low, asynchronous assert
+    input  wire d,      // synchronized input
+    output reg  q       // filtered output
+);
+
+  localparam [1:0] LAST = K[1:0] - 2'd1;  // K - 1 in 2 bits
+
+  reg [1:0] cnt;  // samples in a row before this one with d not equal to q
+
+  always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+      q   <= 1'b0;  // as the synchronizer (docs/isa.md 2.4)
+      cnt <= 2'd0;
+    end else if (d == q) begin
+      cnt <= 2'd0;
+    end else if (cnt == LAST) begin
+      q   <= d;
+      cnt <= 2'd0;
+    end else begin
+      cnt <= cnt + 2'd1;
+    end
+  end
+
+endmodule

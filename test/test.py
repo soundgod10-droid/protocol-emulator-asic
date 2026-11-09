@@ -281,8 +281,8 @@ async def test_reset_during_frame(dut):
     assert str(dut.uart_tx.value) == "0", "UART_TX is not low inside the 0x00 frame"
     t_assert = now_ps()
     dut.rst_n.value = 0
-    await Timer(1, unit="ns")
-    assert str(dut.uart_tx.value) == "1", "UART_TX is not high 1 ns after reset"
+    await Timer(RESET_OUT_NS, unit="ns")
+    assert str(dut.uart_tx.value) == "1", f"UART_TX is not high {RESET_OUT_NS} ns after reset"
     for _ in range(50):
         await FallingEdge(dut.clk)
         assert str(dut.uart_tx.value) == "1", "UART_TX is not high during reset"

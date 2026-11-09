@@ -11,8 +11,9 @@
 ;   controller sends 1 and must see 1), a 0 on the bus stops the byte at
 ;   once: SCL and SDA stay released and the thread tells the host.
 ;   Times are set with .equ when the host assembles the file (Fast-mode at
-;   50 MHz below). The times after a WAIT start at the synchronized edge,
-;   2 cycles after the pin edge, so each real time is 2 cycles longer.
+;   50 MHz below). The times after a WAIT start at the filtered edge, 6
+;   cycles after the pin edge (synchronizer and spike filter of SCL and SDA,
+;   docs/isa.md 6.1), so each real time is 6 cycles longer.
 ;
 ; Why:
 ;   G1 step 3a: measured word count of the full I2C controller of A1

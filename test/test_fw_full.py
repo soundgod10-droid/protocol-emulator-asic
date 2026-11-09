@@ -1329,3 +1329,33 @@ async def test_r3_i2c_bus_clear(dut):
     dut._log.info(f"bus clear: SDA held low at {held} of 20 cuts; next transfer fails without the clear at "
                   f"{plain_fail} of 20 cuts; correct with the clear at 20 of 20")
     assert held and plain_fail, "the test does not make the fault"
+
+
+@cocotb.test(skip=GL)
+async def test_m3_i2c_stuck_scl(dut):
+    """A target that holds SCL low for ever (UM10204 3.1.16: then only a reset or power cycle of the target helps).
+
+    fw/i2c_ctl.s waits for each SCL rise with WAIT and no timeout (clock stretching has no maximum in UM10204),
+    so the thread waits for ever and the host gets no reply word: the host needs its own timeout
+    (docs/host_port.md section 8). This measures what the host sees, and the time of one byte with no stretching.
+    """
+    words, replies, events = i2c_script()
+    bench, m, bus = i2c_run("Fm", 50, 0, words)
+    bench.run(30_000)
+    starts = [c for c, *_ in bus.events if _ and _[0] == "START"]
+    byte_cycles = max(b - a for a, b in zip([c for c, _ in bench.from_thread[0]], [c for c, _ in bench.from_thread[0]][1:2]))
+    bench, m, bus = i2c_run("Fm", 50, 10**9, words)  # stretch for ever after the ACK of the first byte
+    bench.run(1_000_000)  # 20 ms at 50 MHz
+    got = bench.words(0)
+    th = m.threads[0]
+    word = assemble("i2c_ctl.s", 0, **I2C_EQU[("Fm", 50)]).words[th.pc]
+    scl, sda = bench.changes("own")[-1][1]
+    assert got == replies[:1], f"replies {[hex(w) for w in got]}: expected only the reply of the first byte"
+    assert th.run and th.status == 0 and th.pend is not None and th.pend["op"] == "wait", (th.run, th.status, th.pend)
+    assert (word >> 12) == 0xD, f"thread waits at word 0x{word:04X}, not at a WAIT"
+    assert scl is None, "the controller must not drive SCL while it waits for the rise"
+    last = bench.from_thread[0][-1][0]
+    dut._log.info(f"stuck SCL: 1 reply word (cycle {last}), then no word for {m.cycle - last} cycles "
+                  f"({(m.cycle - last) / 50e3:.1f} ms at 50 MHz); thread 0 runs, status 0, waits in WAIT SCL RISE at "
+                  f"address {th.pc}; SCL released by the chip, SDA {'released' if sda is None else f'driven {sda}'}. "
+                  f"Normal Fm byte, reply to reply: {byte_cycles} cycles ({byte_cycles / 50:.1f} us)")

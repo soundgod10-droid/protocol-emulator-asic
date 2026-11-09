@@ -180,7 +180,12 @@ module pe_core (
   // read multiplexer arrived 7.25 ns after ir through the decode and 8
   // fanout buffers. With flip-flops the decode is in the prefetch cycle,
   // whose path (128:1 latch read into ir) is not critical.
+  //
+  // f_sa and f_sb take the whole memory word and use only the bits of the
+  // register fields, so Verilator reports the other bits as UNUSEDSIGNAL.
+  // The lint_off below covers only these two functions; it changes no logic.
   // ---------------------------------------------------------------------
+  /* verilator lint_off UNUSEDSIGNAL */
   function [1:0] f_sa(input [15:0] w);
     begin
       case (w[15:12])

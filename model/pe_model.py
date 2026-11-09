@@ -187,6 +187,7 @@ class PeModel:
                     pend["edge"] = c
 
         self.s_prev = s
+        self._filter(self.sync2)
         self.sync2 = self.sync1
         self.sync1 = level
         self.cycle = c + 1

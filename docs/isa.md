@@ -222,7 +222,14 @@ The pin configuration has an open-drain bit for each output pin (section 4.5). I
 
 ### 6.1 Synchronizer
 
-Each input pin goes through a 2-stage synchronizer [M1 pe_sync2]. The synchronized value s(c) in cycle c is the pin level in cycle c - 2. The pin level of cycle c is the value at the clock edge at the end of cycle c. This instruction set has no glitch filter. [ENGINEER] (section 14).
+Each input pin goes through a 2-stage synchronizer [M1 pe_sync2]. The synchronized value s(c) in cycle c is the pin level in cycle c - 2. The pin level of cycle c is the value at the clock edge at the end of cycle c.
+
+Inputs 6 and 7 (uio[6], uio[7], the I2C pins SCL and SDA) also have a spike filter after the synchronizer (pe_spike_filter, K = 4). Their s(c) takes a new level only after the synchronized level has had that level in K = 4 cycles in a row. Thus:
+
+- A pulse on the pin that lasts 1 to 3 cycles has no effect on s.
+- A level that lasts 4 cycles or more reaches s 6 cycles after the pin change (2 synchronizer cycles + 4 filter cycles), not 2.
+
+Reason: I2C Fast-mode needs input filters that suppress spikes of less than 50 ns on SDA and SCL (NXP UM10204 Rev. 7.0, Table 10, tSP and note [8]). A spike of width w is sampled floor(w / T) or ceil(w / T) times, so at 50 MHz a spike of 41 to 49 ns can give 3 samples; K = 4 removes every spike of less than 60 ns at 50 MHz (75 ns at 40 MHz). K = 3 removes only spikes of less than 40 ns at 50 MHz. The other inputs have no filter: the UART and SPI firmware does not need one, and each filtered input costs 215.9 um2 (synthesis, typical corner) and 4 cycles of delay.
 
 ### 6.2 SAMPLE
 

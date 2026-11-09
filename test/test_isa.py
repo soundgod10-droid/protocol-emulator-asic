@@ -235,6 +235,7 @@ async def test_asm_encodings(dut):
         ("OUT UO4, 1", 0xCC08), ("OUT UIO0, 0", 0xC000), ("OUT UIO7, Z, 7", 0xC717), ("OUT UIO1, r2<<", 0xC1A8),
         ("OUT UO0, r3, 1", 0xC8D9), ("SAMPLE UI3, r0>>, 2", 0xCB32), ("SAMPLE UIO2, r1<<", 0xC278),
         ("WAIT UI3, FALL, r2, CT", 0xDB84), ("WAIT UIO6, RISE, r1, TO", 0xD658), ("WAIT UI0, ANY, r0, TO, CT", 0xD82C),
+        ("WAIT UI3, 0, r2, CT", 0xDB84), ("WAIT UIO6, 1, r1, TO", 0xD658), ("WAIT UI0, 2, r0, TO, CT", 0xD82C),
         ("PULL r1", 0xE100), ("PULL.NB r0", 0xE080), ("PUSH r2", 0xE600), ("PUSH.NB r0", 0xE480),
         ("IOR r3, PINS", 0xEB02), ("IOW r0, STATUS", 0xEC00),
     ]

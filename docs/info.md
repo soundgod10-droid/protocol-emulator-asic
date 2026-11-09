@@ -34,7 +34,7 @@ Pins:
 | `uo_out[7]` | HOST_MISO | output | host SPI data out |
 | `ui_in[4:0]` | IN8 to IN12 | input | processor inputs (`ui_in[3]`: default UART RX) |
 | `uo_out[6:0]` | OUT8 to OUT14 | output | processor outputs (`uo_out[4]`: default UART TX) |
-| `uio[7:0]` | PIN0 to PIN7 | in/out | processor pins (SPI on `uio[3:0]`, I2C on `uio[7:6]` in the example firmware) |
+| `uio[7:0]` | PIN0 to PIN7 | in/out | processor pins (SPI on `uio[3:0]`, I2C on `uio[7:6]` in the example firmware); `uio[7:6]` inputs have a spike filter that removes pulses of 1 to 3 clock cycles (I2C Fast-mode, docs/isa.md 6.1) |
 
 Procedure (UART transmitter, clock 50 MHz):
 

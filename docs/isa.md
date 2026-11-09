@@ -253,7 +253,7 @@ WAIT pin, edge, rd, [TO], [CT]: the thread waits for an edge on the synchronized
 - On an edge at cycle e: the instruction completes in the first slot after e. rd = e mod 65,536. If CT is given, also T = e mod 65,536. E = 1.
 - On a timeout at cycle u with no edge: the instruction completes in the first slot after u. rd and T do not change. E = 0.
 
-The edge cycle is 2 cycles after the pin edge (synchronizer). Example: the pin is 1 in cycle p - 1 and 0 in cycle p. Then the edge cycle is p + 2. A SAMPLE at time p + 2 + k reads the pin level of cycle p + k. Thus, firmware that takes T from the edge cycle needs no correction for the synchronizer.
+The edge cycle is 2 cycles after the pin edge (synchronizer); on the filtered inputs 6 and 7 it is 6 cycles after (section 6.1), and the same correction then applies to SAMPLE. Example: the pin is 1 in cycle p - 1 and 0 in cycle p. Then the edge cycle is p + 2. A SAMPLE at time p + 2 + k reads the pin level of cycle p + k. Thus, firmware that takes T from the edge cycle needs no correction for the synchronizer.
 
 ## 7 Time instructions
 

@@ -34,9 +34,12 @@
 ;   last word is not sent. With no word the thread sends 0xFF.
 ; Words to the host: one for each byte: bits 7 to 0 the MOSI byte, bits 15
 ;   to 8 the MOSI byte before it.
-; Controller limits at 50 MHz (model, test_fw_spi_tgt): see the table in
-;   docs/host_port.md section 13 (SCK half period, CS low to the first
-;   sample edge, pause between bytes shorter than GAP).
+; Controller limits in clock cycles (model, test_m3_spi_tgt): SCK half
+;   period >= 25 (1 MHz at 50 MHz); MOSI held >= 21 after the sample edge;
+;   CS low to the first sample edge >= 21; 2 x half period + pause between
+;   bytes <= GAP + 16; next CS low >= GAP + 57 after the last sample edge;
+;   MISO released <= GAP + 39 after it. GAP <= 4,095 (TADD), so the half
+;   period must be <= 2,055. Table and times: docs/host_port.md section 13.
 ; Registers: r0 MISO bits, r1 MOSI bits, r2 bit count, r3 edge time and
 ;   the next MISO byte.
 

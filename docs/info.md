@@ -9,18 +9,29 @@ You can also include images in this folder and reference them in the markdown. E
 
 ## How it works
 
-This design is a programmable protocol emulator (milestone M2). It has no fixed protocol block: a small processor makes the pin waveforms, and the host loads its program.
+This design is a programmable protocol emulator. It has no fixed protocol block: a small processor makes the pin waveforms, and the host loads its firmware after power-up. A new protocol needs new firmware only.
 
 The design has these blocks:
 
-1. A barrel processor with 4 threads (docs/isa.md). Thread n executes one 16-bit instruction in each clock cycle c with c mod 4 = n. The program and the data are in one memory of 128 words of 16 bits (latches).
-2. A timed I/O unit. A thread does not set a pin at once: it writes a pin event with a 16-bit cycle time (OUT pin at T + offset). When the free-running cycle counter is equal to the event time, the pin flip-flop changes. Thus each pin edge is exact to one clock cycle, also with 4 threads. SAMPLE and WAIT read the inputs at a given cycle in the same way.
-3. Host FIFOs: 4 words in each direction for each thread (PULL and PUSH instructions).
-4. A host SPI port (docs/host_port.md). The host (the RP2350 of the demo board) stops and starts the threads, writes and reads the memory, writes the configuration (start address of each thread, owner of each output pin), reads the chip ID and the status, and gives and takes FIFO words.
+1. A barrel processor with 4 threads (docs/isa.md). Thread n executes one 16-bit instruction in each clock cycle c with c mod 4 = n. A stopped or waiting thread keeps its slot. The programs and the data of all threads are in one memory of 128 words of 16 bits (latches).
+2. A timed I/O unit. A thread does not set a pin at once: it writes a pin event with a 16-bit cycle time (OUT pin at T + offset) into the event slot of that pin. When the free-running cycle counter is equal to the event time, the pin flip-flop changes. Thus each pin edge is exact to one clock cycle, also with 4 threads. An event must be written 4 to 32,767 cycles ahead; a late event happens 4 cycles after the instruction and sets the LATE flag of the thread, which the host reads. SAMPLE and WAIT read the inputs at a given cycle in the same way. Each output pin has one owner thread, set by the host; pins can be push-pull or open-drain.
+3. Input synchronizers (2 flip-flops on each input). The inputs `uio[6]` and `uio[7]` (I2C) also have a spike filter that removes pulses of 1 to 3 clock cycles (I2C Fast-mode, docs/isa.md 6.1).
+4. Host FIFOs: 4 words in each direction for each thread (PULL and PUSH instructions).
+5. A host SPI port (docs/host_port.md). The host stops and starts the threads, writes and reads the memory, writes the configuration (start address of each thread, owner and mode of each output pin), reads the chip ID and the status, and gives and takes FIFO words.
 
-The chip changes a protocol pin only when a program tells it to. Example: fw/uart_tx.s (12 words) makes thread 0 a UART transmitter on `uo_out[4]`: 8 data bits, LSB first, 1 start bit, 1 stop bit, bit time 434 cycles (115,207 bit/s at 50 MHz, +0.0064 %), one byte from the host FIFO for each frame.
+Firmware in `fw/` (assembler `asm/pe_asm.py`):
 
-Reset: when `rst_n` is low, and while the threads stop, each processor output has the value 1 and no output enable: `uo_out[6:0]` = 1 (a UART TX line is idle high), all `uio` pins are inputs. The reset is asynchronous, so the pins go to this state at once, also when the clock is stopped. The memory does not change at reset.
+| File | Function | Words |
+|---|---|---|
+| `uart_tx.s` | UART transmitter, 115,200 bit/s 8N1 at 50 MHz (the example below) | 12 |
+| `uart_tx_full.s`, `uart_rx_full.s`, `uart_rx_slow.s` | UART transmitter and receiver, 8N1, 8E1, 8N2, 300 bit/s to 1 Mbit/s | 15, 13, - |
+| `spi_ctl.s` | SPI controller, modes 0 to 3, up to 1 MHz at 50 MHz | 26 |
+| `spi_tgt.s` | SPI target, modes 0 to 3, up to 1 MHz at 50 MHz | 31 |
+| `i2c_ctl.s` | I2C controller, Standard-mode and Fast-mode, clock stretching, repeated START, arbitration loss | 49 |
+
+`uart_tx.s` runs on the RTL and the gate-level netlist in the tests. The other files are tested in the cycle-exact reference model (`model/pe_model.py`), which the RTL matches in lockstep tests (docs/verification.md). Clock-dependent values are host words or assembler constants (docs/host_port.md section 11).
+
+Reset: when `rst_n` is low, and while the threads are stopped, each processor output has the value 1 and no output enable: `uo_out[6:0]` = 1 (a UART TX line is idle high), all `uio` pins are inputs. The reset is asynchronous, so the pins go to this state at once, also when the clock is stopped. The memory does not change at reset.
 
 ## How to test
 

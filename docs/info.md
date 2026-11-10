@@ -59,6 +59,8 @@ Procedure (UART transmitter, clock 50 MHz):
 7. Connect a UART receiver (115,200 bit/s, 8N1, 3.3 V) to `uo_out[4]`. For each byte: read status byte 3 (bits 2:0 = words in the FIFO of thread 0); if it is less than 4, send PUSH: 0x87, 0x00, 0x00, the byte. The receiver must show the same bytes. With 4 words in the FIFO the frames are back to back (86.8 us each).
 8. STOP (0x3C) stops the threads: `uo_out[4]` goes high at once.
 
+The other firmware files load in the same way; their headers give the pins, the host words and the assembler constants. Before STOP, let the last frame or transfer end, and hold each SPI chip-select line high with a pull-up while the chip is stopped (STOP releases all `uio` pins; docs/host_port.md section 8).
+
 ## External hardware
 
-The RP2350 of the demo board (or an other SPI host) on `ui_in[7:5]` and `uo_out[7]`. A UART receiver for 3.3 V logic levels on `uo_out[4]`, for example a USB-to-UART adapter or the RP2350.
+The RP2350 of the demo board (or an other SPI host) on `ui_in[7:5]` and `uo_out[7]`. A UART receiver for 3.3 V logic levels on `uo_out[4]`, for example a USB-to-UART adapter or the RP2350. For I2C: pull-up resistors on `uio[6]` (SCL) and `uio[7]` (SDA). The chip claims I2C Standard-mode and Fast-mode only, and its pins are not 5 V tolerant.

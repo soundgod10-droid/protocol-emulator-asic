@@ -51,20 +51,11 @@
 idle:   LDI     r0, 0x3FC
         PULL.NB r0              ; first byte x 4, or 0xFF x 4
         SHL     r0, 6           ; first byte to bits 15 to 8
+        LDI     r2, 7
         WAIT    CS, FALL, r3, CT ; T = CS low
         TADD    LAT
         OUT     MISO, r0<<      ; bit 7 of the first byte
-        LDI     r2, 7
         TADD    GAP
-        JMP     first
-bit:    WAIT    SCK, SE, r3, CT ; sample edge of bits 6 to 0
-        TADD    LAT
-        OUT     MISO, r0<<      ; next bit (after bit 0: bit 7 of the next byte)
-        SAMPLE  MOSI, r1<<, 4
-        DJNZ    r2, bit
-        PUSH    r1
-        LDI     r2, 7
-        TADD    GAP             ; timeout of the next byte start
 first:  WAIT    SCK, SE, r3, TO, CT ; sample edge of bit 7
         BEC     done            ; no sample edge for GAP cycles
         TADD    LATF
@@ -73,7 +64,15 @@ first:  WAIT    SCK, SE, r3, TO, CT ; sample edge of bit 7
         LDI     r3, 0x3FC
         PULL.NB r3              ; next byte x 4, or 0xFF x 4
         OR      r0, r3          ; to bits 9 to 2: bits 1 and 0 and 15 to 10 are other bits
-        JMP     bit
+bit:    WAIT    SCK, SE, r3, CT ; sample edge of bits 6 to 0
+        TADD    LAT
+        OUT     MISO, r0<<      ; next bit (after bit 0: bit 7 of the next byte)
+        SAMPLE  MOSI, r1<<, 4
+        DJNZ    r2, bit
+        PUSH    r1
+        LDI     r2, 7
+        TADD    GAP             ; timeout of the next byte start
+        JMP     first
 done:   TNOW    8
         OUT     MISO, Z
         JMP     idle

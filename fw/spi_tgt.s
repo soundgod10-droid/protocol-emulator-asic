@@ -8,8 +8,10 @@
 ;   The thread follows only the sample edges of SCK (WAIT SCK, SE): the
 ;   controller samples MISO at that edge, so MISO can change after it, and
 ;   MOSI is valid from the shift edge before it to the shift edge after it.
-;   At each sample edge the thread sets the next MISO bit and samples MOSI
-;   4 cycles later. The first MISO bit is set when CS goes low (all modes).
+;   At each sample edge the thread samples MOSI 20 cycles after the edge
+;   cycle and sets the next MISO bit (16 cycles after the edge cycle in a
+;   byte, 36 at the first bit of a byte). The first MISO bit is set 16
+;   cycles after the CS edge cycle (all modes).
 ;   SE is set with .equ when the host assembles the file:
 ;   SE = 1 (RISE) for modes 0 (CPOL 0, CPHA 0) and 3 (CPOL 1, CPHA 1),
 ;   SE = 0 (FALL) for modes 1 (CPOL 0, CPHA 1) and 2 (CPOL 1, CPHA 0).

@@ -49,7 +49,7 @@
         .equ    SCK, UIO3
         .equ    SE, 1           ; sample edge: 1 RISE (modes 0, 3), 0 FALL (modes 1, 2)
         .equ    LAT, 16         ; MISO event after the sample edge cycle in the bit loop (the smallest on time)
-        .equ    LATF, 20        ; the same for the first bit of a byte (one more instruction before it)
+        .equ    LATF, 20        ; MOSI sample after the sample edge cycle at the first bit of a byte (the BEC is before it)
         .equ    GAP, 200        ; byte start: no sample edge for GAP cycles = end of the transfer
 
         TNOW    8

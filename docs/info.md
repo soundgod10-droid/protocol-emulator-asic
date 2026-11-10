@@ -24,7 +24,8 @@ Firmware in `fw/` (assembler `asm/pe_asm.py`):
 | File | Function | Words |
 |---|---|---|
 | `uart_tx.s` | UART transmitter, 115,200 bit/s 8N1 at 50 MHz (the example below) | 12 |
-| `uart_tx_full.s`, `uart_rx_full.s`, `uart_rx_slow.s` | UART transmitter and receiver, 8N1, 8E1, 8N2, 300 bit/s to 1 Mbit/s | 15, 13, - |
+| `uart_tx_full.s`, `uart_rx_full.s` | UART transmitter and receiver, 8N1, 8E1, 8N2, up to 1 Mbit/s | 15, 13 |
+| `uart_rx_slow.s` | UART receiver for bit times of more than 32,767 cycles (300 to 1,525 bit/s at 50 MHz) | 24 |
 | `spi_ctl.s` | SPI controller, modes 0 to 3, up to 1 MHz at 50 MHz | 26 |
 | `spi_tgt.s` | SPI target, modes 0 to 3, up to 1 MHz at 50 MHz | 31 |
 | `i2c_ctl.s` | I2C controller, Standard-mode and Fast-mode, clock stretching, repeated START, arbitration loss | 49 |

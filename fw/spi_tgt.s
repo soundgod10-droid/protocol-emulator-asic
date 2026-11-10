@@ -58,9 +58,10 @@ idle:   LDI     r0, 0x3FC
         TADD    GAP
 first:  WAIT    SCK, SE, r3, TO, CT ; sample edge of bit 7
         BEC     done            ; no sample edge for GAP cycles
-        TADD    LATF
-        OUT     MISO, r0<<
-        SAMPLE  MOSI, r1<<, 4
+        TADD    LATF            ; MOSI sample time: edge + 20, as in the bit loop
+        SAMPLE  MOSI, r1<<, 0
+        TADD    12
+        OUT     MISO, r0<<, 4   ; edge + 36: the first time with a lead of 4 after the SAMPLE
         LDI     r3, 0x3FC
         PULL.NB r3              ; next byte x 4, or 0xFF x 4
         OR      r0, r3          ; to bits 9 to 2: bits 1 and 0 and 15 to 10 are other bits

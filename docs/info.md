@@ -63,4 +63,4 @@ The other firmware files load in the same way; their headers give the pins, the 
 
 ## External hardware
 
-The RP2350 of the demo board (or an other SPI host) on `ui_in[7:5]` and `uo_out[7]`. A UART receiver for 3.3 V logic levels on `uo_out[4]`, for example a USB-to-UART adapter or the RP2350. For I2C: pull-up resistors on `uio[6]` (SCL) and `uio[7]` (SDA). The chip claims I2C Standard-mode and Fast-mode only, and its pins are not 5 V tolerant.
+The RP2350 of the demo board (or an other SPI host) on `ui_in[7:5]` and `uo_out[7]`. A UART receiver for 3.3 V logic levels on `uo_out[4]`, for example a USB-to-UART adapter or the RP2350. For I2C: pull-up resistors on `uio[6]` (SCL) and `uio[7]` (SDA). The chip claims I2C Standard-mode and Fast-mode only, and makes no 5 V tolerance claim: use 3.3 V pull-ups.

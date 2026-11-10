@@ -23,7 +23,8 @@
 ;   A1 section 8.2 (SPI target, four modes) and A1 10 step T13 (correct at
 ;   1 MHz, record the maximum). One WAIT for each bit: a thread issues one
 ;   instruction every 4 cycles, and an event needs a lead of 4 cycles (isa
-;   4.2), so a WAIT for the shift edge too would halve the rate.
+;   4.2), so a WAIT for the shift edge too would halve the rate (measured:
+;   smallest SCK half period 49 cycles with it, 25 without).
 ;
 ; Host words to this thread: one word for each MISO byte, the byte in bits
 ;   9 to 2 (byte x 4: the thread then needs no shift on the byte path).

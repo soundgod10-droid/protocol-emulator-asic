@@ -23,7 +23,7 @@ Example, `fw/uart_tx.s` (12 words): the bit time is `TADD 434` between two `OUT`
 | Processor, timed pin events, 128 x 16 memory, host SPI port, I2C input spike filter | built; RTL tests, formal proofs, gate-level test pass ([docs/verification.md](docs/verification.md)) |
 | Layout at 50 MHz, 6x4 tiles | passes; slow-corner setup margin +1.329 ns, no setup or hold violation at three corners; 3 max-slew violations at the slow corner are open ([run 42744631446](https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/42744631446)) |
 | UART transmitter firmware `fw/uart_tx.s` | runs on the RTL and on the gate-level netlist (`test/test.py`) |
-| UART TX and RX 300 bit/s to 1 Mbit/s, SPI controller (4 modes), SPI target (4 modes, up to 1 MHz), I2C controller (Standard-mode and Fast-mode) | firmware in `fw/`, tested in the cycle-exact reference model against independent protocol models (`test/test_fw_full.py`); the four controller programs fit together in 103 of 128 words |
+| UART TX and RX 300 bit/s to 1 Mbit/s, SPI controller (4 modes), SPI target (4 modes, up to 1 MHz), I2C controller (Standard-mode and Fast-mode) | firmware in `fw/`, tested in the cycle-exact reference model against independent protocol models (`test/test_fw_full.py`); UART TX, UART RX, SPI controller and I2C controller fit together in 103 of 128 words (`test_fw_full_word_count`) |
 | JTAG, SWD, PS/2 and CAN firmware; a timed trigger (a pulse at an exact cycle after a protocol event) | planned |
 | One of low-speed USB or 10BASE-T | planned |
 | Tile size: 6x4 as built; the competition rules now allow 8x4 | open |

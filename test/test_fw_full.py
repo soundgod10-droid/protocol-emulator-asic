@@ -1559,7 +1559,8 @@ async def test_m3_spi_tgt(dut):
                  f"{h} cycles = {25e3 / h:.0f} kHz at 50 MHz, {20e3 / h:.0f} kHz at 40 MHz (half period {hf}); "
                  f"CS fall to first edge >= {lead} (lead {lf}); MOSI hold after the sample edge >= {hold} "
                  f"(hold {hof}); CS high between transfers >= {gap} (gap {gf}); pause between bytes <= {pause} "
-                 f"(pause {pf}); at half period {h}: MISO setup >= {su}, hold >= {ho} cycles, released <= {rel} "
+                 f"(pause {pf}); at half period {h}: MISO setup >= {su} (>= {su_lead} with CS lead {lead}), "
+                 f"hold >= {ho} cycles, released <= {rel} "
                  f"cycles after the CS rise; alternative with a WAIT for the shift edge too: smallest half period "
                  f"{h_alt} (half period {haf})")
     slow = []

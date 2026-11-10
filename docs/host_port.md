@@ -216,3 +216,34 @@ Rules for the PIO host:
 3. A host that samples before its next rising edge (an SPI block, or the model SpiTimed of the tests) keeps the limits of section 6 (87.4 ns, rated 100 ns).
 
 Firmware format: the default is the present format of the firmware files (one host word for each UART frame and each SPI byte, two words for each I2C byte; file headers). fw/uart_tx_full.s 15 + fw/uart_rx_full.s 13 + fw/spi_ctl.s 26 + fw/i2c_ctl.s 49 = 103 of 128 words, 25 words free (test_fw_full_word_count). The packed files with two bytes in one host word (fw/spi_pack.s, fw/uart_tx_pack.s, fw/uart_rx_pack.s, on the research branch a2-fw-pack) are optional loads that a host can choose after fabrication; SPI first, because it gives the largest load reduction for its words (+4 words, all-four load 116.0 % to 88.4 % at SCK 100 ns, design note R3 3.2). They are not needed: no requirement asks for all four protocols at full rate at the same time (section 10).
+
+## 13 SPI target (fw/spi_tgt.s)
+
+Requirement: A1 section 8.2 (SPI target, correct MISO in all four modes) and A1 section 10 step T13 (correct at 1 MHz, record the maximum). The pins are those of the SPI controller firmware with the other direction: CS = uio[0], MOSI = uio[1], SCK = uio[3] are inputs; MISO = uio[2] is the output of the thread (owner: the thread, push-pull). fw/spi_ctl.s and fw/spi_tgt.s use the same pins, so load one of them.
+
+Host settings when it assembles the file: SE = 1 for modes 0 and 3, SE = 0 for modes 1 and 2 (the edge at which the controller samples MISO); GAP (cycles) for the SCK rate, see the rules below.
+
+Host words: one word for each MISO byte, the byte in bits 9 to 2. For a transfer of N bytes, give N + 1 words; the last word is not sent. With no word in the FIFO, the target sends 0xFF. The thread gives one word for each byte: bits 7 to 0 are the MOSI byte.
+
+Controller limits, measured in the model against an SPI controller model that does not use the firmware or the processor model (test_m3_spi_tgt, all four modes, 4 start phases, transfers of 5 and 2 bytes). Values in clock cycles of the chip; ns at 50 MHz:
+
+| Item | Limit | At 50 MHz |
+|---|---|---|
+| SCK half period | 25 or more (24 fails) | 500 ns or more: SCK up to 1 MHz (800 kHz at 40 MHz) |
+| MOSI held after the sample edge | 21 or more | 420 ns; at 1 MHz MOSI changes at the shift edge, 500 ns after the sample edge: 80 ns margin |
+| CS low to the first SCK edge | 21 or more (modes 0, 2); 1 or more (modes 1, 3) | 420 ns |
+| MISO setup before the sample edge | 11 or more in a transfer; first bit: CS lead - 19 | 220 ns; first bit at CS lead 25: 120 ns |
+| MISO hold after the sample edge | 19 or more | 380 ns |
+| Pause between the bytes of a transfer | 2 x half period + pause <= GAP + 16 (GAP 200: pause <= 166 at half period 25) | |
+| Next CS low after the last sample edge | GAP + 57 or more (GAP 200: 207 cycles CS high in modes 0, 2 and 232 in modes 1, 3 at half period 25) | 5.1 us at GAP 200 |
+| MISO released after the last sample edge | GAP + 39 or less | 4.8 us at GAP 200 |
+| Slowest SCK | GAP <= 4,095 (TADD), so half period <= 2,055 | about 12 kHz; 100 kHz (GAP 600) and 13.2 kHz (GAP 3,900) measured correct |
+
+Rules for the controller and the host:
+
+1. SCK up to 1 MHz at a 50 MHz chip clock (T13). The limit comes from the instruction rate, not from the pins: one instruction every 4 cycles with a lead of 4 cycles (docs/isa.md 3.1, 4.2) gives 49 cycles between the sample edges at the start and at the end of a byte. The A1 estimate of about 5 MHz (G1 A-OWN-11) does not hold.
+2. The target ends a transfer when no sample edge comes GAP cycles after the end of a byte: set GAP so that 2 x half period + the longest pause between bytes is GAP + 16 or less, and keep CS high GAP + 57 cycles or more after the last sample edge. MISO stays driven up to GAP + 39 cycles after the last sample edge: with other targets on the same MISO line, wait this time before you select another target.
+3. CS low to the first SCK edge: 21 cycles or more in modes 0 and 2 (420 ns at 50 MHz; an SPI controller that waits one half period at 1 MHz meets it).
+4. Memory: fw/spi_tgt.s has 31 words. With fw/uart_tx_full.s, fw/uart_rx_full.s and fw/i2c_ctl.s: 15 + 13 + 31 + 49 = 108 of 128 words.
+
+Alternatives measured: a thread that also waits for the shift edge (no SE setting) needs a half period of 49 cycles (510 kHz at 50 MHz). Two earlier orders of the same instructions met the half period of 25 but needed a CS lead of 29 cycles (1 MHz with a CS lead of one half period failed in modes 0 and 2), or a MOSI hold of 25 cycles (no margin at 1 MHz).

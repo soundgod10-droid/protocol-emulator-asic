@@ -1553,6 +1553,7 @@ async def test_m3_spi_tgt(dut):
         pause, pf = spi_tgt_last(lambda v: spi_tgt_all(mode, h, pause=v), range(p, p + 16))
         timing = [spi_tgt_run(mode, h, t0=300 + off)[2].miso_timing() for off in range(4)]
         su, ho, rel = min(t[0] for t in timing), min(t[1] for t in timing), max(t[2] for t in timing)
+        su_lead = min(spi_tgt_run(mode, h, t0=300 + off, lead=lead)[2].miso_timing()[0] for off in range(4))
         h_alt, haf = spi_tgt_last(lambda v: spi_tgt_all(mode, v, alt=True), range(80, 7, -1))
         log.info(f"mode {mode} (CPOL {mode >> 1}, CPHA {mode & 1}, SE {SPI_TGT_SE[mode]}): smallest half period "
                  f"{h} cycles = {25e3 / h:.0f} kHz at 50 MHz, {20e3 / h:.0f} kHz at 40 MHz (half period {hf}); "

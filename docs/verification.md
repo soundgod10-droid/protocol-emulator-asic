@@ -85,7 +85,7 @@ Does not check: on-chip variation beyond the corner models; silicon.
 
 ## 7. Synchronizer SPICE
 
-`spice/m2c_sync_tau.sp` (typical models, 1.2 V, 25 °C) and `spice/m2c_sync_tau_ss.sp` (slow models, 1.08 V, 125 °C) find the data-to-clock offset where the input flip-flop just fails to capture, then measure the clock-to-Q delay at offsets 10 ps to 0.01 fs from that point. The slope of the delay against ln(offset) is the metastability time constant: 0.3728 ns over ln(1000), about 54 ps (typical), and 0.6958 ns over ln(1000), about 101 ps (slow). Every input pin has two such stages.
+`spice/m2c_sync_tau.sp` (typical models, 1.2 V, 25 °C) and `spice/m2c_sync_tau_ss.sp` (slow models, 1.08 V, 125 °C) find the data-to-clock offset where the input flip-flop just fails to capture, then measure the clock-to-Q delay at offsets of 10 ps to 1 fs from that point. The slope of the delay against ln(offset) from 10 ps to 0.01 ps is the metastability time constant: 0.3728 ns over ln(1000), about 54 ps (typical), and 0.6958 ns over ln(1000), about 101 ps (slow). Below 0.01 ps the delay reaches the resolution of the simulation. Every input pin has two such stages.
 
 Does not check: the pads, process variation (one corner each, no Monte Carlo).
 

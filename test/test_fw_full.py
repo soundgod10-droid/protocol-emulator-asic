@@ -1359,3 +1359,216 @@ async def test_m3_i2c_stuck_scl(dut):
                   f"({(m.cycle - last) / 50e3:.1f} ms at 50 MHz); thread 0 runs, status 0, waits in WAIT SCL RISE at "
                   f"address {th.pc}; SCL released by the chip, SDA {'released' if sda is None else f'driven {sda}'}. "
                   f"Normal Fm byte, reply to reply: {byte_cycles} cycles ({byte_cycles / 50:.1f} us)")
+
+
+# ----- M3a: SPI target firmware (fw/spi_tgt.s) -----
+# A1 section 8.2 (SPI target: correct MISO in all four modes) and A1 section 10 step T13 (correct at 1 MHz,
+# record the maximum). SpiController does not use the firmware or the model: it makes the CS, SCK and MOSI
+# levels of each mode from CPOL and CPHA and reads MISO in the cycle of each sample edge.
+
+SPI_TGT_SE = {0: 1, 1: 0, 2: 0, 3: 1}  # .equ SE of fw/spi_tgt.s: the sample edge, 1 RISE, 0 FALL
+SPI_TGT_XFERS = [([0x55, 0xAA, 0x00, 0xFF, 0x3C], [0xA5, 0x0F, 0xF0, 0x96, 0x81]),
+                 ([0xC3, 0x18], [0x7E, 0x24])]  # (MOSI bytes, MISO bytes) of each transfer
+
+
+class SpiController:
+    """SPI controller model of one mode (CPOL = mode bit 1, CPHA = mode bit 0) with a half period of h cycles.
+
+    Each transfer: CS falls, the first SCK edge comes `lead` cycles later, then one edge every h cycles (16 for
+    each byte, `pause` cycles more between bytes); CS rises h cycles after the last edge, and the next transfer
+    starts `gap` cycles later. MOSI changes at the shift edges (CPHA 0: the first bit at the CS fall), or `hold`
+    cycles after each sample edge if hold is given. MISO is read in the cycle of each sample edge.
+    """
+
+    def __init__(self, mode, h, transfers, lead=60, pause=0, gap=600, hold=None, t0=300):
+        self.cpol, self.cpha = mode >> 1, mode & 1
+        self.transfers = [list(data) for data in transfers]
+        self.cs, self.sck, self.mosi = [(0, 1)], [(0, self.cpol)], [(0, 1)]
+        self.sample_at = {}  # cycle of a sample edge -> (transfer, bit number from the first bit)
+        self.windows = []  # (CS fall, CS rise) of each transfer
+        t = t0
+        for n, data in enumerate(self.transfers):
+            bits = [(byte >> (7 - i)) & 1 for byte in data for i in range(8)]
+            edges = [t + lead + round((16 * j + k) * h) + j * pause for j in range(len(data)) for k in range(16)]
+            samples = edges[self.cpha::2]
+            for q, e in enumerate(edges):
+                self.sck.append((e, self.cpol ^ (1 - (q & 1))))  # q even: leading edge
+            for b, e in enumerate(samples):
+                self.sample_at[e] = (n, b)
+            for b, bit in enumerate(bits):
+                if b == 0:
+                    tm = t if self.cpha == 0 else edges[0]
+                elif hold is not None:
+                    tm = samples[b - 1] + hold
+                else:
+                    tm = edges[2 * b - 1] if self.cpha == 0 else edges[2 * b]
+                if bit != self.mosi[-1][1]:
+                    self.mosi.append((tm, bit))
+            rise = edges[-1] + round(h)
+            self.cs += [(t, 0), (rise, 1)]
+            self.windows.append((t, rise))
+            t = rise + gap
+        self.end = t
+        self.samples = {}
+        self.miso_seen = [(0, None)]
+
+    def __call__(self, c, uo, uio, oe):
+        miso = level(uio, oe, P_MISO)
+        if miso != self.miso_seen[-1][1]:
+            self.miso_seen.append((c, miso))
+        if c in self.sample_at:
+            self.samples[self.sample_at[c]] = miso
+        cs, sck, mosi = value_at(self.cs, c), value_at(self.sck, c), value_at(self.mosi, c)
+        return 0, (cs << P_CS) | (mosi << P_MOSI) | ((1 if miso is None else miso) << P_MISO) | (sck << P_SCK)
+
+    def received(self):
+        """MISO bytes of each transfer, or None and the first bit that was not driven at its sample edge."""
+        out = []
+        for n, data in enumerate(self.transfers):
+            row = []
+            for j in range(len(data)):
+                byte = 0
+                for i in range(8):
+                    bit = self.samples.get((n, 8 * j + i))
+                    if bit is None:
+                        return None, f"transfer {n} byte {j} bit {7 - i}: MISO not driven at the sample edge"
+                    byte = (byte << 1) | bit
+                row.append(byte)
+            out.append(row)
+        return out, None
+
+    def miso_timing(self):
+        """Smallest MISO setup and hold around the sample edges (cycles), largest release time after the CS
+        rise, and the faults: MISO driven while CS is high, or not released before the next CS fall."""
+        changes = [c for c, _ in self.miso_seen[1:]]
+        setup = hold = None
+        for s in self.sample_at:
+            i = bisect.bisect_right(changes, s)
+            if i:
+                setup = s - changes[i - 1] if setup is None else min(setup, s - changes[i - 1])
+            if i < len(changes):
+                hold = changes[i] - s if hold is None else min(hold, changes[i] - s)
+        driven, start = [], None
+        for c, v in self.miso_seen + [(None, None)]:
+            if v is not None and start is None:
+                start = c
+            elif v is None and start is not None:
+                driven.append((start, c))
+                start = None
+        release, faults = 0, []
+        for a, b in driven:
+            n = next((k for k, (f, r) in enumerate(self.windows) if f <= a < r), None)
+            if n is None:
+                faults.append(f"MISO driven at cycle {a} while CS is high")
+                continue
+            nxt = self.windows[n + 1][0] if n + 1 < len(self.windows) else None
+            if b is None or (nxt is not None and b > nxt):
+                faults.append(f"transfer {n}: MISO still driven at the next CS fall or at the end")
+                continue
+            release = max(release, b - self.windows[n][1])
+        return setup, hold, release, faults
+
+
+def spi_tgt_text(mode, alt=False, **equ):
+    """fw/spi_tgt.s for a mode. alt: the alternative with a WAIT for the shift edge too in each bit."""
+    text = source("spi_tgt.s", SE=SPI_TGT_SE[mode], **equ)
+    if alt:
+        old = "bit:    WAIT    SCK, SE, r3, CT"
+        assert text.count(old) == 1, "bit loop WAIT not found"
+        text = text.replace(old, "bit:    WAIT    SCK, ANY, r3\n        WAIT    SCK, SE, r3, CT")
+    return text
+
+
+def spi_tgt_run(mode, h, alt=False, equ=None, t0=300, transfers=SPI_TGT_XFERS, **kw):
+    prog = pe_asm.assemble(spi_tgt_text(mode, alt, **(equ or {})), "spi_tgt.s", 0)
+    m = pe_model.PeModel(prog.words, owner=owners({P_MISO: 0}))
+    ctl = SpiController(mode, h, [mosi for mosi, _ in transfers], t0=t0, **kw)
+    bench = Bench(m, inputs=ctl)
+    for _, miso in transfers:
+        bench.send(0, *[byte << 2 for byte in miso], 0)  # N + 1 words for N bytes; the last one is not sent
+    bench.run(ctl.end + 1000)
+    return bench, m, ctl
+
+
+def spi_tgt_fault(bench, m, ctl, transfers=SPI_TGT_XFERS):
+    """Text of the first fault of a target run, or None if the run is correct."""
+    th = m.threads[0]
+    if th.status or not th.run:
+        return f"thread status {th.status}, run {th.run}, {th.stop_reason}"
+    got, fault = ctl.received()
+    if fault:
+        return fault
+    if got != [list(miso) for _, miso in transfers]:
+        return f"controller received {[[hex(x) for x in row] for row in got]}"
+    words = bench.words(0)
+    if [w & 0xFF for w in words] != [b for mosi, _ in transfers for b in mosi]:
+        return f"target words {[hex(w) for w in words]}"
+    faults = ctl.miso_timing()[3]
+    return faults[0] if faults else None
+
+
+def spi_tgt_all(mode, h, offsets=range(4), **kw):
+    """None if the run is correct at each start phase (start cycle 300 + offset), else the first fault."""
+    for off in offsets:
+        fault = spi_tgt_fault(*spi_tgt_run(mode, h, t0=300 + off, **kw))
+        if fault:
+            return f"start phase {off}: {fault}"
+    return None
+
+
+def spi_tgt_last(fn, values):
+    """Last value of `values` (in their order) before the first one with a fault, and that fault."""
+    last = None
+    for v in values:
+        fault = fn(v)
+        if fault:
+            return last, f"{v}: {fault}"
+        last = v
+    return last, None
+
+
+@cocotb.test(skip=GL)
+async def test_m3_spi_tgt(dut):
+    """fw/spi_tgt.s against an independent SPI controller model in all four modes (A1 8.2, A1 10 T13).
+
+    For each mode, at 4 start phases: the smallest SCK half period (every value from it to 60 cycles passes),
+    and at that half period the smallest CS fall to first edge, the smallest MOSI hold after the sample edge,
+    the smallest CS high time between transfers, the largest pause between bytes, and MISO setup, hold and
+    release; the same half period for the alternative with a WAIT for the shift edge too; slow rates with the
+    host value GAP. Asserts T13: correct at 1 MHz (half period 25 cycles at 50 MHz) with CS lead 25 cycles.
+    """
+    log = dut._log
+    words = assemble("spi_tgt.s").size
+    words_alt = pe_asm.assemble(spi_tgt_text(0, alt=True), "spi_tgt.s", 0).size
+    log.info(f"fw/spi_tgt.s: {words} words; alternative with a WAIT for the shift edge: {words_alt} words")
+    for mode in range(4):
+        h, hf = spi_tgt_last(lambda v: spi_tgt_all(mode, v), range(60, 7, -1))
+        assert h is not None, f"mode {mode}: half period 60 fails: {hf}"
+        lead, lf = spi_tgt_last(lambda v: spi_tgt_all(mode, h, lead=v), range(80, 0, -1))
+        hold, hof = spi_tgt_last(lambda v: spi_tgt_all(mode, h, hold=v), range(2 * h - 1, 0, -1))
+        g, _ = spi_tgt_last(lambda v: spi_tgt_all(mode, h, gap=v), range(400, 0, -16))
+        assert g is not None, f"mode {mode}: CS high time 400 fails"
+        gap, gf = spi_tgt_last(lambda v: spi_tgt_all(mode, h, gap=v), range(g, g - 16, -1))
+        p, _ = spi_tgt_last(lambda v: spi_tgt_all(mode, h, pause=v), range(0, 400, 16))
+        pause, pf = spi_tgt_last(lambda v: spi_tgt_all(mode, h, pause=v), range(p, p + 16))
+        timing = [spi_tgt_run(mode, h, t0=300 + off)[2].miso_timing() for off in range(4)]
+        su, ho, rel = min(t[0] for t in timing), min(t[1] for t in timing), max(t[2] for t in timing)
+        h_alt, haf = spi_tgt_last(lambda v: spi_tgt_all(mode, v, alt=True), range(80, 7, -1))
+        log.info(f"mode {mode} (CPOL {mode >> 1}, CPHA {mode & 1}, SE {SPI_TGT_SE[mode]}): smallest half period "
+                 f"{h} cycles = {25e3 / h:.0f} kHz at 50 MHz, {20e3 / h:.0f} kHz at 40 MHz (half period {hf}); "
+                 f"CS fall to first edge >= {lead} (lead {lf}); MOSI hold after the sample edge >= {hold} "
+                 f"(hold {hof}); CS high between transfers >= {gap} (gap {gf}); pause between bytes <= {pause} "
+                 f"(pause {pf}); at half period {h}: MISO setup >= {su}, hold >= {ho} cycles, released <= {rel} "
+                 f"cycles after the CS rise; alternative with a WAIT for the shift edge too: smallest half period "
+                 f"{h_alt} (half period {haf})")
+    slow = []
+    for mode in range(4):
+        slow.append(spi_tgt_all(mode, 250, equ=dict(GAP=600), gap=1200))
+        slow.append(spi_tgt_all(mode, 1900, offsets=(0,), equ=dict(GAP=3900), gap=4500))
+    log.info(f"slow rates with the host value GAP: half period 250 (100 kHz at 50 MHz) GAP 600 and half period "
+             f"1900 (13.2 kHz) GAP 3900, all modes: {'correct' if not any(slow) else slow}")
+    t13 = [(mode, h, spi_tgt_all(mode, h, lead=25)) for mode in range(4) for h in (25, 25.3, 25.5, 25.7)]
+    for mode, h, fault in t13:
+        log.info(f"T13 mode {mode}, half period {h} cycles, CS lead 25: {fault or 'correct'}")
+    assert not any(slow), slow
+    assert not any(f for _, _, f in t13), "T13: not correct at 1 MHz (50 MHz clock)"

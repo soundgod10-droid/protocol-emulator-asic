@@ -36,6 +36,10 @@
   "//": "every push). Set to 1 for the tape-out run: docs/tapeout_checklist.md.",
   "RUN_MAGIC_DRC": 0,
 
+  "//": "Reserve of docs/decisions.md entry 5 (d): timing-driven placement, 1.2 ns max transition in PnR.",
+  "PL_TIMING_DRIVEN": 1,
+  "PNR_SDC_FILE": "dir::pnr.sdc",
+
   "//": "Signoff STA only: path groups so the flip-flop setup slack is reported (layout unchanged).",
   "SIGNOFF_SDC_FILE": "dir::signoff.sdc",
 

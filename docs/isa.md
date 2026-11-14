@@ -196,7 +196,7 @@ Input pins (SAMPLE, WAIT, port PINS):
 | 8 to 12 | ui_in[0] to ui_in[4] | UI0 to UI4 |
 | 13 to 15 | none, read as 0 | none |
 
-ui_in[7:5] and uo_out[7] are the host SPI port [A1 section 2.2]. They are not thread pins. The default UART pins [A1 section 2.2] are UART_TX = uo_out[4] = output 12 (UO4) and UART_RX = ui_in[3] = input 11 (UI3).
+ui_in[7:5] and uo_out[7] are the host SPI port (docs/host_port.md section 2). They are not thread pins. The default UART pins are UART_TX = uo_out[4] = output 12 (UO4) and UART_RX = ui_in[3] = input 11 (UI3).
 
 A uio pin with OE = 1 reads back its own value V. Thus, an open-drain pin that is released reads the bus level, and a pin that drives 0 reads 0.
 

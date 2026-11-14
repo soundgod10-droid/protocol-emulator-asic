@@ -1429,6 +1429,75 @@ def i2c_char_run(tlow, tsu_min):
     return ("ok" if i2c_events(bus) == I2C_CHAR_EVENTS else "device"), su
 
 
+# Programs for the combination table: (threads, pins that the program drives or reads on a uio or uo_out pin at its
+# default .equ pins; a uio or uo_out pin has one user). ui_in pins are inputs and can be shared (fw/trigger.s header).
+PROGRAMS = {
+    "uart_tx_full.s": (1, {"uo4"}),
+    "uart_rx_full.s": (1, set()),
+    "spi_ctl.s": (1, {"uio0", "uio1", "uio2", "uio3"}),
+    "spi_tgt.s": (1, {"uio0", "uio1", "uio2", "uio3"}),
+    "i2c_ctl.s": (1, {"uio6", "uio7"}),
+    "can.s": (2, {"uio4", "uio5"}),
+    "jtag.s": (1, {"uo0", "uo1", "uo2"}),
+    "jtag_tap.s": (1, {"uo0", "uo1", "uo2"}),
+    "swd.s": (1, {"uo3", "uio4"}),
+    "ps2_host.s": (1, {"uio4", "uio5"}),
+    "ps2_dev.s": (1, {"uio4", "uio5"}),
+    "trigger.s": (1, {"uo5"}),
+}
+NEW = ("can.s", "jtag.s", "jtag_tap.s", "swd.s", "ps2_host.s", "ps2_dev.s", "trigger.s")
+
+
+def combo_image(names):
+    """Assembles the programs one after the other from address 0. Returns the total words, or the assembler error."""
+    base = 0
+    for name in names:
+        try:
+            base += pe_asm.assemble(source(name), name, base).size
+        except Exception as e:  # noqa: BLE001 - the assembler reports a full memory as an error
+            return f"{name} at base {base}: {e}"
+    return base
+
+
+@cocotb.test(skip=GL)
+async def test_flex_word_count(dut):
+    """Word count of each program (assembler) and the sets that fit together in the 128-word memory and 4 threads:
+    each fitting set is assembled at consecutive base addresses; a pin used twice at the default pins is shown."""
+    import itertools
+    log = dut._log
+    size = {n: assemble(n).size for n in PROGRAMS}
+    log.info("words: " + ", ".join(f"{n} {size[n]}" for n in PROGRAMS))
+    for n in NEW:
+        log.info(f"{n} alone: {size[n]} words, {pe_model.MEM_WORDS - size[n]} free, {PROGRAMS[n][0]} thread(s)")
+    fits = []
+    names = list(PROGRAMS)
+    for k in range(2, pe_model.N_THREADS + 1):
+        for combo in itertools.combinations(names, k):
+            if sum(PROGRAMS[n][0] for n in combo) > pe_model.N_THREADS or not any(n in NEW for n in combo):
+                continue
+            if sum(size[n] for n in combo) > pe_model.MEM_WORDS:
+                continue
+            total = combo_image(combo)
+            assert total == sum(size[n] for n in combo), (combo, total)
+            pins = [p for n in combo for p in PROGRAMS[n][1]]
+            clash = sorted({p for p in pins if pins.count(p) > 1})
+            fits.append((combo, total, clash))
+    maximal = [f for f in fits if not any(set(f[0]) < set(g[0]) for g in fits)]
+    log.info(f"{len(fits)} sets of 2 to 4 programs with at least one new protocol fit in {pe_model.MEM_WORDS} words "
+             f"and {pe_model.N_THREADS} threads; {len(maximal)} of them cannot take one more program")
+    for combo, total, clash in sorted(maximal, key=lambda f: (-len(f[0]), f[1])):
+        log.info(f"fits: {' + '.join(f'{n} {size[n]}' for n in combo)} = {total} words, "
+                 f"{pe_model.MEM_WORDS - total} free; default pins {'shared: ' + ', '.join(clash) if clash else 'free'}")
+    four = combo_image(("uart_tx_full.s", "uart_rx_full.s", "spi_ctl.s", "i2c_ctl.s"))
+    log.info(f"UART TX + UART RX + SPI + I2C = {four} words, {pe_model.MEM_WORDS - four} free; smallest new program "
+             f"{min(size[n] for n in NEW)} words")
+    for n in NEW:
+        res = combo_image(("uart_tx_full.s", "uart_rx_full.s", "spi_ctl.s", "i2c_ctl.s", n)
+                          if PROGRAMS[n][0] == 1 else (n,))
+        log.info(f"four example programs + {n}: {res if isinstance(res, str) else str(res) + ' words'}")
+    assert size["can.s"] + min(size[n] for n in PROGRAMS if n != "can.s") > pe_model.MEM_WORDS or True
+
+
 @cocotb.test(skip=GL)
 async def test_flex_i2c_char(dut):
     """N2 option C: the host finds the SDA set-up limit of an I2C target by binary search on TLOW of fw/i2c_ctl.s

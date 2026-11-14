@@ -1,12 +1,11 @@
-# Host SPI port of the protocol emulator (M2c)
+# Host SPI port of the protocol emulator
 
 | Item | Value |
 |---|---|
 | Document | docs/host_port.md |
-| Milestone | M2 "Then make it programmable" (requirement R-15), run M2c |
-| RTL | src/pe_host_port.v (A1 block D7), synchronizers in src/project.v |
+| RTL | src/pe_host_port.v, synchronizers in src/project.v |
 | Host model | test/host_spi.py (independent of the RTL; the tests use it) |
-| Design note | design/js_emulator/M2c_loader.md (grounds and measurements of each choice) |
+| Decisions | docs/decisions.md entries 8 (STOP) and 9 (host port bandwidth) |
 | Language | ASD-STE100. Command names, signal names and file names are technical names. |
 
 ## 1 Function

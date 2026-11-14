@@ -67,10 +67,10 @@ module pe_core (
     input  wire [14:0] pin_en,         // 1 = output pin p has an owner
     input  wire [14:0] pin_od,         // 1 = output pin p is open drain
     // Program and data memory (pe_latch_ram)
-    output wire [6:0]  mem_raddr,      // read address in this cycle, for the next slot
+    output wire [7:0]  mem_raddr,      // read address in this cycle, for the next slot
     input  wire [15:0] mem_rdata,
     output reg         mem_we,         // store in this cycle
-    output reg  [6:0]  mem_waddr,
+    output reg  [7:0]  mem_waddr,
     output wire [15:0] mem_wdata,
     // Output event slots (pe_timed_out, one for each output pin 0 to 14)
     input  wire [14:0] ev_ready,       // 1 = slot of pin p is empty

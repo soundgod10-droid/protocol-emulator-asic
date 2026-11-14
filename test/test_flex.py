@@ -1531,7 +1531,7 @@ async def test_flex_i2c_char(dut):
 
 @cocotb.test(skip=GL)
 async def test_flex_trigger(dut):
-    """fw/trigger.s (option O5): pulse delay from the start edge of a matching UART byte at 16 start phases, for the
+    """fw/trigger.s (timed trigger): pulse delay from the start edge of a matching UART byte at 16 start phases, for the
     pulse timed from T (fire_t) and for the pulse started after the match (fire_n); the smallest delay D."""
     log = dut._log
     log.info(f"fw/trigger.s: {assemble('trigger.s').size} words")

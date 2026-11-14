@@ -1534,7 +1534,7 @@ async def test_m3_spi_tgt(dut):
     and at that half period the smallest CS fall to first edge, the smallest MOSI hold after the sample edge,
     the smallest CS high time between transfers, the largest pause between bytes, and MISO setup, hold and
     release; the same half period for the alternative with a WAIT for the shift edge too; slow rates with the
-    host value GAP. Asserts T13: correct at 1 MHz (half period 25 cycles at 50 MHz) with CS lead 25 cycles.
+    host value GAP. Asserts that it is correct at 1 MHz (half period 25 cycles at 50 MHz) with CS lead 25 cycles.
     """
     log = dut._log
     words = assemble("spi_tgt.s").size

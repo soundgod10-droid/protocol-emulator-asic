@@ -57,8 +57,8 @@ rx:     LDI     r2, 11
 rs:     TADD    16
         SAMPLE  DATA, r1>>
         DJNZ    r2, rw
-        PUSH    r1              ; start bit 5 ... stop bit 15
-        WAIT    CLK, RISE, r3   ; end of the stop-bit clock: else the late check takes it as a start bit
+rend:   PUSH    r1              ; frame: start bit 5 ... stop bit 15; command: the acknowledge in bit 15
+        WAIT    CLK, RISE, r3   ; end of the last clock: else the late check takes it as a start bit
         JMP     idle
 rw:     TADD    4095
         TADD    4095

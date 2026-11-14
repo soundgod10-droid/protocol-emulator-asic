@@ -1291,19 +1291,22 @@ def ps2_cmd_word(byte):
     return byte | bits[9] << 8 | 1 << 9
 
 
-def ps2_host_run(period, offset=0, late="rlate", cmd=0xED, low=None):
-    """fw/ps2_host.s with a device model: the device sends PS2_BYTES, then the firmware sends `cmd` and the device
-    acknowledges and answers 0xFA. Returns (fault or None, bytes decoded)."""
+def ps2_host_run(period, offset=0, late="rlate", cmd=0xED, low=None, frames=PS2_BYTES):
+    """fw/ps2_host.s with a device model: the device sends `frames`, then (if cmd is not None) the firmware sends
+    `cmd` and the device acknowledges and answers 0xFA. Returns (fault or None, bytes decoded)."""
     prog = assemble("ps2_host.s", LATE=late)
-    dev = Ps2Device(period, PS2_BYTES, low=low, start=1000 + offset)
+    dev = Ps2Device(period, frames, low=low, start=1000 + offset)
     m = pe_model.PeModel(prog.words, owner=owners({P_PCLK: 0, P_PDATA: 0}), open_drain=od((P_PCLK, P_PDATA)))
     bench = Bench(m, inputs=Ps2Bus(dev))
-    bench.run(1000 + offset + len(PS2_BYTES) * (12 * period + 3200))
+    bench.run(1000 + offset + len(frames) * (12 * period + 3200))
     words = list(bench.words(0))
     got = [ps2_decode(ps2_word_bits(w)) if w >= 32 else (None, False) for w in words]
-    if got != [(b, True) for b in PS2_BYTES]:
+    if got != [(b, True) for b in frames]:
         return (f"received {[(hex(b) if b is not None else None, ok) for b, ok in got]}; words "
                 f"{[hex(w) for w in words]} at {[c for c, _ in bench.from_thread[0]]}; device sent {dev.sent}"), got
+    if cmd is None:
+        th = m.threads[0]
+        return (None if not th.status and th.run else f"thread status {th.status}"), got
     bench.send(0, ps2_cmd_word(cmd))
     bench.run(500 + 4000 + 13 * period + 600 + 12 * period + 4000)
     rest = bench.words(0)[len(words):]

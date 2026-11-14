@@ -15,8 +15,9 @@
 ;   checks the host FIFO between two windows; if DATA is already low after
 ;   a window, its edge came between two windows. Then it waits for the CLK
 ;   fall of the start bit. This needs a device set-up time (DATA low to
-;   CLK fall) longer than the gap between two windows (about 28 cycles,
-;   0.56 us; not in the pages read; the test model uses 750 to 1,250).
+;   CLK fall) longer than one window and the gap after it (POLL + about
+;   32 cycles = 4.6 us; not in the pages read; the test model uses 750 to
+;   1,250 cycles).
 ;   Send: CLK low for RTS cycles (more than 60 us, page 40), DATA low (start
 ;   bit), CLK released; the device clocks the frame. After falling edges 2
 ;   to 11 the firmware sets the next bit (8 data bits, parity, stop =

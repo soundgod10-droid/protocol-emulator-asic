@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: © 2024 Tiny Tapeout
 # SPDX-License-Identifier: Apache-2.0
 
-"""Milestone M2c test: host SPI port, and the UART transmitter as firmware.
+"""Host SPI port, and the UART transmitter as firmware.
 
 What it does:
   The chip has no fixed UART any more. The tests load fw/uart_tx.s through

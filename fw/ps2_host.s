@@ -102,4 +102,4 @@ tn:     TADD    4095
         SAMPLE  DATA, r1>>      ; falling edge 12: acknowledge
         JMP     rend
 
-        .equ    LATE, rlate     ; the test sets LATE = nolate to measure the firmware without the check
+        .equ    LATE, st        ; the test sets LATE = nolate to measure the firmware without the check

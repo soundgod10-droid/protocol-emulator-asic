@@ -17,8 +17,8 @@
 //   is read in the next slot of the thread at cycle c + 4.
 //
 // Why:
-//   R1_uart_tx.md 9.4 item 3: the library has no flip-flop with enable,
-//   so each loadable bit costs dfrbpq_1 + mux2_1. The three storage
+//   The library has no flip-flop with enable, so each loadable bit costs
+//   dfrbpq_1 + mux2_1 (liberty cell areas, docs/isa.md Sources). The three storage
 //   methods differ in this cost and in the read multiplexers:
 //   - pe_rf_ring:  4 entries that turn in each cycle (the method of
 //                  pe_core). No enable; read 1 of 4 registers.

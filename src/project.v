@@ -137,7 +137,7 @@ module tt_um_soundgod10_droid_protocol_emulator (
       .th_err       (th_err)
   );
 
-  // D2 cycle counter: the common time base of all pin events. START
+  // Cycle counter: the common time base of all pin events. START
   // clears it, so the first thread cycle is cycle 0 (docs/isa.md 3.1).
   wire [31:0] cycle_count;
   pe_cycle_counter #(

@@ -351,6 +351,18 @@ def can_fault(bench, m, node, log=(), chip_frames=(), node_frames=(), expect_los
     return None
 
 
+def first_status(bench, m, cycles, threads, name, equ):
+    """Runs up to `cycles` and gives the cycle, thread and source line where a thread first sets LATE or ERR."""
+    prog = pe_asm.assemble(source(name, **equ), name, 0)
+    for _ in range(cycles):
+        bench.run(1)
+        for n in threads:
+            th = m.threads[n]
+            if th.status:
+                return f"cycle {m.cycle}: thread {n} status {th.status} at address {th.pc}: {prog.source[th.pc][1].strip()}"
+    return "no status change"
+
+
 def can_case(bt, sp, delay=0, node_ppm=0, node_sp=None, offsets=(0,), equ=None):
     """None if, at each start phase, the chip sends CAN_FRAMES (acknowledged by the node), receives and
     acknowledges NODE_FRAMES, and loses one arbitration, takes the winner's frame and then sends its frame;

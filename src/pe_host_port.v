@@ -166,7 +166,7 @@ module pe_host_port #(
   assign mem_we     = w_word && (cmd == K_WRITE_MEM) && !running;
   assign cfg_we     = w_word && (cmd == K_WRITE_CFG) && !running;
   assign fifo_push  = w_word && (cmd == K_PUSH) && running;
-  assign mem_addr   = (st == S_ARG) ? bin[6:0] : addr;
+  assign mem_addr   = (st == S_ARG) ? bin : addr;
   assign mem_wdata  = {hold, bin};
   assign cfg_addr   = addr;
   assign cfg_wdata  = {hold, bin};

@@ -45,6 +45,15 @@
 ;   SOF to the last CRC bit: first word 12 bits (SOF, identifier) in bits
 ;   11 to 0, then words of 16 bits, then the rest under a mark bit (the
 ;   highest 1); then the CRC word: 0 = the CRC matches.
+; Limits (model, test/test_flex.py test_flex_can, 50 MHz, the other node's
+;   clock +/-0.5 % (Part A page 31), 10-cycle transceiver loop delay, 4
+;   start phases): correct at 250 kbit/s (BT 200) with the sample point at
+;   50 % or 55 %, at 200 kbit/s (BT 250) at 55 % to 65 %, at 125 kbit/s
+;   (BT 400) at 60 % to 70 %. A later sample point sets LATE: thread 1
+;   needs about 88 cycles from the sample point to the end of the bit
+;   (the ACK decision) with exact clocks, more with clock error. 500 kbit/s
+;   and 1 Mbit/s do not fit (one instruction every 4 cycles per thread).
+;   123 words: no other example program fits next to it in 128 words.
 ; Not done: error frames, overload frames, error counters, stuff and form
 ;   error checks (a stuff error shows as a CRC error), DLC 9 to 15, bit
 ;   errors after the arbitration field (thread 0).

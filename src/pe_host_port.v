@@ -60,12 +60,12 @@ module pe_host_port #(
     output wire        start,          // 1 in the first cycle after the release
     // Program memory (pe_latch_ram), only while running = 0
     output wire        mem_we,
-    output wire [6:0]  mem_addr,       // write address, and read address while running = 0
+    output wire [7:0]  mem_addr,       // write address, and read address while running = 0
     output wire [15:0] mem_wdata,
     input  wire [15:0] mem_rdata,      // word at mem_addr
     // Configuration (pe_config)
     output wire        cfg_we,
-    output wire [6:0]  cfg_addr,
+    output wire [7:0]  cfg_addr,
     output wire [15:0] cfg_wdata,
     // Host FIFOs (pe_host_fifo)
     output wire [1:0]  fifo_tid,

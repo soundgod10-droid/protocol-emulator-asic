@@ -5,8 +5,7 @@
 
 `default_nettype none
 
-// pe_timed_out: one timed output channel of the timed I/O unit
-// (block D2 of architecture D, A1_architecture.md section 4.4 and 7).
+// pe_timed_out: one timed output channel of the timed I/O unit.
 //
 // What it does:
 //   The channel holds one pin event: a 16-bit cycle time, a pin value and

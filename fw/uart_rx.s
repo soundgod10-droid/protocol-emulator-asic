@@ -1,4 +1,4 @@
-; uart_rx.s: UART receiver firmware for one thread (milestone M2a).
+; uart_rx.s: UART receiver firmware for one thread.
 ;
 ; What it does:
 ;   The thread receives UART frames (8N1, LSB first) on UART_RX (ui_in[3],

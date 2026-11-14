@@ -42,7 +42,7 @@
         .equ    TDI, UO2
         .equ    TDO, UI0
         .equ    H1, 16          ; falling to rising TCK edge (cycles)
-        .equ    H2, 16          ; rising to falling TCK edge (cycles)
+        .equ    H2, 32          ; rising to falling TCK edge (cycles)
 
 jtag:   TNOW    8
         OUT     TCK, 0

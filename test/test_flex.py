@@ -1367,6 +1367,54 @@ def ps2_dev_run(equ=None, inhibit=None, cmd=0xF4, frames=(0xAA, 0xFA, 0x12, 0xF0
     return None, host.periods
 
 
+def trigger_case(fire, d, offsets=range(16), b=434, match=0x5A):
+    """fw/trigger.s: four 8N1 frames (0x11, match, 0xA5, match) on UART RX, the first start edge `offset` cycles
+    late; returns (fault or None, latencies: pulse rising edge minus the start edge of the matching frame, cycles)."""
+    lat = []
+    prog = assemble("trigger.s", FIRE=fire)
+    for off in offsets:
+        m = pe_model.PeModel(prog.words, owner=owners({13: 0}))  # TRG = uo_out[5] = output pin 13
+        data = [0x11, match, 0xA5, match]
+        starts = [2000 + off + i * 12 * b for i in range(4)]
+        line = uart_line([(s, frame_bits(x, "8N1")) for s, x in zip(starts, data)], b)
+        bench = Bench(m, inputs=lambda c, uo, uio, oe, line=line: (value_at(line, c) << 3, 0))
+        bench.watch("trg", lambda uo, uio, oe: (uo >> 5) & 1)
+        bench.send(0, b, match, d)
+        bench.run(starts[-1] + 12 * b + d + 500)
+        rises = [c for i, (c, v) in enumerate(bench.changes("trg")) if v == 1 and i > 0]
+        th = m.threads[0]
+        if th.status or len(rises) != 2 or bench.words(0) != [match, match]:
+            return f"offset {off}: status {th.status}, pulses at {rises}, words {bench.words(0)}", lat
+        lat += [rises[0] - starts[1], rises[1] - starts[3]]
+    return None, lat
+
+
+@cocotb.test(skip=GL)
+async def test_flex_trigger(dut):
+    """fw/trigger.s (option O5): pulse delay from the start edge of a matching UART byte at 16 start phases, for the
+    pulse timed from T (fire_t) and for the pulse started after the match (fire_n); the smallest delay D."""
+    log = dut._log
+    log.info(f"fw/trigger.s: {assemble('trigger.s').size} words")
+    b, d = 434, 200
+    expect = 2 + b // 2 + 8 * b + d  # edge cycle (pin + 2) + half bit + 8 bits + D
+    res = {}
+    for fire in ("fire_t", "fire_n"):
+        fault, lat = trigger_case(fire, d)
+        assert fault is None, f"{fire}: {fault}"
+        res[fire] = (min(lat), max(lat))
+        log.info(f"{fire}, B {b}, D {d}: latency from the start edge {min(lat)} to {max(lat)} cycles "
+                 f"(jitter {max(lat) - min(lat)} cycles) over {len(lat)} matches at 16 start phases; "
+                 f"T + D formula {expect}")
+    smallest = None
+    for dd in range(8, 120, 4):
+        if trigger_case("fire_t", dd, offsets=range(4))[0] is None:
+            smallest = dd
+            break
+    log.info(f"fire_t: smallest D without LATE {smallest} cycles "
+             f"({trigger_case('fire_t', smallest - 4, offsets=range(4))[0] if smallest else ''})")
+    assert res["fire_t"][0] == res["fire_t"][1], "the T-timed pulse must have no jitter"
+
+
 @cocotb.test(skip=GL)
 async def test_flex_ps2(dut):
     """fw/ps2_host.s against an independent PS/2 device model and fw/ps2_dev.s against an independent PS/2 system

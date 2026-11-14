@@ -427,7 +427,7 @@ module pe_core (
     n_ldrd   = h_ldrd;
     n_ldaddr = h_ldaddr;
     mem_we    = 1'b0;
-    mem_waddr = ir[6:0];
+    mem_waddr = ir[7:0];
     o_load    = 1'b0;
     fifo_pull = 1'b0;
     fifo_push = 1'b0;

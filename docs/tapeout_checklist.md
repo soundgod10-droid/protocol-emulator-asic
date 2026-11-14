@@ -1,22 +1,22 @@
 # Tape-out checklist
 
-Items to do or check before the final (tape-out) gds run and the submission. Each item gives its reason. Decisions D8, D9, D11 and D13 are in the design notes of the project (DECISIONS.md).
+Items to do or check before the final (tape-out) gds run and the submission. Each item gives its reason. The decisions behind them are in docs/decisions.md (entries 5, 6, 12 and 13).
 
 ## 1 Exit criteria for tape-out
 
-The exit criteria of the architecture note (A1 8.3) with the 5 additions of design note R3 (row S7), without the FPGA line L5, and with the SDF job (decision D13). L5 is removed: there is no FPGA board, and the design does not fit the only FPGA of the template workflow (iCE40UP5K, 154 % of the logic cells, run 41817455061).
+There is no FPGA step: the design does not fit the only FPGA of the template workflow (iCE40UP5K, 154 % of the logic cells, run 41817455061; docs/decisions.md entry 12).
 
-| No. | Criterion | Source | How to check |
+| No. | Criterion | Reason | How to check |
 |---|---|---|---|
-| E1 | All L2, L3 and L4 tests pass on the final RTL | A1 8.3 | test job (cocotb: test, test_isa, test_core, test_fw_full) and the formal jobs in formal/ (core, core_cover, host_port, host_port_cover, host_port_mut_id, mem, mem_cover, mem_small, mem_full, mem_full_reset, mem_reset, timed_out, timed_out_cover) run on the tape-out commit |
-| E2 | The template gate-level test passes | A1 8.3 | gl_test job of the submitted run |
-| E3 | STA has no violation at the three flow corners | A1 8.3, D9 | section 5: summary.rpt and checks.rpt of all corners |
-| E4 | Precheck passes, 9 of 9 checks | R3 S7 addition 1 | precheck job, precheck_reports/results.md |
-| E5 | Magic DRC 0 in the submitted run itself | R3 S7 addition 2, D11 | `magic__drc_error__count` = 0 in final/metrics.csv of the submitted run (section 2) |
-| E6 | The submitted layout is one named GitHub Actions run, on the tape-out commit | R3 S7 addition 3, D11, R3 T1 | the run id in the submission (commit_id.json workflow_url) is the tape-out run of section 4 |
-| E7 | The newest commits of the template, the tools and the GDS action are compared with the last check | R3 S7 addition 4, D11, R3 T6 | section 3 |
-| E8 | Max fanout "violations" are only the known clock-leaf set, and max slew is 0 | R3 S7 addition 5 | section 5 |
-| E9 | The SDF gate-level job passes at the three corners on the final gds run | D13, R3 S4 | section 4 step 3 |
+| E1 | All RTL tests and formal jobs pass on the final RTL | the checks of docs/verification.md sections 1 to 3 must hold for the submitted RTL | test job (cocotb: test, test_isa, test_core, test_fw_full, test_flex) and the formal jobs in formal/ (core, core_cover, host_port, host_port_cover, host_port_mut_id, mem, mem_cover, mem_small, mem_full, mem_full_reset, mem_reset, timed_out, timed_out_cover) run on the tape-out commit |
+| E2 | The template gate-level test passes | the competition FAQ recommends gate-level simulation | gl_test job of the submitted run |
+| E3 | STA has no violation at the three flow corners | the flow fails only on typical-corner violations (section 5); docs/decisions.md entry 5 | section 5: summary.rpt and checks.rpt of all corners |
+| E4 | Precheck passes, 9 of 9 checks | the competition FAQ asks for a passing GDS and precheck from the Tiny Tapeout flow | precheck job, precheck_reports/results.md |
+| E5 | Magic DRC 0 in the submitted run itself | precheck runs only the KLayout deck on SG13CMOS5L (section 2); docs/decisions.md entry 6 | `magic__drc_error__count` = 0 in final/metrics.csv of the submitted run (section 2) |
+| E6 | The submitted layout is one named GitHub Actions run, on the tape-out commit | the shuttle takes the layout of that run (section 2) | the run id in the submission (commit_id.json workflow_url) is the tape-out run of section 4 |
+| E7 | The newest commits of the template, the tools and the GDS action are compared with the last check | the gds workflow uses moving action references (section 3) | section 3 |
+| E8 | Max fanout "violations" are only the known clock-leaf set, and max slew is 0 | the present layout has 3 open max-slew violations at the slow corner (docs/verification.md section 6) | section 5 |
+| E9 | The SDF gate-level job passes at the three corners on the final gds run | docs/decisions.md entry 13 | section 4 step 3 |
 
 ## 2 Flow configuration (src/config.json)
 

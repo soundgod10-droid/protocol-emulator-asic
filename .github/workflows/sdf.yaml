@@ -68,6 +68,29 @@ jobs:
           run-id: ${{ env.RUN_ID }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
+      # The PDK revision that the gds run used (tt_submission/pdk.json), installed the way the
+      # gate-level test action of tt-gds-action@ttihp27a installs it.
+      - name: PDK revision of the gds run
+        uses: actions/download-artifact@v7
+        with:
+          name: tt_submission
+          path: tt_sub
+          run-id: ${{ env.RUN_ID }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: PDK name and version
+        run: |
+          echo "PDK=$(jq -r '.PDK' tt_sub/tt_submission/pdk.json)" >> $GITHUB_ENV
+          echo "PDK_VERSION=$(jq -r '.PDK_VERSION' tt_sub/tt_submission/pdk.json)" >> $GITHUB_ENV
+          cat tt_sub/tt_submission/pdk.json | tee -a test/sdf_source.log
+
+      - name: Install the PDK
+        uses: TinyTapeout/ciel-action@v1
+        with:
+          pdk_name: ${{ env.PDK }}
+          pdk_version: ${{ env.PDK_VERSION }}
+          pdk_root: ${{ env.PDK_ROOT }}
+
       - name: Setup python
         uses: actions/setup-python@v6
         with:
@@ -75,8 +98,6 @@ jobs:
 
       - name: tools
         run: |
-          git clone --depth 1 --branch ihp-cmos5l https://github.com/TinyTapeout/tt-gds-action tt-gds-action
-          bash tt-gds-action/install_sg13cmos5l.sh
           wget -q https://github.com/TinyTapeout/iverilog/releases/download/v13.0/iverilog_13.0-1_amd64.deb
           sudo apt-get update -y
           sudo apt-get install -y ./iverilog_13.0-1_amd64.deb

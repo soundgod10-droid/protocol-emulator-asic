@@ -44,17 +44,20 @@ host:   TNOW    12              ; two OUT events follow (docs/isa.md 7: 4 x 2 + 
         OUT     DATA, 1
 idle:   TNOW    16
         TADD    POLL
-        WAIT    CLK, FALL, r3, TO, CT
-        BES     rx
+        WAIT    DATA, FALL, r3, TO  ; the device sets DATA low (start bit) before the first CLK fall
+        BES     st
         IOR     r3, PINS
-        ANDI    r3, 0x10        ; CLK (input 4)
-        BEQ     LATE            ; CLK is low: the start edge came between two windows
+        ANDI    r3, 0x20        ; DATA (input 5)
+        BEQ     LATE            ; DATA is low: its edge came between two windows
 nolate: PULL.NB r0
         BEC     idle
         JMP     tx
-rlate:  TNOW    0
-rx:     LDI     r2, 11
-rs:     TADD    24              ; up to 2 instructions after the WAIT: lead 4 or more (docs/isa.md 4.2)
+st:     TADD    4095
+        TADD    4095
+        WAIT    CLK, FALL, r3, TO, CT   ; falling edge of the start bit
+        BEC     idle
+        LDI     r2, 11
+rs:     TADD    28              ; up to 3 instructions after the WAIT: lead 4 or more (docs/isa.md 4.2)
         SAMPLE  DATA, r1>>
         DJNZ    r2, rw
 rend:   PUSH    r1              ; frame: start bit 5 ... stop bit 15; command: the acknowledge in bit 15

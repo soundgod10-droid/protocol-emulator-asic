@@ -34,7 +34,7 @@ There is no FPGA step: the design does not fit the only FPGA of the template wor
   | TinyTapeout/tt-support-tools, ihp-sg13cmos5l | "feat(ihp): 8x4 tile size for ihp-sg13cmos5l" |
   | TinyTapeout/tt-gds-action, ihp-cmos5l | "fix: install ihp-sg13cmos5l from the merged IHP-Open-PDK tree #52; Pin PDK version and bump the default LibreLane to 3.1.0.dev3" |
 
-- [ ] If a commit is new: read what it changes. The flow gives the same metrics for the same netlist and settings, so a change of `final/metrics.csv` between the last development run and a run of the same commit shows a tool change. Write the PDK and LibreLane versions of the tape-out run (resolved.json) in the design note.
+- [ ] If a commit is new: read what it changes. The flow gives the same metrics for the same netlist and settings, so a change of `final/metrics.csv` between the last development run and a run of the same commit shows a tool change. Write the PDK and LibreLane versions of the tape-out run (resolved.json) in docs/verification.md.
 
 ## 4 Tape-out run, in this order
 

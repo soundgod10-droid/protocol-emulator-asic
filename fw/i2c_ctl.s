@@ -34,7 +34,7 @@
 ;   8; a loss in bit 9, a NACK against an ACK, shows as bit 0 = 0).
 ;   After a loss the thread takes the next host word as a new transfer
 ;   with START: the host must not queue words after a byte that can lose.
-; Limits of the .equ values (G1 model runs): TSMP 16 or more, THIGH2 + HD
+; Limits of the .equ values (model runs; no test asserts them): TSMP 16 or more, THIGH2 + HD
 ;   36 or more. SCL and SDA have the input spike filter of docs/isa.md 6.1:
 ;   spikes of 1 to 3 samples (every spike shorter than 60 ns at 50 MHz,
 ;   UM10204 Fast-mode needs less than 50 ns) have no effect

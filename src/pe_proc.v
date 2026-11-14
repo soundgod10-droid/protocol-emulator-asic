@@ -25,7 +25,7 @@
 //   The host side (memory write and read, configuration, start, FIFO
 //   access) is a separate port for the host SPI port (pe_host_port).
 //
-// Resets (M2c):
+// Resets:
 //   rst_n is the chip reset. run_rst_n is 0 while the host port stops the
 //   threads (and during the chip reset). It resets the core, the FIFOs
 //   and the event slots with their pin registers, so STOP gives the state

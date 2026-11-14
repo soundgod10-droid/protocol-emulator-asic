@@ -39,7 +39,7 @@ ALL_COMMANDS = (READ_ID, READ_STATUS, STOP, START, WRITE_MEM, READ_MEM, WRITE_CF
 CHIP_ID = [0x50, 0x45, 0x02, 0x03]  # "PE" and two version bytes (docs/host_port.md)
 STATUS_BYTES = 7
 
-SCK_BIT, CS_N_BIT, MOSI_BIT, MISO_BIT = 7, 6, 5, 7  # ui_in[7:5], uo_out[7] (A1 section 2.2)
+SCK_BIT, CS_N_BIT, MOSI_BIT, MISO_BIT = 7, 6, 5, 7  # ui_in[7:5], uo_out[7] (docs/host_port.md 2)
 
 
 def code_ok(byte):

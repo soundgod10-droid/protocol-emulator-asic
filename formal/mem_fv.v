@@ -23,10 +23,10 @@
 //   clock signal the check sees when each latch is open, not only the
 //   values at the clock edges. The memory has the size of the chip.
 //
-// Reset (M2c, M2b open item 2):
-//   The memory has no reset (the write-data flip-flops have none since
-//   M2c). The chip reset clears only the flip-flops that make the write
-//   request (pe_proc, pe_host_port). The harness does the same: its
+// Reset (docs/decisions.md entry 7):
+//   The memory has no reset (the write-data flip-flops have none). The
+//   chip reset clears only the flip-flops that make the write
+//   request (pe_proc, pe_host_port). The wrapper does the same: its
 //   request register "we" has an asynchronous reset. With FREE_RESET = 1
 //   the reset can come at any solver step, also in the first half of the
 //   cycle after a store, while the word is open.

@@ -58,6 +58,7 @@ rs:     TADD    16
         SAMPLE  DATA, r1>>
         DJNZ    r2, rw
         PUSH    r1              ; start bit 5 ... stop bit 15
+        WAIT    CLK, RISE, r3   ; end of the stop-bit clock: else the late check takes it as a start bit
         JMP     idle
 rw:     TADD    4095
         TADD    4095

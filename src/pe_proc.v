@@ -54,7 +54,7 @@ module pe_proc (
     input  wire [14:0] pin_od,
     input  wire        h_mem_host,  // 1 = the host uses the memory ports
     input  wire        h_mem_we,
-    input  wire [6:0]  h_mem_addr,
+    input  wire [7:0]  h_mem_addr,
     input  wire [15:0] h_mem_data,
     output wire [15:0] h_mem_rdata, // word at h_mem_addr while h_mem_host = 1
     input  wire [1:0]  h_tid,

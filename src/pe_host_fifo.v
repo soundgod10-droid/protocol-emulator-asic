@@ -5,7 +5,7 @@
 
 `default_nettype none
 
-// pe_host_fifo: host FIFOs of the four threads (A1 block D6).
+// pe_host_fifo: host FIFOs of the four threads.
 //
 // What it does:
 //   Each thread n has a host-to-thread FIFO ("in") and a thread-to-host

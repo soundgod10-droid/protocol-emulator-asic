@@ -32,7 +32,7 @@
 ; Registers: r0 = bits to send, r1 = bus values read, r2 = bit counter,
 ; r3 = control bits of the host word.
 
-        .equ    SCL, UIO6       ; clock, open drain  [ENGINEER: pin choice]
+        .equ    SCL, UIO6       ; clock, open drain
         .equ    SDA, UIO7       ; data, open drain
         .equ    LOW1, 35        ; SCL fall to SDA change
         .equ    LOW2, 35        ; SDA change to SCL rise (data set-up time)

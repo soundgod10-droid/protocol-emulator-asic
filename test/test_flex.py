@@ -1268,7 +1268,7 @@ class Ps2Host:
             elif self.n == 12:
                 self.ack, self.mode = data, "rx"
             return
-        if self.falls and c - self.falls[-1] > 20_000:
+        if self.falls and c - self.falls[-1] > 8000:  # more than a clock period: a new frame
             self.bits = []
         if self.falls and self.bits:
             self.periods.append(c - self.falls[-1])

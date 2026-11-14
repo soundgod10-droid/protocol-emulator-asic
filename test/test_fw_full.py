@@ -1234,7 +1234,7 @@ async def test_r2_clock_margins(dut):
             + f"; all four {', '.join(four)}"
             + f"; USB LS {n_usb} cycles/bit {usb_err * 100:+.2f} %"
             + f"; 10BASE-T half bit {50e-9 * f_clk:.2f} cycles, edge grid error {eth:.2f} ns")
-    # G1 values again with the G1 data (rx_limits: 8 random frames, seed b x 1000 + h), now as
+    # The rx_limits values again with the same data (8 random frames, seed b x 1000 + h), now as
     # contiguous limits (every 0.1 % step from 0 passes).
     for b in (50, 40):
         rng = random.Random(b * 1000 + rx_h(b))

@@ -350,7 +350,7 @@ module g1_late (
 endmodule
 
 // ---------------------------------------------------------------------------
-// Pin owner (D4 item 5): owner thread and owner enable of the 15 output
+// Pin owner (docs/isa.md 5.2): owner thread and owner enable of the 15 output
 // pins, and the check of the pin of an OUT. The alternative has no owner
 // (any thread can drive any pin) and no logic.
 // ---------------------------------------------------------------------------

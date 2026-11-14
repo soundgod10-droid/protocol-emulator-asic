@@ -6,7 +6,7 @@ Each method below gives what it checks, what it does not check, and its latest r
 
 | Method | Checks | Latest result |
 |---|---|---|
-| RTL tests (cocotb, Icarus Verilog) | host port, firmware UART on the chip pins, processor against the reference model, assembler, full protocol firmware in the model | 61 tests, 0 failures, run [42744631302] |
+| RTL tests (cocotb, Icarus Verilog) | host port, firmware UART on the chip pins, processor against the reference model, assembler, full protocol firmware in the model, firmware for protocols outside the instruction-set design | 68 tests, 0 failures, run [43592752852] (commit 33873db; the RTL is that of 6e2a0fd) |
 | Lockstep with the reference model | every pin and every host word, in every clock cycle | part of the RTL and gate-level tests |
 | Formal proofs (SymbiYosys, Z3) | barrel order, pin events, event slot, host port, latch memory | 13 jobs pass (table below) |
 | Gate-level test | the layout netlist with the RTL tests, no delays | 44 pass, 17 skipped (model-only tests), run [42744631446] |

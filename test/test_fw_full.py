@@ -690,7 +690,7 @@ async def test_fw_full_uart_tx(dut):
 
 @cocotb.test(skip=GL)
 async def test_fw_full_uart_rate_error(dut):
-    """Divider error B = K x C against the nominal bit time for the common rates (calculation, A1 share 1 %)."""
+    """Divider error B = K x C against the nominal bit time for the common rates (calculation, against our 1 % share)."""
     rates = [300, 600, 1_200, 2_400, 4_800, 9_600, 14_400, 19_200, 38_400, 57_600, 115_200, 230_400,
              460_800, 921_600, 1_000_000]
     for f_clk in (50e6, 40e6):

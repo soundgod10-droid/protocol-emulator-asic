@@ -126,6 +126,8 @@ class CanNode:
     def see(self, c, bus):
         fall = self.prev_bus == 1 and bus == 0
         self.prev_bus = bus
+        if fall:
+            self.last_fall = c
         if self.state == "idle":
             if fall:  # hard synchronization on SOF (pages 29, 30 rule 3)
                 self._begin(c, bool(self.pending and c >= self.start))

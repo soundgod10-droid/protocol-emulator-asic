@@ -1434,7 +1434,7 @@ async def test_flex_i2c_char(dut):
     """N2 option C: the host finds the SDA set-up limit of an I2C target by binary search on TLOW of fw/i2c_ctl.s
     (the firmware is assembled again for each try, no firmware change), against target models with set limits."""
     log = dut._log
-    for tsu_min in (20, 30, 45):
+    for tsu_min in (20, 30, 35):  # the model's SDA delay must stay below the START hold time (about 39 cycles)
         lo, hi = 1, I2C_EQU[("Fm", 50)]["TLOW"]  # hi passes (checked), lo is below the firmware's working range
         assert i2c_char_run(hi, tsu_min)[0] == "ok"
         tries = 1

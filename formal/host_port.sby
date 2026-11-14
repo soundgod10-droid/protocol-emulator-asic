@@ -1,6 +1,6 @@
 # host_port: proof of the host SPI port properties H1 to H7 (with the
 # invariants J1 to J8) in src/pe_host_port.v, against the monitor that
-# decodes the SPI pins as docs/host_port.md tells (M2c step 5).
+# decodes the SPI pins as docs/host_port.md tells.
 #
 # The SPI pins after the synchronizers and all other inputs are free in
 # each clock cycle. The check starts in reset; later resets are free.

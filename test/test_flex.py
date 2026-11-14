@@ -1128,3 +1128,265 @@ async def test_flex_swd(dut):
                          f"H2 {h2 - 1}: {(below or 'correct')[:100]}")
             log.info(f"{name}, target delay {td}: smallest H1 that works {min(r[1] for r in rows)}")
     assert best[("swd.s", 8)] <= 32, f"fw/swd.s smallest SWCLK period {best[('swd.s', 8)]} cycles"
+
+
+# ----- PS/2 -----
+# IBM, "Personal System/2 Hardware Interface Technical Reference" (May 1988), Keyboards (101- and 102-Key): frame
+# (Figure 18) page 38; device output, inhibit and line contention page 39; request to send, acknowledge, 20 ms
+# response page 40. The clock times are not in the pages read: they are parameters of the models.
+
+P_PCLK, P_PDATA = 4, 5  # uio[4], uio[5], open drain
+
+
+def ps2_frame(byte):
+    """11 line bits, first first: start 0, data LSB first, odd parity, stop 1 (page 38)."""
+    data = [(byte >> i) & 1 for i in range(8)]
+    return [0] + data + [1 - (sum(data) & 1)] + [1]
+
+
+def ps2_decode(bits):
+    """(byte, frame correct) from 11 line bits."""
+    return sum(b << i for i, b in enumerate(bits[1:9])), bits[0] == 0 and bits[10] == 1 and sum(bits[1:10]) % 2 == 1
+
+
+def ps2_word_bits(w):
+    """The 11 bits of a frame word of the firmware (bits 5 to 15)."""
+    return [(w >> (5 + i)) & 1 for i in range(11)]
+
+
+class Ps2Bus:
+    """Open-drain CLK and DATA with pull-ups: a line is low when the chip pin drives 0 or the model pulls it low."""
+
+    def __init__(self, model):
+        self.m = model
+
+    def __call__(self, c, uo, uio, oe):
+        clk = 0 if level(uio, oe, P_PCLK) == 0 or self.m.clk_low else 1
+        data = 0 if level(uio, oe, P_PDATA) == 0 or self.m.data_low else 1
+        self.m.step(c, clk, data)
+        return 0, clk << P_PCLK | data << P_PDATA
+
+
+class Ps2Device:
+    """PS/2 device model (pages 38 to 40), written from the IBM pages. Own clock: `period` cycles, CLK low `low`
+    cycles, DATA set `tsu` cycles before each falling edge. It sends the next frame when CLK and DATA have been high
+    for `gap` cycles; if CLK is low when it releases CLK before the 10th clock (line contention) it stops and sends
+    the frame again later. On a request to send (CLK high, DATA low) it waits `rts_delay` cycles, clocks 11 bits,
+    samples DATA at each rising edge, pulls DATA low for a 12th clock if the stop bit is high, records the byte and
+    then sends `answer`. It records DATA changes by the host while CLK is high in a receive (errors)."""
+
+    def __init__(self, period, frames=(), low=None, tsu=None, gap=3000, rts_delay=500, answer=0xFA, start=0):
+        self.period = period
+        self.low = period // 2 if low is None else low
+        self.tsu = (period - self.low) // 2 if tsu is None else tsu
+        self.queue = deque(frames)
+        self.gap, self.rts_delay, self.answer, self.start = gap, rts_delay, answer, start
+        self.clk_low = self.data_low = False
+        self.state, self.quiet, self.prev = "idle", 0, (1, 1)
+        self.received, self.sent, self.stopped, self.errors = [], [], 0, []
+
+    def step(self, c, clk, data):
+        st = self.state
+        if st == "idle":
+            self.quiet = self.quiet + 1 if (clk, data) == (1, 1) else 0
+            if clk == 1 and data == 0 and self.prev[1] == 1:
+                self.state, self.t0 = "rts", c + self.rts_delay
+            elif self.queue and self.quiet >= self.gap and c >= self.start:
+                self.state, self.t0, self.bits = "send", c, ps2_frame(self.queue[0])
+        elif st == "rts" and c >= self.t0:
+            self.state, self.rbits = "recv", []
+        elif st == "send":
+            k, ph = divmod(c - self.t0, self.period)
+            if k > 10:
+                self.data_low, self.state, self.quiet = False, "idle", 0
+                self.sent.append(self.queue.popleft())
+            elif ph == 0:
+                self.data_low = self.bits[k] == 0
+            elif ph == self.tsu:
+                self.clk_low = True
+            elif ph == self.tsu + self.low:
+                self.clk_low = False
+            elif ph == self.tsu + self.low + 2 and clk == 0 and k < 9:  # contention before the 10th clock
+                self.data_low, self.state, self.quiet = False, "idle", 0
+                self.stopped += 1
+        elif st == "recv":
+            k, ph = divmod(c - self.t0, self.period)
+            if clk == 1 and data != self.prev[1] and k <= 10 and ph > 2:
+                self.errors.append(f"cycle {c}: host changed DATA while CLK is high (bit {k})")
+            if k <= 11 and ph == 0:
+                self.clk_low = True
+            elif k <= 11 and ph == self.low:
+                self.clk_low = False
+                if k <= 10:
+                    self.rbits.append(data)
+                if k == 10:
+                    if self.rbits[10] == 1:
+                        self.data_low = True  # acknowledge in clock 12
+                    else:
+                        self.errors.append(f"cycle {c}: stop bit 0")
+            elif k == 12:
+                self.data_low, self.state, self.quiet = False, "idle", 0
+                self.received.append(ps2_decode(self.rbits))
+                if self.answer is not None:
+                    self.queue.append(self.answer)
+        self.prev = (clk, data)
+
+
+class Ps2Host:
+    """PS/2 system model (pages 38 to 40), written from the IBM pages. It samples DATA at each falling CLK edge that
+    it does not make, collects 11-bit frames (a frame restarts after 20,000 cycles without a falling edge), checks
+    start, odd parity and stop, and records the fall-to-fall clock periods. It can hold CLK low for `inhibit_len`
+    cycles from `inhibit_delay` cycles after falling edge `inhibit_at` of frame number `inhibit_frame`. At cycle
+    `cmd_at` it sends `cmd`: CLK low for `t_rts` cycles, DATA low, CLK released, the next bit `tchg` cycles after
+    falling edges 2 to 11, the acknowledge read after falling edge 12."""
+
+    def __init__(self, cmd=None, cmd_at=None, t_rts=4000, tchg=100, inhibit_frame=None, inhibit_at=0,
+                 inhibit_delay=200, inhibit_len=5000):
+        self.cmd, self.cmd_at, self.t_rts, self.tchg = cmd, cmd_at, t_rts, tchg
+        self.inh = (inhibit_frame, inhibit_at, inhibit_delay, inhibit_len)
+        self.clk_low = self.data_low = False
+        self.bits, self.frames, self.falls, self.periods = [], [], [], []
+        self.prev_clk, self.mode, self.ack, self.pend = 1, "rx", None, []
+
+    def step(self, c, clk, data):
+        while self.pend and self.pend[0][0] <= c:
+            _, name, v = self.pend.pop(0)
+            setattr(self, name, v)
+        fall = self.prev_clk == 1 and clk == 0 and not self.clk_low
+        self.prev_clk = clk
+        if self.cmd is not None and self.mode == "rx" and c == self.cmd_at:
+            self.mode, self.n = "tx", 0
+            self.tx = ps2_frame(self.cmd)
+            self.pend += [(c, "clk_low", True), (c + self.t_rts, "data_low", True), (c + self.t_rts + 100, "clk_low", False)]
+            return
+        if not fall:
+            return
+        if self.mode == "tx":
+            self.n += 1
+            if 2 <= self.n <= 11:
+                self.pend.append((c + self.tchg, "data_low", self.tx[self.n - 1] == 0))
+            elif self.n == 12:
+                self.ack, self.mode = data, "rx"
+            return
+        if self.falls and c - self.falls[-1] > 20_000:
+            self.bits = []
+        if self.falls and self.bits:
+            self.periods.append(c - self.falls[-1])
+        self.falls.append(c)
+        self.bits.append(data)
+        f, at, delay, length = self.inh
+        if f is not None and len(self.frames) == f and len(self.bits) == at:
+            self.pend += [(c + delay, "clk_low", True), (c + delay + length, "clk_low", False)]
+            self.inh = (None, 0, 0, 0)
+            self.bits = []
+        if len(self.bits) == 11:
+            self.frames.append(ps2_decode(self.bits))
+            self.bits = []
+
+
+PS2_BYTES = [0xAA, 0x1C, 0xF0, 0x1C, 0x00, 0xFF, 0x80]
+
+
+def ps2_cmd_word(byte):
+    bits = ps2_frame(byte)
+    return byte | bits[9] << 8 | 1 << 9
+
+
+def ps2_host_run(period, offset=0, late="rlate", cmd=0xED, low=None):
+    """fw/ps2_host.s with a device model: the device sends PS2_BYTES, then the firmware sends `cmd` and the device
+    acknowledges and answers 0xFA. Returns (fault or None, bytes decoded)."""
+    prog = assemble("ps2_host.s", LATE=late)
+    dev = Ps2Device(period, PS2_BYTES, low=low, start=1000 + offset)
+    m = pe_model.PeModel(prog.words, owner=owners({P_PCLK: 0, P_PDATA: 0}), open_drain=od((P_PCLK, P_PDATA)))
+    bench = Bench(m, inputs=Ps2Bus(dev))
+    bench.run(1000 + offset + len(PS2_BYTES) * (12 * period + 3200))
+    words = list(bench.words(0))
+    got = [ps2_decode(ps2_word_bits(w)) if w >= 32 else (None, False) for w in words]
+    if got != [(b, True) for b in PS2_BYTES]:
+        return f"received {[(hex(b) if b is not None else None, ok) for b, ok in got]}", got
+    bench.send(0, ps2_cmd_word(cmd))
+    bench.run(500 + 4000 + 13 * period + 600 + 12 * period + 4000)
+    rest = bench.words(0)[len(words):]
+    if not rest or (rest[0] >> 15) & 1 != 0 or dev.received != [(cmd, True)]:
+        return f"command: words {[hex(w) for w in rest]}, device received {dev.received}, errors {dev.errors[:2]}", got
+    if len(rest) < 2 or ps2_decode(ps2_word_bits(rest[1])) != (0xFA, True):
+        return f"answer after the command: {[hex(w) for w in rest]}", got
+    if dev.errors or dev.stopped:
+        return f"device errors {dev.errors[:2]}, stopped {dev.stopped}", got
+    th = m.threads[0]
+    if th.status or not th.run:
+        return f"thread status {th.status}, run {th.run}, {th.stop_reason}", got
+    return None, got
+
+
+def ps2_dev_run(equ=None, inhibit=None, cmd=0xF4, frames=(0xAA, 0xFA, 0x12, 0xF0, 0x12)):
+    """fw/ps2_dev.s with a system model: the firmware sends `frames` (frame number `inhibit[0]` held off by the host at
+    falling edge `inhibit[1]`; the host program sends a frame again after 0xFFFF), then the system sends `cmd` and
+    the firmware acknowledges. Returns (fault or None, clock periods)."""
+    prog = assemble("ps2_dev.s", **(equ or {}))
+    host = Ps2Host(inhibit_frame=None if inhibit is None else inhibit[0], inhibit_at=0 if inhibit is None else inhibit[1])
+    m = pe_model.PeModel(prog.words, owner=owners({P_PCLK: 0, P_PDATA: 0}), open_drain=od((P_PCLK, P_PDATA)))
+    bench = Bench(m, inputs=Ps2Bus(host))
+    bench.run(200)
+    stops = 0
+    for b in frames:
+        word = sum(bit << i for i, bit in enumerate(ps2_frame(b)))
+        for _ in range(3):
+            n0 = len(bench.words(0))
+            bench.send(0, word)
+            for _ in range(100):
+                bench.run(2000)
+                if len(bench.words(0)) > n0:
+                    break
+            if bench.words(0)[n0:] == [0]:
+                break
+            stops += 1
+            bench.run(10_000)
+    if host.frames != [(b, True) for b in frames]:
+        return f"system received {[(hex(b), ok) for b, ok in host.frames]}, stops {stops}", host.periods
+    host.cmd, host.cmd_at = cmd, m.cycle + 3000
+    n0 = len(bench.words(0))
+    bench.run(3000 + 4200 + 14 * 6000)
+    got = bench.words(0)[n0:]
+    if host.ack != 0 or len(got) != 1 or ps2_decode(ps2_word_bits(got[0])) != (cmd, True):
+        return f"command: acknowledge {host.ack}, words {[hex(w) for w in got]}", host.periods
+    th = m.threads[0]
+    if th.status or not th.run:
+        return f"thread status {th.status}, run {th.run}, {th.stop_reason}", host.periods
+    expect = 0 if inhibit is None or inhibit[1] >= 10 else 1
+    if stops != expect:
+        return f"{stops} frames stopped by the host, expected {expect}", host.periods
+    return None, host.periods
+
+
+@cocotb.test(skip=GL)
+async def test_flex_ps2(dut):
+    """fw/ps2_host.s against an independent PS/2 device model and fw/ps2_dev.s against an independent PS/2 system
+    model (IBM PS/2 Hardware Interface Technical Reference, Keyboards, pages 38 to 40): frames both ways, command
+    with request to send and acknowledge, line contention, device clock 10 to 16.7 kHz, start edges at many phases
+    of the idle window, and the highest device clock that the host firmware decodes."""
+    log = dut._log
+    log.info(f"fw/ps2_host.s: {assemble('ps2_host.s').size} words; fw/ps2_dev.s: {assemble('ps2_dev.s').size} words")
+    for period in (5000, 4000, 3000):  # 10, 12.5, 16.7 kHz device clock
+        for late in ("rlate", "nolate"):
+            faults = [ps2_host_run(period, offset=o, late=late)[0] for o in range(0, 2100, 150)]
+            bad = [f for f in faults if f]
+            log.info(f"host firmware, device clock {F_CLK / period / 1e3:.1f} kHz, late check {late == 'rlate'}: "
+                     f"{len(faults) - len(bad)} of {len(faults)} start phases correct; first fault {(bad or ['none'])[0][:120]}")
+            if late == "rlate":
+                assert not bad, f"device clock {period} cycles: {bad[0]}"
+    lo, hi = 20, 3000  # smallest device clock period that the host firmware decodes (binary search, phases 0 and 75)
+    while hi - lo > 1:
+        mid = (lo + hi) // 2
+        ok = all(ps2_host_run(mid, offset=o)[0] is None for o in (0, 75))
+        lo, hi = (lo, mid) if ok else (mid, hi)
+    log.info(f"host firmware: smallest device clock period {hi} cycles ({F_CLK / hi / 1e3:.0f} kHz); "
+             f"{hi - 1}: {(ps2_host_run(hi - 1)[0] or 'correct')[:120]}")
+    for name, equ in (("12.5 kHz (defaults)", None), ("10 kHz", dict(TSU=900, TLO=2500, THI=1600)),
+                      ("16.7 kHz", dict(TSU=500, TLO=1500, THI=1000))):
+        for inhibit in (None, (1, 5), (2, 10)):
+            fault, periods = ps2_dev_run(equ, inhibit)
+            log.info(f"device firmware {name}, inhibit {inhibit}: {fault or 'correct'}; clock period "
+                     f"{min(periods) if periods else '-'} to {max(periods) if periods else '-'} cycles")
+            assert fault is None, f"device firmware {name}, inhibit {inhibit}: {fault}"
+

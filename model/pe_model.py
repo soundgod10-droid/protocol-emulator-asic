@@ -10,9 +10,9 @@ What it does:
   pin values of that cycle.
 
 Why:
-  The model is the reference for the processor RTL of milestone M2b
-  (A1_architecture.md section 8.1, level L1). A test gives the same inputs
-  to the RTL and to the model and compares the pins in each clock cycle.
+  The model is the reference for the processor RTL (src/). A test
+  (test/test_core.py) gives the same inputs to the RTL and to the model
+  and compares the pins in each clock cycle.
   The model comes from docs/isa.md only. It does not use the assembler,
   so that a fault in one of them does not hide the same fault in the other.
   The comments give the section of docs/isa.md ("isa 4.2") for each rule.

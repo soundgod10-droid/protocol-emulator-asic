@@ -36,7 +36,7 @@ PULL = 0x96
 CLEAR = 0xA5
 ALL_COMMANDS = (READ_ID, READ_STATUS, STOP, START, WRITE_MEM, READ_MEM, WRITE_CFG, PUSH, PULL, CLEAR)
 
-CHIP_ID = [0x50, 0x45, 0x02, 0x03]  # "PE", milestone 2, run c (docs/host_port.md)
+CHIP_ID = [0x50, 0x45, 0x02, 0x03]  # "PE" and two version bytes (docs/host_port.md)
 STATUS_BYTES = 7
 
 SCK_BIT, CS_N_BIT, MOSI_BIT, MISO_BIT = 7, 6, 5, 7  # ui_in[7:5], uo_out[7] (A1 section 2.2)

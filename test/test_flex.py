@@ -376,17 +376,16 @@ def can_case(bt, sp, delay=0, node_ppm=0, offsets=(0,)):
         chip_f = [dict(ident=0x3C2, data=[0x22, 0x33])]
         node_f = [first, dict(ident=0x3C1, data=[0x44])]
         bench, m, node, bus = can_run(bt, sp, node_frames=node_f, node_bt=nbt, delay=delay, node_start=100 + off,
-                                      cycles=int(600 * bt), host_at=0)
-        bench.send(0, *can_tx_words(chip_f[0]))
-        bench.run(1)
-        f = None
-        # the chip host sends the frame again after a lost status
-        for _ in range(3):
-            words = bench.words(0)
-            frames = can_rx_parse(words) if words else []
-            if frames and frames[-1][1] is not None and frames[-1][1] & 8 and len(frames) <= 3:
-                bench.send(0, *can_tx_words(chip_f[0]))
-            bench.run(int(150 * bt))
+                                      cycles=100 + off + int(30 * bt))
+        bench.send(0, *can_tx_words(chip_f[0]))  # during the first node frame
+        bench.run(int(130 * bt))
+        try:
+            st = [s for _, s in can_rx_parse(bench.words(0))]
+        except IndexError:
+            st = []
+        if any(s is not None and s & 8 for s in st):  # the host sends the frame again after a lost status
+            bench.send(0, *can_tx_words(chip_f[0]))
+        bench.run(int(100 * bt))
         f = can_fault(bench, m, node, chip_frames=chip_f, node_frames=node_f, expect_lost=1)
         if f:
             return f"arbitration, phase {off}: {f}"

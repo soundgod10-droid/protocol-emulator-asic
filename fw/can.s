@@ -105,8 +105,7 @@ dl:     ADDI    r3, -1
         BMI     dd
         PULL    r0
         JMP     dl
-dd:     NOT     r3, r3          ; r3 = -1 here: 0 ... use 0xFFFF
-        LDI     r3, 0
+dd:     LDI     r3, 0
         NOT     r3, r3
         PUSH    r3              ; 0xFFFF: lost
         JMP     tidle

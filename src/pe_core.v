@@ -920,8 +920,8 @@ module pe_core (
     assert (mem_we == f_store);
     if (mem_we) begin
       // W2: The address and the data come from the fields of the store:
-      //     addr or ra mod 128, and rs.
-      assert (mem_waddr == (f_st ? ir[6:0] : st0[16*ir[5:4]+:7]));
+      //     addr or ra mod 256, and rs.
+      assert (mem_waddr == (f_st ? ir[7:0] : st0[16*ir[5:4]+:8]));
       assert (mem_wdata == (f_st ? st0[16*ir[10:9]+:16] : st0[16*ir[7:6]+:16]));
       // W3: A store completes in its slot (PC + 1) and changes no other
       //     field of the thread state.

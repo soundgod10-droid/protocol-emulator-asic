@@ -31,7 +31,7 @@ sys.path.insert(0, os.path.join(ROOT, "asm"))
 import pe_asm  # noqa: E402
 import pe_model  # noqa: E402
 
-F_CLK = 50_000_000  # A1 section 2.3
+F_CLK = 50_000_000  # info.yaml clock_hz
 BAUD = 115_200
 T_NOM = F_CLK / BAUD  # 434.03 cycles: bit time that the receiver expects
 BIT_CYCLES = 434  # bit time of fw/uart_tx.s

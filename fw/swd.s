@@ -46,68 +46,48 @@
 
 swd:    TNOW    8
         OUT     SWCLK, 0
-        OUT     SWDIO, 0        ; idle: the host drives the line low
 cmd:    TSYNC   12
-        PULL.NB r1
+        PULL.NB r1              ; N = bit 15 of the word
         BEC     cmd
-        ST      r1, HDR
-        MOV     r1, r1
         BMI     raw
         LDI     r3, 8
-        JAL     r0, outb        ; request
+        JAL     r0, outb        ; request; then r1 = word >> 8, bit 2 = RnW
         LDI     r3, 4
         JAL     r0, inb         ; turnaround, ACK[0:2] to bits 13 to 15
         PUSH    r2
+        ANDI    r1, 4
         SHR     r2, 13
         CMPI    r2, 1
         BNE     fail            ; not OK: no data phase
-        LD      r1, HDR
-        ANDI    r1, 4
+        MOV     r1, r1
         BNE     rd
         LDI     r3, 1
         JAL     r0, inb         ; turnaround
-        PULL    r1
-        LDI     r3, 16
-        JAL     r0, outb        ; WDATA[0:15]
-        PULL    r1
-        LDI     r3, 16
-        JAL     r0, outb        ; WDATA[16:31]
-        PULL    r1
-        LDI     r3, 1
-        JAL     r0, outb        ; parity
-        JMP     cmd
-rd:     LDI     r3, 16
-        JAL     r0, inb         ; RDATA[0:15]
+        LDI     r2, 3           ; WDATA[0:15], WDATA[16:31], parity and 15 idle cycles
+        JMP     rg
+rd:     LDI     r1, 2
+rl:     LDI     r3, 16
+        JAL     r0, inb         ; RDATA[0:15], RDATA[16:31]
         PUSH    r2
-        LDI     r3, 16
-        JAL     r0, inb         ; RDATA[16:31]
-        PUSH    r2
+        DJNZ    r1, rl
         LDI     r3, 2
         JAL     r0, inb         ; parity (bit 14), turnaround
         PUSH    r2
-        JMP     idle1
+        JMP     cmd
 fail:   LDI     r3, 1
         JAL     r0, inb         ; turnaround
-idle1:  LDI     r1, 0
-        LDI     r3, 1
-        JAL     r0, outb        ; one idle cycle: the host drives the line low
+        MOV     r1, r1
+        BNE     cmd             ; a read: no data words to take
+        LDI     r2, 3
+fw:     PULL    r1              ; a write: take its 3 data words
+        DJNZ    r2, fw
         JMP     cmd
-raw:    SHL     r1, 6
-        SHR     r1, 6
-        ST      r1, HDR         ; cycles left
+raw:    MOV     r2, r1
+        ANDI    r2, 0xFF        ; number of 16-cycle words
 rg:     PULL    r1
-        LD      r3, HDR
-        ADDI    r3, -16
-        ST      r3, HDR
-        BMI     rp
         LDI     r3, 16
         JAL     r0, outb
-        LD      r3, HDR
-        MOV     r3, r3
-        BEQ     cmd
-        JMP     rg
-rp:     ADDI    r3, 16          ; 1 to 15 cycles in the last word
-        JAL     r0, outb
+        DJNZ    r2, rg
         JMP     cmd
 outb:   TSYNC   12              ; r3 cycles, the host drives SWDIO from r1 (bit 0 first)
 ob:     OUT     SWDIO, r1>>

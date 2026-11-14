@@ -22,8 +22,8 @@ What it does:
   on the START byte (docs/host_port.md, START).
 
 Why:
-  A1 section 8.1 level L4: instruction streams in lockstep with the L1
-  model. Pass or fail comes from the chip pins and the model. The state
+  Instruction streams run in lockstep with the reference model. Pass or
+  fail comes from the chip pins and the model. The state
   comparison only finds a difference earlier. It is not available at gate
   level (the netlist has other names); there the pins and the readout are
   compared.

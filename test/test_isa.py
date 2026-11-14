@@ -1,17 +1,17 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Milestone M2a tests: instruction set model, assembler and firmware.
+"""Tests of the instruction set model, the assembler and the firmware.
 
 What it does:
   These cocotb tests check the reference model (model/pe_model.py), the
   assembler (asm/pe_asm.py) and the firmware (fw/*.s) against docs/isa.md.
-  They do not use the design under test: M2a does not change the RTL. They
-  run in the same simulator run as test/test.py, so the GitHub test job
-  and the gate-level job run them too.
+  They do not use the design under test. They run in the same simulator
+  run as test/test.py, so the GitHub test job and the gate-level job run
+  them too.
 
 Why:
-  The model is the reference for the M2b processor RTL (A1 section 8.1,
-  level L1). It must agree with docs/isa.md before an RTL is compared with
-  it. The expected values in the model tests come from docs/isa.md by
+  The model is the reference for the processor RTL (test/test_core.py
+  compares them in lockstep). It must agree with docs/isa.md before an RTL
+  is compared with it. The expected values in the model tests come from docs/isa.md by
   hand, not from the model. The UART check uses an independent receiver:
   it samples the middle of each bit from the measured start edge with the
   nominal bit time of 115,200 bit/s, as test/test.py does for the M1 RTL.

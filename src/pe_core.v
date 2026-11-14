@@ -176,8 +176,8 @@ module pe_core (
   // The selects sa and sb are flip-flops. They are decoded from the
   // memory word in the prefetch cycle, at the same time as ir, so sa =
   // f_sa(ir) and sb = f_sb(ir) in each cycle (formal property B5).
-  // Reason (G1 4.5, M2b open item 10): in gds #12 the slow-corner setup
-  // violation (-2.292 ns) starts at ir[13]; the select of the register
+  // Reason: in gds run 40587591168 (gds #12, an earlier netlist) the
+  // slow-corner setup violation (-2.292 ns) starts at ir[13]; the select of the register
   // read multiplexer arrived 7.25 ns after ir through the decode and 8
   // fanout buffers. With flip-flops the decode is in the prefetch cycle,
   // whose path (128:1 latch read into ir) is not critical.

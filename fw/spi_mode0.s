@@ -22,7 +22,7 @@
 ;   instructions (TADD, OUT SCK, OUT MOSI) must execute before the falling
 ;   edge, and the last one needs a lead of 4 cycles (docs/isa.md section
 ;   4.2). That needs H >= 2 + 4 + 3 x 4 + 4 = 22 cycles. H = 25 gives 1 MHz.
-;   A higher rate needs the line-code helper (A1 section 3, block D4).
+;   A higher rate needs a hardware helper (not built).
 ;
 ; Host configuration before RUN: output pins UIO0 (CS), UIO1 (MOSI) and
 ; UIO3 (SCK) belong to this thread, push-pull. UIO2 (MISO) is an input.

@@ -1434,7 +1434,18 @@ async def test_flex_i2c_char(dut):
     """N2 option C: the host finds the SDA set-up limit of an I2C target by binary search on TLOW of fw/i2c_ctl.s
     (the firmware is assembled again for each try, no firmware change), against target models with set limits."""
     log = dut._log
-    for tsu_min in (20, 30, 35):  # the model's SDA delay must stay below the START hold time (about 39 cycles)
+    # The model target's SDA input is delayed, so it also sees the START late: its delay must be shorter than the
+    # START hold time on the bus (the first START has no WAIT before it, so tHD;STA is about THDSTA, not THDSTA + 7).
+    prog = assemble("i2c_ctl.s", **I2C_EQU[("Fm", 50)])
+    m = pe_model.PeModel(prog.words, owner=owners({P_SCL: 0, P_SDA: 0}), open_drain=od((P_SCL, P_SDA)))
+    bus = SetupI2cBus(0x50, 0)
+    bench = Bench(m, inputs=bus)
+    bench.send(0, *I2C_CHAR_WORDS)
+    bench.run(12_000)
+    hd_sta = min(i2c_times(bus.raw)["hd_sta"])
+    log.info(f"fw/i2c_ctl.s Fast-mode defaults: bus tHD;STA {hd_sta} cycles; target SDA delays must be below it")
+    for tsu_min in (15, 20, 25, 30):
+        assert tsu_min < hd_sta, (tsu_min, hd_sta)
         lo, hi = 1, I2C_EQU[("Fm", 50)]["TLOW"]  # hi passes (checked), lo is below the firmware's working range
         assert i2c_char_run(hi, tsu_min)[0] == "ok"
         tries = 1

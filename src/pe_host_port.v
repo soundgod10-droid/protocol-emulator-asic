@@ -25,16 +25,15 @@
 //   at the pin, and the host has nearly a full SCK period to sample it.
 //
 // Why:
-//   A1 section 2.2 and block D7: the RP2350 loads the firmware through 4
-//   pins (HOST_SCK ui_in[7], HOST_CS_N ui_in[6], HOST_MOSI ui_in[5],
-//   HOST_MISO uo_out[7]). The port samples the SPI pins with the chip
-//   clock, so the chip has one clock domain and STA checks all paths.
-//   The memory write port, the configuration write port and the FIFO
-//   ports are those that the TEMPORARY M2b test port used.
+//   The RP2350 of the demo board loads the firmware through 4 pins
+//   (HOST_SCK ui_in[7], HOST_CS_N ui_in[6], HOST_MOSI ui_in[5],
+//   HOST_MISO uo_out[7]; docs/host_port.md 2). The port samples the SPI
+//   pins with the chip clock, so the chip has one clock domain and STA
+//   checks all paths.
 //   Each command code is {c, not c} (high nibble c, low nibble its
 //   complement). Thus two codes differ in 2 bits or more, a single wrong
 //   bit gives no command, and a stuck MOSI line (0x00 or 0xFF) gives no
-//   command (design note M2c_loader.md, section 1).
+//   command (test_host_id_status_rules sends every code with one wrong bit).
 //
 // Rules (docs/host_port.md):
 //   - WRITE_MEM, READ_MEM and WRITE_CFG only while the threads stop.

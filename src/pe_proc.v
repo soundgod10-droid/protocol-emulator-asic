@@ -76,10 +76,10 @@ module pe_proc (
 );
 
   // Core to memory
-  wire [6:0]  mem_raddr;
+  wire [7:0]  mem_raddr;
   wire [15:0] mem_rdata;
   wire        c_mem_we;
-  wire [6:0]  c_mem_waddr;
+  wire [7:0]  c_mem_waddr;
   wire [15:0] c_mem_wdata;
 
   // Core to event slots

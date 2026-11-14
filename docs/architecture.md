@@ -87,4 +87,4 @@ The pads are the Tiny Tapeout 3.3 V digital pads; they are not 5 V tolerant, so 
 
 ## 7 Size and timing
 
-Synthesis (typical corner): 216,632 um2, 10,741 cells, of which 2,560 latches (memory and FIFOs). Layout on 8x4 tiles (1,724.16 x 710.64 um): placement utilisation 0.229. Timing at 60 MHz, slow corner (1.08 V, 125 C): flip-flop setup slack +3.69 ns, no setup, hold, max-slew or max-capacitance violation at the three corners. The run, its reports and the open items are in [signoff.md](signoff.md).
+Synthesis (typical corner): 216,632 um2, 10,741 cells, of which 2,560 latches (memory and FIFOs). Layout on 8x4 tiles (1,724.16 x 710.64 um): 12,702 cells after place and route (292,592 um2 with clock, hold and repair buffers), utilisation 0.242, power 6.66 mW at 60 MHz (flow estimate). Timing at 60 MHz, slow corner (1.08 V, 125 C): flip-flop setup slack +3.69 ns, no setup, hold, max-slew or max-capacitance violation at the three corners. The run, its reports and the open items are in [signoff.md](signoff.md).

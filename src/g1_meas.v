@@ -720,7 +720,7 @@ module g1_pmon (
 endmodule
 
 // ---------------------------------------------------------------------------
-// A1 block D10 (event recorder): last pin state, the time of a change and a
+// Event recorder: last pin state, the time of a change and a
 // write address. A change of a pin gives two memory words: the time, then
 // the pins.
 // ---------------------------------------------------------------------------

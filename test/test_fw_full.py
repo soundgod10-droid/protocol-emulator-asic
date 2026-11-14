@@ -1177,7 +1177,7 @@ def r2_grid_error_ns(f_clk, interval_ns, n=1000):
 
 @cocotb.test(skip=GL)
 async def test_r2_clock_margins(dut):
-    """R2 question 1: protocol margins of A1 section 3 at 40, 48, 50 and 60 MHz, measured in the model."""
+    """Protocol margins at the design limits at 40, 48, 50 and 60 MHz, measured in the model (docs/decisions.md entry 4)."""
     log = dut._log
     lines = []
     h_spi0, h_spi7 = spi_h_min(0, 0, 0), spi_h_min(0, 0, 7)

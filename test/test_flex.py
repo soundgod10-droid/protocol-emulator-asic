@@ -1294,6 +1294,7 @@ def ps2_cmd_word(byte):
 def ps2_host_run(period, offset=0, late="st", cmd=0xED, low=None, frames=PS2_BYTES):
     """fw/ps2_host.s with a device model: the device sends `frames`, then (if cmd is not None) the firmware sends
     `cmd` and the device acknowledges and answers 0xFA. Returns (fault or None, bytes decoded)."""
+    late = "st" if late == "rlate" else late  # "rlate": with the late check (label st), "nolate": without
     prog = assemble("ps2_host.s", LATE=late)
     dev = Ps2Device(period, frames, low=low, start=1000 + offset)
     m = pe_model.PeModel(prog.words, owner=owners({P_PCLK: 0, P_PDATA: 0}), open_drain=od((P_PCLK, P_PDATA)))

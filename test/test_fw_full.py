@@ -954,7 +954,7 @@ async def test_fw_full_all_four(dut):
 
 @cocotb.test(skip=GL)
 async def test_m3_i2c_filter_k(dut):
-    """Filter length K (isa 6.1) against the alternatives in the model: no filter (K 1), K 3 (G1 4.6) and K 4.
+    """Filter length K (isa 6.1) against the alternatives in the model: no filter (K 1), K 3 and K 4.
 
     For each K: the longest spike (in samples) that has no effect at every start time tried, on SCL and on SDA,
     at 50 MHz; and the Fast-mode SCL period and times of a normal transfer with stretching. A spike under 50 ns

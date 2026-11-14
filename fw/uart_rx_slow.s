@@ -8,7 +8,7 @@
 ;   thread waits (TWAIT) after each chunk.
 ;
 ; Why:
-;   G1 step 3a: A1 gives a UART range from 300 bit/s. At 50 MHz, 300 bit/s
+;   The UART range starts at 300 bit/s. At 50 MHz, 300 bit/s
 ;   is 166,667 cycles for each bit, more than the 32,767-cycle horizon.
 ;   This file is the measured word cost of that low end. The host loads
 ;   this file or fw/uart_rx_full.s, for the rate that it needs.

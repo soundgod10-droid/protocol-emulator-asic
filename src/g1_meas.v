@@ -460,7 +460,7 @@ module g1_spike2 (
 endmodule
 
 // ---------------------------------------------------------------------------
-// Store-and-read rule (D4 item 12): the alternative is a bypass that gives
+// Store-and-read rule (docs/isa.md 3.3): the alternative is a bypass that gives
 // the data of the last 3 stores to a read of the same address, so that a
 // read 1 to 3 cycles after a store is defined.
 // ---------------------------------------------------------------------------

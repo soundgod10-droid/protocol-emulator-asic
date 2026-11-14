@@ -366,6 +366,25 @@ def first_status(bench, m, cycles, threads, name, equ):
     return "no status change"
 
 
+def can_trace(bt, sp, frame, n=24):
+    """Diagnostic: the first n sample times of thread 1 and the bus changes while thread 0 sends one frame."""
+    bench, m, node = can_run(bt, sp)
+    words, _ = can_tx_words(frame)
+    bench.send(0, *words)
+    samples, prev = [], None
+    for _ in range(int(60 * bt)):
+        bench.run(1)
+        p = m.threads[1].pend
+        at = p["at"] if p is not None and p["op"] == "sample" else None
+        if at is not None and at != prev:
+            samples.append(at)
+        prev = at
+    bus = bench.m and bench.inputs.changes
+    t0 = bus[1][0] if len(bus) > 1 else 0
+    return (f"bus changes from SOF {[(c - t0, v) for c, v in bus[1:n]]}; thread 1 samples from SOF "
+            f"{[s - t0 for s in samples[:n]]}; thread 1 pc {m.threads[1].pc}")
+
+
 def can_case(bt, sp, delay=0, node_ppm=0, node_sp=None, offsets=(0,), equ=None):
     """None if, at each start phase, the chip sends CAN_FRAMES (acknowledged by the node), receives and
     acknowledges NODE_FRAMES, and loses one arbitration, takes the winner's frame and then sends its frame;

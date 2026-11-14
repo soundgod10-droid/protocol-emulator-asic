@@ -141,14 +141,14 @@ module pe_core (
   wire        h_run    = st0[F_RUN];
   wire [2:0]  h_ps     = st0[F_PS+:3];
   wire [1:0]  h_ldrd   = st0[F_LDRD+:2];
-  wire [6:0]  h_ldaddr = st0[F_LDA+:7];
+  wire [7:0]  h_ldaddr = st0[F_LDA+:8];
 
   // ---------------------------------------------------------------------
   // Fetch: read the word for the next slot thread (st1) in this cycle.
   // At start, st1 is not yet the state of thread 0, so use its start PC.
   // ---------------------------------------------------------------------
-  assign mem_raddr = start ? start_pc[6:0] :
-                     (st1[F_PS+:3] == PS_LD) ? st1[F_LDA+:7] : st1[F_PC+:7];
+  assign mem_raddr = start ? start_pc[7:0] :
+                     (st1[F_PS+:3] == PS_LD) ? st1[F_LDA+:8] : st1[F_PC+:8];
 
   // ---------------------------------------------------------------------
   // Instruction fields (isa 11)

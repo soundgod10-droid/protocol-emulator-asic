@@ -1,4 +1,4 @@
-; spi_mode0.s: OUTLINE firmware for an SPI controller, mode 0 (milestone M2a).
+; spi_mode0.s: OUTLINE firmware for an SPI controller, mode 0.
 ;
 ; What it does:
 ;   The thread sends each byte from its host FIFO on MOSI, MSB first, and

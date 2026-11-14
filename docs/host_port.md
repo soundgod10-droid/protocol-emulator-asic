@@ -53,7 +53,7 @@ Each command code is {c, not c}: the high nibble c, the low nibble its complemen
 
 | Code | Name | Allowed when | MOSI bytes after the code | MISO bytes |
 |---|---|---|---|---|
-| 0x1E | READ_ID | always | any (4 dummy bytes) | 4 ID bytes: 0x50, 0x45, 0x02, 0x03 ("PE", milestone 2, run c), then 0x00 |
+| 0x1E | READ_ID | always | any (4 dummy bytes) | 4 ID bytes: 0x50, 0x45, 0x02, 0x03 ("PE" and two version bytes), then 0x00 |
 | 0x2D | READ_STATUS | always | any (up to 7 dummy bytes) | 7 status bytes (section 5), then 0x00 |
 | 0x3C | STOP | always | none | none |
 | 0x4B | START | threads stopped | none | none |

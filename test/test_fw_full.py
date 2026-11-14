@@ -949,7 +949,7 @@ async def test_fw_full_all_four(dut):
     check_all_four(dut._log, r, "all four with uart_rx_slow, 50 MHz, 1,200 bit/s, UART sender +3.3 %")
 
 
-# ----- G1 step 3e: D4 choices against an alternative, measured in the model -----
+# ----- instruction set choices against an alternative, measured in the model -----
 
 
 @cocotb.test(skip=GL)

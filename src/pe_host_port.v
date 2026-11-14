@@ -46,7 +46,7 @@
 //     releases it: the threads then start as after a chip reset.
 
 module pe_host_port #(
-    parameter [31:0] CHIP_ID = 32'h5045_0203  // "PE", milestone 2, run c
+    parameter [31:0] CHIP_ID = 32'h5045_0203  // "PE" and two version bytes
 ) (
     input  wire        clk,
     input  wire        rst_n,          // chip reset, active low, asynchronous assert

@@ -13,10 +13,9 @@ What it does:
   from one 128-word memory. The tests do not use the design under test.
 
 Why:
-  Decision D2 and D4 item 13 (128 words of memory) had a measured ground
-  for 88 words of outline firmware only; the full firmware was an estimate
-  of about 119 words (M2a_isa.md section 5). Rule G (DECISIONS.md) needs a
-  measurement. The expected values come from A1 section 3, from the I2C
+  The 128-word memory (docs/decisions.md entry 3) must hold the full
+  firmware, not only the short example programs, so the word count is
+  measured here. The expected values come from the design limits, from the I2C
   standard (NXP UM10204, see I2C_LIMITS) and from the firmware headers, not
   from the model. The UART receiver, the UART sender, the SPI device and the
   I2C bus models in this file do not use the firmware or the model.

@@ -22,7 +22,8 @@
 ;   value, which a later version can use for arbitration.
 ;
 ; Why it is an outline:
-;   M2a must count the memory words for I2C (decision D2). This firmware
+;   It was written to count the memory words for I2C (docs/decisions.md
+;   entry 3); fw/i2c_ctl.s is the full controller. This firmware
 ;   has no clock stretching (it does not read SCL), no arbitration, no
 ;   repeated START (START needs SCL high) and no read.
 ;

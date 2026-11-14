@@ -9,9 +9,9 @@
 ;   before its time (isa 4.2): the thread waits (TWAIT) after each chunk.
 ;
 ; Why:
-;   G1 step 3a: measured word count of the full firmware for the memory
-;   size (decision D2, D4 item 13). The host makes the frame word, so the
-;   same 15 words send 8N1, 8E1, 8N2 and other formats (A1 section 8.2).
+;   The word count (15) is measured by test_fw_full_word_count against the
+;   128-word memory (docs/decisions.md entry 3). The host makes the frame
+;   word, so the same 15 words send 8N1, 8E1, 8N2 and other formats.
 ;   OUT does not wait for its event, so the thread waits for each event
 ;   time (TWAIT) before it moves T: then each lead is C or less.
 ;

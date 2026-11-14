@@ -19,7 +19,7 @@
 ;   the MISO sample later, for the pad and board round trip.
 ;
 ; Host words to this thread:
-;   1. H: SCK half period in cycles. G1 model measurement, all 4 modes:
+;   1. H: SCK half period in cycles. Model measurement (test_fw_full_spi), all 4 modes:
 ;      25 or more with D = 0 (1.0 MHz at 50 MHz), 32 or more with D = 7.
 ;   2. Then one word for each byte: bits 7 to 0 data, bit 8 = 1: CS high
 ;      after this byte.

@@ -5,15 +5,18 @@
 ; What it does:
 ;   Pins: CLK = uio[4], DATA = uio[5], both open drain (pull-ups on the
 ;   board). An open-drain uio pin reads the line level (docs/isa.md 5.1).
-;   Receive: 16 cycles after each falling CLK edge the firmware samples
+;   Receive: 28 cycles after each falling CLK edge the firmware samples
 ;   DATA (the device keeps DATA valid from before the falling edge to past
 ;   the rising edge: IBM Personal System/2 Hardware Interface Technical
 ;   Reference, May 1988, Keyboards section, page 39). A frame is 11 bits:
 ;   start, 8 data bits LSB first, odd parity, stop (Figure 18, page 38).
-;   Between frames the thread waits for a falling edge in windows of POLL
-;   cycles and checks the host FIFO between two windows; if CLK is already
-;   low after a window, the start edge came between two windows and the
-;   frame is taken from there.
+;   Between frames the thread waits for DATA to fall (the device sets the
+;   start bit before the first CLK fall) in windows of POLL cycles and
+;   checks the host FIFO between two windows; if DATA is already low after
+;   a window, its edge came between two windows. Then it waits for the CLK
+;   fall of the start bit. This needs a device set-up time (DATA low to
+;   CLK fall) longer than the gap between two windows (about 28 cycles,
+;   0.56 us; not in the pages read; the test model uses 750 to 1,250).
 ;   Send: CLK low for RTS cycles (more than 60 us, page 40), DATA low (start
 ;   bit), CLK released; the device clocks the frame. After falling edges 2
 ;   to 11 the firmware sets the next bit (8 data bits, parity, stop =

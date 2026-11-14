@@ -56,7 +56,7 @@ module tt_um_soundgod10_droid_protocol_emulator (
   );
 
   // Host SPI pins. They come from the host without a relation to our
-  // clock: 2-stage synchronizers (M1 pe_sync2), all three with the same
+  // clock: 2-stage synchronizers (pe_sync2), all three with the same
   // delay, so the port sees MOSI and CS_N in the same cycle as the SCK
   // edge that goes with them. Two stages: the measured metastability
   // constant of dfrbpq_1 (103 ps at the slow corner, spice/m2c_sync_tau_ss.sp)

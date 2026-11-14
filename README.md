@@ -30,6 +30,20 @@ Example, `fw/uart_tx.s` (12 words): the bit time is `TADD 434` between two `OUT`
 | Tile size: 6x4 as built; the competition rules now allow 8x4 | open |
 | Silicon | none yet |
 
+## Flexibility: protocols the instruction set was not designed for
+
+The instruction set ([docs/isa.md](docs/isa.md) section 13) was designed from UART, SPI and I2C firmware. The protocols below were written later, each from its public specification, with the same instruction set, assembler and host port, and no hardware change. Each test runs the firmware in the cycle-exact reference model against a protocol model written from the specification (not from the firmware). All four protocols are named on the competition page, so they were known when the instruction set was made. Rates at 50 MHz.
+
+| Protocol | Specification | Firmware, words | Highest rate measured | Test | What the instruction set lacked (workaround) |
+|---|---|---|---|---|---|
+| CAN 2.0A node: send with arbitration, receive with CRC-15 check, ACK | Bosch CAN Specification 2.0 (1991), Part A | `fw/can.s`, 123 words, 2 threads | 250 kbit/s (sample point 50 to 55 %, other node +/-0.5 %); 500 kbit/s and 1 Mbit/s do not fit | `test_flex_can` | instruction rate (about 31 instructions of receive work per bit); one owner per pin (two open-drain pins joined on the board); the host makes stuffing and CRC for sending; one thread would need 171 words |
+| JTAG (IEEE 1149.1) controller: any TAP path, chains | TI SSYA002C JTAG primer | `fw/jtag.s`, 31 words | TCK 1.25 MHz (1.157 MHz mean over a 64-bit scan) | `test_flex_jtag` | `SAMPLE` takes 2 thread slots, so the loop is 40 cycles, not 32 |
+| SWD host: line reset, JTAG-to-SWD, DP and AP reads and writes, WAIT | Arm IHI0031H (ADIv5.2), B4, B5 | `fw/swd.s`, 62 words | SWCLK 1.5625 MHz; DPIDR read in 1,596 cycles | `test_flex_swd` | no parity instruction (the host makes the parity); a write fills the 4-word host FIFO |
+| PS/2 host and device: device clock, odd parity, request to send, acknowledge, line contention | IBM PS/2 Hardware Interface Technical Reference (1988), Keyboards | `fw/ps2_host.s` 62 words, `fw/ps2_dev.s` 60 words | 10 to 16.7 kHz both sides; the host decodes device clocks up to 556 kHz | `test_flex_ps2` | a thread cannot wait for an edge and a host word at the same time (the host polls in 4 us windows) |
+| Timed trigger: a pulse D cycles after a matching UART byte | - | `fw/trigger.s`, 30 words | delay from the start edge the same at all 16 start phases (0 cycles jitter in the firmware); D from 44 cycles | `test_flex_trigger` | - |
+
+Which programs fit together in 128 words: `test_flex_word_count` and [docs/host_port.md](docs/host_port.md) section 14 (for example UART TX + UART RX + JTAG + SWD: 121 words). Host words of each program: the same section.
+
 ## Compared with other programmable I/O engines
 
 | | Engines and memory | Timing of a pin change |

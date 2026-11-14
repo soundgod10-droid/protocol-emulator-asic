@@ -387,10 +387,11 @@ module g1_owner (
 endmodule
 
 // ---------------------------------------------------------------------------
-// Input spike filter (D4 item 8): an output changes only after K equal
+// Input spike filter (docs/isa.md 6.1): an output changes only after K equal
 // input samples in a row that differ from it. UM10204 Rev. 7.0 Table 10
 // note [8] (page 44): spikes of less than 50 ns are suppressed. At 50 MHz
-// 50 ns is 2.5 cycles, so K = 3.
+// 50 ns is 2.5 cycles, so this module uses K = 3 on 13 inputs; the chip
+// uses K = 4 on 2 inputs (docs/decisions.md entry 10).
 // ---------------------------------------------------------------------------
 module g1_spike_filter #(
     parameter integer N = 13,

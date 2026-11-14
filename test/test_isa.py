@@ -761,7 +761,7 @@ def i2c_target(ack):
 
 
 def check_i2c(log, st, words_sent, acks, label):
-    """Checks the bus events and the times against the Fast-mode minimum values of A1 section 3."""
+    """Checks the bus events: START, data bits, ACK and STOP (check_i2c_times checks the times)."""
     want = []
     for word, a in zip(words_sent, acks):
         if word & 0x100:

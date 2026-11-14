@@ -155,7 +155,7 @@ RTL measurement of the pins (test_r2_stop_pins, fw/spi_ctl.s on thread 0, STOP 1
 
 - PUSH: a word for an in-FIFO that has 4 words in the cycle of the word is dropped and PUSH_DROP becomes 1. The thread side can only take words out, so a host that reads the count of the in-FIFO (status byte 3 + n) and then pushes 4 - count words or fewer never loses a word, also when the thread pulls in the same cycle.
 - PULL: the count byte K is the number of words in the out-FIFO when the port sees the thread byte. Only the thread adds words, so the first K words are valid. The port takes a word from the FIFO when it loads it into MISO; words after the first K are 0x0000 and nothing is taken.
-- PUSH and PULL use the FIFO state of the clock cycle in which the port acts, at the same clock edge as the thread slot of that cycle (docs/isa.md 8.5, M2b_core.md 9 item 1).
+- PUSH and PULL use the FIFO state of the clock cycle in which the port acts, at the same clock edge as the thread slot of that cycle (docs/isa.md 8.5).
 
 ## 10 Host throughput
 

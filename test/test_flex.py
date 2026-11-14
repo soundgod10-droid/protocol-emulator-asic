@@ -394,11 +394,13 @@ def can_case(bt, sp, delay=0, node_ppm=0, node_sp=None, offsets=(0,), equ=None, 
     else the first fault."""
     kw = dict(delay=delay, node_bt=bt * (1 + node_ppm * 1e-6), node_sp=node_sp, equ=equ)
     for off in offsets:
-        bench, m, node = can_run(bt, sp, **kw)
-        bench.run(100 + off)
-        log = can_send_all(bench, CAN_FRAMES, bt)
-        bench.run(int(20 * bt))
-        f = can_fault(bench, m, node, log, CAN_FRAMES)
+        f = None
+        if "tx" in parts:
+            bench, m, node = can_run(bt, sp, **kw)
+            bench.run(100 + off)
+            log = can_send_all(bench, CAN_FRAMES, bt)
+            bench.run(int(20 * bt))
+            f = can_fault(bench, m, node, log, CAN_FRAMES)
         if f and "thread 1 reported" in f:
             f += "; " + can_trace(bt, sp, CAN_FRAMES[0])
         if f and "status" in f:

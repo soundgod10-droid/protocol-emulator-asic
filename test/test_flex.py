@@ -442,6 +442,31 @@ async def test_flex_can(dut):
     log = dut._log
     words = assemble("can.s").size
     log.info(f"fw/can.s: {words} words")
-    f = can_case(400, 300)
-    log.info(f"125 kbit/s (BT 400, SP 300): {f or 'correct'}")
-    assert f is None, f
+    # Smallest bit time at each sample point (SP as a part of BT), for the whole case and for each thread alone.
+    smallest = {}
+    for frac in (0.625, 0.75, 0.875):
+        for parts in (("tx",), ("rx",), ("tx", "rx", "arb")):
+            last, why = None, None
+            for bt in range(400, 47, -8):
+                fault = can_case(bt, round(frac * bt), parts=parts)
+                if fault:
+                    why = f"BT {bt}: {fault[:160]}"
+                    break
+                last = bt
+            smallest[(frac, parts)] = last
+            log.info(f"SP {frac:.3f} BT, parts {'+'.join(parts)}: smallest correct BT {last} "
+                     f"({F_CLK / last / 1e3 if last else 0:.1f} kbit/s at 50 MHz, "
+                     f"{60e6 / last / 1e3 if last else 0:.1f} kbit/s at 60 MHz by calculation); first fault {why}")
+    # Standard rates with node clock error, transceiver delay and 4 start phases.
+    results = {}
+    for rate in (125_000, 250_000, 500_000, 1_000_000):
+        bt = round(F_CLK / rate)
+        for frac in (0.75, 0.875):
+            sp = round(frac * bt)
+            rows = []
+            for ppm, delay in ((0, 0), (5000, 0), (-5000, 0), (0, 10), (5000, 10), (-5000, 10)):
+                rows.append(((ppm, delay), can_case(bt, sp, delay=delay, node_ppm=ppm, offsets=range(4))))
+            results[(rate, frac)] = all(f is None for _, f in rows)
+            log.info(f"{rate / 1e3:.0f} kbit/s (BT {bt}, SP {sp} = {frac:.3f}): " +
+                     "; ".join(f"node {p / 1e4:+.1f} %, delay {d}: {(f or 'correct')[:120]}" for (p, d), f in rows))
+    assert results[(125_000, 0.75)], "125 kbit/s with a 75 % sample point is not correct"

@@ -1,6 +1,6 @@
-# M2b: cover check of the core harness (core_fv.v). It shows that a store,
+# core_cover: cover check of the core wrapper (core_fv.v). It shows that a store,
 # an event write and a START during the run can occur with the
-# assumptions of the harness, so the properties of core.sby are not empty.
+# assumptions of the wrapper, so the properties of core.sby are not empty.
 
 [options]
 mode cover

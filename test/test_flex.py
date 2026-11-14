@@ -816,3 +816,312 @@ async def test_flex_jtag(dut):
                          f"({n * F_CLK / span / 1e6:.3f} MHz mean); H2 {h2 - 1}: {(below or 'correct')[:100]}")
             log.info(f"{name}, TDO delay {td}: smallest H1 that works {min(r[1] for r in rows)}")
     assert best[("jtag.s", 3)] <= 40, f"fw/jtag.s smallest TCK period {best[('jtag.s', 3)]} cycles"
+
+
+# ----- SWD (Arm Debug Interface v5) -----
+# ARM IHI0031H, "Arm Debug Interface Architecture Specification ADIv5.0 to ADIv5.2" (2026): turnaround, idle
+# cycles, bit order B4-104; parity B4-105; ACK codes, write and read phases, posted AP reads B4-108, B4-109;
+# DP read responses Table B4-2 B4-114; protocol error and WDATA parity B4-116; host responses Table B4-10
+# B4-117; line interface (rising-edge sampling and change), pull-up, line reset B4-118, reset state B4-119;
+# JTAG-to-SWD sequence B5-125. The specification gives no times: they are parameters of the target model.
+
+P_SWCLK, P_SWDIO = 11, 4  # uo_out[3], uio[4]
+
+
+def parity(v):
+    return bin(v).count("1") & 1
+
+
+class SwdTarget:
+    """SWJ-DP target, SWD side, written from IHI0031H. JTAG is selected at power-up (B4-104 note); 50 or more
+    high cycles, then the select sequence 0xE79E (LSB first), select SWD in its reset state (B5-125); a line
+    reset (50 or more high cycles, then 2 or more low cycles) enters the reset state, where only a DPIDR read is
+    valid (B4-118, B4-119). After the 8-bit request: turnaround, ACK from the rising edge after Park, data and
+    parity (B4-108, B4-109); the target samples and changes SWDIO at the rising SWCLK edge, its changes appear
+    td cycles later (B4-118). Registers: DPIDR (DP read 0x0), SELECT (DP write 0x8), RDBUFF (DP read 0xC),
+    AP registers by (SELECT, A); AP reads are posted (B4-109); the next `waits` AP requests get WAIT; a write
+    with a parity error is discarded (B4-105); a protocol error gives no response until a line reset (B4-116)."""
+
+    def __init__(self, dpidr=0x1BA01477, td=3, tsu=2, th=2, tlow=4, thigh=4):
+        self.dpidr, self.td, self.tsu, self.th, self.tlow, self.thigh = dpidr, td, tsu, th, tlow, thigh
+        self.mode, self.reset_state, self.error = "jtag", False, False
+        self.ones, self.zeros, self.sel = 0, 0, None
+        self.state, self.bits, self.k = "idle", [], 0
+        self.drive, self.pend = None, deque()
+        self.select, self.ap, self.posted, self.rdbuff, self.waits = 0, {}, 0, 0, 0
+        self.clk, self.t_rise, self.t_fall, self.t_host, self.host = 0, -10**9, -10**9, -10**9, None
+        self.log, self.errors, self.protocol_errors = [], [], 0
+
+    def _line_reset(self):
+        if self.mode == "swd":
+            self.reset_state, self.error, self.state = True, False, "idle"
+            self._out(None)
+
+    def _out(self, v):
+        self.pend.append((self.c + self.td, v))
+
+    def _request(self, b):
+        apndp, rnw, a = b[1], b[2], b[3] << 2 | b[4] << 3
+        if b[0] != 1 or b[6] != 0 or b[7] != 1 or parity(b[1] | b[2] << 1 | b[3] << 2 | b[4] << 3) != b[5]:
+            return None
+        if self.reset_state and not (apndp == 0 and rnw == 1 and a == 0):
+            return None  # only a DPIDR read is valid in the reset state (B4-119)
+        self.req = (apndp, rnw, a)
+        if apndp and self.waits:
+            self.waits -= 1
+            return "wait"
+        return "ok"
+
+    def _read_value(self):
+        apndp, _, a = self.req
+        if apndp:
+            v, self.posted = self.posted, self.ap.get((self.select, a), 0)
+            self.rdbuff = self.posted
+            return v
+        self.reset_state = False if a == 0 else self.reset_state
+        return {0x0: self.dpidr, 0xC: self.rdbuff}.get(a, 0)
+
+    def _rise(self, v):
+        c = self.c
+        if self.mode == "jtag":
+            if self.sel is not None:
+                self.sel.append(v)
+                if len(self.sel) == 16:
+                    if lsb_word(self.sel) == 0xE79E:
+                        self.mode, self.reset_state, self.state = "swd", True, "idle"
+                    self.sel = None
+            elif v == 0 and self.ones >= 50:
+                self.sel = [0]
+            self.ones = self.ones + 1 if v else 0
+            return
+        if v:
+            self.ones, self.zeros = self.ones + 1, 0
+        else:
+            self.zeros += 1
+            if self.zeros == 2 and self.ones >= 50:
+                self.ones = 0
+                self._line_reset()
+                return
+            if self.zeros >= 2:
+                self.ones = 0
+        if self.error:
+            return
+        st = self.state
+        if st == "idle":
+            if v:
+                self.state, self.bits = "req", [1]
+        elif st == "req":
+            self.bits.append(v)
+            if len(self.bits) == 8:
+                self.ack = self._request(self.bits)
+                if self.ack is None:
+                    self.error, self.state = True, "idle"
+                    self.protocol_errors += 1
+                else:
+                    self.state, self.k = "resp", 0
+        elif st == "resp":
+            self.k += 1
+            k, ok, (apndp, rnw, a) = self.k, self.ack == "ok", self.req
+            if k <= 3:
+                self._out((0b001 if ok else 0b010) >> (k - 1) & 1)  # ACK[0:2]
+            elif ok and rnw:
+                if k == 4:
+                    self.rv = self._read_value()
+                if k <= 35:
+                    self._out(self.rv >> (k - 4) & 1)
+                elif k == 36:
+                    self._out(parity(self.rv))
+                elif k == 37:
+                    self._out(None)
+                else:  # k == 38: turnaround edge
+                    self.log.append(("R", apndp, a, self.rv))
+                    self.state = "idle"
+            elif ok:
+                if k == 4:
+                    self._out(None)
+                    self.wv = []
+                elif k >= 6:
+                    self.wv.append(v)
+                    if k == 38:
+                        w = lsb_word(self.wv[:32])
+                        good = parity(w) == self.wv[32]
+                        self.log.append(("W", apndp, a, w, good))
+                        if good and apndp:
+                            self.ap[(self.select, a)] = w
+                        elif good and a == 0x8:
+                            self.select = w
+                        self.state = "idle"
+            else:
+                if k == 4:
+                    self._out(None)
+                elif k == 5:
+                    self.log.append(("WAIT", apndp, a))
+                    self.state = "idle"
+
+    def step(self, c, clk, host_oe, host_v):
+        self.c = c
+        while self.pend and self.pend[0][0] <= c:
+            self.drive = self.pend.popleft()[1]
+        host = host_v if host_oe else None
+        if host != self.host:
+            self.host, self.t_host = host, c
+            if host is not None and c - self.t_rise < self.th:
+                self.errors.append(f"cycle {c}: SWDIO hold {c - self.t_rise} < {self.th}")
+        if host is not None and self.drive is not None:
+            self.errors.append(f"cycle {c}: host and target drive SWDIO")
+        line = host if host is not None else (self.drive if self.drive is not None else 1)
+        if clk != self.clk:
+            self.clk = clk
+            if clk:
+                if c - self.t_fall < self.tlow:
+                    self.errors.append(f"cycle {c}: SWCLK low {c - self.t_fall} < {self.tlow}")
+                if host is not None and c - self.t_host < self.tsu:
+                    self.errors.append(f"cycle {c}: SWDIO set-up {c - self.t_host} < {self.tsu}")
+                self.t_rise = c
+                self._rise(line)
+            else:
+                if c - self.t_rise < self.thigh:
+                    self.errors.append(f"cycle {c}: SWCLK high {c - self.t_rise} < {self.thigh}")
+                self.t_fall = c
+        return line
+
+
+class SwdLine:
+    def __init__(self, target):
+        self.t = target
+
+    def __call__(self, c, uo, uio, oe):
+        line = self.t.step(c, (uo >> 3) & 1, (oe >> P_SWDIO) & 1, (uio >> P_SWDIO) & 1)
+        return 0, line << P_SWDIO
+
+
+def swd_request(apndp, rnw, a):
+    """Request byte (B4-108, B4-119 Figure B4-9): Start 1, APnDP, RnW, A[2:3], even parity, Stop 0, Park 1."""
+    a2, a3 = (a >> 2) & 1, (a >> 3) & 1
+    return 1 | apndp << 1 | rnw << 2 | a2 << 3 | a3 << 4 | parity(apndp | rnw << 1 | a2 << 2 | a3 << 3) << 5 | 1 << 7
+
+
+def swd_raw(bits):
+    return [0x8000 | len(bits)] + [lsb_word(bits[g:g + 16]) for g in range(0, len(bits), 16)]
+
+
+SWD_CONNECT = [1] * 56 + value_bits(0xE79E, 16) + [1] * 56 + [0] * 4  # B5-125, then the line reset B4-118
+SWD_LINE_RESET = [1] * 56 + [0] * 4
+
+
+class SwdHost:
+    """Host program for fw/swd.s: raw sequences, and transactions that wait for the ACK word and the read data."""
+
+    def __init__(self, bench, period):
+        self.b, self.period = bench, period
+
+    def _wait(self, n):
+        for _ in range(400):
+            if len(self.b.words(0)) >= n:
+                return True
+            self.b.run(4 * self.period)
+        return False
+
+    def raw(self, bits):
+        self.b.send(0, *swd_raw(bits))
+        self.b.run((len(bits) + 8) * self.period + 400)
+
+    def xfer(self, apndp, rnw, a, value=0, bad_parity=False):
+        """Returns (ACK, read value or None, read parity correct or None)."""
+        n0 = len(self.b.words(0))
+        words = [swd_request(apndp, rnw, a)]
+        if not rnw:
+            words += [value & 0xFFFF, value >> 16, parity(value) ^ int(bad_parity)]
+        self.b.send(0, *words)
+        if not self._wait(n0 + 1):
+            return None, None, None
+        ack = self.b.words(0)[n0] >> 13
+        if not (rnw and ack == 0b001):
+            self.b.run(60 * self.period)
+            return ack, None, None
+        if not self._wait(n0 + 4):
+            return ack, None, None
+        lo, hi, p = self.b.words(0)[n0 + 1:n0 + 4]
+        v = lo | hi << 16
+        return ack, v, parity(v) == (p >> 14) & 1
+
+
+def swd_run(h1, h2, name="swd.s", **kw):
+    """Connection, DPIDR, SELECT write, AP write with 2 WAITs and retries, posted AP read and RDBUFF, a write with
+    a parity error, a line reset and an access that is not valid in the reset state. Returns (fault or None,
+    clock cycles of the DPIDR read transaction)."""
+    prog = assemble(name, H1=h1, H2=h2)
+    tgt = SwdTarget(**kw)
+    m = pe_model.PeModel(prog.words, owner=owners({P_SWCLK: 0, P_SWDIO: 0}))
+    bench = Bench(m, inputs=SwdLine(tgt))
+    bench.watch("clk", lambda uo, uio, oe: (uo >> 3) & 1)
+    host = SwdHost(bench, h1 + h2)
+    bench.run(50)
+    host.raw(SWD_CONNECT)
+    e0 = len(bench.changes("clk"))
+    got = host.xfer(0, 1, 0x0)
+    edges = [c for c, _ in bench.changes("clk")[e0:]]
+    span = edges[-1] - edges[0] if edges else None
+    if got != (0b001, tgt.dpidr, True):
+        return f"DPIDR read: {got}", None
+    if host.xfer(0, 0, 0x8, 0x000000F0)[0] != 0b001:
+        return "SELECT write: no OK", None
+    tgt.waits = 2
+    acks = [host.xfer(1, 0, 0x4, 0xCAFEF00D)[0] for _ in range(3)]
+    if acks != [0b010, 0b010, 0b001] or tgt.ap.get((0xF0, 0x4)) != 0xCAFEF00D:
+        return f"AP write with WAIT: ACKs {acks}, AP {tgt.ap}", None
+    first = host.xfer(1, 1, 0x4)
+    last = host.xfer(0, 1, 0xC)
+    if first[0] != 0b001 or last != (0b001, 0xCAFEF00D, True):
+        return f"AP read, RDBUFF: {first}, {last}", None
+    bad = host.xfer(1, 0, 0x4, 0x12345678, bad_parity=True)
+    host.xfer(1, 1, 0x4)
+    after = host.xfer(0, 1, 0xC)
+    if bad[0] != 0b001 or after[1] != 0xCAFEF00D or tgt.log[-3][-1] is not False:
+        return f"write with parity error: {bad}, then RDBUFF {after}, log {tgt.log[-3:]}", None
+    host.raw(SWD_LINE_RESET)
+    noresp = host.xfer(1, 1, 0x0)
+    host.raw(SWD_LINE_RESET)
+    again = host.xfer(0, 1, 0x0)
+    if noresp[0] != 0b111 or again != (0b001, tgt.dpidr, True) or tgt.protocol_errors < 1:
+        return f"reset state: AP read ACK {noresp}, then DPIDR {again}", None
+    if tgt.errors:
+        return f"target errors {tgt.errors[:3]}", None
+    th = m.threads[0]
+    if th.status or not th.run:
+        return f"thread status {th.status}, run {th.run}, {th.stop_reason}", None
+    return None, span
+
+
+def swd_limits(name, td):
+    rows = []
+    for h1 in range(2, 25):
+        if swd_run(h1, 40, name, td=td)[0]:
+            continue
+        lo, hi = 1, 40
+        while hi - lo > 1:
+            mid = (lo + hi) // 2
+            lo, hi = (lo, mid) if swd_run(h1, mid, name, td=td)[0] is None else (mid, hi)
+        rows.append((h1 + hi, h1, hi, swd_run(h1, hi, name, td=td)[1], swd_run(h1, hi - 1, name, td=td)[0]))
+    return sorted(rows)
+
+
+@cocotb.test(skip=GL)
+async def test_flex_swd(dut):
+    """fw/swd.s against an independent SW-DP target model (ARM IHI0031H): JTAG-to-SWD sequence and line reset,
+    DPIDR read, DP write, AP write with WAIT and retry, posted AP read with RDBUFF, a write with a parity error,
+    and the reset-state rule. Measures the smallest SWCLK times at target delays of 3 and 8 cycles."""
+    log = dut._log
+    log.info(f"fw/swd.s: {assemble('swd.s').size} words")
+    fault, span = swd_run(12, 16)
+    assert fault is None, f"H1 12, H2 16: {fault}"
+    log.info(f"H1 12, H2 16 (defaults): correct; DPIDR read transaction {span} clock cycles")
+    best = {}
+    for td in (3, 8):
+        rows = swd_limits("swd.s", td)
+        best[td] = rows[0][0]
+        for p, h1, h2, span, below in rows[:4]:
+            log.info(f"swd.s, target delay {td}: H1 {h1}, H2 {h2}: SWCLK period {p} cycles ({F_CLK / p / 1e6:.3f} MHz); "
+                     f"DPIDR read {span} clock cycles ({F_CLK / span / 1e3:.1f} k reads/s); H2 {h2 - 1}: "
+                     f"{(below or 'correct')[:100]}")
+        log.info(f"swd.s, target delay {td}: smallest H1 that works {min(r[1] for r in rows)}")

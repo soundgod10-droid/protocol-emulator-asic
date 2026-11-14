@@ -335,7 +335,7 @@ module pe_host_port #(
   reg [6:0]  m_sr;      // these bits
   reg [2:0]  m_nb;      // complete bytes in this transaction (stops at 7)
   reg [7:0]  m_cmd;     // byte 0 of this transaction
-  reg [6:0]  m_addr;    // address of the next word
+  reg [7:0]  m_addr;    // address of the next word
   reg [1:0]  m_tid;     // thread of PUSH and PULL
   reg        m_lo;      // 1 = the next data byte is the low byte of a word
   reg [7:0]  m_hi;      // high byte of the word

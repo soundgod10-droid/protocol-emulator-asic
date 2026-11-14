@@ -17,7 +17,7 @@ Each method below gives what it checks, what it does not check, and its latest r
 
 ## 1. RTL tests
 
-`test/Makefile` runs four cocotb modules on the RTL in `src/`. The test job of every push runs them.
+`test/Makefile` runs five cocotb modules on the RTL in `src/`. The test job of every push runs them.
 
 - `test/test.py` (9 tests): loads `fw/uart_tx.s` through the host SPI port with the host model `test/host_spi.py` (written from [docs/host_port.md](host_port.md), not from the RTL), reads the memory back and decodes `uo_out[4]` with a UART receiver model that does not use the processor. It checks the bit time to 1 ps against 434 cycles, every edge position, back-to-back frames for 256 bytes (`test_counter_sequence`), the chip ID, the command rules and the invalid codes (every valid code with one wrong bit), the SCK limit, STOP and START, and the reset during a frame.
 - `test/test_core.py` (13 tests): lockstep, section 2.

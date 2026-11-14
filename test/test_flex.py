@@ -187,6 +187,9 @@ class CanNode:
             return
         # fixed form (page 14): 0 CRC delimiter, 1 ACK slot, 2 ACK delimiter, 3 to 9 EOF, 10 to 12 intermission
         t = self.tail
+        if t == 12 and v == 0:  # dominant at the third intermission bit: a SOF (page 31 [1], [2])
+            self._begin(self.last_fall, bool(self.pending))
+            return
         if t == 1:
             if self.sending:
                 self.results.append("ack" if v == 0 else "no ack")

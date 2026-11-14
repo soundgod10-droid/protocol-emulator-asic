@@ -47,7 +47,7 @@ module pe_proc (
     input  wire [15:0] now,         // low 16 bits of the cycle counter
     // Host side
     input  wire        start,
-    input  wire [27:0] start_pc,
+    input  wire [31:0] start_pc,
     input  wire [3:0]  run_mask,
     input  wire [29:0] pin_owner,
     input  wire [14:0] pin_en,

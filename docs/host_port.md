@@ -195,9 +195,9 @@ The declared and timed clock is 50 MHz (info.yaml clock_hz, src/config.json CLOC
 
 Thus at 40 MHz the UART receiver at 921,600 and 1,000,000 bit/s must not sample the stop bit (assemble fw/uart_rx_full.s with ND1 = 8; there is then no framing-error report), and the host SCK must be 102 ns or longer. Do not use 60 MHz: the slow-corner flip-flop setup slack at 60 MHz was -1.773 ns and -1.219 ns in two gds runs, and +0.344 ns only with timing-driven placement and 10 max-slew violations; at 50 MHz it is +1.560 ns (gds 40955889046, nom_slow_1p08V_125C).
 
-## 12 Host program and firmware format (decision D12)
+## 12 Host program and firmware format (docs/decisions.md entry 9)
 
-Host program: on the demo board the host port is on RP2350 GPIO 24 (HOST_SCK), 23 (HOST_CS_N), 22 (HOST_MOSI) and 40 (HOST_MISO) (tt-micropython-firmware, src/ttboard/pins/gpio_map_dbv3.py, read in design note R3). GPIO24 has no SPI clock function (RP2350 data sheet RP-008373-DS-3, Table 731 GPIO24_CTRL FUNCSEL, printed page 584: spi1_rx, uart1_tx, i2c0_sda, pwm, sio, pio0 to pio2, clocks_gpout_2, usb), so no RP2350 SPI block can drive HOST_SCK. The host is a PIO program, and a PIO program sets the time at which it samples MISO.
+Host program: on the demo board the host port is on RP2350 GPIO 24 (HOST_SCK), 23 (HOST_CS_N), 22 (HOST_MOSI) and 40 (HOST_MISO) (tt-micropython-firmware, src/ttboard/pins/gpio_map_dbv3.py). GPIO24 has no SPI clock function (RP2350 data sheet RP-008373-DS-3, Table 731 GPIO24_CTRL FUNCSEL, printed page 584: spi1_rx, uart1_tx, i2c0_sda, pwm, sio, pio0 to pio2, clocks_gpout_2, usb), so no RP2350 SPI block can drive HOST_SCK. The host is a PIO program, and a PIO program sets the time at which it samples MISO.
 
 Rules for the PIO host:
 

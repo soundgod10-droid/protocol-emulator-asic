@@ -26,8 +26,8 @@ Example, `fw/uart_tx.s` (12 words): the bit time is `TADD 434` between two `OUT`
 | UART TX and RX 300 bit/s to 1 Mbit/s, SPI controller (4 modes), SPI target (4 modes, up to 1 MHz), I2C controller (Standard-mode and Fast-mode) | firmware in `fw/`, tested in the cycle-exact reference model against independent protocol models (`test/test_fw_full.py`); UART TX, UART RX, SPI controller and I2C controller fit together in 103 of 128 words (`test_fw_full_word_count`) |
 | CAN 2.0A node, JTAG controller, SWD host, PS/2 host and device, timed trigger | firmware in `fw/`, tested in the reference model against protocol models written from each specification (`test/test_flex.py`); words, rates and limits in the Flexibility section below |
 | I2C target timing characterization by the host (binary search on one firmware time constant) | tested in the model against targets with set limits (`test_flex_i2c_char`) |
+| Hold-out trial: 1-Wire controller, a protocol not named on the competition page or in the design documents | firmware `fw/onewire.s` (40 words) from Analog Devices AN126, tested at 50 and 60 MHz against a DS18B20 device model at five timing corners (`test/test_holdout.py`); two more hold-out protocols are planned |
 | One of low-speed USB or 10BASE-T | planned |
-| Tile size: 6x4 as built; the competition rules now allow 8x4 | open |
 | Silicon | none yet |
 
 ## Flexibility: protocols the instruction set was not designed for

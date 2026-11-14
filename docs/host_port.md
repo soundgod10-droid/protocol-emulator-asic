@@ -201,7 +201,7 @@ Host program: on the demo board the host port is on RP2350 GPIO 24 (HOST_SCK), 2
 
 Rules for the PIO host:
 
-1. Sample MISO a set time after each rising SCK edge, not before the next edge. The next bit comes to MISO 2 T to 3 T after the rising edge at the pin (section 6), so the window is about one SCK period less one clock cycle wide. RTL measurement, no pad delay, sample times that are correct at all 10 host phases (test_r3_host_late_sample; R3 on branch r3-host-load, and the same result on the M3a RTL):
+1. Sample MISO a set time after each rising SCK edge, not before the next edge. The next bit comes to MISO 2 T to 3 T after the rising edge at the pin (section 6), so the window is about one SCK period less one clock cycle wide. RTL measurement, no pad delay, sample times that are correct at all 10 host phases (test_r3_host_late_sample on the research branch r3-host-load; the test is not in the test job of cmos5l):
 
    | SCK period | Sample time after the rising SCK edge that passes |
    |---|---|

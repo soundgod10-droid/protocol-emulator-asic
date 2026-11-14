@@ -19,8 +19,8 @@
 // Why:
 //   docs/isa.md 5.2: each output pin has one owner thread, which the host
 //   sets. 5.3: open-drain mode for each pin. 2.2: a start address for each
-//   thread. The write port is generic, so that the M2c host SPI port can
-//   use it in place of the TEMPORARY M2b test port.
+//   thread. The host SPI port (pe_host_port) writes the registers through
+//   a generic write port.
 
 module pe_config (
     input  wire        clk,

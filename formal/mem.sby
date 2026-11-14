@@ -4,7 +4,7 @@
 # clock gates and the 128:1 read port are checked. mem_small.sby checks
 # the full 16-bit word width with 8 words. Z3 did not finish the 128 x 16
 # instance (proof: no result in 30 minutes; 4-cycle BMC: no result in 25
-# minutes). multiclock: the clock is a signal that changes at each solver
+# minutes; local runs, not verified in this repository). multiclock: the clock is a signal that changes at each solver
 # step, and the latches are level-sensitive elements, not flip-flops.
 
 [options]

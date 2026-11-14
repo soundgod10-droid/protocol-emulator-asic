@@ -31,10 +31,14 @@
 ; Word from the thread for each group: the TDO bits. With k cycles in the
 ;   group, the TDO bit of the first cycle is bit 16 - k and that of the
 ;   last cycle is bit 15.
-; Limits (model, test/test_flex.py test_flex_jtag): H1 - 1 is the TMS and
+; Limits (model, test/test_flex.py test_flex_jtag): smallest correct TCK
+;   period 40 cycles (1.25 MHz at 50 MHz) with H1 10 to 13 and H1 + H2 = 40;
+;   H1 below 10 or a shorter period sets LATE. A 64-cycle scan with its
+;   header runs at 1.157 MHz on average (group gaps). H1 - 1 is the TMS and
 ;   TDI set-up time before the rising edge; the TDO delay of the device
-;   after the falling edge must be less than H1 - 2 cycles, because the
+;   after the falling edge must be H1 - 2 cycles or less, because the
 ;   sample reads the TDO level of the rising-edge cycle (docs/isa.md 6.2).
+;   The IEEE 1149.1 primer gives no times; use the device data sheet.
 ; Not done: TRST* (use TMS high for 5 TCK cycles, primer page 3-6), adaptive
 ;   clocking (RTCK).
 

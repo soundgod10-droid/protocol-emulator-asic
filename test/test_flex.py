@@ -1391,7 +1391,7 @@ def trigger_case(fire, d, offsets=range(16), b=434, match=0x5A):
 
 
 class SetupI2cBus(I2cBus):
-    """I2C target with a known SDA set-up limit (N2 option C): its SDA input is the bus SDA delayed by tsu_min cycles,
+    """I2C target with a known SDA set-up limit: its SDA input is the bus SDA delayed by tsu_min cycles,
     so it reads a bit correctly only when SDA was stable tsu_min cycles before the SCL rise. The bus levels are
     recorded as the bus has them (raw), for the bus times."""
 

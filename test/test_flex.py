@@ -1466,9 +1466,6 @@ async def test_flex_word_count(dut):
     import itertools
     log = dut._log
     size = {n: assemble(n).size for n in PROGRAMS}
-    log.info("words: " + ", ".join(f"{n} {size[n]}" for n in PROGRAMS))
-    for n in NEW:
-        log.info(f"{n} alone: {size[n]} words, {pe_model.MEM_WORDS - size[n]} free, {PROGRAMS[n][0]} thread(s)")
     fits = []
     names = list(PROGRAMS)
     for k in range(2, pe_model.N_THREADS + 1):

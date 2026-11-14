@@ -101,9 +101,15 @@ Run [42744631446], `final/metrics.csv`: route DRC 0, antenna violations 0, LVS e
 - The host port allowance of 27.4 ns for pads and the host input ([docs/host_port.md](host_port.md) section 6) is partly an estimate. It will be measured on the board.
 - No silicon result exists.
 
-## Method
+## How AI tools were used
 
-The design and the verification were AI-assisted, under the direction of the engineer. Every decision needed a ground that a reader can check (a measurement, a run, a standard or a data sheet page) and a comparison with at least one alternative. Later reviews checked the grounds again against their sources. The results are in this file and in [docs/decisions.md](decisions.md).
+The chip was designed and verified by the engineer working with an AI assistant. This section says what the assistant did, how its results were checked, and what the engineer decided.
+
+**What the assistant did.** It drafted RTL, firmware, the assembler, the reference model, the tests, the formal properties and the documents in this repository from the engineer's requirements and from [docs/isa.md](isa.md). It ran the open-source tools named in this file (Icarus Verilog with cocotb, Yosys, SymbiYosys with Z3, ngspice) and the Tiny Tapeout layout flow on GitHub Actions, and read their reports at all three timing corners. It read public standards, data sheets and the competition page, and compared design options.
+
+**How the results were checked.** No result was accepted because the assistant said so. Each design choice needed evidence that a reader can check (a test or formal job in this repository, a GitHub Actions run, a synthesis area, or a numbered page of a public standard or data sheet) and a comparison with at least one alternative; [docs/decisions.md](decisions.md) keeps the rejected options and the failed runs. The tests compare the design with models written from the documents, not from the RTL: the protocol models in `test/` follow the standards, the host model follows [docs/host_port.md](host_port.md), and the expected values in `test_isa.py` were worked out by hand from docs/isa.md. Later reviews read each cited source again. Some first answers were wrong and were corrected this way: the I2C input filter needs 4 equal samples at 50 MHz, not 3 ([docs/decisions.md](decisions.md) entry 10); the SPI target firmware is rated 1 MHz, not the 5 MHz first estimated (entry 11); the 1-Wire write-0 time of the application note (60 us) has no margin against a DS18B20 that samples at 60 us, and the hold-out test found it (section 1). The final checks are those of the flow (static timing at three corners, DRC, LVS, precheck) and the gate-level tests, not the assistant's reading of them.
+
+**What the engineer decided.** The requirements and the architecture, which risks to accept, each entry in [docs/decisions.md](decisions.md), and what is submitted. The assistant proposed and measured; the engineer decided.
 
 [41380161509]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/41380161509
 [41817455061]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/41817455061

@@ -894,16 +894,13 @@ class SwdTarget:
                 self.sel = [0]
             self.ones = self.ones + 1 if v else 0
             return
-        if v:
-            self.ones, self.zeros = self.ones + 1, 0
+        if v:  # ones: the present run of high cycles; zeros: the low cycles after it
+            self.ones, self.zeros = (1 if self.zeros else self.ones + 1), 0
         else:
             self.zeros += 1
             if self.zeros == 2 and self.ones >= 50:
-                self.ones = 0
                 self._line_reset()
                 return
-            if self.zeros >= 2:
-                self.ones = 0
         if self.error:
             return
         st = self.state

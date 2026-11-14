@@ -1,5 +1,5 @@
-# M2b: formal proof of the event slot properties (pe_timed_out `ifdef
-# FORMAL: T1 to T6) with the harness timed_out_fv.v. The monitor keeps the
+# timed_out: formal proof of the event slot properties (pe_timed_out `ifdef
+# FORMAL: T1 to T6) with the wrapper timed_out_fv.v. The monitor keeps the
 # cycle count of the event in the slot, so the properties are inductive
 # with a small depth: the proof holds for all leads 1 to 65,536 cycles,
 # not only for the leads that a bounded check can reach.

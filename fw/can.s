@@ -114,17 +114,17 @@ dd:     LDI     r3, 0
 ; word mark, r3 temporary.
 rx:     TNOW    8
         OUT     TXB, 1          ; released
-ridle:  WAIT    RX, FALL, r3, CT ; SOF: hard synchronization
-        TADD    4093            ; T = edge - 3: start of the SOF bit
+ridle:  WAIT    RX, FALL, r3, CT ; SOF: hard synchronization, T = edge
         LDI     r0, 0x155       ; history with no 5 equal bits: SOF is not a stuff bit
         LDI     r1, 0
         LDI     r2, 16          ; word mark at bit 4: the first word has 12 bits
         LDI     r3, 39          ; field count, step -2: negative at bit 20
         ST      r3, CNT
+        JMP     rsy             ; sample the SOF bit as after a resynchronization
 rb:     TADD    SP - 20         ; last resynchronization time
         WAIT    RX, FALL, r3, TO, CT
         BEC     rs
-        TADD    SP - 23         ; resynchronized: edge - 3 + SP - 20
+rsy:    TADD    SP - 23         ; synchronized: T = edge - 3 + SP - 20 (TADD cannot subtract)
 rs:     TADD    20              ; T = sample point
         SAMPLE  RX, r0<<
         TADD    BT - SP         ; T = start of the next bit

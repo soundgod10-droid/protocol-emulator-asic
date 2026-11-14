@@ -220,7 +220,7 @@ The pin configuration has an open-drain bit for each output pin (section 4.5). I
 
 ### 6.1 Synchronizer
 
-Each input pin goes through a 2-stage synchronizer [M1 pe_sync2]. The synchronized value s(c) in cycle c is the pin level in cycle c - 2. The pin level of cycle c is the value at the clock edge at the end of cycle c.
+Each input pin goes through a 2-stage synchronizer (src/pe_sync.v, pe_sync2). The synchronized value s(c) in cycle c is the pin level in cycle c - 2. The pin level of cycle c is the value at the clock edge at the end of cycle c.
 
 Inputs 6 and 7 (uio[6], uio[7], the I2C pins SCL and SDA) also have a spike filter after the synchronizer (pe_spike_filter, K = 4). Their s(c) takes a new level only after the synchronized level has had that level in K = 4 cycles in a row. Thus:
 

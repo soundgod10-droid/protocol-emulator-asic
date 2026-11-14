@@ -15,7 +15,7 @@
 ;   comparison of the two methods in test_flex_trigger).
 ;
 ; Why:
-;   Option O5 (DECISIONS.md D17): an exact, programmable delay from a
+;   An exact, programmable delay from a
 ;   protocol event to an output edge, for test benches and logic analyzer
 ;   triggers.
 ;

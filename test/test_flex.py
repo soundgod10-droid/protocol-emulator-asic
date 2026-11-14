@@ -1114,15 +1114,19 @@ async def test_flex_swd(dut):
     and the reset-state rule. Measures the smallest SWCLK times at target delays of 3 and 8 cycles."""
     log = dut._log
     log.info(f"fw/swd.s: {assemble('swd.s').size} words")
-    fault, span = swd_run(16, 32)
-    assert fault is None, f"H1 16, H2 32: {fault}"
-    log.info(f"H1 16, H2 32: correct; DPIDR read transaction {span} clock cycles")
+    log.info(f"fw/swd_flat.s: {assemble('swd_flat.s').size} words")
+    for name in ("swd.s", "swd_flat.s"):
+        fault, span = swd_run(12, 20, name)
+        assert fault is None, f"{name} H1 12, H2 20: {fault}"
+        log.info(f"{name} H1 12, H2 20 (defaults): correct; DPIDR read transaction {span} clock cycles")
     best = {}
-    for td in (3, 8):
-        rows = swd_limits("swd.s", td)
-        best[td] = rows[0][0]
-        for p, h1, h2, span, below in rows[:4]:
-            log.info(f"swd.s, target delay {td}: H1 {h1}, H2 {h2}: SWCLK period {p} cycles ({F_CLK / p / 1e6:.3f} MHz); "
-                     f"DPIDR read {span} clock cycles ({F_CLK / span / 1e3:.1f} k reads/s); H2 {h2 - 1}: "
-                     f"{(below or 'correct')[:100]}")
-        log.info(f"swd.s, target delay {td}: smallest H1 that works {min(r[1] for r in rows)}")
+    for name in ("swd.s", "swd_flat.s"):
+        for td in (3, 8):
+            rows = swd_limits(name, td)
+            best[(name, td)] = rows[0][0]
+            for p, h1, h2, span, below in rows[:4]:
+                log.info(f"{name}, target delay {td}: H1 {h1}, H2 {h2}: SWCLK period {p} cycles "
+                         f"({F_CLK / p / 1e6:.3f} MHz); DPIDR read {span} clock cycles ({F_CLK / span / 1e3:.1f} k reads/s); "
+                         f"H2 {h2 - 1}: {(below or 'correct')[:100]}")
+            log.info(f"{name}, target delay {td}: smallest H1 that works {min(r[1] for r in rows)}")
+    assert best[("swd.s", 8)] <= 32, f"fw/swd.s smallest SWCLK period {best[('swd.s', 8)]} cycles"

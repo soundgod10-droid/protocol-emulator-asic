@@ -88,7 +88,7 @@ module pe_core (
     input  wire        fifo_in_valid,
     input  wire [15:0] fifo_in_data,
     input  wire        fifo_out_full,
-    // Status of thread n at bit n, for the host port (M2c)
+    // Status of thread n at bit n, for the host port
     output wire [3:0]  th_run,
     output wire [3:0]  th_late,
     output wire [3:0]  th_err

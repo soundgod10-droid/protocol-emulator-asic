@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Milestone M2b lockstep test: processor RTL against the M2a reference model.
+"""Lockstep test: processor RTL against the reference model (model/pe_model.py).
 
 What it does:
   Each scenario loads a program into the chip through the host SPI port

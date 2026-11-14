@@ -1,4 +1,4 @@
-; i2c_write.s: OUTLINE firmware for an I2C controller write (milestone M2a).
+; i2c_write.s: OUTLINE firmware for an I2C controller write.
 ;
 ; What it does:
 ;   The thread writes bytes from its host FIFO on an I2C bus (SCL on UIO6,

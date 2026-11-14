@@ -1031,7 +1031,7 @@ def uart_decode(changes, b, nbits):
 
 
 def no_tsync(text):
-    """The firmware text with each TSYNC replaced by NOP (the alternative without TSYNC, D4 item 9)."""
+    """The firmware text with each TSYNC replaced by NOP (the alternative without TSYNC)."""
     return re.sub(r"\bTSYNC\b[^;\n]*", "NOP ", text, flags=re.I)
 
 

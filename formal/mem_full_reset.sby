@@ -2,8 +2,9 @@
 # with a free reset (mem_fv.v FREE_RESET = 1).
 #
 # What it does:
-#   mem_full.sby with the reset free at each solver step. Decision D6 (no
-#   reset on the memory write-data flip-flops) was checked with a free reset
+#   mem_full.sby with the reset free at each solver step. The choice of
+#   docs/decisions.md entry 7 (no reset on the memory write-data
+#   flip-flops) was checked with a free reset
 #   only at 8 x 16 by bmc (mem_reset.sby); this job proves M1 to M4 of
 #   pe_latch_ram at the chip size for all time.
 #

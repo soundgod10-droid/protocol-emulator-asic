@@ -49,7 +49,7 @@ BAUD = 115_200
 T_NOM_PS = 1e12 / BAUD  # 8,680,555.6 ps: bit time that the receiver expects
 BIT_CYCLES = 434  # design value: round(50e6 / 115200)
 T_DUT_PS = BIT_CYCLES * CLK_PS  # 8,680,000 ps: bit time that the design must make
-RATE_TOL = 0.01  # +/-1 % (A1 section 3)
+RATE_TOL = 0.01  # +/-1 %: our part of the UART clock-error budget (design target)
 EDGE_TOL_PS = 1_000  # an edge must be within 1 ns of a bit boundary
 FRAME_BITS = 10  # start + 8 data + stop
 P_TX = 12  # UART_TX = uo_out[4] = output pin 12 (docs/isa.md 5.1)

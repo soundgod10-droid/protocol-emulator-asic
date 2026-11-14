@@ -1243,8 +1243,8 @@ async def test_r2_clock_margins(dut):
         lines.append(f"G1 data, B {b}, H {rx_h(b)}, stop sampled: contiguous -{fast * 100:.1f}/+{slow * 100:.1f} %")
     for text in lines:
         log.info("R2 " + text)
-    # Cross-check with G1 (G1_ground_register.md 4.1): the stop-sampled receiver at 1 Mbit/s with the
-    # G1 rule H gives -4.0 / +3.4 % at 50 MHz and -3.1 / +3.4 % at 40 MHz with the G1 data.
+    # Cross-check with rx_limits (as in test_fw_full_uart_rx_tolerance): the stop-sampled receiver at
+    # 1 Mbit/s with the rx_h rule gives -4.0 / +3.4 % at 50 MHz and -3.1 / +3.4 % at 40 MHz.
     assert [round(x, 3) for x in rx_limits(50, rx_h(50))] == [0.040, 0.034]
     assert [round(x, 3) for x in rx_limits(40, rx_h(40))] == [0.031, 0.034]
 

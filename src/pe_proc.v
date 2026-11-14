@@ -101,7 +101,7 @@ module pe_proc (
   wire [15:0] fifo_in_data;
   wire        fifo_out_full;
   wire        h_out_valid;
-  wire [6:0]  c_mem_raddr;
+  wire [7:0]  c_mem_raddr;
 
   pe_core u_core (
       .clk          (clk),

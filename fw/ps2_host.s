@@ -35,6 +35,11 @@
 ;   32 is a frame that stopped (no falling edge for 164 us): the number of
 ;   bits that did not come. For each command: bit 15 = DATA after falling
 ;   edge 12 (0 = acknowledged); 0xFFFF = no clock from the device in 16 ms.
+; Limits (model, test/test_flex.py test_flex_ps2): correct with device
+;   clocks of 10, 12.5 and 16.7 kHz (frames, a command with acknowledge,
+;   the answer), at every start phase tried (264 phases 8 cycles apart
+;   across one window at 12.5 kHz); decodes device clock periods down to
+;   90 cycles (556 kHz at 50 MHz; 89 cycles fails).
 ; Not done: inhibit (CLK held low) while the host cannot take frames,
 ;   Resend handling (the host program does it).
 

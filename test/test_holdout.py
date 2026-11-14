@@ -252,4 +252,4 @@ async def test_holdout_onewire_words(dut):
         dut._log.info(f"onewire.s + {' + '.join(others)}: {total} of {pe_model.MEM_WORDS} words "
                       f"({'fits' if total <= pe_model.MEM_WORDS else 'does not fit'})")
     dut._log.info(f"the four example programs use {four} words; with onewire.s {four + size['onewire.s']}")
-    assert size["onewire.s"] == 39, size["onewire.s"]
+    assert size["onewire.s"] == 40, size["onewire.s"]

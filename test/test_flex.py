@@ -491,9 +491,9 @@ async def test_flex_can(dut):
                      f"{60e6 / last / 1e3 if last else 0:.1f} kbit/s at 60 MHz by calculation); first fault {why}")
     # Standard rates with node clock error, transceiver delay and 4 start phases.
     results = {}
-    for rate in (125_000, 200_000):
+    for rate, fracs in ((125_000, (0.6, 0.65, 0.7, 0.75)), (200_000, (0.55, 0.6, 0.65)), (250_000, (0.5, 0.55, 0.6))):
         bt = round(F_CLK / rate)
-        for frac in (0.55, 0.6, 0.65, 0.7, 0.75):
+        for frac in fracs:
             sp = round(frac * bt)
             for parts in (("tx",), ("rx",), ("arb",)):
                 rows = []

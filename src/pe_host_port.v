@@ -112,7 +112,7 @@ module pe_host_port #(
   reg [7:0]  tx;         // MISO shift register, tx[7] is on MISO
   reg [3:0]  st;
   reg [3:0]  cmd;        // command (high nibble)
-  reg [6:0]  addr;       // memory or configuration address of the next word
+  reg [7:0]  addr;       // memory or configuration address of the next word
   reg [1:0]  tid;        // thread of PUSH and PULL
   reg [7:0]  hold;       // high byte of a written word, or low byte of a read word
   reg [2:0]  idx;        // index of the next response byte (READ_ID, READ_STATUS)

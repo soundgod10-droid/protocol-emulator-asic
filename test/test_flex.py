@@ -999,11 +999,13 @@ def swd_request(apndp, rnw, a):
 
 
 def swd_raw(bits):
-    return [0x8000 | len(bits)] + [lsb_word(bits[g:g + 16]) for g in range(0, len(bits), 16)]
+    """Raw command of fw/swd.s: whole 16-cycle words."""
+    assert len(bits) % 16 == 0
+    return [0x8000 | len(bits) // 16] + [lsb_word(bits[g:g + 16]) for g in range(0, len(bits), 16)]
 
 
-SWD_CONNECT = [1] * 56 + value_bits(0xE79E, 16) + [1] * 56 + [0] * 4  # B5-125, then the line reset B4-118
-SWD_LINE_RESET = [1] * 56 + [0] * 4
+SWD_CONNECT = [1] * 64 + value_bits(0xE79E, 16) + [1] * 64 + [0] * 16  # B5-125, then the line reset B4-118
+SWD_LINE_RESET = [1] * 64 + [0] * 16
 
 
 class SwdHost:

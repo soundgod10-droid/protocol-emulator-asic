@@ -424,7 +424,7 @@ Bits 15 to 12 are the opcode. In the bit patterns, the bits are in the sequence 
 | 1100 | OUT / SAMPLE | 1100 pppp rrkk kooo | k: 000 OUT 0, 001 OUT 1, 010 OUT Z, 011 OUT r, 100 OUT r>>, 101 OUT r<<, 110 SAMPLE r>>, 111 SAMPLE r<<. r is ignored for k = 000 to 010. o = offset 0 to 7. |
 | 1101 | WAIT | 1101 pppp ddee tx-- | e: 00 FALL, 01 RISE, 10 ANY, 11 illegal. t = 1: TO. x = 1: CT. |
 | 1110 | HOST / IO | 1110 ffrr n-qq qqqq | f: 00 PULL rd, 01 PUSH rs, 10 IOR rd, 11 IOW rs. n = 1: non-blocking (.NB), PULL and PUSH only. q = port, IOR and IOW only. |
-| 1111 | (reserved) | 1111 xxxx xxxx xxxx | illegal in M2a. Kept for helper instructions. |
+| 1111 | (reserved) | 1111 xxxx xxxx xxxx | illegal. Kept for helper instructions. |
 
 Examples (the assembler tests check these words, test/test_isa.py):
 

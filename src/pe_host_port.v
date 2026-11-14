@@ -5,7 +5,7 @@
 
 `default_nettype none
 
-// pe_host_port: host SPI port of the chip (A1 block D7).
+// pe_host_port: host SPI port of the chip.
 //
 // What it does:
 //   The host (the RP2350 of the demo board) uses this SPI target to stop

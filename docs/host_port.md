@@ -179,21 +179,30 @@ Limit: any three protocols at full rate, not all four. The host words that the e
 
 ## 11 System clock and host constants
 
-The declared and timed clock is 50 MHz (info.yaml clock_hz, src/config.json CLOCK_PERIOD 20). Every clock-dependent value of the firmware is a host constant: a host word at start (UART bit time B and sample point H, SPI half period H, the chunk time C and count K of fw/uart_tx_full.s) or an .equ that the host sets when it assembles the file (I2C times, SPI mode, the UART receiver ND1). The host keeps one table of these constants for each clock it uses. The values in sections 3 and 6 are for 50 MHz.
+The declared and timed clock is 60 MHz (info.yaml clock_hz, src/config.json CLOCK_PERIOD 16.667). The layout timed at 60 MHz has more margin at 50 and 40 MHz, so the host may also run the chip at those clocks with their own constants. Every clock-dependent value of the firmware is a host constant: a host word at start (UART bit time B and sample point H, SPI half period H, the chunk time C and count K of fw/uart_tx_full.s) or an .equ that the host sets when it assembles the file (I2C times, SPI mode, the UART receiver ND1). The host keeps one table of these constants for each clock it uses. The .equ values written in the fw/ files and the values in sections 3, 6 and 13 are for 50 MHz.
 
-40 MHz mode (for 10BASE-T only): at 40 MHz a 10BASE-T half bit (50 ns) is exactly 2 clock cycles; at 50 MHz the edge grid error is 10 ns, more than the +/-8 ns of IEEE 802.3-2022 14.3.1.2.3. The demo board can make 40 MHz exactly (RP2350 80 MHz / 2) from its +/-10 ppm crystal, inside the +/-0.01 % of IEEE 802.3-2022 7.3.2. Limits at 40 MHz (measured; tests test_r2_clock_margins in the model and test_r2_host_sck_clocks in RTL):
+Why 60 MHz: the slow-corner flip-flop setup slack at 60 MHz is +3.687 ns with timing-driven placement and a 1.2 ns max transition in place and route (src/pnr.sdc), with 0 setup, hold, max-slew and max-capacitance violations at all three corners (gds run 43623356570; docs/decisions.md entry 4). At 60 MHz a low-speed USB bit is exactly 40 cycles and a 10BASE-T half bit (50 ns) exactly 3 cycles, and each thread has 20 % more instructions per second than at 50 MHz.
 
-| Item | 40 MHz | 50 MHz |
-|---|---|---|
-| Host SCK period, all host phases (smallest correct) | 102 ns or more (9.8 MHz); rated 8.7 MHz to keep the 12.6 ns margin of section 6 | 88 ns; rated 10 MHz |
-| UART receiver at 1 Mbit/s, stop bit sampled (ND1 = 9) | best H 12: -3.1 / +3.4 %, does not meet +/-3.3 % | H 15: -3.7 / +3.4 % |
-| UART receiver at 1 Mbit/s, stop bit not sampled (ND1 = 8) | H 18: -5.9 / +5.7 % | H 23: -5.8 / +5.8 % |
-| UART receiver at 921,600 bit/s, stop bit sampled | B 43 (+0.937 % divider error): -3.3 / +3.4 % against B, under 3.3 % on one side against the nominal rate | B 54: -3.7 / +3.8 % against B |
-| UART receiver at 921,600 bit/s, stop bit not sampled | -5.8 / +5.9 % | -5.8 / +5.9 % |
-| SPI controller (fw/spi_ctl.s), smallest H | 25 cycles = 800 kHz (D 0) | 25 cycles = 1.0 MHz |
-| I2C Fast-mode (UM10204 Table 11 minimum times) | pass, 360.4 kHz | pass, 396.8 kHz |
+40 MHz mode: at 40 MHz a 10BASE-T half bit is exactly 2 clock cycles (at 50 MHz the edge grid error is 10 ns, more than the +/-8 ns of IEEE 802.3-2022 14.3.1.2.3). The demo board can make 40, 50 and 60 MHz from its +/-10 ppm crystal, inside the +/-0.01 % of IEEE 802.3-2022 7.3.2.
 
-Thus at 40 MHz the UART receiver at 921,600 and 1,000,000 bit/s must not sample the stop bit (assemble fw/uart_rx_full.s with ND1 = 8; there is then no framing-error report), and the host SCK must be 102 ns or longer. Do not use 60 MHz: the slow-corner flip-flop setup slack at 60 MHz was -1.773 ns and -1.219 ns in two gds runs, and +0.344 ns only with timing-driven placement and 10 max-slew violations; at 50 MHz it is +1.560 ns (gds 40955889046, nom_slow_1p08V_125C).
+Measured limits at each clock (tests test_r2_clock_margins in the model and test_r2_host_sck_clocks in RTL):
+
+| Item | 60 MHz (declared) | 50 MHz | 40 MHz |
+|---|---|---|---|
+| Host SCK period, all host phases (smallest correct) | 78 ns (3 T + 27.4 = 77.4 ns); rated 10 MHz (22.6 ns margin) | 88 ns; rated 10 MHz | 102 ns (9.8 MHz); rated 8.7 MHz to keep the 12.6 ns margin of section 6 |
+| UART divider error, largest of 300 bit/s to 1 Mbit/s | +0.160 % (230,400 bit/s) | +0.469 % (921,600 bit/s) | +0.937 % (921,600 bit/s) |
+| UART receiver at 1 Mbit/s, stop bit sampled (ND1 = 9) | B 60, H 20: -4.0 / +3.7 % | B 50, H 15: -3.7 / +3.4 % | B 40, H 12: -3.1 / +3.4 %, does not meet +/-3.3 % |
+| UART receiver at 1 Mbit/s, stop bit not sampled (ND1 = 8) | H 28: -5.8 / +5.9 % | H 23: -5.8 / +5.8 % | H 18: -5.9 / +5.7 % |
+| UART receiver at 921,600 bit/s, stop bit sampled | B 65, H 23: -4.0 / +4.0 % | B 54, H 18: -3.7 / +3.8 % | B 43, H 13: -3.3 / +3.4 % against B |
+| UART receiver at 115,200 bit/s | B 521, H 238: -5.0 / +5.0 % | B 434, H 197: -5.0 / +5.0 % | B 347, H 156: -5.0 / +5.0 % |
+| SPI controller (fw/spi_ctl.s), smallest H | 25 cycles = 1.2 MHz (D 0); 32 = 938 kHz (D 7) | 25 = 1.0 MHz; 32 = 781 kHz | 25 = 800 kHz; 32 = 625 kHz |
+| I2C Fast-mode .equ of fw/i2c_ctl.s (cycles) | HD 4, TLOW 92, TSMP 16, THIGH2 39, TSUSTA 39, THDSTA 39, TSUSTO 39, TBUF 82 | HD 4, TLOW 75, TSMP 16, THIGH2 32, TSUSTA 32, THDSTA 32, TSUSTO 32, TBUF 68 | HD 4, TLOW 60, TSMP 16, THIGH2 32, TSUSTA 24, THDSTA 25, TSUSTO 24, TBUF 53 |
+| I2C Fast-mode (UM10204 Table 11 minimum times), with and without clock stretching | pass, 389.6 kHz | pass, 384.6 kHz | pass, 347.8 kHz |
+| UART TX + UART RX (1 Mbit/s, sender +/-3.3 %) + SPI + I2C at the same time | pass at -3.3 % and +3.3 % | pass at -3.3 % and +3.3 % | pass at +3.3 %, fails at -3.3 % |
+| Low-speed USB bit (1.5 Mbit/s) | 40 cycles, +0.00 % | 33 cycles, +1.01 % | 27 cycles, -1.23 % |
+| 10BASE-T half bit (50 ns) on the clock grid | 3.00 cycles, 0 ns error | 2.50 cycles, 10 ns error | 2.00 cycles, 0 ns error |
+
+At 40 MHz the UART receiver at 921,600 and 1,000,000 bit/s must not sample the stop bit (assemble fw/uart_rx_full.s with ND1 = 8; there is then no framing-error report), and the host SCK must be 102 ns or longer. The I2C 60 MHz TLOW is 92, not 90: with 90 the SCL period was 148 cycles (405.4 kHz, over 400 kHz) when the target stretches the clock (test/test_fw_full.py, I2C_EQU).
 
 ## 12 Host program and firmware format (docs/decisions.md entry 9)
 

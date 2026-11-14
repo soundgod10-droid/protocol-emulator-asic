@@ -1096,7 +1096,7 @@ def gap_i2c(edit):
 
 @cocotb.test(skip=GL)
 async def test_g1_tsync(dut):
-    """D4 item 9: TSYNC words in the firmware, and a host gap of 40,000 cycles with and without TSYNC."""
+    """TSYNC words in the firmware, and a host gap of 40,000 cycles with and without TSYNC."""
     for name in sorted(set(FULL + SLOW)):
         prog = pe_asm.assemble_file(os.path.join(ROOT, "fw", name))
         dut._log.info(f"fw/{name}: {tsync_count(prog)} TSYNC of {prog.size} words")

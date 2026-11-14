@@ -1189,12 +1189,12 @@ class Ps2Device:
         st = self.state
         if st == "idle":
             self.quiet = self.quiet + 1 if (clk, data) == (1, 1) else 0
-            if clk == 1 and data == 0 and self.prev[1] == 1:
+            if (clk, data) == (1, 0) and self.prev != (1, 0):  # request to send: CLK released with DATA low
                 self.state, self.t0 = "rts", c + self.rts_delay
             elif self.queue and self.quiet >= self.gap and c >= self.start:
-                self.state, self.t0, self.bits = "send", c, ps2_frame(self.queue[0])
+                self.state, self.t0, self.bits = "send", c + 1, ps2_frame(self.queue[0])
         elif st == "rts" and c >= self.t0:
-            self.state, self.rbits = "recv", []
+            self.state, self.rbits, self.t0 = "recv", [], c + 1
         elif st == "send":
             k, ph = divmod(c - self.t0, self.period)
             if k > 10:

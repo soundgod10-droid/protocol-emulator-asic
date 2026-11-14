@@ -469,9 +469,6 @@ async def test_flex_can(dut):
     log = dut._log
     words = assemble("can.s").size
     log.info(f"fw/can.s: {words} words")
-    log.info("arbitration trace, node -0.5 %: " + can_arb_trace(400, 260, node_ppm=-5000))
-    log.info("arbitration trace, delay 10: " + can_arb_trace(400, 260, delay=10))
-    assert False, "diagnostic run"
     # Smallest bit time at each sample point (SP as a part of BT), for the whole case and for each thread alone.
     smallest = {}
     for frac in (0.625, 0.75, 0.875):

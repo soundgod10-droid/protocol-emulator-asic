@@ -14,11 +14,12 @@
 ;   Transaction (B4.2, pages B4-108, B4-109): the 8-bit request, one
 ;   turnaround cycle, ACK[0:2]. Only on OK (ACK[0:2] = 1, 0, 0) the data
 ;   phase follows: for a read 32 data bits and the parity bit from the
-;   target, a turnaround and one idle cycle (line low); for a write a
-;   turnaround, then 32 data bits and the parity bit from the host. On
-;   WAIT, FAULT or no response (line high: 1, 1, 1) the firmware makes the
-;   turnaround and one idle cycle, with no data phase (B4-117, Table
-;   B4-10). The host does the parity and the retries.
+;   target and a turnaround; for a write a turnaround, then 32 data bits,
+;   the parity bit and 15 idle cycles (line low) from the host. On WAIT,
+;   FAULT or no response (line high: 1, 1, 1) the firmware makes the
+;   turnaround, with no data phase (B4-117, Table B4-10), and takes the
+;   data words of a write from the FIFO. The next request can follow at
+;   once (B4-104). The host does the parity and the retries.
 ;
 ; Why:
 ;   A protocol that the instruction set was not designed for (flexibility).

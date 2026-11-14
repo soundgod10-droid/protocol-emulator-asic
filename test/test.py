@@ -16,7 +16,7 @@ What it does:
   The tests decide pass or fail only from chip pins:
   - uo_out[4] UART_TX (tb wire "uart_tx")
   - ui_in[7:5], uo_out[7]: host SPI port (HOST_SCK, HOST_CS_N, HOST_MOSI,
-    HOST_MISO, A1 section 2.2)
+    HOST_MISO, docs/host_port.md 2)
   A UART receiver model decodes UART_TX. It finds the start edge, then
   samples each bit at its middle (start edge + (k + 0.5) bit times).
   A line monitor records each change of UART_TX with its simulation time.

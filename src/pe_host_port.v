@@ -185,7 +185,7 @@ module pe_host_port #(
       tx        <= 8'd0;
       st        <= S_CMD;
       cmd       <= 4'd0;
-      addr      <= 7'd0;
+      addr      <= 8'd0;
       tid       <= 2'd0;
       hold      <= 8'd0;
       idx       <= 3'd0;

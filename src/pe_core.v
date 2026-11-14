@@ -735,7 +735,7 @@ module pe_core (
 
   // At start, each ring entry gets the start PC and RUN of the thread
   // that it holds in cycle 0 (entry i holds thread i). The other fields
-  // are 0 from the chip reset (see pe_test_port).
+  // are 0 from the chip reset (the asynchronous reset below).
   function [CW-1:0] at_start(input [CW-1:0] x, input [6:0] pc, input run);
     begin
       at_start          = x;

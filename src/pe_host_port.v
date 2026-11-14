@@ -253,12 +253,12 @@ module pe_host_port #(
               if (idx != 3'd7) idx <= idx + 3'd1;
             end
             S_ARG: begin
-              addr <= bin[6:0];
+              addr <= bin;
               tid  <= bin[1:0];
               if (cmd == K_READ_MEM) begin
                 tx   <= mem_rdata[15:8];
                 hold <= mem_rdata[7:0];
-                addr <= bin[6:0] + 7'd1;
+                addr <= bin + 8'd1;
                 st   <= S_RDA;
               end else if (cmd == K_PULL) begin
                 tx     <= {5'd0, cnt_sel};

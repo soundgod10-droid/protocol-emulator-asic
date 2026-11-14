@@ -495,7 +495,7 @@ module g1_bypass (
 endmodule
 
 // ---------------------------------------------------------------------------
-// Expired time (D4 item 9): the alternative to TSYNC. A sticky bit for each
+// Expired time (docs/isa.md 14 item 9): the alternative to TSYNC. A sticky bit for each
 // thread (in the ring order of pe_core) is set when T is 16,384 to 32,767
 // cycles behind now, before the 16-bit difference turns into a time in the
 // future. Each thread has a slot every 4 cycles, so the check cannot miss it.

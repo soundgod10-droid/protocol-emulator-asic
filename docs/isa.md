@@ -483,7 +483,7 @@ Bits with "-" have no effect. Thus, two words that differ only in "-" bits have 
 5. Pin owner from the host configuration; OUT from an other thread is ignored and sets ERR (section 5.2).
 6. Reset level of the output pins: V = 1, OE = 0. Thus, uo_out[6:0] = 1 after reset (section 2.4).
 7. LD and LDX take 2 slots, so that the latch memory needs one read port (section 3.3).
-8. No glitch filter on the inputs in this instruction set. The I2C Fast-mode spike filter (50 ns, A1 section 3) needs a filter later (section 6.1). Changed in M3a (decision D13): inputs 6 and 7 have a 4-sample spike filter (section 6.1).
+8. Inputs 6 and 7 (I2C) have a 4-sample spike filter for I2C Fast-mode; the other inputs have none (section 6.1, docs/decisions.md entry 10).
 9. The firmware keeps T near now with TSYNC while it waits for the host (section 7). The alternative is an "expired" bit for each thread, which makes T safe after a long wait.
 10. Pin numbers and the default pins of the SPI and I2C outline firmware (fw/spi_mode0.s, fw/i2c_write.s).
 11. The word formats from the host for SPI and I2C (bits 8 and 9 as control bits, see the firmware headers).

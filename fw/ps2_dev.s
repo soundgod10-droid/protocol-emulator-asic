@@ -25,6 +25,11 @@
 ; Words from the thread: 0x0000 = frame sent; 0xFFFF = frame stopped by
 ;   the host (send it again); for each received frame the 11 bits in bits
 ;   5 to 15 (start 5, data 6 to 13, parity 14, stop 15).
+; Limits (model, test/test_flex.py test_flex_ps2): correct at 10, 12.5 and
+;   16.7 kHz (TSU, TLO, THI = 900, 2500, 1600; 750, 2000, 1250; 500, 1500,
+;   1000 cycles at 50 MHz; clock period TSU + TLO + THI exactly), with the
+;   host inhibiting a frame before the 10th clock (stopped, 0xFFFF) and at
+;   the 10th clock (completed), and a host command with acknowledge.
 ; Not done: framing-error recovery (clock until DATA is high, then Resend,
 ;   page 40); the 20 ms response rule is up to the host program.
 

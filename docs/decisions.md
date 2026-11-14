@@ -51,8 +51,9 @@ The record below is the earlier decision (6x4, before the rule change).
 - **Question:** how do the longest flip-flop paths meet setup at the slow corner?
 - **Options:** (a) register selects decoded one cycle early, default placement; (b) synthesis delay strategy (`SYNTH_STRATEGY` "DELAY 1"); (c) timing-driven placement; (d) timing-driven placement with a 1.2 ns max-transition limit in the place-and-route constraints.
 - **Evidence:** (a) +1.329 ns on the present design (run [42744631446]). On the RTL of October 2026: (b) −0.862 ns, 67 failing endpoints (run [40967845275]); (c) +3.478 ns, but 12 max-slew violations (run [40967879447]); (d) +2.620 ns, hold +0.072 ns, no slew violation (run [41856662241]; the run is marked failed only because of its viewer job). The signoff constraints [src/signoff.sdc](../src/signoff.sdc) report flip-flop paths and latch paths in separate groups. Latch paths borrow time and show a slack of 0.000, so without the groups the flip-flop margin is not visible.
-- **Decision:** (a). (d) is the reserve, with the trigger rule in [docs/tapeout_checklist.md](tapeout_checklist.md) section 5.
-- **Would change it:** a slow-corner flip-flop margin below the threshold of that rule.
+- **Decision (6x4, 50 MHz):** (a). (d) is the reserve, with the trigger rule in [docs/tapeout_checklist.md](tapeout_checklist.md) section 5.
+- **Decision (8x4, template main flow, 60 MHz):** (d) is now the placement ([src/config.json](../src/config.json) `PL_TIMING_DRIVEN`, [src/pnr.sdc](../src/pnr.sdc)). On the template main flow without it, 4 max-capacitance pins remain at the slow corner (worst 0.342 pF on a 0.300 pF limit, run [43623251757]); a design repair after global routing leaves 2 (run [43623313712]); with (d): none, and +3.687 ns at 60 MHz (run [43623356570]).
+- **Would change it:** a slow-corner flip-flop margin below the threshold of that rule, or max-slew or max-capacitance violations with (d).
 
 ## 6. Flow settings and run time
 

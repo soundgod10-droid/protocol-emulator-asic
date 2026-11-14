@@ -751,7 +751,7 @@ def jtag_run_b(h1, h2, **kw):
             bench.send(0, cmd, *[lsb_word(tdi[g:g + 16]) for g in range(0, n, 16)])
             need = n0 + (n + 15) // 16
             for _ in range(200):
-                if len(bench.words(0)) >= need and len(bench.m.threads[0].__dict__) and not bench.to_thread[0]:
+                if len(bench.words(0)) >= need and not bench.to_thread[0]:
                     break
                 bench.run(max(n, 8) * (h1 + h2) // 8 + 100)
             bench.run(12 * (h1 + h2))  # header and tail cycles

@@ -88,7 +88,7 @@ tn:     TADD    4095
         TADD    4095
         WAIT    CLK, FALL, r3, TO, CT
         BEC     tf
-        TADD    16
+        TADD    24
         OUT     DATA, r0>>      ; next bit while CLK is low
         DJNZ    r2, tn
         TADD    4095

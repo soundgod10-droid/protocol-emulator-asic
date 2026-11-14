@@ -61,13 +61,17 @@ tx:     TNOW    8
 tidle:  PULL    r3              ; M
         ST      r3, TN
         PULL    r0              ; first stream word
-tw:     TSYNC   24
-        LDI     r2, 11
+        TSYNC   24
+tw:     LDI     r2, 10
 tw1:    TADD    BT
-        WAIT    RX, ANY, r3, TO
-        BES     tw              ; a bus edge: wait for 11 quiet bit times again
+        WAIT    RX, ANY, r3, TO, CT
+        BES     tw              ; a bus edge: T = its time; wait 11 quiet bit times from it
         DJNZ    r2, tw1
-        TADD    44              ; SOF time: the WAIT ends up to 4 cycles after T, then 8 instructions
+        TADD    BT - 47         ; the 11th bit time, less the time to the SOF event
+        WAIT    RX, ANY, r3, TO, CT
+        BES     tw
+        TADD    44              ; SOF pin edge 11 bit times after the last bus edge: the end of the
+                                ; intermission, when other waiting nodes start too (Part A page 19)
         LDI     r3, 1
         ST      r3, TXING       ; thread 1 must not ACK this frame
         LDI     r2, 16

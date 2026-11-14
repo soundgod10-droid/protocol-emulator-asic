@@ -7,9 +7,9 @@
 #
 # Why depth 3:
 #   mem.sby (128 x 2) proves the properties by induction with 2 steps
-#   ("Trying induction in step 8, 7 ... successful", M2c run 2026-10-28).
-#   In M2b, Z3 did not finish 8 steps (4 cycles) at 128 x 16 in 25 to 30
-#   minutes. Depth 3 is the smallest depth that holds the 2 induction
+#   ("Trying induction in step 8, 7 ... successful", local run 2026-10-28).
+#   Z3 did not finish 8 steps (4 cycles) at 128 x 16 in 25 to 30
+#   minutes (local runs; not verified in this repository). Depth 3 is the smallest depth that holds the 2 induction
 #   steps, so the base case is as short as possible.
 
 [options]

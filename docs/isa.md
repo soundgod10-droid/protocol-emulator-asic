@@ -474,7 +474,7 @@ Bits with "-" have no effect. Thus, two words that differ only in "-" bits have 
 | 0x0000 = HALT, illegal instructions stop the thread | A thread that runs into a cleared area or into data stops and sets ERR. | 0x0000 = NOP | The thread runs through the memory with no indication. |
 | Reset level of the output pins V = 1, OE = 0 | uio pins are inputs, UART_TX is at idle level 1. | V = 0 | UART_TX would show a start bit at reset. |
 
-## 14 Items that the engineer must confirm [ENGINEER]
+## 14 Summary of the main choices
 
 1. 4 data registers for each thread, not 8 (section 2.3, 13).
 2. Flip-flops for the registers, not latches (section 13).

@@ -64,10 +64,10 @@ endmodule
 //   While g is 1, q follows d. When g goes to 0, q keeps the last value.
 //
 // Why:
-//   Decision D2 uses latches (sg13cmos5l_dlhq_1, 30.84 um2) and not
-//   flip-flops for the 128 x 16 memory. A latch is smaller than a
+//   The 128 x 16 memory uses latches (sg13cmos5l_dlhq_1, 30.84 um2), not
+//   flip-flops (docs/decisions.md entry 3). A latch is smaller than a
 //   flip-flop (48.99 um2), and a loadable flip-flop also needs a mux2
-//   (R1_uart_tx.md 9.4 item 3). The cell is instantiated, so that the
+//   (liberty cell areas, docs/isa.md Sources). The cell is instantiated, so that the
 //   linter does not report an inferred latch and synthesis does not change
 //   it.
 

@@ -5,17 +5,17 @@
 
 `default_nettype none
 
-// pe_proc: the programmable part of the chip (architecture D, A1 section
-// 4.4): barrel core, memory, host FIFOs and the timed I/O unit.
+// pe_proc: the programmable part of the chip: barrel core, memory, host
+// FIFOs and the timed I/O unit.
 //
 // What it does:
-//   It connects the barrel core (pe_core, block D1) to:
+//   It connects the barrel core (pe_core) to:
 //   - the 128 x 16 latch memory for program and data (pe_latch_ram,
-//     decision D2),
-//   - the host FIFOs (pe_host_fifo, block D6),
-//   - 15 output event slots with their pin registers (pe_timed_out from
-//     M1, block D2), one for each output pin 0 to 14 (docs/isa.md 5.1),
-//   - the input synchronizers and the input history (pe_timed_in, D3).
+//     docs/decisions.md entry 3),
+//   - the host FIFOs (pe_host_fifo),
+//   - 15 output event slots with their pin registers (pe_timed_out), one
+//     for each output pin 0 to 14 (docs/isa.md 5.1),
+//   - the input synchronizers and the input history (pe_timed_in).
 //   pin_v and pin_oe are the outputs of the pin flip-flops: pins 0 to 7
 //   go to uio, pins 8 to 14 to uo_out[6:0].
 //

@@ -26,9 +26,9 @@ module pe_config (
     input  wire        clk,
     input  wire        rst_n,      // active low, asynchronous assert
     input  wire        we,
-    input  wire [6:0]  addr,
+    input  wire [7:0]  addr,
     input  wire [15:0] data,
-    output reg  [27:0] start_pc,   // thread n: [7n+6:7n]
+    output reg  [31:0] start_pc,   // thread n: [8n+7:8n]
     output reg  [3:0]  run_mask,
     output reg  [29:0] pin_owner,  // pin p: [2p+1:2p]
     output reg  [14:0] pin_en,

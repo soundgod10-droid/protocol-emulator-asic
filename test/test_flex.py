@@ -1320,8 +1320,8 @@ def ps2_host_run(period, offset=0, late="st", cmd=0xED, low=None, frames=PS2_BYT
     th = m.threads[0]
     if th.status or not th.run:
         m2 = pe_model.PeModel(prog.words, owner=owners({P_PCLK: 0, P_PDATA: 0}), open_drain=od((P_PCLK, P_PDATA)))
-        b2 = Bench(m2, inputs=Ps2Bus(Ps2Device(period, PS2_BYTES, low=low, start=1000 + offset)))
-        where = first_status(b2, m2, 1000 + offset + len(PS2_BYTES) * (12 * period + 3200), (0,), "ps2_host.s",
+        b2 = Bench(m2, inputs=Ps2Bus(Ps2Device(period, PS2_BYTES, low=low, start=4000 + offset)))
+        where = first_status(b2, m2, 4000 + offset + len(PS2_BYTES) * (12 * period + 3200), (0,), "ps2_host.s",
                              dict(LATE=late))
         return f"thread status {th.status}, run {th.run}, {th.stop_reason}; receive part: {where}", got
     return None, got

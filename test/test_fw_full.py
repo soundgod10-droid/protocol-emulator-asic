@@ -1,11 +1,11 @@
 # SPDX-License-Identifier: Apache-2.0
-"""G1 tests: full UART, SPI and I2C controller firmware in the model, and the measured word count.
+"""Full UART, SPI and I2C controller firmware in the model, and the measured word count.
 
 What it does:
-  These cocotb tests assemble the full firmware of run G1 step 3a
+  These cocotb tests assemble the full firmware
   (fw/uart_tx_full.s, fw/uart_rx_full.s, fw/uart_rx_slow.s, fw/spi_ctl.s,
   fw/i2c_ctl.s), count the words, and run each protocol in the reference
-  model (model/pe_model.py) at the limits of A1 section 3: UART 300 bit/s to
+  model (model/pe_model.py) at the design limits: UART 300 bit/s to
   1 Mbit/s at 50 MHz and 40 MHz with a sender bit-time error of +/-3.3 %,
   SPI in all four modes at the highest rate that the firmware can do, I2C
   Standard-mode and Fast-mode with clock stretching, repeated START, read,

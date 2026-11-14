@@ -154,6 +154,10 @@ class CanNode:
             self.bitstart += self.bt - self.shift
             self.shift, self.sampled, self.synced = 0, False, False
             self._next()
+            if self.state == "idle" and bus == 0:
+                # the edge came after the sample point of the last intermission bit: the resynchronization
+                # (page 30 rule 4) ended that bit at the edge, and the dominant level in bus idle is a SOF (page 19)
+                self._begin(self.bitstart, bool(self.pending and c >= self.start))
         self.tx = self.cur if self.state != "idle" else 1
 
     def _bit(self, v):

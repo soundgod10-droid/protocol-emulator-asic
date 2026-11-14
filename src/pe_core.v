@@ -786,9 +786,9 @@ module pe_core (
 
 `ifdef FORMAL
   // ---------------------------------------------------------------------
-  // Formal properties (formal/core.sby with the harness formal/core_fv.v).
+  // Formal properties (formal/core.sby with the wrapper formal/core_fv.v).
   // Only Yosys with the FORMAL macro reads this block; synthesis, the
-  // linter and the simulations do not. The harness connects now to the
+  // linter and the simulations do not. The wrapper connects now to the
   // cycle counter (clear = start) and gives all other inputs freely, so
   // the properties hold for every instruction word and every input.
   // ---------------------------------------------------------------------

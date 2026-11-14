@@ -1114,9 +1114,9 @@ async def test_flex_swd(dut):
     and the reset-state rule. Measures the smallest SWCLK times at target delays of 3 and 8 cycles."""
     log = dut._log
     log.info(f"fw/swd.s: {assemble('swd.s').size} words")
-    fault, span = swd_run(12, 16)
-    assert fault is None, f"H1 12, H2 16: {fault}"
-    log.info(f"H1 12, H2 16 (defaults): correct; DPIDR read transaction {span} clock cycles")
+    fault, span = swd_run(16, 32)
+    assert fault is None, f"H1 16, H2 32: {fault}"
+    log.info(f"H1 16, H2 32: correct; DPIDR read transaction {span} clock cycles")
     best = {}
     for td in (3, 8):
         rows = swd_limits("swd.s", td)

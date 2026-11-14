@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""R1-07: is the SDF annotation in effect, and does the host port read the chip ID with the delays of the layout?
+"""Is the SDF annotation in effect, and does the host port read the chip ID with the delays of the layout?
 
 What it does:
   It reads the chip ID through the host port, writes and reads the whole memory, and

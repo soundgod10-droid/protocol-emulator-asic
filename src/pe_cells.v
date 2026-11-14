@@ -49,11 +49,16 @@ module pe_cg (
   always @* if (!clk) en_l = en;
   assign gclk = clk & en_l;
 `else
+  // The flow lints with USE_POWER_PINS defined (LibreLane Verilator.Lint step), so the cell
+  // model has VDD and VSS ports. The power grid connects them (PDN global connections), not
+  // the RTL; synthesis reads the cell without power pins.
+  /* verilator lint_off PINMISSING */
   sg13cmos5l_lgcp_1 u_cell (
       .GATE(en),
       .CLK (clk),
       .GCLK(gclk)
   );
+  /* verilator lint_on PINMISSING */
 `endif
 
 endmodule

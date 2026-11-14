@@ -714,7 +714,7 @@ def jtag_run_a(h1, h2, **kw):
     for d in devs:
         if d.errors:
             return f"device errors {d.errors[:3]}", None, None
-    if devs[1].updates != [0xA53, 0xA53 >> 0 & 0] and devs[1].updates[:1] != [0xA53]:
+    if devs[1].updates != [0xA53, 0]:
         return f"device 1 updates {devs[1].updates}", None, None
     th = m.threads[0]
     if th.status or not th.run:

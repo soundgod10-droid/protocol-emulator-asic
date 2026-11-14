@@ -26,7 +26,7 @@ sys.path.insert(0, os.path.join(ROOT, "model"))
 sys.path.insert(0, os.path.join(ROOT, "asm"))
 import pe_asm  # noqa: E402
 import pe_model  # noqa: E402
-from test_fw_full import Bench, level, owners, source  # noqa: E402
+from test_fw_full import Bench, frame_bits, level, owners, source, uart_line, value_at  # noqa: E402
 
 GL = os.environ.get("GATES") == "yes"  # the gate-level job also runs this module; it has no DUT use
 F_CLK = 50e6  # declared clock (info.yaml)

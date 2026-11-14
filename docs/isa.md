@@ -1,20 +1,18 @@
-# Instruction set of the protocol emulator processor (M2a)
+# Instruction set of the protocol emulator processor
 
 | Item | Value |
 |---|---|
 | Document | docs/isa.md |
-| Milestone | M2 "Then make it programmable" (requirement R-15), run M2a |
-| Status | Proposal. The engineer must confirm the items with the mark [ENGINEER] (section 14). |
+| Status | Implemented in the RTL (src/) and in the reference model; test/test_core.py compares them in every clock cycle (docs/verification.md section 2). |
 | Reference model | model/pe_model.py. If this document and the model do not agree, that is a fault. Report it. |
 | Assembler | asm/pe_asm.py |
 | Language | ASD-STE100. Instruction names, signal names and file names are technical names. |
 
 Sources:
 
-- [A1] design/js_emulator/A1_architecture.md (engineering workspace): section 2.2 pins, section 4.4 candidate D, section 7 area, section 8 verification.
-- [D2] design/js_emulator/DECISIONS.md, decision D2: 128 x 16 latch memory for program and data, shared by the four threads.
-- [R1] design/js_emulator/R1_uart_tx.md: M1 results. Section 9.4 item 3: the cell library has no flip-flop with enable, so each loadable register bit costs dfrbpq_1 + mux2_1 = 67.13 um2.
-- [M1] src/pe_timed_out.v (event time and pin flip-flop), src/pe_sync.v (2-stage synchronizer), src/project.v (UART_TX on uo_out[4]).
+- RTL: src/pe_timed_out.v (event time and pin flip-flop), src/pe_sync.v (2-stage synchronizer), src/pe_cycle_counter.v, src/project.v (pins).
+- docs/decisions.md entry 1 (processor) and entry 3 (128 x 16 latch memory for program and data, shared by the four threads).
+- Cell areas: the sg13cmos5l_stdcell liberty file at the typical corner, as Yosys reports them in synthesis. The library has no flip-flop with enable, so each loadable register bit costs dfrbpq_1 (48.99 um2) + mux2_1 (18.14 um2) = 67.13 um2.
 
 ## 1 Summary
 

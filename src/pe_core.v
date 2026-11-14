@@ -756,10 +756,10 @@ module pe_core (
       sb  <= 2'd0;  // f_sb(16'h0000)
     end else begin
       // Each entry loads in every cycle from one source: no enable mux.
-      st3 <= start ? at_start(nc, start_pc[27:21], run_mask[3]) : nc;
-      st2 <= start ? at_start(st3, start_pc[20:14], run_mask[2]) : st3;
-      st1 <= start ? at_start(st2, start_pc[13:7], run_mask[1]) : st2;
-      st0 <= start ? at_start(st1, start_pc[6:0], run_mask[0]) : st1;
+      st3 <= start ? at_start(nc, start_pc[31:24], run_mask[3]) : nc;
+      st2 <= start ? at_start(st3, start_pc[23:16], run_mask[2]) : st3;
+      st1 <= start ? at_start(st2, start_pc[15:8], run_mask[1]) : st2;
+      st0 <= start ? at_start(st1, start_pc[7:0], run_mask[0]) : st1;
       ir  <= mem_rdata;
       sa  <= f_sa(mem_rdata);
       sb  <= f_sb(mem_rdata);

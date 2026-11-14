@@ -29,7 +29,16 @@ How to check a run value: open the run link. The layout and timing reports are i
 - **Decision:** 128 x 16 latch array; no macro in the flow.
 - **Would change it:** a demonstration that needs more than 128 words at the same time, with a passing layout run of the larger memory (the macro is the smaller option by area).
 
-## 4. System clock: 50 MHz
+## 4. System clock: 60 MHz
+
+- **Question (again, 8x4 and the template main flow):** the competition FAQ says 60 MHz is accepted by the board. Does the design close at 60 MHz?
+- **Evidence:** 8x4, template main flow, timing-driven placement with the place-and-route constraints of entry 5 (d), CLOCK_PERIOD 16.667 ns: slow-corner flip-flop setup margin +3.687 ns, no setup, hold, max-slew or max-capacitance violation at the three corners, precheck and gate-level test pass (run [43623356570]). With the default placement at 60 MHz the margin was -0.675 ns (run [43506715397]). The limit for the change was +1.1 ns, the largest margin change measured between synthesis runs of the same design. Protocol limits at 60 MHz (`test_r2_clock_margins`, `test_r2_host_sck_clocks`): UART receiver at 1 Mbit/s -4.0 / +3.7 %, I2C Fast-mode 389.6 kHz, all four example protocols together at a UART sender error of +/-3.3 %, host SCK 10 MHz with 22.6 ns margin ([docs/host_port.md](host_port.md) section 11). At 60 MHz a low-speed USB bit is 40 cycles and a 10BASE-T half bit 3 cycles, both exact.
+- **Decision:** 60 MHz declared and timed. 50 and 40 MHz stay host options with their own constants.
+- **Would change it:** a slow-corner margin under +1.1 ns or any violation on a later RTL version at 60 MHz.
+
+The record below is the earlier decision (6x4, before the rule change).
+
+### 4 (earlier). System clock: 50 MHz
 
 - **Question:** which clock is declared and timed?
 - **Options:** 40, 48, 50 and 60 MHz, or one timed clock with a host table of firmware constants for other clocks.

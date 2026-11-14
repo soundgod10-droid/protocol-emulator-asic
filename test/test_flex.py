@@ -1382,6 +1382,13 @@ async def test_flex_ps2(dut):
                      f"{len(faults) - len(bad)} of {len(faults)} start phases correct; first fault {(bad or ['none'])[0][:120]}")
             if late == "rlate":
                 assert not bad, f"device clock {period} cycles: {bad[0]}"
+    for late in ("rlate", "nolate"):  # one frame, start edge every 8 cycles across one idle window and its gap
+        faults = [ps2_host_run(4000, offset=o, late=late, cmd=None, frames=[0x5A])[0] for o in range(0, 2112, 8)]
+        bad = [o for o, f in zip(range(0, 2112, 8), faults) if f]
+        log.info(f"host firmware, 12.5 kHz, one frame, 264 start phases 8 cycles apart, late check {late == 'rlate'}: "
+                 f"{len(faults) - len(bad)} correct; wrong at offsets {bad[:12]}")
+        if late == "rlate":
+            assert not bad, f"late check: wrong at start offsets {bad[:12]}"
     lo, hi = 20, 3000  # smallest device clock period that the host firmware decodes (binary search, phases 0 and 75)
     while hi - lo > 1:
         mid = (lo + hi) // 2

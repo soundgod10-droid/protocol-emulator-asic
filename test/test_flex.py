@@ -1278,7 +1278,6 @@ class Ps2Host:
         if f is not None and len(self.frames) == f and len(self.bits) == at:
             self.pend += [(c + delay, "clk_low", True), (c + delay + length, "clk_low", False)]
             self.inh = (None, 0, 0, 0)
-            self.bits = []
         if len(self.bits) == 11:
             self.frames.append(ps2_decode(self.bits))
             self.bits = []

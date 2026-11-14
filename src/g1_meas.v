@@ -50,7 +50,7 @@ module g1_ram96 (
 endmodule
 
 // ---------------------------------------------------------------------------
-// Host FIFO words (register line C-08): the two 16 x 16 word stores of
+// Host FIFO words: the two 16 x 16 word stores of
 // pe_host_fifo in latches (as built) and in flip-flops with an enable.
 // ---------------------------------------------------------------------------
 module g1_mem_flop #(

@@ -262,7 +262,7 @@ The edge cycle is 2 cycles after the pin edge (synchronizer); on the filtered in
 - TSYNC imm7: if (T - now) as a signed 16-bit number is less than imm7, then T = (now + imm7) mod 65,536. Thus, TSYNC moves T to a time not earlier than now + imm7, and it never moves T back.
 - TWAIT: if d = (T - now) mod 65,536 >= 32,768 (T is past), TWAIT completes at once. If not, it waits and completes in the first slot after cycle now + d.
 
-Rule for the firmware: T must stay within 32,767 cycles of now. If T is more than 32,767 cycles in the past, the 16-bit difference shows it in the future (wrap). After a wait with no time limit (for example PULL), do not use the old T. The firmware in fw/ uses this loop for an idle line: TSYNC, then PULL.NB, then a branch back if the FIFO was empty. TSYNC keeps T near now while the thread waits. [ENGINEER] (section 14).
+Rule for the firmware: T must stay within 32,767 cycles of now. If T is more than 32,767 cycles in the past, the 16-bit difference shows it in the future (wrap). After a wait with no time limit (for example PULL), do not use the old T. The firmware in fw/ uses this loop for an idle line: TSYNC, then PULL.NB, then a branch back if the FIFO was empty. TSYNC keeps T near now while the thread waits (section 14, item 9).
 
 The minimum value of imm7 in TSYNC and TNOW: the next pin event must have a lead of at least 4 cycles when it executes. If the event instruction is k instructions after TSYNC, use imm7 >= 4 x k + 4.
 

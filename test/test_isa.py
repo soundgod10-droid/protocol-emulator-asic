@@ -14,7 +14,7 @@ Why:
   is compared with it. The expected values in the model tests come from docs/isa.md by
   hand, not from the model. The UART check uses an independent receiver:
   it samples the middle of each bit from the measured start edge with the
-  nominal bit time of 115,200 bit/s, as test/test.py does for the M1 RTL.
+  nominal bit time of 115,200 bit/s, as test/test.py does on the chip pins.
 """
 
 import bisect

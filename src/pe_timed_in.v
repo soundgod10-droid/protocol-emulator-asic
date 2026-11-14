@@ -5,7 +5,7 @@
 
 `default_nettype none
 
-// pe_timed_in: input part of the timed I/O unit (A1 block D3).
+// pe_timed_in: input part of the timed I/O unit.
 //
 // What it does:
 //   For each of the 13 thread input pins (docs/isa.md 5.1: uio[7:0] =

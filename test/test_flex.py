@@ -159,7 +159,7 @@ class CanNode:
             if self.state == "frame" and self.cur == 1 and v == 0 and len(self.dbits) <= 12 and not self.stuff_next:
                 self.sending = False  # lost arbitration (page 23, bit error exception)
                 self.results.append("lost")
-            elif self.tail != 1:  # a dominant ACK slot is not a bit error
+            elif self.tail is None or (self.tail != 1 and self.tail < 10):  # ACK slot and intermission: no bit error
                 self.errors.append(f"bit error at bit {len(self.dbits)}, tail {self.tail}")
                 self.sending = False
         if self.state == "frame":

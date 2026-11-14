@@ -80,7 +80,7 @@ We propose flip-flops, not latches, for the registers. Section 13 gives the reas
 
 ### 2.4 Reset state
 
-The reset is the chip reset rst_n (asynchronous assert, release at a clock edge [M1 pe_sync.v]).
+The reset is the chip reset rst_n (asynchronous assert, release at a clock edge, src/pe_sync.v).
 
 | Item | State after reset |
 |---|---|

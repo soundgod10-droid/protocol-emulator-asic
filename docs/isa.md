@@ -465,8 +465,8 @@ Bits with "-" have no effect. Thus, two words that differ only in "-" bits have 
 | One owner thread for each output pin, OUT from an other thread ignored and ERR set | Two threads can never drive the same pin. The fault is visible. | Priority (the lower thread number wins) | A firmware fault is not visible. |
 | | | Wired AND or OR of the threads | The pin value depends on two programs. This is not useful for a protocol. |
 | Owner set by the host, not by an instruction | The pin map is fixed for a set of protocols. No instruction word is necessary. | CLAIM instruction | One more instruction, and a race between threads. |
-| OUT waits when the slot is full | One slot for each pin (A1 section 7). The thread then writes the next event as soon as the previous one occurs, as the M1 sequencer did. | More slots (a FIFO) for each pin | More flip-flops for each pin (19 for each slot, A1 section 7). |
-| SAMPLE blocks until the sample time | The next instruction usually needs the bit. One sample unit for each thread (A1 block D3). | Non-blocking SAMPLE and a separate read instruction | One more word in each receive loop. |
+| OUT waits when the slot is full | One slot for each pin (src/pe_timed_out.v). The thread then writes the next event as soon as the previous one occurs. | More slots (a FIFO) for each pin | More flip-flops for each pin (19 for each slot: 16-bit time, value, output enable, valid). |
+| SAMPLE blocks until the sample time | The next instruction usually needs the bit. One sample unit for each thread. | Non-blocking SAMPLE and a separate read instruction | One more word in each receive loop. |
 | Loop counter = DJNZ on a data register | No extra register. | A separate 16-bit loop counter (A1 section 7) | +64 loadable bits (4,296 um2). |
 | JAL and JR with a data register | No link register. | CALL and RET with a stack or a link register | More flip-flops for each thread. |
 | LD and LDX take 2 slots | The 128 x 16 latch memory needs only one read multiplexer (section 3.3). | LD in one slot | A second 16-bit 128:1 read multiplexer (about 25,900 um2, see the M2a design note). |

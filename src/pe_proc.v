@@ -140,8 +140,8 @@ module pe_proc (
   assign h_mem_rdata = mem_rdata;
 
   pe_latch_ram #(
-      .WORDS(128),
-      .AW   (7),
+      .WORDS(256),
+      .AW   (8),
       .WIDTH(16)
   ) u_mem (
       .clk  (clk),

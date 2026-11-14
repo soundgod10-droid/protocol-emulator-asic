@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Independent host model of the host SPI port (docs/host_port.md, M2c).
+"""Independent host model of the host SPI port (docs/host_port.md).
 
 What it does:
   It is the host side of the protocol in docs/host_port.md, written from

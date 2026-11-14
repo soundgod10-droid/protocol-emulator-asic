@@ -57,7 +57,7 @@ The host loads the memory and the configuration while the threads stop. Then the
 
 ### 2.3 Register count and area
 
-Each register of a thread is written only in the slot of that thread. Thus, each bit is a loadable flip-flop: dfrbpq_1 + mux2_1 = 67.13 um2 [R1 section 9.4 item 3].
+Each register of a thread is written only in the slot of that thread. Thus, each bit is a loadable flip-flop: dfrbpq_1 + mux2_1 = 67.13 um2 (cell areas: see Sources).
 
 | Item | Bits for each thread | Bits for 4 threads | Area at 67.13 um2 for each bit |
 |---|---|---|---|

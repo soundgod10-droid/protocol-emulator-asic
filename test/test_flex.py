@@ -1028,7 +1028,7 @@ class SwdHost:
     def xfer(self, apndp, rnw, a, value=0, bad_parity=False):
         """Returns (ACK, read value or None, read parity correct or None)."""
         n0 = len(self.b.words(0))
-        words = [swd_request(apndp, rnw, a)]
+        words = [swd_request(apndp, rnw, a) | rnw << 10]
         if not rnw:
             words += [value & 0xFFFF, value >> 16, parity(value) ^ int(bad_parity)]
         self.b.send(0, *words)

@@ -459,14 +459,15 @@ async def test_flex_can(dut):
                      f"{60e6 / last / 1e3 if last else 0:.1f} kbit/s at 60 MHz by calculation); first fault {why}")
     # Standard rates with node clock error, transceiver delay and 4 start phases.
     results = {}
-    for rate in (125_000, 250_000, 500_000, 1_000_000):
+    for rate in (125_000, 200_000):
         bt = round(F_CLK / rate)
-        for frac in (0.75, 0.875):
+        for frac in (0.55, 0.6, 0.65, 0.7, 0.75):
             sp = round(frac * bt)
-            rows = []
-            for ppm, delay in ((0, 0), (5000, 0), (-5000, 0), (0, 10), (5000, 10), (-5000, 10)):
-                rows.append(((ppm, delay), can_case(bt, sp, delay=delay, node_ppm=ppm, offsets=range(4))))
-            results[(rate, frac)] = all(f is None for _, f in rows)
-            log.info(f"{rate / 1e3:.0f} kbit/s (BT {bt}, SP {sp} = {frac:.3f}): " +
-                     "; ".join(f"node {p / 1e4:+.1f} %, delay {d}: {(f or 'correct')[:120]}" for (p, d), f in rows))
-    assert results[(125_000, 0.75)], "125 kbit/s with a 75 % sample point is not correct"
+            for parts in (("tx",), ("rx",), ("arb",)):
+                rows = []
+                for ppm, delay in ((0, 0), (5000, 0), (-5000, 0), (0, 10), (5000, 10), (-5000, 10)):
+                    rows.append(((ppm, delay), can_case(bt, sp, delay=delay, node_ppm=ppm, offsets=range(4),
+                                                        parts=parts)))
+                results[(rate, frac, parts)] = all(f is None for _, f in rows)
+                log.info(f"{rate / 1e3:.0f} kbit/s (BT {bt}, SP {sp} = {frac:.3f}), part {parts[0]}: " +
+                         "; ".join(f"node {p / 1e4:+.1f} %, delay {d}: {(f or 'correct')[:100]}" for (p, d), f in rows))

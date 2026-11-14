@@ -1,4 +1,4 @@
-# host_port_cover: reachability of the host port properties (M2c step 5).
+# host_port_cover: reachability of the host port properties.
 #
 # Each cover is a case that a property of formal/host_port.sby checks: a
 # memory word written, a configuration word written, a PUSH word (needs a

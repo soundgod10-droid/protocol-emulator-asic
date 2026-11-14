@@ -5,8 +5,7 @@
 
 `default_nettype none
 
-// pe_cycle_counter: free-running cycle counter of the timed I/O unit
-// (block D2 of architecture D, A1_architecture.md section 4.4 and 7).
+// pe_cycle_counter: free-running cycle counter of the timed I/O unit.
 //
 // What it does:
 //   The counter adds 1 at each rising clock edge. Reset sets it to 0.

@@ -10,7 +10,7 @@
 // What it does:
 //   The host writes these registers with (we, addr, data) while the
 //   threads stop (docs/isa.md 2.2):
-//     addr 0 to 3   start address of thread addr (data[6:0])
+//     addr 0 to 3   start address of thread addr (data[7:0])
 //     addr 4        RUN of the 4 threads at start (data[3:0], bit n = thread n)
 //     addr 16 to 30 output pin p = addr - 16: data[1:0] owner thread,
 //                   data[2] owner enable, data[3] open-drain mode

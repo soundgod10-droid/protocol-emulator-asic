@@ -371,7 +371,7 @@ Host side of the FIFOs (docs/host_port.md section 9): the host PUSH and PULL use
 | 2 | PINS | s(c) of the input pins 0 to 15 (section 6.1) at this cycle | ignored |
 | 3 | THREAD | the thread number 0 to 3 | ignored |
 | 4 to 15 | none | 0 | ignored |
-| 16 to 63 | helper hooks | 0 in M2a. For the CRC unit, the line-code helpers, the process monitor and the event recorder [A1 section 7, blocks D4, D5, D9, D10]. | ignored in M2a |
+| 16 to 63 | helper hooks | 0. Kept for the CRC unit, the line-code helpers, the process monitor and the event recorder; none of them is built. | ignored |
 
 ## 11 Encoding
 

@@ -453,7 +453,7 @@ Bits with "-" have no effect. Thus, two words that differ only in "-" bits have 
 
 | Choice | Reason | Rejected alternative | Why rejected |
 |---|---|---|---|
-| 4 data registers for each thread | The UART, SPI and I2C firmware in fw/ needs 4 or fewer. Area 17,185.3 um2 for 4 threads (section 2.3). | 8 registers (A1 section 4.4) | +17,185.3 um2 of loadable bits and +6,676 um2 of read multiplexers (section 2.3), and 1 more bit for each register field. |
+| 4 data registers for each thread | The UART, SPI and I2C firmware in fw/ needs 4 or fewer. Area 17,185.3 um2 for 4 threads (section 2.3). | 8 registers | +17,185.3 um2 of loadable bits and +6,676 um2 of read multiplexers (section 2.3), and 1 more bit for each register field. |
 | Flip-flops for the registers | Each bit is written in the thread slot and read in the same cycle by the next stage. Flip-flops give simple STA and formal checks, as in M1. | Latches (dlhq_1, 30.84 um2) | Smaller (256 x 30.84 = 7,895 um2 for r0 to r3), but each word needs a clock gate and a timing check of the latch window. The M1 flow did not check latch timing. [ENGINEER] |
 | Separate time register T | OUT, SAMPLE and WAIT use T with no register field. The register field stays free for the data. | T as one of the data registers | One data register less, and OUT would need one more field. |
 | Event time = T + 3-bit offset | Two pins can change some cycles apart with no TADD. The sample delay for the synchronizer and the pad round trip (A1 section 9.3) is in the instruction. | Event time = T only | One more TADD for each such event: more words in the 128-word memory. |

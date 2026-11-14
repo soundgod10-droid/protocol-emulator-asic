@@ -1,4 +1,4 @@
-; uart_tx.s: UART transmitter firmware for one thread (milestone M2a).
+; uart_tx.s: UART transmitter firmware for one thread.
 ;
 ; What it does:
 ;   The thread takes each word from its host FIFO. It sends the low 8 bits

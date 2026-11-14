@@ -123,8 +123,8 @@ class CanNode:
         fall = self.prev_bus == 1 and bus == 0
         self.prev_bus = bus
         if self.state == "idle":
-            if fall:  # hard synchronization on SOF (page 29, 30 rule 3)
-                self._begin(c, False)
+            if fall:  # hard synchronization on SOF (page 29, 30 rule 3); a waiting frame joins it (page 31 [2])
+                self._begin(c, bool(self.pending and c >= self.start))
             elif self.pending and c >= self.start:
                 self._begin(c + 1, True)
                 self.tx = self.cur

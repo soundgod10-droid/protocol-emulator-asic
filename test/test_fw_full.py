@@ -1528,7 +1528,7 @@ def spi_tgt_last(fn, values):
 
 @cocotb.test(skip=GL)
 async def test_m3_spi_tgt(dut):
-    """fw/spi_tgt.s against an independent SPI controller model in all four modes (A1 8.2, A1 10 T13).
+    """fw/spi_tgt.s against an independent SPI controller model in all four modes (docs/decisions.md entry 11).
 
     For each mode, at 4 start phases: the smallest SCK half period (every value from it to 60 cycles passes),
     and at that half period the smallest CS fall to first edge, the smallest MOSI hold after the sample edge,

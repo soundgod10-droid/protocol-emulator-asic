@@ -15,13 +15,14 @@
 ;   The host moves the TAP state machine with the TMS bits (state diagram,
 ;   Figure 3-3, page 3-5). The firmware does not know the TAP states, so it
 ;   does any scan, with Pause states, of any length, on a chain of devices.
-;   Between two groups of 16 cycles TCK stays low for about 70 cycles more
+;   Between two groups of 16 cycles TCK stays low for about 60 cycles more
 ;   (host words; the TAP is static while TCK is low).
 ;
 ; Why:
 ;   A protocol that the instruction set was not designed for (flexibility).
-;   The host-driven TMS keeps the firmware small (31 words); a version that
-;   makes the TMS sequences itself needs more words (see the design note).
+;   The host-driven TMS keeps the firmware small: 31 words. fw/jtag_tap.s
+;   makes the TAP sequences itself: 67 words, a 36-cycle TCK period, one
+;   host word for each 16 bits instead of two, but no Pause states.
 ;
 ; Host words to the thread:
 ;   1. n, the number of TCK cycles (1 to 32,767).

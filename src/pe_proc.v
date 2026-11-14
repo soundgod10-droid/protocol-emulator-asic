@@ -30,7 +30,7 @@
 //   threads (and during the chip reset). It resets the core, the FIFOs
 //   and the event slots with their pin registers, so STOP gives the state
 //   after a chip reset and the next START has no old event and no old
-//   FIFO word (M2b open item 3). The memory keeps its words (docs/isa.md
+//   FIFO word (test_stop_start, test_r2_stop_pins). The memory keeps its words (docs/isa.md
 //   2.4) and the input synchronizers keep running (rst_n only), so the
 //   input history at START is the real pin history.
 //

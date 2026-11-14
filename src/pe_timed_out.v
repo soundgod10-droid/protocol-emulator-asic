@@ -16,7 +16,7 @@
 //
 // Why:
 //   The pin edge comes from the event time, not from the time when the
-//   source wrote the event. Thus, a source (in M2 a program thread) can be
+//   source wrote the event. Thus, a source (a program thread) can be
 //   late by some cycles and the pin edge does not move. The pin is the
 //   output of a flip-flop, with no logic after it. Thus, the pin cannot
 //   have glitches from this design.

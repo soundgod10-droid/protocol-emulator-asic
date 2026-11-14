@@ -29,7 +29,7 @@
 ; Registers: r0 = bits to send, r1 = bits received, r2 = bit counter,
 ; r3 = host word (for bit 8).
 
-        .equ    CS, UIO0        ; chip select, low = active  [ENGINEER: pin choice]
+        .equ    CS, UIO0        ; chip select, low = active
         .equ    MOSI, UIO1      ; data from the controller
         .equ    MISO, UIO2      ; data to the controller (input)
         .equ    SCK, UIO3       ; clock

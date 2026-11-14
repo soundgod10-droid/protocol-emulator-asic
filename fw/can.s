@@ -67,7 +67,7 @@ tw1:    TADD    BT
         WAIT    RX, ANY, r3, TO
         BES     tw              ; a bus edge: wait for 11 quiet bit times again
         DJNZ    r2, tw1
-        TADD    36              ; SOF time: the WAIT ends up to 4 cycles after T, then 6 instructions
+        TADD    44              ; SOF time: the WAIT ends up to 4 cycles after T, then 8 instructions
         LDI     r3, 1
         ST      r3, TXING       ; thread 1 must not ACK this frame
         LDI     r2, 16

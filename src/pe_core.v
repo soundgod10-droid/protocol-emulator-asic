@@ -480,15 +480,15 @@ module pe_core (
               case (ir[11:8])
                 4'h0: n_run = 1'b0;  // HALT: PC stays at the HALT
                 4'h1: n_pc = pc1;    // NOP
-                4'h2: n_pc = ra[6:0];  // JR
+                4'h2: n_pc = ra[7:0];  // JR
                 4'h3: begin  // LDX: read in the next slot
                   n_ps     = PS_LD;
                   n_ldrd   = ir[7:6];
-                  n_ldaddr = rb[6:0];
+                  n_ldaddr = rb[7:0];
                 end
                 4'h4: begin  // STX
                   mem_we    = 1'b1;
-                  mem_waddr = rb[6:0];
+                  mem_waddr = rb[7:0];
                   n_pc      = pc1;
                 end
                 default: begin  // illegal (isa 12)

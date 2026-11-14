@@ -802,20 +802,17 @@ async def test_flex_jtag(dut):
     fault, span, n = jtag_run_a(16, 32)
     assert fault is None, f"H1 16, H2 32: {fault}"
     log.info(f"H1 16, H2 32: correct; 64-bit IDCODE step: {n} TCK cycles in {span} clock cycles")
-    for td in (3, 8):
-        rows = []
-        for h1 in range(2, 25):
-            if jtag_run_a(h1, 40, td=td)[0]:
-                continue
-            lo, hi = 1, 40  # jtag_run_a(h1, hi) is correct
-            while hi - lo > 1:
-                mid = (lo + hi) // 2
-                lo, hi = (lo, mid) if jtag_run_a(h1, mid, td=td)[0] is None else (mid, hi)
-            f, span, n = jtag_run_a(h1, hi, td=td)
-            rows.append((h1 + hi, h1, hi, span, n, jtag_run_a(h1, hi - 1, td=td)[0]))
-        rows.sort()
-        for p, h1, h2, span, n, below in rows[:6]:
-            log.info(f"TDO delay {td}: H1 {h1}, H2 {h2}: TCK period {p} cycles ({F_CLK / p / 1e6:.3f} MHz); "
-                     f"64-bit IDCODE step {n} TCK cycles in {span} clock cycles "
-                     f"({n * F_CLK / span / 1e6:.3f} MHz mean); H2 {h2 - 1}: {(below or 'correct')[:120]}")
-        log.info(f"TDO delay {td}: smallest H1 that works {min(r[1] for r in rows)}")
+    log.info(f"fw/jtag_tap.s: {assemble('jtag_tap.s').size} words")
+    fault, span, n = jtag_run_b(12, 28)
+    assert fault is None, f"fw/jtag_tap.s H1 12, H2 28: {fault}"
+    best = {}
+    for name, run in (("jtag.s", jtag_run_a), ("jtag_tap.s", jtag_run_b)):
+        for td in (3, 8):
+            rows = jtag_limits(run, td)
+            best[(name, td)] = rows[0][0]
+            for p, h1, h2, span, n, below in rows[:4]:
+                log.info(f"{name}, TDO delay {td}: H1 {h1}, H2 {h2}: TCK period {p} cycles ({F_CLK / p / 1e6:.3f} MHz); "
+                         f"64-bit IDCODE step {n} TCK cycles in {span} clock cycles "
+                         f"({n * F_CLK / span / 1e6:.3f} MHz mean); H2 {h2 - 1}: {(below or 'correct')[:100]}")
+            log.info(f"{name}, TDO delay {td}: smallest H1 that works {min(r[1] for r in rows)}")
+    assert best[("jtag.s", 3)] <= 40, f"fw/jtag.s smallest TCK period {best[('jtag.s', 3)]} cycles"

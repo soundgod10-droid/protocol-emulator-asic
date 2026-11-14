@@ -1296,10 +1296,10 @@ def ps2_host_run(period, offset=0, late="st", cmd=0xED, low=None, frames=PS2_BYT
     `cmd` and the device acknowledges and answers 0xFA. Returns (fault or None, bytes decoded)."""
     late = "st" if late == "rlate" else late  # "rlate": with the late check (label st), "nolate": without
     prog = assemble("ps2_host.s", LATE=late)
-    dev = Ps2Device(period, frames, low=low, start=1000 + offset)
+    dev = Ps2Device(period, frames, low=low, start=4000 + offset)  # after the 3,000-cycle quiet time: offset = phase
     m = pe_model.PeModel(prog.words, owner=owners({P_PCLK: 0, P_PDATA: 0}), open_drain=od((P_PCLK, P_PDATA)))
     bench = Bench(m, inputs=Ps2Bus(dev))
-    bench.run(1000 + offset + len(frames) * (12 * period + 3200))
+    bench.run(4000 + offset + len(frames) * (12 * period + 3200))
     words = list(bench.words(0))
     got = [ps2_decode(ps2_word_bits(w)) if w >= 32 else (None, False) for w in words]
     if got != [(b, True) for b in frames]:

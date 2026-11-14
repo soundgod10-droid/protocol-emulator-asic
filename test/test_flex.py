@@ -667,7 +667,7 @@ def jtag_steps():
         (seq(tap_reset(), tap_scan(False, [1] * 64)), ids),
         (seq(tap_scan(True, value_bits(0b00100, 5) + value_bits(0b1111, 4))), value_bits(0b01001, 5) + value_bits(0b1001, 4)),
         (seq(tap_scan(False, value_bits(0xA53, 12) + [0], pause_after=5)), value_bits(0x3C1, 12) + [0]),
-        (seq(tap_scan(False, [0] * 13)), value_bits(0xA53, 12) + [1]),
+        (seq(tap_scan(False, [0] * 13)), value_bits(0xA53, 12) + [0]),
         (seq(tap_reset(), tap_scan(False, [0] * 64)), ids),
     ]
 

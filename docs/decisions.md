@@ -119,6 +119,29 @@ The record below is the earlier decision (6x4, before the rule change).
 - **Decision:** the SDF job ([.github/workflows/sdf.yaml](../.github/workflows/sdf.yaml)) runs on the final gds run, by hand or after a tape-out tag, not on every push. Static timing stays the setup and hold check.
 - **Would change it:** a simulator that runs the timing checks of the cell models.
 
+## 14. Layout flow: the template main branch
+
+- **Question:** the competition rules now name the template main branch, which targets CMOS5L with `tt-gds-action@ttihp27a` (LibreLane 3.1). Keep the earlier `@ihp-cmos5l` flow or move?
+- **Options:** keep `@ihp-cmos5l`; move to `@ttihp27a` as is; move with the lint and capacitance items fixed.
+- **Evidence:** on the same RTL the main flow gives +3.673 ns at 50 MHz (run [43623251757], against +2.658 ns on `@ihp-cmos5l`, run [43501440116]) but reports 4 lint warnings (PINMISSING: the power pins of the two instantiated cells in `src/pe_cells.v`, which the power grid connects) and 4 max-capacitance pins (run [43506844154]). With a lint waiver local to the two cell instances: 0 lint warnings (run [43623251757]). The capacitance pins: entry 5. The part of `src/config.json` below "DO NOT CHANGE ANYTHING BELOW THIS POINT" is identical on the template main branch and the earlier template branch (compared 13 November 2026); our keys are above that line. The SDF job installs the PDK revision of the layout run (`tt_submission/pdk.json`), as the main-branch gate-level test does.
+- **Decision:** main flow (`@ttihp27a`) for every job, with the lint waiver and the placement of entry 5 (d).
+- **Would change it:** a later template change; compare before the submitted run ([docs/tapeout_checklist.md](tapeout_checklist.md) section 3).
+
+## 15. Hold-out trials: protocols outside the design
+
+- **Question:** the judges ask first whether the chip "can be reprogrammed to support protocols it wasn't designed for". How is that shown, not only claimed?
+- **Options:** firmware for protocols named on the competition page (CAN, JTAG, SWD, PS/2: written after the instruction set, but known when it was made); hold-out trials: protocols not named on the page or in the design documents, written from their public documents on the unchanged instruction set, assembler and host port, tested against device models written from the same documents.
+- **Evidence:** 1-Wire controller (`fw/onewire.s`, 40 words), from Analog Devices AN126 and the DS18B20 data sheet: correct at all five device-timing corners at 50 and 60 MHz (`test_holdout_onewire`). The trial found two real limits: the application note's write-0 low time (60 us) ends exactly at the end of the DS18B20 sample window, so it was set to 65 us; and at 60 MHz the reset needs the presence sample to be issued after the release, because the event lead is limited to 32,767 cycles (546 us at 60 MHz). Words: next to any three of the four example programs, not next to all four (143 > 128, `test_holdout_onewire_words`).
+- **Decision:** hold-out trials are part of the flexibility evidence. The trial protocols are chosen by a stated rule and recorded with words, rate, limits met and effort.
+- **Would change it:** a trial that cannot be done without a hardware change; that is the evidence the trial exists to find.
+
+## 16. Instruction-set gaps found by the protocol firmware: no change in this version
+
+- **Question:** the CAN, JTAG, SWD and PS/2 firmware found gaps: no 16-bit XOR immediate (CRC), no parity instruction, `TADD` adds only, `SAMPLE` takes 2 slots, no shift by a register, no `WAIT` that also ends on a host word. Add instructions?
+- **Evidence (benefit by calculation from the measured cycle and word counts):** XOR immediate: CAN -3 words and -12 cycles on half of the CRC bits, still not 500 kbit/s; parity and shift by a register: 0 words (the host does the work today); `TADD` subtract: 0 words (the firmware works around it); one-slot `SAMPLE`: JTAG 1.25 to 1.39 MHz, SWD 1.56 to 1.79 MHz at 50 MHz; host-word `WAIT`: removes the PS/2 4.6 us set-up limit. Cost of each: instruction encoding, assembler, model, RTL, lockstep tests, formal proofs and a new layout run.
+- **Decision:** no instruction-set change in this version. The page sets no speed requirement, and each benefit is small against a full verification cycle.
+- **Would change it:** a protocol that cannot run at a standard setting without one of these; the one-slot `SAMPLE` is the first candidate.
+
 ## Claims with no public evidence yet
 
 - Pad electrical limits (I2C low-level output voltage, 5 V tolerance, Fast-mode Plus): transistor-level simulations of the pads exist, but their netlists are not in this repository. Until they are, the chip claims I2C Standard-mode and Fast-mode only, and makes no 5 V claim.

@@ -9,9 +9,9 @@
 *   tau is the slope of tcq against ln(delta).
 *
 * Why:
-*   A1 section 9.4 and G1 register A-OWN-25 / A-OPEN-28: the PDK has no
-*   metastability data, and the number of synchronizer stages of the host
-*   SPI port (2 or 3) needs the MTBF = exp(tr / tau) / (T0 x fclk x fdata).
+*   The PDK has no metastability data, and the number of synchronizer
+*   stages of the host SPI port (2 or 3) needs the MTBF = exp(tr / tau) /
+*   (T0 x fclk x fdata). Result: docs/verification.md section 7.
 *
 * Port order (read from the expanded SPICE deck, m2c_probe.sp): the
 * dfrbp cells are "q [q_n] clk d reset_b vdd vss".

@@ -1302,7 +1302,8 @@ def ps2_host_run(period, offset=0, late="rlate", cmd=0xED, low=None):
     words = list(bench.words(0))
     got = [ps2_decode(ps2_word_bits(w)) if w >= 32 else (None, False) for w in words]
     if got != [(b, True) for b in PS2_BYTES]:
-        return f"received {[(hex(b) if b is not None else None, ok) for b, ok in got]}", got
+        return (f"received {[(hex(b) if b is not None else None, ok) for b, ok in got]}; words "
+                f"{[hex(w) for w in words]} at {[c for c, _ in bench.from_thread[0]]}; device sent {dev.sent}"), got
     bench.send(0, ps2_cmd_word(cmd))
     bench.run(500 + 4000 + 13 * period + 600 + 12 * period + 4000)
     rest = bench.words(0)[len(words):]

@@ -24,8 +24,8 @@
 // Rules for the source:
 //   - Write an event only when ev_ready is 1. The channel ignores a write
 //     when ev_ready is 0.
-//   - Write the event at least 1 clock cycle before its time. A1 section
-//     4.4 sets 4 cycles for the threads. If the time is already past, the
+//   - Write the event at least 1 clock cycle before its time. The threads use
+//     4 cycles (docs/isa.md 4.2). If the time is already past, the
 //     event occurs 65,536 cycles later (the counter must come back to it).
 //
 // Reset:

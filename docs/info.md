@@ -63,4 +63,17 @@ The other firmware files load in the same way; their headers give the pins, the 
 
 ## External hardware
 
-The RP2350 of the demo board (or an other SPI host) on `ui_in[7:5]` and `uo_out[7]`. A UART receiver for 3.3 V logic levels on `uo_out[4]`, for example a USB-to-UART adapter or the RP2350. For I2C: pull-up resistors on `uio[6]` (SCL) and `uio[7]` (SDA). The chip claims I2C Standard-mode and Fast-mode only, and makes no 5 V tolerance claim: use 3.3 V pull-ups.
+The chip has only 3.3 V digital pins; it makes no 5 V tolerance claim. Every protocol needs the host: the RP2350 of the demo board (or an other SPI host) on `ui_in[7:5]` and `uo_out[7]`, which reloads the memory and the configuration after every select (docs/host_port.md section 8, rule 6). Parts on a Pmod or the board for each protocol:
+
+| Protocol (firmware) | Pins | External parts |
+|---|---|---|
+| UART TX/RX (`uart_tx_full.s`, `uart_rx_full.s`) | `uo_out[4]`, `ui_in[3]` | 3.3 V logic-level partner (USB-to-UART adapter or the RP2350); an RS-232 line needs an RS-232 transceiver |
+| SPI controller (`spi_ctl.s`) | `uio[3:0]` | 3.3 V device; a pull-up on each chip-select line while the chip is stopped (the RP2350 pad pull-up, docs/host_port.md section 8 rules 2 and 3) |
+| SPI target (`spi_tgt.s`) | `uio[3:0]` | 3.3 V controller; with other targets on MISO, observe the MISO release time (docs/host_port.md section 13) |
+| I2C controller (`i2c_ctl.s`) | `uio[6]` SCL, `uio[7]` SDA, open drain | pull-up resistors to 3.3 V on SCL and SDA, sized for the bus capacitance so that the rise time meets NXP UM10204 Table 10 (Fast-mode tr 300 ns or less); Standard-mode and Fast-mode only |
+| 1-Wire controller (`onewire.s`) | `uio[4]`, open drain | pull-up resistor to 3.3 V (Analog Devices AN126, system requirement 1); 3.3 V devices |
+| CAN 2.0A node (`can.s`) | `ui_in[4]` RX; `uio[4]`, `uio[5]` TX, open drain | a CAN transceiver with 3.3 V logic I/O; the two TX pins joined with a pull-up to the transceiver TXD (one owner thread per pin, docs/host_port.md section 14) |
+| JTAG controller (`jtag.s`, `jtag_tap.s`) | `uo_out[2:0]`, `ui_in[0]` | a pull-up on TDO; a level shifter if the target is not 3.3 V |
+| SWD host (`swd.s`) | `uo_out[3]` SWCLK, `uio[4]` SWDIO | the pull-up on SWDIO at the target (Arm IHI0031H B4-118); a level shifter if the target is not 3.3 V |
+| PS/2 host and device (`ps2_host.s`, `ps2_dev.s`) | `uio[4]` CLK, `uio[5]` DATA, open drain | PS/2 devices use a 5 V bus (IBM PS/2 Technical Reference): a bidirectional open-drain level shifter with pull-ups on both sides |
+| Timed trigger (`trigger.s`) | `ui_in[3]` in, `uo_out[5]` out | none |

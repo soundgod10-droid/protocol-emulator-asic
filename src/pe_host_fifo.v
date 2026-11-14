@@ -48,7 +48,7 @@ module pe_host_fifo (
     input  wire        h_pop,       // take the head word of the out-FIFO of h_tid
     output wire        h_out_valid, // the out-FIFO of h_tid has a word
     output wire [15:0] h_out_data,  // its head word
-    // Word counts of all FIFOs, for the host status (M2c host port)
+    // Word counts of all FIFOs, for the host status (pe_host_port)
     output wire [11:0] cnt_in,      // in-FIFO of thread n at [3n+2:3n]
     output wire [11:0] cnt_out      // out-FIFO of thread n at [3n+2:3n]
 );

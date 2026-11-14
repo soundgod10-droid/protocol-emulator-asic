@@ -12,13 +12,13 @@ How to check a run value: open the run link. The layout and timing reports are i
 - **Decision:** four threads in a fixed barrel order (thread n runs in cycles c with c mod 4 = n), 4 data registers each, and pin changes as events at an absolute 16-bit cycle time. The minimum lead is 4 cycles. A late event still happens and is reported to the host.
 - **Would change it:** a protocol that needs a lead of less than 4 cycles or more registers per thread.
 
-## 2. Area: 6x4 tiles
+## 2. Area: 8x4 tiles
 
 - **Question:** which tile size?
-- **Options:** 6x4 (the rule when the design was laid out); 8x4.
-- **Evidence:** the placed design uses 30.6 % of the 6x4 core (`design__instance__utilization` 0.306052, run [42744631446]). Synthesis at the typical corner gives 216,632 µm² of cells, 23.6 % of the 6x4 outline (Yosys 0.70). On 9 November 2026 the [competition rules](https://blog.janestreet.com/protocol-emulator-asic-competition/) changed: 8x4 is now the maximum and the stated setting.
-- **Decision:** 6x4, as built. Area is not the present limit. The choice of 8x4 after the rule change is open.
-- **Would change it:** firmware or helper logic that does not fit, for example more than 128 memory words or a stretch-goal helper.
+- **Options:** 6x4 (the rule when the design was first laid out); 8x4 (the size the [competition rules](https://blog.janestreet.com/protocol-emulator-asic-competition/) state since 9 November 2026).
+- **Evidence:** same RTL and settings, only the tile size changed: 6x4 run [42869614360]: slow-corner flip-flop setup margin +1.329 ns, 3 max-slew pins at the slow corner, global placement needed 4 routability iterations (weighted congestion 1.0529); 8x4 run [43501440116]: +2.658 ns, 0 max-slew pins, 1 iteration (0.9653), placement utilisation 0.229. The two 6x4 runs of the same RTL gave identical values, so the difference is the tile, not run-to-run noise.
+- **Decision:** 8x4 (`info.yaml`).
+- **Would change it:** nothing in the rules; 8x4 is the maximum.
 
 ## 3. Program and data memory: 128 x 16 latch array
 

@@ -5,22 +5,21 @@
 
 `default_nettype none
 
-// g1_meas: area measurements of run G1 (design note G1_ground_register.md
-// section 4). NOT part of the chip: the top level does not use these
-// modules, and info.yaml lists this file only during the measurement.
+// g1_meas: modules for area measurements by synthesis. NOT part of the
+// chip: the top level does not use these modules, and info.yaml does not
+// list this file (add it to source_files to synthesize one module).
 //
 // What it does:
 //   Each module is the storage part (registers, counters, shift registers)
-//   of an A1 block that is not built yet, or a hardware alternative to a
-//   choice of DECISIONS.md D4 or of M2b section 1. chiptools__synth gives
-//   the cell area of each module.
+//   of a helper block that is not built, or a hardware alternative to a
+//   choice of docs/isa.md section 13. Synthesis (Yosys with the
+//   sg13cmos5l liberty file) gives the cell area of each module. The areas
+//   are not recorded in this repository.
 //
 // Why:
-//   DECISIONS.md rule G: an area estimate is not a ground. A1 section 7
-//   counted flip-flops by hand and used 10 um2 for each other cell. The
-//   synthesis of the largest part of a block gives a measured value before
-//   the block is designed (M3). The synthesis of an alternative gives the
-//   comparison that rule G asks for.
+//   An area counted by hand is an estimate. The synthesis of the largest
+//   part of a block gives a measured value before the block is designed,
+//   and the synthesis of an alternative gives the comparison for a choice.
 
 // ---------------------------------------------------------------------------
 // Memory size (register line M2a-03): a 96 x 16 latch memory, the same

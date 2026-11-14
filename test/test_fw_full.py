@@ -1144,9 +1144,9 @@ def r2_rx_ok(b, h, nd1, b_tx, data):
 def r2_rx_limits(b, h, nd1, data=R2_RX_DATA, step=0.001, stop=0.12):
     """Largest sender errors [fast, slow] such that every 0.1 % step from 0 to it passes.
 
-    Linear scan: pass and fail are not monotonic in the error (the first R2 run found 50 MHz,
-    H 15: a binary search gave 3.8 % or more, but -3.8 % fails), so a binary search can give
-    a limit that fails. -1 means that the run with no error fails.
+    Linear scan: pass and fail are not monotonic in the error (an earlier run at 50 MHz,
+    H 15: a binary search gave 3.8 % or more, but -3.8 % fails; not verified in this
+    repository), so a binary search can give a limit that fails. -1 means that the run with no error fails.
     """
     if not r2_rx_ok(b, h, nd1, b, data):
         return [-1, -1]

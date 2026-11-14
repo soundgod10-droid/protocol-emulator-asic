@@ -1186,7 +1186,7 @@ async def test_r2_clock_margins(dut):
     words, replies, events = i2c_script()
     for f_clk in R2_CLOCKS:
         f_mhz = round(f_clk / 1e6)
-        # UART divider error (A1 share +/-1 %)
+        # UART divider error (our share +/-1 %)
         div = max(((r, f_clk / r / uart_cfg(f_clk, r)[2] - 1) for r in rates), key=lambda x: abs(x[1]))
         # UART receiver, sender tolerance against the receiver bit time B
         rx = {}

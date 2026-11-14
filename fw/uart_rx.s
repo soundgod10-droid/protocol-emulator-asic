@@ -19,7 +19,7 @@
 ; Host configuration before RUN: none (input pins need no owner).
 ; Registers: r0 = data bits, r1 = bit counter and stop bit, r2 = edge time.
 
-        .equ    RX, UI3         ; UART_RX pin, ui_in[3] (A1 section 2.2)
+        .equ    RX, UI3         ; UART_RX pin, ui_in[3] (docs/isa.md 5.1)
         .equ    BIT, 434        ; cycles for one bit: 50,000,000 / 115,200 = 434.03
         .equ    HALF, 217       ; half a bit: middle of the start bit
 

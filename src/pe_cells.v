@@ -87,11 +87,14 @@ module pe_lat (
   always @* if (g) q_l = d;
   assign q = q_l;
 `else
+  // Power pins: as in pe_cg above.
+  /* verilator lint_off PINMISSING */
   sg13cmos5l_dlhq_1 u_cell (
       .D   (d),
       .GATE(g),
       .Q   (q)
   );
+  /* verilator lint_on PINMISSING */
 `endif
 
 endmodule

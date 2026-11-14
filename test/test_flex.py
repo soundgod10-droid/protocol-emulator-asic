@@ -326,7 +326,9 @@ def can_fault(bench, m, node, log=(), chip_frames=(), node_frames=(), expect_los
     except IndexError:
         return f"thread 1 words cannot be parsed: {[hex(w) for w in bench.words(1)]}"
     if len(rx) != len(node.received):
-        return f"thread 1 reported {len(rx)} frames, the node saw {len(node.received)}"
+        return (f"thread 1 reported {len(rx)} frames, the node saw {len(node.received)}: thread 1 "
+                f"{[(hex(can_decode(b)['ident']), can_decode(b)['data'], crcw) for b, crcw in rx]}, node "
+                f"{[(hex(r['ident']), r['data']) for r in node.received]}")
     for (bits, crcw), r in zip(rx, node.received):
         d = can_decode(bits)
         want = dict((k, r[k]) for k in ("ident", "rtr", "dlc", "data"))

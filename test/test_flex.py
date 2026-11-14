@@ -1077,10 +1077,12 @@ def swd_run(h1, h2, name="swd.s", **kw):
     if bad[0] != 0b001 or after[1] != 0xCAFEF00D or tgt.log[-3][-1] is not False:
         return f"write with parity error: {bad}, then RDBUFF {after}, log {tgt.log[-3:]}", None
     host.raw(SWD_LINE_RESET)
+    e0 = tgt.protocol_errors
     noresp = host.xfer(1, 1, 0x0)
+    e1 = tgt.protocol_errors
     host.raw(SWD_LINE_RESET)
     again = host.xfer(0, 1, 0x0)
-    if noresp[0] != 0b111 or again != (0b001, tgt.dpidr, True) or tgt.protocol_errors < 1:
+    if noresp[0] != 0b111 or again != (0b001, tgt.dpidr, True) or e1 != e0 + 1:
         return f"reset state: AP read ACK {noresp}, then DPIDR {again}", None
     if tgt.errors:
         return f"target errors {tgt.errors[:3]}", None

@@ -4,7 +4,7 @@
 
 A protocol emulator is a small processor with an instruction set made for reading pins, writing pins, counting cycles and exact timing, so that a protocol is firmware and not fixed logic ([competition definition](https://blog.janestreet.com/protocol-emulator-asic-competition/)). This chip has no UART, SPI or I2C block. A host loads the firmware through an SPI port, and the firmware makes every pin waveform. A new protocol needs new firmware, not new silicon.
 
-Process IHP SG13CMOS5L (130 nm), 6x4 tiles, 50 MHz.
+Process IHP SG13CMOS5L (130 nm), 8x4 tiles, 60 MHz. Architecture: [docs/architecture.md](docs/architecture.md); signoff at all corners: [docs/signoff.md](docs/signoff.md).
 
 ## How it works
 

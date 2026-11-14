@@ -14,7 +14,7 @@
 //   clk is high cannot make a short pulse (glitch) on gclk.
 //
 // Why:
-//   The latch memories (decision D2, and the host FIFOs of A1 block D6)
+//   The latch memories (program memory, docs/decisions.md entry 3, and the host FIFOs)
 //   write one word in the first half of the cycle after the write
 //   request. gclk opens the latches of that word. A plain AND gate of clk
 //   and a decoded address can make a glitch when the address changes

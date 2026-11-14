@@ -1,4 +1,4 @@
-# M2b: k-induction proof of the latch memory properties (pe_latch_ram
+# mem: k-induction proof of the latch memory properties (pe_latch_ram
 # `ifdef FORMAL: M1 to M4) with all 128 words of the chip and a 2-bit
 # word (mem_fv.v WIDTH = 2), so that the full address decoder, the 128
 # clock gates and the 128:1 read port are checked. mem_small.sby checks

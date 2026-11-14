@@ -158,7 +158,7 @@ Reason: the pin change still occurs and the frame does not stop. The host can re
 
 ### 4.4 Output event slots
 
-Each output pin has one event slot [A1 section 7, M1 pe_timed_out]. OUT writes the event into the slot of its pin. If the slot is full (it holds an event that did not occur), OUT waits (section 3.2). The lead and the late rule apply at the cycle when OUT completes.
+Each output pin has one event slot (src/pe_timed_out.v). OUT writes the event into the slot of its pin. If the slot is full (it holds an event that did not occur), OUT waits (section 3.2). The lead and the late rule apply at the cycle when OUT completes.
 
 At the clock edge at the end of cycle t (the event cycle), the pin registers V and OE get the values of the event, and the slot becomes empty. Thus, the chip pin shows the new value from cycle t + 1. This is the M1 behavior [M1 pe_timed_out.v]. An OUT at cycle t + 1 or later can write the next event into the slot.
 

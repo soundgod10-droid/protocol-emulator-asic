@@ -1,10 +1,11 @@
 name: sdf
 
 # Gate-level tests with the SDF cell delays of a finished gds run, at each STA corner, with no new
-# gds run (decision D13, R3 S4: 22 of 22 tests passed at slow, typ and fast in research runs
+# gds run (docs/decisions.md entry 13: 22 of 22 tests passed at slow, typ and fast in research runs
 # 41871325339 and 41924796459). Icarus Verilog applies the delays; it does not run the timing
 # checks of the cell models, so the signoff STA stays the setup and hold check. Wire delays are
-# not loaded (vvp stops on the INTERCONNECT lines; wire delay is 0.8 % of the worst path, R3 S1).
+# not loaded (vvp stops on the INTERCONNECT lines; wire delay is about 0.8 % of the worst path,
+# a calculation that is not verified in this repository).
 #
 # It takes about 5 h at the slow corner, so it does not run on a normal push. It runs:
 #   - by hand (Actions > sdf > Run workflow) with the id of the gds run to check;

@@ -28,12 +28,15 @@
 ;
 ; Host words to the thread:
 ;   Raw cycles (line reset, JTAG-to-SWD sequence, idle cycles): 0x8000 + n
-;     (n = 1 to 1,023 cycles), then the SWDIO bits, 16 in each word, the
-;     first bit in bit 0. The host drives SWDIO in all n cycles.
-;   Transaction: the request byte (bit 0 Start = 1, bit 1 APnDP, bit 2 RnW,
-;     bits 3, 4 A[2:3], bit 5 parity, bit 6 Stop = 0, bit 7 Park = 1); for
-;     a write in the same PUSH also WDATA[15:0], WDATA[31:16] and the
-;     parity bit (bit 0), so that the 4-word FIFO holds the transaction.
+;     (n = 1 to 255 words of 16 cycles), then the n words of SWDIO bits,
+;     the first bit in bit 0. The host drives SWDIO in all cycles. Example:
+;     JTAG-to-SWD and line reset = 4 words 0xFFFF, 0xE79E, 4 words 0xFFFF,
+;     0x0000 (B5-125, B4-118).
+;   Transaction: bits 7:0 the request (bit 0 Start = 1, bit 1 APnDP, bit 2
+;     RnW, bits 3, 4 A[2:3], bit 5 parity, bit 6 Stop = 0, bit 7 Park = 1),
+;     bit 10 = RnW again, bit 15 = 0; for a write in the same PUSH also
+;     WDATA[15:0], WDATA[31:16] and the parity bit (bit 0, bits 15:1 = 0),
+;     so that the 4-word FIFO holds the transaction.
 ; Words from the thread for a transaction: the ACK word (ACK[0:2] in bits
 ;   13 to 15); for a read with OK also RDATA[15:0], RDATA[31:16] and a
 ;   word with the parity bit in bit 14.

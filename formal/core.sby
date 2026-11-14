@@ -1,6 +1,6 @@
-# M2b: formal proof of the barrel core properties (pe_core `ifdef FORMAL:
+# core: formal proof of the barrel core properties (pe_core `ifdef FORMAL:
 # barrel order B1 to B4, pin events E1 to E8, memory write W1 to W3).
-# The harness core_fv.v gives all core inputs freely. The properties are
+# The wrapper core_fv.v gives all core inputs freely. The properties are
 # invariants of one cycle or of two cycles ($past), so k-induction with a
 # small depth proves them for all time.
 

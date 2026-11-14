@@ -220,7 +220,7 @@ module g1_capture (
 endmodule
 
 // ---------------------------------------------------------------------------
-// Data registers (D4 item 1): the thread-state ring of pe_core with 4 and
+// Data registers (docs/isa.md 13): the thread-state ring of pe_core with 4 and
 // with 8 data registers of 16 bits for each thread (the same method as
 // pe_rf_ring in src/pe_rf_alt.v).
 // ---------------------------------------------------------------------------

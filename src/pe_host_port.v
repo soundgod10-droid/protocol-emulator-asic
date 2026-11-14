@@ -379,13 +379,13 @@ module pe_host_port #(
               else if ((m_byte == 8'h4B) && !m_run) m_run <= 1'b1; // START
             end
             3'd1: begin
-              m_addr <= m_byte[6:0];
+              m_addr <= m_byte;
               m_tid  <= m_byte[1:0];
               m_lo   <= 1'b0;
             end
             default: begin
               if (!m_lo) m_hi <= m_byte;
-              else m_addr <= m_addr + 7'd1;
+              else m_addr <= m_addr + 8'd1;
               m_lo <= !m_lo;
             end
           endcase

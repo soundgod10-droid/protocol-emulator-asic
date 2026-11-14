@@ -1,4 +1,4 @@
-* M2c: metastability time constant tau of sg13cmos5l_dfrbpq_1.
+* sync_tau: metastability time constant tau of sg13cmos5l_dfrbpq_1.
 *
 * What it does:
 *   One rising clock edge at 10 ns (50 % point 10.025 ns). The D input

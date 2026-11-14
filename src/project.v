@@ -60,8 +60,8 @@ module tt_um_soundgod10_droid_protocol_emulator (
   // delay, so the port sees MOSI and CS_N in the same cycle as the SCK
   // edge that goes with them. Two stages: the measured metastability
   // constant of dfrbpq_1 (103 ps at the slow corner, spice/m2c_sync_tau_ss.sp)
-  // gives a mean time between failures of more than 1e70 s (M2c_loader.md
-  // section 1). CS_N is inverted before its synchronizer, so the reset
+  // gives a mean time between failures of more than 1e70 s (calculation,
+  // not verified in this repository). CS_N is inverted before its synchronizer, so the reset
   // value 0 means "no transaction".
   wire host_sck;
   wire host_cs;

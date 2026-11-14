@@ -12,6 +12,10 @@
 ;   bits 9:0: n = 1 to 1,023 bits; 0 = reset), then for a scan the TDI
 ;   words, 16 bits each, the first bit in bit 0.
 ; Word from the thread for each TDI word: the TDO bits, as in fw/jtag.s.
+; Limits (model, test/test_flex.py test_flex_jtag): smallest correct TCK
+;   period 36 cycles (1.389 MHz at 50 MHz) with H1 10 to 13 and H1 + H2 =
+;   36; a 64-bit IDCODE scan with its header runs at 1.211 MHz on average.
+;   67 words (fw/jtag.s: 31 words, 40-cycle period).
 ; Not done: Pause states, scans that end in a state other than
 ;   Run-Test/Idle.
 

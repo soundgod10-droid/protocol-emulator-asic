@@ -273,7 +273,7 @@ module pe_host_port #(
               st   <= S_WLO;
             end
             S_WLO: begin
-              addr <= addr + 7'd1;
+              addr <= addr + 8'd1;
               st   <= S_WHI;
               if ((cmd == K_PUSH) && fifo_in_full) err_drop <= 1'b1;
             end

@@ -39,8 +39,8 @@ import pe_model  # noqa: E402
 
 GL = os.environ.get("GATES") == "yes"  # the gate-level job also runs this module; it has no DUT use
 HORIZON = 32_767  # largest event lead (isa 4.2)
-TOL = 0.033  # sender bit-time error that the UART receiver must accept (A1 section 3 and 8.2)
-SHARE = 0.01  # our share of the UART clock budget (A1 section 3)
+TOL = 0.033  # sender bit-time error that the UART receiver must accept (design target)
+SHARE = 0.01  # our share of the UART clock budget (design target)
 
 # Pin numbers (docs/isa.md section 5.1)
 P_TX = 12  # UART_TX = uo_out[4]

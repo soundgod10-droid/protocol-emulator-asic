@@ -938,7 +938,7 @@ def check_all_four(log, r, label):
 
 @cocotb.test(skip=GL)
 async def test_fw_full_all_four(dut):
-    """All four protocols at the same time, worst case of A1 section 3: UART 1 Mbit/s, sender +/-3.3 %, SPI at its
+    """All four protocols at the same time, worst case of the design limits: UART 1 Mbit/s, sender +/-3.3 %, SPI at its
     smallest half period, I2C Fast-mode with clock stretching; and the image with fw/uart_rx_slow.s."""
     for err in (-TOL, TOL):
         r = all_four(50e6, err)

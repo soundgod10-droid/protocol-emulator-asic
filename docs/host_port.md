@@ -89,7 +89,7 @@ Delay from a rising SCK edge at the HOST_SCK pin to the next MISO bit at the HOS
 | Second synchronizer stage | T (20 ns) | src/project.v, pe_sync2 |
 | Edge detect and MISO flip-flop | T (20 ns) | src/pe_host_port.v |
 | Core part, worst case | 3 T = 60 ns | RTL simulation: test_host_sck_limit (section 7) |
-| Allowance: output pad and mux, input pad and mux, flip-flop clock-to-output, host input set-up | 27.4 ns | M2c_loader.md section 1 (part of it is not grounded yet; bring-up T05, T09 measure it) |
+| Allowance: output pad and mux, input pad and mux, flip-flop clock-to-output, host input set-up | 27.4 ns | estimate: the competition FAQ gives about 10 ns round trip through the pads and mux (a Tiny Tapeout estimate, no CMOS5L silicon yet); the rest is not verified in this repository and is to be measured on the board |
 | Total | 87.4 ns | |
 
 Thus the SCK period must be 87.4 ns or more. The rated maximum is 10 MHz (100 ns, 12.6 ns margin). The SCK level rule (section 3) alone allows 12.5 MHz.

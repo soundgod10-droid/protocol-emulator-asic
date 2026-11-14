@@ -507,3 +507,6 @@ async def test_flex_can(dut):
                 results[(rate, frac, parts)] = all(f is None for _, f in rows)
                 log.info(f"{rate / 1e3:.0f} kbit/s (BT {bt}, SP {sp} = {frac:.3f}), part {parts[0]}: " +
                          "; ".join(f"node {p / 1e4:+.1f} %, delay {d}: {(f or 'correct')[:100]}" for (p, d), f in rows))
+    for rate, frac in ((125_000, 0.65), (200_000, 0.6), (250_000, 0.55)):
+        for parts in (("tx",), ("rx",), ("arb",)):
+            assert results[(rate, frac, parts)], f"{rate} bit/s, SP {frac}, part {parts[0]}: not correct in every case"

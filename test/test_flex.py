@@ -374,6 +374,10 @@ def can_case(bt, sp, delay=0, node_ppm=0, node_sp=None, offsets=(0,), equ=None):
         log = can_send_all(bench, CAN_FRAMES, bt)
         bench.run(int(20 * bt))
         f = can_fault(bench, m, node, log, CAN_FRAMES)
+        if f and "status" in f:
+            bench, m, node = can_run(bt, sp, **kw)
+            bench.send(0, *[w for fr in CAN_FRAMES for w in can_tx_words(fr)[0]])
+            f += "; " + first_status(bench, m, int(800 * bt), (0, 1), "can.s", dict(BT=bt, SP=sp, **(equ or {})))
         if f:
             return f"chip to node, phase {off}: {f}"
         bench, m, node = can_run(bt, sp, node_frames=NODE_FRAMES, node_start=200 + off, **kw)

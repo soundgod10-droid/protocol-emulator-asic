@@ -104,6 +104,8 @@ lost:   LD      r3, S
         LDI     r0, 0
         NOT     r0, r0          ; send recessive bits
         JMP     s2
+nr:     TADD    SP              ; T = sample point
+        JMP     s1
 book:   LD      r3, CRC         ; CRC_RG(14:0) in bits 15 to 1
         SHL     r3, 1           ; C = CRC_RG(14)
         BES     k1

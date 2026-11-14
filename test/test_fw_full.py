@@ -992,7 +992,7 @@ async def test_m3_i2c_filter_k(dut):
 
 @cocotb.test(skip=GL)
 async def test_g1_lead(dut):
-    """D4 item 4: LEAD 4 (isa 4.2) against LEAD 2 and 1 in the model: SPI smallest half period, UART receiver tolerance."""
+    """LEAD 4 (isa 4.2, docs/isa.md section 13) against LEAD 2 and 1 in the model: SPI smallest half period, UART receiver tolerance."""
     saved = pe_model.LEAD
     rows = []
     try:

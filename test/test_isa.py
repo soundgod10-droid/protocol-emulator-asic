@@ -37,7 +37,7 @@ T_NOM = F_CLK / BAUD  # 434.03 cycles: bit time that the receiver expects
 BIT_CYCLES = 434  # bit time of fw/uart_tx.s
 FRAME_BITS = 10
 FRAME = FRAME_BITS * BIT_CYCLES
-RATE_TOL = 0.01  # +/-1 % (A1 section 3)
+RATE_TOL = 0.01  # +/-1 %: our part of the UART clock-error budget (design target)
 
 # Pin numbers (docs/isa.md section 5.1)
 P_UO4 = 12  # UART_TX

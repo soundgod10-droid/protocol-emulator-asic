@@ -162,10 +162,10 @@ module g1_fifo_store_latch (
 endmodule
 
 // ---------------------------------------------------------------------------
-// Timed input (register line C-05): the A1 block D3 plan, a 16-bit sample
-// time, a 16-bit capture register and a pin select for each thread. The
+// Timed input: a capture unit for each thread, with a 16-bit sample
+// time, a 16-bit capture register and a pin select. The
 // capture takes the cycle count (now) at the sample time or at an edge of the selected
-// pin. M2b uses a shared 5-cycle input history instead.
+// pin. The chip uses a shared 5-cycle input history instead (pe_timed_in).
 // ---------------------------------------------------------------------------
 module g1_capture (
     input  wire        clk,

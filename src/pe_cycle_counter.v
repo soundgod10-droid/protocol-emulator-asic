@@ -13,12 +13,11 @@
 //   it goes back to 0.
 //
 // Why:
-//   In architecture D, each pin event has a cycle time. A timed output
-//   channel changes its pin when the counter is equal to that time. Thus,
-//   all pin edges come from one time base, and the pin timing is accurate
-//   to one clock cycle. A1 section 7 gives a 32-bit counter. M1 uses only
-//   bits [15:0] (the event time is 16 bits). Synthesis removes the bits
-//   that have no load. M2 will read the full value (time capture).
+//   Each pin event has a cycle time. A timed output channel changes its
+//   pin when the counter is equal to that time. Thus, all pin edges come
+//   from one time base, and the pin timing is accurate to one clock
+//   cycle. The chip uses only bits [15:0] (the event time is 16 bits,
+//   docs/isa.md 2.2); synthesis removes the bits that have no load.
 
 //
 // clear (added in M2b):

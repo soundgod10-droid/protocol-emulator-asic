@@ -1291,7 +1291,7 @@ def ps2_cmd_word(byte):
     return byte | bits[9] << 8 | 1 << 9
 
 
-def ps2_host_run(period, offset=0, late="rlate", cmd=0xED, low=None, frames=PS2_BYTES):
+def ps2_host_run(period, offset=0, late="st", cmd=0xED, low=None, frames=PS2_BYTES):
     """fw/ps2_host.s with a device model: the device sends `frames`, then (if cmd is not None) the firmware sends
     `cmd` and the device acknowledges and answers 0xFA. Returns (fault or None, bytes decoded)."""
     prog = assemble("ps2_host.s", LATE=late)

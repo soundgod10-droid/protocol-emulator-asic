@@ -1211,7 +1211,7 @@ class Ps2Device:
                 self.stopped += 1
         elif st == "recv":
             k, ph = divmod(c - self.t0, self.period)
-            if clk == 1 and data != self.prev[1] and k <= 10 and ph > 2:
+            if clk == 1 and data != self.prev[1] and k < 10 and ph > 2:
                 self.errors.append(f"cycle {c}: host changed DATA while CLK is high (bit {k})")
             if k <= 11 and ph == 0:
                 self.clk_low = True

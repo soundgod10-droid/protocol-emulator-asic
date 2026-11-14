@@ -60,7 +60,7 @@ module pe_timed_out #(
   // the counter is equal to the event time.
   wire fire = ev_valid && (now == ev_time_q);
 
-  // One slot only. A1 section 7 gives one event register for each pin.
+  // One slot only: one event register for each pin (docs/isa.md 4.4).
   assign ev_ready = !ev_valid;
 
   always @(posedge clk or negedge rst_n) begin

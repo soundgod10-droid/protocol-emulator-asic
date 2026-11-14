@@ -1,4 +1,4 @@
-* M2c probe: find the standard-cell SPICE file and the port order of
+* Probe: find the standard-cell SPICE file and the port order of
 * sg13cmos5l_dfrbpq_1. A flip-flop must take D at the rising CLK edge.
 .lib cornerMOSlv.lib mos_tt
 .include sg13cmos5l_stdcell.spice

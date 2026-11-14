@@ -5,8 +5,8 @@
 
 `default_nettype none
 
-// pe_rf_alt: register-file storage alternatives for the area comparison
-// of milestone M2b (design note M2b_core.md section 2). NOT part of the
+// pe_rf_alt: register-file storage alternatives for an area comparison
+// (synthesis areas not recorded in this repository). NOT part of the
 // chip: the top level does not use these modules.
 //
 // What it does:

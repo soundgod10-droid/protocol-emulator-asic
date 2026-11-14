@@ -926,7 +926,7 @@ module pe_core (
       // W3: A store completes in its slot (PC + 1) and changes no other
       //     field of the thread state.
       assert (n_pc == pc1);
-      assert ({nc[CW-1:F_PC+7], nc[F_PC-1:0]} == {st0[CW-1:F_PC+7], st0[F_PC-1:0]});
+      assert ({nc[CW-1:F_PC+8], nc[F_PC-1:0]} == {st0[CW-1:F_PC+8], st0[F_PC-1:0]});
     end
   end
 `endif

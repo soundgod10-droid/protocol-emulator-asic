@@ -5,8 +5,8 @@
 
 `default_nettype none
 
-// mem_fv: formal harness of the 128 x 16 latch memory (pe_latch_ram,
-// decision D2) with the behavioral latch and clock gate models of
+// mem_fv: formal wrapper of the 128 x 16 latch memory (pe_latch_ram,
+// docs/decisions.md entry 3) with the behavioral latch and clock gate models of
 // pe_cells.v.
 //
 // What it does:

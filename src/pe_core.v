@@ -262,8 +262,8 @@ module pe_core (
   // The rotate and the masks are written as mux stages and comparators,
   // not with ">>" and "<<". Reason: the GitHub flow runs the Yosys SHARE
   // pass (SAT-based resource sharing) on shift cells, and on this design
-  // it did not finish in 80 minutes (M2b_core.md section 8). The function
-  // is the same.
+  // it did not finish in 80 minutes (not verified in this repository).
+  // The function is the same.
   wire [3:0]  rot_n  = (ifn == 2'd0) ? (4'd0 - shn) : shn;
   wire [15:0] rot_s0 = rot_n[0] ? {ra[0], ra[15:1]} : ra;                // by 1
   wire [15:0] rot_s1 = rot_n[1] ? {rot_s0[1:0], rot_s0[15:2]} : rot_s0;  // by 2

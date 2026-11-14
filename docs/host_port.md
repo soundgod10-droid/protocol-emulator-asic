@@ -147,7 +147,7 @@ Host rules for STOP (STOP cuts a frame or transfer in progress at once). Rules 1
    - if SCL is low, a target holds it: reset the target with its reset input, or cycle its power (UM10204 3.1.16); the chip cannot clear it;
    - if SCL is high and SDA is low, START and send the bus clear of rule 4.
 
-   T_TO = 2 x (9 SCL periods) + the longest clock stretch in the data sheet of the target + the polling period of the host. A Fast-mode byte with no stretching takes 1,224 clock cycles (24.5 us at 50 MHz, test_m3_i2c_stuck_scl). If the data sheet gives no stretch limit, use 35 ms, the SMBus limit (UM10204 4.2.2). Alternatives: a WAIT with a timeout in the firmware (memory words at each of the 3 WAIT instructions, and a timeout value in every byte); a hardware watchdog (area). Decision D13.
+   T_TO = 2 x (9 SCL periods) + the longest clock stretch in the data sheet of the target + the polling period of the host. A Fast-mode byte with no stretching takes 1,224 clock cycles (24.5 us at 50 MHz, test_m3_i2c_stuck_scl). If the data sheet gives no stretch limit, use 35 ms, the SMBus limit (UM10204 4.2.2). Alternatives: a WAIT with a timeout in the firmware (memory words at each of the 3 WAIT instructions, and a timeout value in every byte); a hardware watchdog (area).
 
 RTL measurement of the pins (test_r2_stop_pins, fw/spi_ctl.s on thread 0, STOP 150 cycles after CS low): before STOP uio_oe = 00001011 (CS, MOSI, SCK driven), uio_out = 11111100 (CS 0); after STOP uio_oe = 00000000, uio_out = 11111111, uo_out[6:0] = 1, and no pin change in the 2,000 cycles after.
 

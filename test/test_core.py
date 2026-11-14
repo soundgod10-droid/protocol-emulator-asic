@@ -3,7 +3,7 @@
 
 What it does:
   Each scenario loads a program into the chip through the host SPI port
-  (M2c, docs/host_port.md) with the independent host model test/host_spi.py:
+  (docs/host_port.md) with the independent host model test/host_spi.py:
   WRITE_MEM of all 128 words, WRITE_CFG of the start addresses, the RUN
   mask and the 15 pin words, then START. Then, in each clock cycle, the
   test gives the same input pin values to the RTL and to the reference

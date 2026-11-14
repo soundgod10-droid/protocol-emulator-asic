@@ -333,8 +333,8 @@ module g1_rdport2 (
 endmodule
 
 // ---------------------------------------------------------------------------
-// Late-event rule (D4 item 3): the event time is T + offset if the lead is
-// 4 to 32,767 cycles, else now + 4 with LATE. The alternative (M1 rule) uses
+// Late-event rule (docs/isa.md 4.3): the event time is T + offset if the lead is
+// 4 to 32,767 cycles, else now + 4 with LATE. The alternative (a plain time compare) uses
 // the time as it is and has no logic: a late event then waits a full
 // counter turn (65,536 cycles).
 // ---------------------------------------------------------------------------

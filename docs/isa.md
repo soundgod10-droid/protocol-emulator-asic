@@ -470,7 +470,7 @@ Bits with "-" have no effect. Thus, two words that differ only in "-" bits have 
 | Loop counter = DJNZ on a data register | No extra register. | A separate 16-bit loop counter | +64 loadable bits (4,296 um2). |
 | JAL and JR with a data register | No link register. | CALL and RET with a stack or a link register | More flip-flops for each thread. |
 | LD and LDX take 2 slots | The 128 x 16 latch memory needs only one read multiplexer (section 3.3). | LD in one slot | A second 16-bit 128:1 read multiplexer (about 25,900 um2, an estimate; not verified in this repository). |
-| Helper hooks as I/O ports 16 to 63 and opcode 15 | The helpers (A1 blocks D4, D5) are not specified yet. The ports and the opcode keep space for them. | Helper instructions now | Their function is not known yet. |
+| Helper hooks as I/O ports 16 to 63 and opcode 15 | The helpers (CRC unit, line-code helpers) are not specified yet. The ports and the opcode keep space for them. | Helper instructions now | Their function is not known yet. |
 | 0x0000 = HALT, illegal instructions stop the thread | A thread that runs into a cleared area or into data stops and sets ERR. | 0x0000 = NOP | The thread runs through the memory with no indication. |
 | Reset level of the output pins V = 1, OE = 0 | uio pins are inputs, UART_TX is at idle level 1, as in M1. | V = 0 | UART_TX would show a start bit at reset. |
 

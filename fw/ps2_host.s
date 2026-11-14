@@ -97,7 +97,6 @@ tn:     TADD    4095
         BEC     tf
         TADD    16
         SAMPLE  DATA, r1>>      ; falling edge 12: acknowledge
-        PUSH    r1
-        JMP     idle
+        JMP     rend
 
         .equ    LATE, rlate     ; the test sets LATE = nolate to measure the firmware without the check

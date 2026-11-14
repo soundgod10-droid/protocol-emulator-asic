@@ -203,6 +203,13 @@ w0:     LDI     r3, 11          ; ACK delimiter, EOF 7, intermission 3
 w1:     TADD    BT
         DJNZ    r3, w1
         JMP     idle
+send:   TSYNC   68              ; lead for the SOF event, 15 instructions later
+        MOV     r3, r0
+        ANDI    r3, 15
+        ADDI    r3, 1           ; S = 1 + N: transmitter
+        ST      r3, S
+        MOV     r0, r0          ; N = 0 (bit 15 is the SOF bit)
+        JMP     init
 S:      .word   0
 CRC:    .word   0
 CNT:    .word   0

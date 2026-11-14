@@ -1070,7 +1070,7 @@ async def test_core_random(dut):
 
 
 def m1_test_module():
-    """test/test.py (M1 test): its UART receiver model and frame checks are independent of the processor."""
+    """test/test.py: its UART receiver model and frame checks are independent of the processor."""
     mod = sys.modules.get("test")
     if mod is not None and hasattr(mod, "UartRx"):
         return mod

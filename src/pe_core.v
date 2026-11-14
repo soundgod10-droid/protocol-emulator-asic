@@ -591,27 +591,27 @@ module pe_core (
 
             4'h8: begin  // Bcc (isa 9.2)
               case (ir[11:9])
-                3'd0:    n_pc = ir[6:0];
-                3'd1:    n_pc = h_z ? ir[6:0] : pc1;
-                3'd2:    n_pc = h_z ? pc1 : ir[6:0];
-                3'd3:    n_pc = h_c ? ir[6:0] : pc1;
-                3'd4:    n_pc = h_c ? pc1 : ir[6:0];
-                3'd5:    n_pc = h_n ? ir[6:0] : pc1;
-                3'd6:    n_pc = h_e ? ir[6:0] : pc1;
-                default: n_pc = h_e ? pc1 : ir[6:0];
+                3'd0:    n_pc = ir[7:0];
+                3'd1:    n_pc = h_z ? ir[7:0] : pc1;
+                3'd2:    n_pc = h_z ? pc1 : ir[7:0];
+                3'd3:    n_pc = h_c ? ir[7:0] : pc1;
+                3'd4:    n_pc = h_c ? pc1 : ir[7:0];
+                3'd5:    n_pc = h_n ? ir[7:0] : pc1;
+                3'd6:    n_pc = h_e ? ir[7:0] : pc1;
+                default: n_pc = h_e ? pc1 : ir[7:0];
               endcase
             end
 
             4'h9: begin  // DJNZ: flags do not change
               wen  = 1'b1;
               wval = add_s[15:0];
-              n_pc = (add_s[15:0] != 16'd0) ? ir[6:0] : pc1;
+              n_pc = (add_s[15:0] != 16'd0) ? ir[7:0] : pc1;
             end
 
             4'hA: begin  // JAL
               wen  = 1'b1;
-              wval = {9'd0, pc1};
-              n_pc = ir[6:0];
+              wval = {8'd0, pc1};
+              n_pc = ir[7:0];
             end
 
             4'hB: begin

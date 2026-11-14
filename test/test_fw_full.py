@@ -658,7 +658,7 @@ def i2c_run(mode, f_mhz, stretch, words, base=0):
 
 @cocotb.test()
 async def test_fw_full_word_count(dut):
-    """Word count of the full firmware against the 128-word memory (D2, D4 item 13)."""
+    """Word count of the full firmware against the 128-word memory (docs/decisions.md entry 3)."""
     sizes = {}
     for name in sorted(set(FULL + SLOW + OUTLINE)):
         prog = pe_asm.assemble_file(os.path.join(ROOT, "fw", name))

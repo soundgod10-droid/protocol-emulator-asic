@@ -9,7 +9,7 @@ What it does:
   (test/host_spi.py), read it back and compare, write the configuration
   (thread 0 owns pin 12 = uo_out[4]), start the threads and give the bytes
   through the host FIFO of thread 0. Then UART_TX is decoded with the
-  receiver model of M1, which does not use the processor.
+  receiver model below, which does not use the processor.
   Other tests check the protocol: chip ID, status, command rules, codes
   that are not valid, the SCK period limit, STOP and START, and the reset.
 

@@ -5,8 +5,7 @@
 
 `default_nettype none
 
-// timed_out_fv: formal harness of one output event slot (pe_timed_out,
-// A1 block D2, M1).
+// timed_out_fv: formal wrapper of one output event slot (pe_timed_out).
 //
 // What it does:
 //   It connects the slot, with the parameters of pe_proc (reset V = 1,

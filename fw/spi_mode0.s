@@ -11,7 +11,8 @@
 ;   Word to the host: bits 7 to 0 = byte received on MISO.
 ;
 ; Why it is an outline:
-;   M2a must count the memory words for SPI (decision D2). This firmware
+;   It was written to count the memory words for SPI (docs/decisions.md
+;   entry 3); fw/spi_ctl.s is the full controller. This firmware
 ;   has the full bit timing, but no command words for the mode, the clock
 ;   rate or the sample delay. The model test (test/test_isa.py) checks it
 ;   with MISO connected to MOSI only, not with a real SPI device.

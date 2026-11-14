@@ -23,11 +23,12 @@
 //      turns: the new state of the slot thread goes into st3 and comes
 //      back to st0 after 4 cycles, in the next slot of that thread. Each
 //      flip-flop loads in each cycle from one source, so it needs no
-//      load-enable multiplexer. R1_uart_tx.md 9.4 item 3: the library has
-//      no flip-flop with enable, so a loadable bit costs 67.13 um2 and a
-//      ring bit 48.99 um2. Also, the register read multiplexers select
-//      only 1 of 4 registers (st0), not 1 of 16. M2b_core.md section 2
-//      gives the synthesis areas of this choice and of the alternatives.
+//      load-enable multiplexer. The library has no flip-flop with enable,
+//      so a loadable bit costs 67.13 um2 (dfrbpq_1 + mux2_1) and a ring
+//      bit 48.99 um2 (dfrbpq_1; liberty cell areas, docs/isa.md Sources).
+//      Also, the register read multiplexers select only 1 of 4 registers
+//      (st0), not 1 of 16. src/pe_rf_alt.v has the compared storage
+//      methods; their synthesis areas are not recorded in this repository.
 //   2. Instruction prefetch. The memory read for the slot at cycle c
 //      occurs in cycle c-1, with the PC in st1 (the next slot thread; its
 //      state is complete because its last slot was at c-4). The word goes

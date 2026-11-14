@@ -106,4 +106,3 @@ ib:     TADD    H1
         OUT     SWCLK, 0
         DJNZ    r3, ib
         JR      r0
-HDR:    .word   0

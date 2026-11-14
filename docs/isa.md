@@ -214,7 +214,7 @@ Thus, two threads can never drive the same pin. The first thread that the host g
 
 ### 5.3 Open-drain mode
 
-The pin configuration has an open-drain bit for each output pin (section 4.5). In open-drain mode the pin drives 0 or it is released. An external pull-up makes the line high. Use it for I2C [A1 section 3].
+The pin configuration has an open-drain bit for each output pin (section 4.5). In open-drain mode the pin drives 0 or it is released. An external pull-up makes the line high. Use it for I2C.
 
 ## 6 Input pins
 

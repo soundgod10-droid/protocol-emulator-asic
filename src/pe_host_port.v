@@ -355,7 +355,7 @@ module pe_host_port #(
       m_sr    <= 7'd0;
       m_nb    <= 3'd0;
       m_cmd   <= 8'd0;
-      m_addr  <= 7'd0;
+      m_addr  <= 8'd0;
       m_tid   <= 2'd0;
       m_lo    <= 1'b0;
       m_hi    <= 8'd0;

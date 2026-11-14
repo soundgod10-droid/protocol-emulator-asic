@@ -50,5 +50,5 @@ There is no FPGA step: the design does not fit the only FPGA of the template wor
 - [ ] Check `final/metrics.csv`: route DRC 0, antenna violations 0, LVS errors 0, Magic DRC errors 0, max slew violations 0 (E5, E8).
 - [ ] Max fanout "violations" (E8): they must be the clock-leaf set only (gds 41404293323: 73 at each corner, 71 of them clock leaf buffers buf_8 with fanout 12 to 19 against 8; not a timing fault). Read the list if the count changes.
 - [ ] Lint: `01-verilator-lint/verilator-lint.log` has no warning.
-- [ ] Global placement: read `GPL-0047` (weighted routing congestion) in the `openroad-globalplacement` log; routing, not cell area, is the first limit (gds 41404293323: 1.0490 at the start, 1.0095 after 6 routability loops). Use the final `design__instance__utilization` (30.6 % in gds 41404293323) for area headroom, not the summary value of GPL-0019 (decision D13, design note R3 S3).
+- [ ] Global placement: read `GPL-0047` (weighted routing congestion) in the `openroad-globalplacement` log; routing, not cell area, is the first limit (gds 41404293323: 1.0490 at the start, 1.0095 after 6 routability loops). Use the final `design__instance__utilization` (30.6 % in gds 41404293323) for area headroom, not the summary value of GPL-0019.
 - [ ] Precheck: all checks pass (`precheck_reports/results.md`, E4); gl_test passes (E2).

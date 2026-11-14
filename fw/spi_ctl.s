@@ -13,10 +13,10 @@
 ;   CPHA = 1: CL = 1 - CPOL; the last edge (to IDLE) does not change SCK.
 ;
 ; Why:
-;   G1 step 3a: measured word count of the full SPI controller of A1
-;   section 3 and 8.2 (four modes, sample delay) for the memory size
-;   (decision D2, D4 item 13). The sample delay D (0 to 7 cycles) is the
-;   programmable delay of A1 section 9.3.
+;   The word count (26) of the full controller (four modes, sample delay)
+;   is measured by test_fw_full_word_count against the 128-word memory
+;   (docs/decisions.md entry 3). The sample delay D (0 to 7 cycles) moves
+;   the MISO sample later, for the pad and board round trip.
 ;
 ; Host words to this thread:
 ;   1. H: SCK half period in cycles. G1 model measurement, all 4 modes:

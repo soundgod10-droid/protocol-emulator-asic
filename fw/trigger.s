@@ -20,8 +20,15 @@
 ;   triggers.
 ;
 ; Host words to the thread: B (bit time in cycles, 2 x B / 2 + 8 x B up to
-;   32,767), the match byte (bits 7:0), D (40 to 4,095 cycles).
+;   32,767), the match byte (bits 7:0), D (44 to 4,095 cycles).
 ; Word from the thread for each pulse: the matched byte.
+; Measured (model, test/test_flex.py test_flex_trigger, B 434, D 200, 16
+;   start phases): pulse rising edge 3,892 cycles after the start edge at
+;   the pin at every phase (B / 2 + 8 B + D + 2 synchronizer cycles + 1),
+;   jitter 0 cycles; with FIRE = fire_n 3,737 to 3,740 cycles (jitter 3,
+;   the slot phase). Smallest D 44 cycles (D 40 sets LATE). A real input
+;   edge between two clock edges adds up to 1 cycle (20 ns) of jitter in
+;   the synchronizer; the model works in whole cycles.
 ; Not done: stop-bit check, other events (SPI command, I2C address).
 
         .equ    RX, UI3

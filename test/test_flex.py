@@ -388,6 +388,33 @@ def can_trace(bt, sp, frame, n=24):
             f"{[(c - t0, p) for c, p in pcs if -400 < c - t0 < 900]}")
 
 
+def can_arb_trace(bt, sp, node_ppm=0, delay=0):
+    """Diagnostic: bus, chip pin and node levels in the arbitration case, relative to the first node SOF."""
+    node_f = [dict(ident=0x700, data=[0x11]), dict(ident=0x3C1, data=[0x44])]
+    chip_f = [dict(ident=0x3C2, data=[0x22, 0x33])]
+    bench, m, node = can_run(bt, sp, node_frames=node_f, node_start=100, delay=delay, node_bt=bt * (1 + node_ppm * 1e-6))
+    bench.watch("txa", lambda uo, uio, oe: level(uio, oe, P_TXA))
+    bench.watch("txb", lambda uo, uio, oe: level(uio, oe, P_TXB))
+    nodelv = [(0, 1)]
+    orig = node.see
+
+    def see(c, bus):
+        orig(c, bus)
+        if node.tx != nodelv[-1][1]:
+            nodelv.append((c, node.tx))
+    node.see = see
+    bench.run(100 + int(30 * bt))
+    bench.send(0, *can_tx_words(chip_f[0])[0])
+    bench.run(int(130 * bt))
+    t0 = bench.inputs.changes[1][0]
+
+    def rel(ch):
+        return [(round((c - t0) / bt, 2), v) for c, v in ch if c >= t0 + 30 * bt][:40]
+    return (f"node errors {node.errors[:4]}, results {node.results}; chip words {[hex(w) for w in bench.words(0)]}; "
+            f"bus (bits from node SOF) {rel(bench.inputs.changes)}; TXA {rel(bench.changes('txa'))}; "
+            f"TXB {rel(bench.changes('txb'))}; node {rel(nodelv)}")
+
+
 def can_case(bt, sp, delay=0, node_ppm=0, node_sp=None, offsets=(0,), equ=None, parts=("tx", "rx", "arb")):
     """None if, at each start phase, the chip sends CAN_FRAMES (acknowledged by the node), receives and
     acknowledges NODE_FRAMES, and loses one arbitration, takes the winner's frame and then sends its frame;

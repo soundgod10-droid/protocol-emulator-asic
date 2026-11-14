@@ -158,7 +158,7 @@ module tt_um_soundgod10_droid_protocol_emulator (
   // Configuration and processor
   // ---------------------------------------------------------------------
 
-  wire [27:0] start_pc;
+  wire [31:0] start_pc;
   wire [3:0]  run_mask;
   wire [29:0] pin_owner;
   wire [14:0] pin_en;

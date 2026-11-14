@@ -95,7 +95,7 @@ tn:     TADD    4095
         TADD    4095
         WAIT    CLK, FALL, r3, TO, CT
         BEC     tf
-        TADD    16
+        TADD    24
         SAMPLE  DATA, r1>>      ; falling edge 12: acknowledge
         JMP     rend
 

@@ -320,7 +320,7 @@ module g1_rf_ring8 (
 endmodule
 
 // ---------------------------------------------------------------------------
-// Second memory read port (D4 item 7): one more 128:1 x 16 multiplexer on
+// Second memory read port (docs/isa.md 13, LD in one slot): one more 128:1 x 16 multiplexer on
 // the latch outputs of the 128 x 16 memory.
 // ---------------------------------------------------------------------------
 module g1_rdport2 (

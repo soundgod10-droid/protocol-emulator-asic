@@ -722,6 +722,76 @@ def jtag_run_a(h1, h2, **kw):
     return None, span[0], span[1]
 
 
+def jtag_ops():
+    """The steps of jtag_steps as reset and scan commands of fw/jtag_tap.s (it has no Pause states):
+    lists of (command, TDI bits, expected TDO bits)."""
+    ids = value_bits(JTAG_IDS[1], 32) + value_bits(JTAG_IDS[0], 32)
+    return [
+        [(0, [], []), (64, [1] * 64, ids)],
+        [(0x8000 | 9, value_bits(0b00100, 5) + value_bits(0b1111, 4), value_bits(0b01001, 5) + value_bits(0b1001, 4))],
+        [(13, value_bits(0xA53, 12) + [0], value_bits(0x3C1, 12) + [0])],
+        [(13, [0] * 13, value_bits(0xA53, 12) + [0])],
+        [(0, [], []), (64, [0] * 64, ids)],
+    ]
+
+
+def jtag_run_b(h1, h2, **kw):
+    """fw/jtag_tap.s with the chain; returns (fault text or None, cycles of the 64-bit IDCODE scan, its bits)."""
+    prog = assemble("jtag_tap.s", H1=h1, H2=h2)
+    devs = jtag_devices(**kw)
+    m = pe_model.PeModel(prog.words, owner=owners({P_TCK: 0, P_TMS: 0, P_TDI: 0}))
+    bench = Bench(m, inputs=JtagChain(devs))
+    bench.watch("tck", lambda uo, uio, oe: uo & 1)
+    bench.run(50)
+    span = None
+    for k, ops in enumerate(jtag_ops()):
+        for cmd, tdi, want in ops:
+            n = len(tdi)
+            n0, e0 = len(bench.words(0)), len(bench.changes("tck"))
+            bench.send(0, cmd, *[lsb_word(tdi[g:g + 16]) for g in range(0, n, 16)])
+            need = n0 + (n + 15) // 16
+            for _ in range(200):
+                if len(bench.words(0)) >= need and len(bench.m.threads[0].__dict__) and not bench.to_thread[0]:
+                    break
+                bench.run(max(n, 8) * (h1 + h2) // 8 + 100)
+            bench.run(12 * (h1 + h2))  # header and tail cycles
+            got = bench.words(0)[n0:]
+            if len(got) != need - n0:
+                return f"step {k}: {len(got)} TDO words, expected {need - n0}", None, None
+            tdo = jtag_tdo(got, n)
+            if tdo != want:
+                return f"step {k}: TDO {tdo}, expected {want}", None, None
+            if k == 0 and n:
+                edges = [c for c, _ in bench.changes("tck")[e0:]]
+                span = (edges[-1] - edges[0], len(edges) // 2)
+    bench.run(200)
+    for d in devs:
+        if d.errors:
+            return f"device errors {d.errors[:3]}", None, None
+    if devs[1].updates != [0xA53, 0]:
+        return f"device 1 updates {devs[1].updates}", None, None
+    th = m.threads[0]
+    if th.status or not th.run:
+        return f"thread status {th.status}, run {th.run}, {th.stop_reason}", None, None
+    return None, span[0], span[1]
+
+
+def jtag_limits(run, td):
+    """For each H1, the smallest H2 that is correct (binary search, the value below checked): rows sorted by
+    the TCK period."""
+    rows = []
+    for h1 in range(2, 25):
+        if run(h1, 40, td=td)[0]:
+            continue
+        lo, hi = 1, 40
+        while hi - lo > 1:
+            mid = (lo + hi) // 2
+            lo, hi = (lo, mid) if run(h1, mid, td=td)[0] is None else (mid, hi)
+        _, span, n = run(h1, hi, td=td)
+        rows.append((h1 + hi, h1, hi, span, n, run(h1, hi - 1, td=td)[0]))
+    return sorted(rows)
+
+
 @cocotb.test(skip=GL)
 async def test_flex_jtag(dut):
     """fw/jtag.s against two independent TAP models in a chain (TI SSYA002C primer): both IDCODEs after

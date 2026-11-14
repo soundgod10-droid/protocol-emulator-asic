@@ -19,8 +19,7 @@
 // Why:
 //   docs/isa.md 8.5 (PULL, PULL.NB, PUSH, PUSH.NB) and the firmware in fw/
 //   get their data from the host through these FIFOs. The words are in
-//   two 16 x 16 latch memories (pe_latch_ram), as A1 section 7 block D6
-//   plans (512 latches). Only one thread has the slot in a cycle and the
+//   two 16 x 16 latch memories (pe_latch_ram, 512 latches in total). Only one thread has the slot in a cycle and the
 //   host does one write and one read in a cycle, so each memory needs one
 //   write port and one read port.
 //

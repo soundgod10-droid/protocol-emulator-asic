@@ -1500,7 +1500,7 @@ async def test_flex_word_count(dut):
 
 @cocotb.test(skip=GL)
 async def test_flex_i2c_char(dut):
-    """N2 option C: the host finds the SDA set-up limit of an I2C target by binary search on TLOW of fw/i2c_ctl.s
+    """I2C device characterization: the host finds the SDA set-up limit of an I2C target by binary search on TLOW of fw/i2c_ctl.s
     (the firmware is assembled again for each try, no firmware change), against target models with set limits."""
     log = dut._log
     # The model target's SDA input is delayed, so it also sees the START late: its delay must be shorter than the

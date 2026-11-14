@@ -46,7 +46,7 @@
         .equ    SWCLK, UO3
         .equ    SWDIO, UIO4
         .equ    H1, 12          ; falling to rising SWCLK edge (cycles)
-        .equ    H2, 16          ; rising to falling SWCLK edge (cycles)
+        .equ    H2, 20          ; rising to falling SWCLK edge (cycles)
 
 swd:    TNOW    8
         OUT     SWCLK, 0

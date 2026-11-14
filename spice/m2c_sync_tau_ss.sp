@@ -1,4 +1,4 @@
-* M2c: metastability time constant tau of sg13cmos5l_dfrbpq_1, slow corner
+* sync_tau_ss: metastability time constant tau of sg13cmos5l_dfrbpq_1, slow corner
 * (mos_ss, 1.08 V, 125 C: the STA slow corner nom_slow_1p08V_125C).
 * Same method as m2c_sync_tau.sp (see that file); only the corner changes.
 .lib cornerMOSlv.lib mos_ss

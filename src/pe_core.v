@@ -5,15 +5,15 @@
 
 `default_nettype none
 
-// pe_core: 4-thread barrel processor of the protocol emulator (A1 block D1).
+// pe_core: 4-thread barrel processor of the protocol emulator.
 //
 // What it does:
 //   The core executes the instruction set of docs/isa.md. Thread n
 //   executes one instruction in each clock cycle c with c mod 4 = n
 //   (isa 3.1), so now[1:0] is the number of the thread that has the slot.
-//   The core writes pin events into the output event slots (pe_timed_out,
-//   A1 block D2), reads the input history (pe_timed_in, block D3) for
-//   SAMPLE and WAIT, and uses the host FIFOs (pe_host_fifo, block D6).
+//   The core writes pin events into the output event slots (pe_timed_out),
+//   reads the input history (pe_timed_in) for SAMPLE and WAIT, and uses
+//   the host FIFOs (pe_host_fifo).
 //
 // Why it has this structure:
 //   1. Thread state in a ring. The state of each thread (r0 to r3, T, PC,

@@ -1,6 +1,6 @@
-# M2b: k-induction proof of the latch memory properties (pe_latch_ram
+# mem_small: k-induction proof of the latch memory properties (pe_latch_ram
 # `ifdef FORMAL: M1 to M4) on an 8 x 16 instance of the same module, with
-# the harness mem_fv.v. The word address of the properties is free and
+# the wrapper mem_fv.v. The word address of the properties is free and
 # each word has the same generated logic, so this checks the structure of
 # the 128 x 16 chip memory. mem.sby checks the chip size (bounded).
 # multiclock: the clock is a signal that changes at each solver step, and

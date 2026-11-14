@@ -68,12 +68,12 @@ module pe_config (
   always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
       run_mask <= 4'd0;
-    end else if (we && (addr == 7'd4)) begin
+    end else if (we && (addr == 8'd4)) begin
       run_mask <= data[3:0];
     end
   end
 
-  // The registers use data[6:0] only (else the linter reports UNUSEDSIGNAL).
-  wire _unused = &{data[15:7], 1'b0};
+  // The registers use data[7:0] only (else the linter reports UNUSEDSIGNAL).
+  wire _unused = &{data[15:8], 1'b0};
 
 endmodule

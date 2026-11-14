@@ -409,11 +409,14 @@ def can_case(bt, sp, delay=0, node_ppm=0, node_sp=None, offsets=(0,), equ=None, 
             f += "; " + first_status(bench, m, int(800 * bt), (0, 1), "can.s", dict(BT=bt, SP=sp, **(equ or {})))
         if f:
             return f"chip to node, phase {off}: {f}"
-        bench, m, node = can_run(bt, sp, node_frames=NODE_FRAMES, node_start=200 + off, **kw)
-        bench.run(int(300 * bt))
-        f = can_fault(bench, m, node, node_frames=NODE_FRAMES)
-        if f:
-            return f"node to chip, phase {off}: {f}"
+        if "rx" in parts:
+            bench, m, node = can_run(bt, sp, node_frames=NODE_FRAMES, node_start=200 + off, **kw)
+            bench.run(int(300 * bt))
+            f = can_fault(bench, m, node, node_frames=NODE_FRAMES)
+            if f:
+                return f"node to chip, phase {off}: {f}"
+        if "arb" not in parts:
+            continue
         # Arbitration: the node sends 0x700; during it the chip and the node get a frame each, so both start
         # after its intermission. The chip ID 0x3C2 loses against 0x3C1 at the last ID bit.
         node_f = [dict(ident=0x700, data=[0x11]), dict(ident=0x3C1, data=[0x44])]

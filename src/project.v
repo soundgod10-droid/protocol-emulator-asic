@@ -6,8 +6,7 @@
 `default_nettype none
 
 // tt_um_soundgod10_droid_protocol_emulator: top level of the protocol
-// emulator chip. Milestone M2 (run M2c): programmable processor with a
-// host SPI port.
+// emulator chip: programmable processor with a host SPI port.
 //
 // What it does:
 //   The chip is a 4-thread barrel processor with timed pin I/O

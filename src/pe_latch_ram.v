@@ -102,8 +102,8 @@ module pe_latch_ram #(
 
 `ifdef FORMAL
   // ---------------------------------------------------------------------
-  // Formal properties (formal/mem.sby with the harness formal/mem_fv.v).
-  // Only Yosys with the FORMAL macro reads this block. The harness gives
+  // Formal properties (formal/mem.sby with the wrapper formal/mem_fv.v).
+  // Only Yosys with the FORMAL macro reads this block. The wrapper gives
   // a clock signal that changes at each solver step (multiclock), so the
   // latches and the clock gates are checked at both clock levels, not as
   // flip-flops. The solver chooses one word f_a; the properties hold for

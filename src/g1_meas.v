@@ -519,7 +519,7 @@ module g1_expired (
 endmodule
 
 // ---------------------------------------------------------------------------
-// A1 block D4 (line-code helpers, 4): the storage of A1 section 7 for each
+// Line-code helpers (4): the storage for each
 // helper (shift out 16, shift in 16, bit count 5, stuff count 3, state 4)
 // with the shift, count and NRZI functions.
 // ---------------------------------------------------------------------------

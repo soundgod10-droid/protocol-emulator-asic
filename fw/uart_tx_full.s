@@ -1,4 +1,4 @@
-; fw/uart_tx_full.s - UART transmitter for all rates and frame formats of A1 section 3.
+; fw/uart_tx_full.s - UART transmitter, 300 bit/s to 1 Mbit/s, any frame format.
 ;
 ; What it does:
 ;   Sends UART frames on UART_TX = uo_out[4] (output pin 12, UO4, push-pull).

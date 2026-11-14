@@ -74,7 +74,7 @@ Comparison with a larger state for each thread (8 registers of 16 bits, PC 10, f
 - This instruction set: 376 bits, 25,240.9 um2. This is 21,481.6 um2 less than the larger state at 67.13 um2.
 - With 8 data registers instead of 4, the data registers alone are 512 bits = 34,370.6 um2 (+17,185.3 um2).
 
-The register read multiplexers are not loadable bits, but they also grow with the register count. Two read ports of 16 bits from 16 registers (4 threads x 4) need 16:1 multiplexers: 5 mux4_1 for each bit, 32 x 5 x 38.10 = 6,096 um2. With 8 registers (32:1, 10 mux4_1 + 1 mux2_1 for each bit): 32 x 399.14 = 12,772.5 um2. These are estimates [OWN]. M2b synthesis gives the real values.
+The register read multiplexers are not loadable bits, but they also grow with the register count. Two read ports of 16 bits from 16 registers (4 threads x 4) need 16:1 multiplexers: 5 mux4_1 for each bit, 32 x 5 x 38.10 = 6,096 um2. With 8 registers (32:1, 10 mux4_1 + 1 mux2_1 for each bit): 32 x 399.14 = 12,772.5 um2. These are estimates from the cell areas, not a synthesis result.
 
 We propose flip-flops, not latches, for the registers. Section 13 gives the reason.
 

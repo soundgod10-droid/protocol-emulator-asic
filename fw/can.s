@@ -68,12 +68,15 @@ init:   LDI     r1, 0x3FF       ; bus history: recessive
         BMI     smp             ; receiver: the SOF bit is on the bus
         ROR     r0, 15
         OUT     TX, r0          ; SOF
-smp:    TADD    SP - 20         ; T = last resynchronization time
+smp:    MOV     r3, r0
+        ANDI    r3, 1
+        BEQ     nr              ; sending dominant: no resynchronization on its own edge
+        TADD    SP - 20         ; T = last resynchronization time
         WAIT    RX, FALL, r3, TO, CT
         BEC     s0
         TADD    SP - 23         ; resynchronized: edge - 3 + SP - 20
 s0:     TADD    20              ; T = sample point
-        SAMPLE  RX, r1<<
+s1:     SAMPLE  RX, r1<<
         TADD    BT - SP         ; T = start of the next bit
         BES     s2              ; bus recessive
         NOT     r3, r0

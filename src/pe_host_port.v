@@ -284,7 +284,7 @@ module pe_host_port #(
             S_RDB: begin
               tx   <= mem_rdata[15:8];
               hold <= mem_rdata[7:0];
-              addr <= addr + 7'd1;
+              addr <= addr + 8'd1;
               st   <= S_RDA;
             end
             S_PLA: begin

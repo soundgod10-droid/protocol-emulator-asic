@@ -17,13 +17,12 @@
 //   fw/uart_tx.s makes thread 0 a UART transmitter on uo_out[4].
 //
 // Why it has this structure:
-//   Architecture D (A1_architecture.md section 4.4): the threads change
-//   the pins only through the timed I/O unit (event slots), so each pin
-//   edge is at the cycle of its event time. The host SPI port (A1 block
-//   D7) replaces the TEMPORARY M1 sequencer and the TEMPORARY M2b test
-//   port (removed in M2c).
+//   The threads change the pins only through the timed I/O unit (event
+//   slots), so each pin edge is at the cycle of its event time
+//   (docs/decisions.md entry 1). The host SPI port loads the firmware and
+//   the configuration (docs/host_port.md).
 //
-// Pins (A1 section 2.2, docs/isa.md 5.1):
+// Pins (docs/isa.md 5.1, docs/host_port.md 2):
 //   ui_in[7]     HOST_SCK   host SPI clock (SPI mode 0)
 //   ui_in[6]     HOST_CS_N  host SPI chip select, active low
 //   ui_in[5]     HOST_MOSI  host SPI data, host to chip

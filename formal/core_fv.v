@@ -5,7 +5,7 @@
 
 `default_nettype none
 
-// core_fv: formal harness of the barrel core (pe_core, A1 block D1).
+// core_fv: formal wrapper of the barrel core (pe_core).
 //
 // What it does:
 //   It connects the core to the cycle counter (pe_cycle_counter, clear =

@@ -396,6 +396,8 @@ def can_case(bt, sp, delay=0, node_ppm=0, node_sp=None, offsets=(0,), equ=None):
         log = can_send_all(bench, CAN_FRAMES, bt)
         bench.run(int(20 * bt))
         f = can_fault(bench, m, node, log, CAN_FRAMES)
+        if f and "thread 1 reported" in f:
+            f += "; " + can_trace(bt, sp, CAN_FRAMES[0])
         if f and "status" in f:
             bench, m, node = can_run(bt, sp, **kw)
             bench.send(0, *[w for fr in CAN_FRAMES for w in can_tx_words(fr)[0]])

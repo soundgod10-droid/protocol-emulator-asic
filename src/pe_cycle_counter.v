@@ -27,7 +27,7 @@
 //   cycle numbers agree with the reference model (docs/isa.md 3.1).
 
 module pe_cycle_counter #(
-    parameter integer WIDTH = 32  // A1 section 7: 32-bit cycle counter
+    parameter integer WIDTH = 32  // 32-bit cycle counter (docs/isa.md 2.2)
 ) (
     input  wire             clk,
     input  wire             rst_n,  // active low, asynchronous assert

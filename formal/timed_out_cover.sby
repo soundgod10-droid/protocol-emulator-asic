@@ -1,4 +1,4 @@
-# M2b: cover check of the event slot harness (timed_out_fv.v). It shows
+# timed_out_cover: cover check of the event slot wrapper (timed_out_fv.v). It shows
 # that an event with lead 4 occurs and that an event changes the pin, so
 # the properties of timed_out.sby are not empty.
 

@@ -390,11 +390,11 @@ module pe_core (
   reg [1:0]  wsel;
   reg [15:0] wval;
   reg [15:0] n_t;
-  reg [6:0]  n_pc;
+  reg [7:0]  n_pc;
   reg        n_z, n_c, n_n, n_e, n_late, n_err, n_run;
   reg [2:0]  n_ps;
   reg [1:0]  n_ldrd;
-  reg [6:0]  n_ldaddr;
+  reg [7:0]  n_ldaddr;
   reg        o_load;   // write the event into the slot of "pin"
 
   assign mem_wdata  = ra;

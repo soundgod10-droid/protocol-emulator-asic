@@ -1,8 +1,7 @@
-# mem_full: proof of the latch memory at the chip size, 128 words x 16 bits
-# (M2b open item, G1 register M2b-06).
+# mem_full: proof of the latch memory at the chip size, 128 words x 16 bits.
 #
 # What it does:
-#   The same harness and properties (M1 to M4 in pe_latch_ram.v) as
+#   The same wrapper and properties (M1 to M4 in pe_latch_ram.v) as
 #   mem.sby (128 x 2) and mem_small.sby (8 x 16), with the default
 #   parameters of formal/mem_fv.v: 128 x 16, as in the chip.
 #

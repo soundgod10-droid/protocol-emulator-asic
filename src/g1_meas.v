@@ -613,9 +613,10 @@ module g1_crc (
 endmodule
 
 // ---------------------------------------------------------------------------
-// A1 block D7 (host SPI port): synchronizers (3 stages for SCK, 2 for CS
-// and MOSI, A1 9.4), a 32-bit receive shift register, bit count, address
-// counter and a 16-bit transmit shift register. M2c designs the real port.
+// Host SPI port, storage estimate before the port was designed: synchronizers
+// (3 stages for SCK, 2 for CS and MOSI), a 32-bit receive shift register, bit
+// count, address counter and a 16-bit transmit shift register. The chip uses
+// pe_host_port.
 // ---------------------------------------------------------------------------
 module g1_hostspi_store (
     input  wire        clk,

@@ -16,8 +16,8 @@
 ;   docs/isa.md 6.1), so each real time is 6 cycles longer.
 ;
 ; Why:
-;   G1 step 3a: measured word count of the full I2C controller of A1
-;   section 3 and 8.2 for the memory size (decision D2, D4 item 13).
+;   The word count (49) is measured by test_fw_full_word_count against the
+;   128-word memory (docs/decisions.md entry 3).
 ;
 ; Host words to this thread, two for each byte:
 ;   1. Byte word: bit 15 = START before the byte (repeated START in a

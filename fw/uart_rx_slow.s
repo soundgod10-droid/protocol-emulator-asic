@@ -2,7 +2,7 @@
 ;
 ; What it does:
 ;   The same receiver and the same host words as fw/uart_rx_full.s, for
-;   the low rates of A1 section 3 (50 MHz: 300 bit/s to 1,525 bit/s). The
+;   the low rates (50 MHz: 300 bit/s to 1,525 bit/s). The
 ;   bit time is B = K x C and the first sample time H = K x HC. A SAMPLE
 ;   must be issued 32,767 cycles or less before its time (isa 4.2), so the
 ;   thread waits (TWAIT) after each chunk.

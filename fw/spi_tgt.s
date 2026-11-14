@@ -20,8 +20,8 @@
 ;   high): MISO is released and the thread waits for the next CS low.
 ;
 ; Why:
-;   A1 section 8.2 (SPI target, four modes) and A1 10 step T13 (correct at
-;   1 MHz, record the maximum). One WAIT for each bit: a thread issues one
+;   The target must be correct in all four modes and at 1 MHz
+;   (test_m3_spi_tgt, docs/decisions.md entry 11). One WAIT for each bit: a thread issues one
 ;   instruction every 4 cycles, and an event needs a lead of 4 cycles (isa
 ;   4.2), so a WAIT for the shift edge too would halve the rate (measured:
 ;   smallest SCK half period 49 cycles with it, 25 without).

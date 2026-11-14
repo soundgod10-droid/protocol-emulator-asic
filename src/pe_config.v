@@ -39,18 +39,18 @@ module pe_config (
   genvar n, p;
   generate
     for (n = 0; n < 4; n = n + 1) begin : g_start
-      localparam [6:0] A = n;
+      localparam [7:0] A = n;
       always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-          start_pc[7*n+:7] <= 7'd0;
+          start_pc[8*n+:8] <= 8'd0;
         end else if (we && (addr == A)) begin
-          start_pc[7*n+:7] <= data[6:0];
+          start_pc[8*n+:8] <= data[7:0];
         end
       end
     end
 
     for (p = 0; p < 15; p = p + 1) begin : g_pin
-      localparam [6:0] A = 7'd16 + p;
+      localparam [7:0] A = 8'd16 + p;
       always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
           pin_owner[2*p+:2] <= 2'd0;

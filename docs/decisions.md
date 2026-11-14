@@ -25,8 +25,9 @@ How to check a run value: open the run link. The layout and timing reports are i
 - **Question:** what holds the program and the data of the four threads?
 - **Options:** a latch array of standard cells; an SRAM macro; flip-flops.
 - **Evidence:** `src/pe_latch_ram.v`. Synthesis: 2,560 latches (2,048 memory bits and 512 host FIFO bits, which use the same latch array) and 160 clock gates. `formal/mem_full.sby` proves the memory properties at 128 x 16 by k-induction. The four full protocol programs use 103 of the 128 words (`test_fw_full_word_count`: UART TX 15, UART RX 13, SPI controller 26, I2C controller 49), or 114 words with the slow UART receiver.
-- **Decision:** latch array; no macro in the flow. The comparison was by risk to the first layout runs, not by a measured macro layout: no run with a macro exists.
-- **Would change it:** firmware for new protocols that needs more than 128 words. Then a macro layout would be measured.
+- **Size, measured after the rule change (8x4 tiles):** 256 x 16 latches (research branch `m3c-mem256`): synthesis 325,747 um2 against 216,632 um2 (+50 %), placement utilisation 0.357; the layout run fails at the disconnected-pins check (the clock input of 2 of the 288 clock-gate cells is not connected) after 2 h 17 min (run [43623912585]); the memory proof at 256 x 16 did not finish in 1,800 s (128 x 16: 587 s). The IHP SRAM macro `RM_IHPSG13_1P_256x16_c2_bm_bist` (IHP-Open-PDK, LEF) is 236.8 x 118.78 um = 28,127 um2 for 256 x 16, with VDD, VDDARRAY and VSS on Metal4 and a BIST port; no run with it exists. Every program in `fw/` fits alone in 128 words; the largest is the CAN node (123 words, `test_flex_word_count`). Running more programs at the same time is \"a plus but not required\" (competition FAQ).
+- **Decision:** 128 x 16 latch array; no macro in the flow.
+- **Would change it:** a demonstration that needs more than 128 words at the same time, with a passing layout run of the larger memory (the macro is the smaller option by area).
 
 ## 4. System clock: 50 MHz
 

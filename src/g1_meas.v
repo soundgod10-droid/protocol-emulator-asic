@@ -577,7 +577,7 @@ module g1_helper_store (
 endmodule
 
 // ---------------------------------------------------------------------------
-// A1 block D5 (CRC unit): 32-bit CRC register and 32-bit polynomial
+// CRC unit: 32-bit CRC register and 32-bit polynomial
 // register, one bit in each step (reflected form, covers CRC5, CRC16 and
 // CRC32 with the polynomial and the start value from the thread).
 // ---------------------------------------------------------------------------

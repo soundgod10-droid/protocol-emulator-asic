@@ -107,7 +107,7 @@ module tt_um_soundgod10_droid_protocol_emulator (
   wire [3:0]  th_late;
   wire [3:0]  th_err;
 
-  // A1 block D7: host SPI port (docs/host_port.md).
+  // Host SPI port (docs/host_port.md).
   pe_host_port u_host_port (
       .clk          (clk),
       .rst_n        (rst_n_int),

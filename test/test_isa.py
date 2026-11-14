@@ -831,7 +831,11 @@ async def test_fw_i2c_outline(dut):
 
 
 def check_i2c_times(log, st, scl, label):
-    """Bit period 126 cycles in each byte; SCL high >= 30 cycles (0.6 us), low >= 65 cycles (1.3 us) (A1 section 3)."""
+    """Bit period 126 cycles in each byte; SCL high >= 30 cycles (0.6 us), low >= 65 cycles (1.3 us).
+
+    0.6 us and 1.3 us are the Fast-mode tHIGH and tLOW minimum values of NXP UM10204 Rev. 7.0,
+    Table 11 (test/test_fw_full.py I2C_LIMITS).
+    """
     groups, bits = [], []
     for e in st["events"]:
         if e[1] != "BIT":

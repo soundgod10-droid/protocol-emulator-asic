@@ -112,3 +112,4 @@ The design and the verification were AI-assisted, under the direction of the eng
 [41924796459]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/41924796459
 [42744631302]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/42744631302
 [42744631446]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/42744631446
+[43592752852]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43592752852

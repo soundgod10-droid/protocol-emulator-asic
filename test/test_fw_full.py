@@ -1249,7 +1249,7 @@ async def test_r2_clock_margins(dut):
     assert [round(x, 3) for x in rx_limits(40, rx_h(40))] == [0.031, 0.034]
 
 
-# ----- R3: I2C bus clear -----
+# ----- I2C bus clear -----
 # UM10204 Rev. 7.0, 3.1.16 "Bus clear": if SDA is stuck low, the controller sends nine clock pulses.
 # fw/i2c_ctl.s needs no new code: the host sends one byte word with START, nine released bits and
 # STOP, and the check word 0 (docs/host_port.md). R3_open_questions.md row M3.

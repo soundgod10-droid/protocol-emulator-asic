@@ -36,6 +36,9 @@
   "//": "every push). Set to 1 for the tape-out run: docs/tapeout_checklist.md.",
   "RUN_MAGIC_DRC": 0,
 
+  "//": "Research: resizer design repair after global routing (max cap with routed parasitics).",
+  "RUN_POST_GRT_DESIGN_REPAIR": 1,
+
   "//": "Signoff STA only: path groups so the flip-flop setup slack is reported (layout unchanged).",
   "SIGNOFF_SDC_FILE": "dir::signoff.sdc",
 

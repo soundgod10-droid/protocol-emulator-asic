@@ -388,7 +388,7 @@ def can_trace(bt, sp, frame, n=24):
             f"{[(c - t0, p) for c, p in pcs if -400 < c - t0 < 900]}")
 
 
-def can_case(bt, sp, delay=0, node_ppm=0, node_sp=None, offsets=(0,), equ=None):
+def can_case(bt, sp, delay=0, node_ppm=0, node_sp=None, offsets=(0,), equ=None, parts=("tx", "rx", "arb")):
     """None if, at each start phase, the chip sends CAN_FRAMES (acknowledged by the node), receives and
     acknowledges NODE_FRAMES, and loses one arbitration, takes the winner's frame and then sends its frame;
     else the first fault."""

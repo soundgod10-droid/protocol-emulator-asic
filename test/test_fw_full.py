@@ -1360,9 +1360,9 @@ async def test_m3_i2c_stuck_scl(dut):
                   f"Normal Fm byte, reply to reply: {byte_cycles} cycles ({byte_cycles / 50:.1f} us)")
 
 
-# ----- M3a: SPI target firmware (fw/spi_tgt.s) -----
-# A1 section 8.2 (SPI target: correct MISO in all four modes) and A1 section 10 step T13 (correct at 1 MHz,
-# record the maximum). SpiController does not use the firmware or the model: it makes the CS, SCK and MOSI
+# ----- SPI target firmware (fw/spi_tgt.s) -----
+# Aim: correct MISO in all four modes, correct at 1 MHz, and the highest rate recorded (docs/decisions.md
+# entry 11). SpiController does not use the firmware or the model: it makes the CS, SCK and MOSI
 # levels of each mode from CPOL and CPHA and reads MISO in the cycle of each sample edge.
 
 SPI_TGT_SE = {0: 1, 1: 0, 2: 0, 3: 1}  # .equ SE of fw/spi_tgt.s: the sample edge, 1 RISE, 0 FALL

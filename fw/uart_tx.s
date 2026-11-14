@@ -25,7 +25,7 @@
 ; Host configuration before RUN: output pin UO4 belongs to this thread,
 ; push-pull. Registers: r0 = frame bits not sent yet, r1 = bit counter.
 
-        .equ    TX, UO4         ; UART_TX pin, uo_out[4] (A1 section 2.2)
+        .equ    TX, UO4         ; UART_TX pin, uo_out[4] (docs/isa.md 5.1)
         .equ    BIT, 434        ; cycles for one bit: 50,000,000 / 115,200 = 434.03
         .equ    MARGIN, 24      ; the first OUT is 5 instructions after TSYNC: 5 x 4 + 4 = 24 cycles
 

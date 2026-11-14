@@ -54,7 +54,7 @@ nolate: PULL.NB r0
         JMP     tx
 rlate:  TNOW    0
 rx:     LDI     r2, 11
-rs:     TADD    16
+rs:     TADD    24              ; up to 2 instructions after the WAIT: lead 4 or more (docs/isa.md 4.2)
         SAMPLE  DATA, r1>>
         DJNZ    r2, rw
 rend:   PUSH    r1              ; frame: start bit 5 ... stop bit 15; command: the acknowledge in bit 15

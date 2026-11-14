@@ -131,7 +131,7 @@ module pe_core (
   wire [15:0] h_r2     = st0[47:32];
   wire [15:0] h_r3     = st0[63:48];
   wire [15:0] h_t      = st0[F_T+:16];
-  wire [6:0]  h_pc     = st0[F_PC+:7];
+  wire [7:0]  h_pc     = st0[F_PC+:8];
   wire        h_z      = st0[F_Z];
   wire        h_c      = st0[F_C];
   wire        h_n      = st0[F_N];

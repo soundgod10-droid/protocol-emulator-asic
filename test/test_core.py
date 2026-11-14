@@ -58,7 +58,7 @@ import host_spi as hs  # noqa: E402
 import pe_asm  # noqa: E402
 import pe_model  # noqa: E402
 
-CLK_NS = 20  # 50 MHz (A1 section 2.3)
+CLK_NS = 20  # 50 MHz (info.yaml clock_hz)
 CMD_NOP, CMD_PUSH, CMD_POP = 0, 4, 5  # host operations of a scenario after START
 SCK_PERIOD = 4  # clock cycles for each SCK period in the lockstep tests (2 low, 2 high)
 PULL_WORDS = 4  # each host POP is a PULL of this many words (fixed length: the schedule does not depend on data)

@@ -384,7 +384,8 @@ def can_trace(bt, sp, frame, n=24):
     bus = bench.m and bench.inputs.changes
     t0 = bus[1][0] if len(bus) > 1 else 0
     return (f"bus changes from SOF {[(c - t0, v) for c, v in bus[1:n]]}; thread 1 samples from SOF "
-            f"{[s - t0 for s in samples[:n]]}; thread 1 pc {m.threads[1].pc}")
+            f"{[s - t0 for s in samples[:n]]}; thread 1 pc {m.threads[1].pc}; pc changes from SOF "
+            f"{[(c - t0, p) for c, p in pcs if -400 < c - t0 < 900]}")
 
 
 def can_case(bt, sp, delay=0, node_ppm=0, node_sp=None, offsets=(0,), equ=None):

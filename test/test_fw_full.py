@@ -1109,8 +1109,8 @@ async def test_g1_tsync(dut):
         assert ok and status == 0 and delay is not None and delay < 2_000, (label, ok, delay, status)
 
 
-# ----- R2 question 1: protocol margins at each candidate system clock -----
-# R2_decisions.md section 1. Only host words and .equ values change (the host
+# ----- protocol margins at each candidate system clock (docs/decisions.md entry 4) -----
+# Only host words and .equ values change (the host
 # chooses them for its clock); fw/ and model/ are not changed.
 
 R2_CLOCKS = (40e6, 48e6, 50e6, 60e6)

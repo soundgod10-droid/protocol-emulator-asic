@@ -218,7 +218,7 @@ Firmware format: the default is the present format of the firmware files (one ho
 
 ## 13 SPI target (fw/spi_tgt.s)
 
-Requirement: A1 section 8.2 (SPI target, correct MISO in all four modes) and A1 section 10 step T13 (correct at 1 MHz, record the maximum). The pins are those of the SPI controller firmware with the other direction: CS = uio[0], MOSI = uio[1], SCK = uio[3] are inputs; MISO = uio[2] is the output of the thread (owner: the thread, push-pull). fw/spi_ctl.s and fw/spi_tgt.s use the same pins, so load one of them.
+Aim: correct MISO in all four modes, correct at 1 MHz, and the highest correct rate recorded (test_m3_spi_tgt). The pins are those of the SPI controller firmware with the other direction: CS = uio[0], MOSI = uio[1], SCK = uio[3] are inputs; MISO = uio[2] is the output of the thread (owner: the thread, push-pull). fw/spi_ctl.s and fw/spi_tgt.s use the same pins, so load one of them.
 
 Host settings when it assembles the file: SE = 1 for modes 0 and 3, SE = 0 for modes 1 and 2 (the edge at which the controller samples MISO); GAP (cycles) for the SCK rate, see the rules below.
 

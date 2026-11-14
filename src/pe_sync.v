@@ -50,8 +50,7 @@ endmodule
 // Why:
 //   An input pin can change at any time relative to the clock. The first
 //   flip-flop can go metastable. The second flip-flop gives it one clock
-//   cycle to become stable. A1 section 2.6 gives this 2-stage synchronizer
-//   for each input sample.
+//   cycle to become stable (time constant: docs/verification.md section 7).
 
 module pe_sync2 (
     input  wire clk,

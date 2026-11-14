@@ -1480,11 +1480,16 @@ async def test_flex_word_count(dut):
             clash = sorted({p for p in pins if pins.count(p) > 1})
             fits.append((combo, total, clash))
     maximal = [f for f in fits if not any(set(f[0]) < set(g[0]) for g in fits)]
-    log.info(f"{len(fits)} sets of 2 to 4 programs with at least one new protocol fit in {pe_model.MEM_WORDS} words "
-             f"and {pe_model.N_THREADS} threads; {len(maximal)} of them cannot take one more program")
     for combo, total, clash in sorted(maximal, key=lambda f: (-len(f[0]), f[1])):
         log.info(f"fits: {' + '.join(f'{n} {size[n]}' for n in combo)} = {total} words, "
                  f"{pe_model.MEM_WORDS - total} free; default pins {'shared: ' + ', '.join(clash) if clash else 'free'}")
+    log.info("words: " + ", ".join(f"{n} {size[n]}" for n in PROGRAMS))
+    for n in NEW:
+        log.info(f"{n} alone: {size[n]} words, {pe_model.MEM_WORDS - size[n]} free, {PROGRAMS[n][0]} thread(s)")
+    clean = [f for f in maximal if not f[2]]
+    log.info(f"{len(fits)} sets of 2 to 4 programs with at least one new protocol fit in {pe_model.MEM_WORDS} words "
+             f"and {pe_model.N_THREADS} threads; {len(maximal)} of them cannot take one more program, "
+             f"{len(clean)} of those with no shared pin at the default pins")
     four = combo_image(("uart_tx_full.s", "uart_rx_full.s", "spi_ctl.s", "i2c_ctl.s"))
     log.info(f"UART TX + UART RX + SPI + I2C = {four} words, {pe_model.MEM_WORDS - four} free; smallest new program "
              f"{min(size[n] for n in NEW)} words")

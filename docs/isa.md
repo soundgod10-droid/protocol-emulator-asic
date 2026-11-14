@@ -48,8 +48,8 @@ Sources:
 | Pin registers | 15 x 2 | Value V and output enable OE of each output pin. The pin is the output of these flip-flops (src/pe_timed_out.v). |
 | Input synchronizer | 13 x 2 | 2 flip-flop stages for each input pin (src/pe_sync.v, pe_sync2). |
 | Input spike filter | 2 x 3 | Inputs 6 and 7 (I2C SCL, SDA): output bit and a 2-bit sample count after the synchronizer (section 6.1, pe_spike_filter). |
-| Sample and wait units | 4 | One for each thread: sample time, pin, captured bit, edge capture time [A1 block D3]. |
-| Host FIFOs | 4 x 2 | For each thread: host-to-thread FIFO and thread-to-host FIFO, 4 words of 16 bits each [A1 block D6]. |
+| Sample and wait units | 4 | One for each thread: sample time, pin, captured bit, edge capture time. |
+| Host FIFOs | 4 x 2 | For each thread: host-to-thread FIFO and thread-to-host FIFO, 4 words of 16 bits each (src/pe_host_fifo.v). |
 | Pin configuration | 15 | For each output pin: owner thread (2 bits), owner enable, open-drain mode. The host writes it (section 5). |
 | Start address | 4 x 7 | For each thread: the PC value at start. The host writes it. |
 

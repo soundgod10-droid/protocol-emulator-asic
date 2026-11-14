@@ -98,18 +98,18 @@ module pe_core (
   // Thread state vector (one entry of the ring)
   // ---------------------------------------------------------------------
   localparam integer F_T    = 64;   // [79:64]  time register T
-  localparam integer F_PC   = 80;   // [86:80]  PC
-  localparam integer F_Z    = 87;
-  localparam integer F_C    = 88;
-  localparam integer F_N    = 89;
-  localparam integer F_E    = 90;
-  localparam integer F_LATE = 91;
-  localparam integer F_ERR  = 92;
-  localparam integer F_RUN  = 93;
-  localparam integer F_PS   = 94;   // [96:94]  pending state
-  localparam integer F_LDRD = 97;   // [98:97]  LD/LDX destination register
-  localparam integer F_LDA  = 99;   // [105:99] LD/LDX address
-  localparam integer CW     = 106;  // r0 to r3 are [63:0], 16 bits each
+  localparam integer F_PC   = 80;   // [87:80]  PC
+  localparam integer F_Z    = 88;
+  localparam integer F_C    = 89;
+  localparam integer F_N    = 90;
+  localparam integer F_E    = 91;
+  localparam integer F_LATE = 92;
+  localparam integer F_ERR  = 93;
+  localparam integer F_RUN  = 94;
+  localparam integer F_PS   = 95;   // [97:95]  pending state
+  localparam integer F_LDRD = 98;   // [99:98]  LD/LDX destination register
+  localparam integer F_LDA  = 100;  // [107:100] LD/LDX address
+  localparam integer CW     = 108;  // r0 to r3 are [63:0], 16 bits each
 
   // Pending state of a blocking instruction (isa 3.2)
   localparam [2:0] PS_NONE  = 3'd0;  // no instruction pending

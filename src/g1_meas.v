@@ -676,7 +676,7 @@ module g1_hostspi_store (
 endmodule
 
 // ---------------------------------------------------------------------------
-// A1 block D9 (process monitor): a 20-bit gate counter on clk and a 20-bit
+// Process monitor: a 20-bit gate counter on clk and a 20-bit
 // counter on the ring-oscillator clock. The 31-stage ring itself is a
 // calculation from the LEF cell areas (a combinational loop is not
 // synthesized here).

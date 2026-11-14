@@ -76,7 +76,9 @@ Run the tests: `cd test && make -B` (cocotb with Icarus Verilog). Formal proofs:
 
 ## Documents
 
-- [docs/info.md](docs/info.md): datasheet page, pins and the test procedure
+- [docs/architecture.md](docs/architecture.md): block diagram, slots and pipeline, memory, host port, pins, clock and reset
+- [docs/signoff.md](docs/signoff.md): each signoff check of the field with its source, our result and the open items; CDC and reset review
+- [docs/info.md](docs/info.md): datasheet page, pins, the test procedure and the external parts for each protocol
 - [docs/isa.md](docs/isa.md): instruction set and encoding
 - [docs/host_port.md](docs/host_port.md): host SPI port, host rules, firmware limits
 - [docs/verification.md](docs/verification.md): each verification method, what it checks and what it does not, latest results

@@ -23,9 +23,9 @@ What it does:
   The test uses these records to measure the bit time and to find
   glitches, X and Z values.
 
-Values from A1_architecture.md:
-  - clock 50 MHz (section 2.3), 115,200 bit/s, 434 cycles for each bit
-    (fw/uart_tx.s), our part of the clock-error budget +/-1 % (section 3).
+Values:
+  - clock 50 MHz (info.yaml clock_hz), 115,200 bit/s, 434 cycles for each bit
+    (fw/uart_tx.s), our part of the UART clock-error budget +/-1 % (design target).
 """
 
 import os

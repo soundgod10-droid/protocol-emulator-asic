@@ -1390,6 +1390,65 @@ def trigger_case(fire, d, offsets=range(16), b=434, match=0x5A):
     return None, lat
 
 
+class SetupI2cBus(I2cBus):
+    """I2C target with a known SDA set-up limit (N2 option C): its SDA input is the bus SDA delayed by tsu_min cycles,
+    so it reads a bit correctly only when SDA was stable tsu_min cycles before the SCL rise. The bus levels are
+    recorded as the bus has them (raw), for the bus times."""
+
+    def __init__(self, addr, tsu_min, **kw):
+        super().__init__(addr, **kw)
+        self.hist = deque([1] * (tsu_min + 1), maxlen=tsu_min + 1)
+        self.raw = [(0, (1, 1))]
+
+    def __call__(self, c, uo, uio, oe):
+        scl, sda = self.lines(c, uio, oe)
+        if (scl, sda) != self.raw[-1][1]:
+            self.raw.append((c, (scl, sda)))
+        self.hist.append(sda)
+        self._target(c, scl, self.hist[0])
+        return 0, (scl << P_SCL) | (sda << P_SDA)
+
+
+I2C_CHAR_WORDS = i2c_write(0x50 << 1, start=True) + i2c_write(0xC3) + i2c_write(0x3C, stop=True)
+I2C_CHAR_EVENTS = ["START", ("ADDR", 0x50, 0, 1), ("W", 0xC3), ("W", 0x3C), "STOP"]
+
+
+def i2c_char_run(tlow, tsu_min):
+    """fw/i2c_ctl.s (Fast-mode .equ values at 50 MHz, TLOW changed) writes 2 bytes to the target. Returns (result:
+    'ok', 'device' (the target read a wrong bit or missed the frame) or 'firmware' (LATE or ERR), smallest bus
+    SDA set-up time in cycles)."""
+    prog = assemble("i2c_ctl.s", **dict(I2C_EQU[("Fm", 50)], TLOW=tlow))
+    m = pe_model.PeModel(prog.words, owner=owners({P_SCL: 0, P_SDA: 0}), open_drain=od((P_SCL, P_SDA)))
+    bus = SetupI2cBus(0x50, tsu_min)
+    bench = Bench(m, inputs=bus)
+    bench.send(0, *I2C_CHAR_WORDS)
+    bench.run(12_000)
+    su = min(i2c_times(bus.raw)["su_dat"] or [None])
+    if m.threads[0].status:
+        return "firmware", su
+    return ("ok" if i2c_events(bus) == I2C_CHAR_EVENTS else "device"), su
+
+
+@cocotb.test(skip=GL)
+async def test_flex_i2c_char(dut):
+    """N2 option C: the host finds the SDA set-up limit of an I2C target by binary search on TLOW of fw/i2c_ctl.s
+    (the firmware is assembled again for each try, no firmware change), against target models with set limits."""
+    log = dut._log
+    for tsu_min in (20, 30, 45):
+        lo, hi = 1, I2C_EQU[("Fm", 50)]["TLOW"]  # hi passes (checked), lo is below the firmware's working range
+        assert i2c_char_run(hi, tsu_min)[0] == "ok"
+        tries = 1
+        while hi - lo > 1:
+            mid = (lo + hi) // 2
+            tries += 1
+            lo, hi = (lo, mid) if i2c_char_run(mid, tsu_min)[0] == "ok" else (mid, hi)
+        _, su_ok = i2c_char_run(hi, tsu_min)
+        res_below, su_below = i2c_char_run(hi - 1, tsu_min)
+        log.info(f"target set-up limit {tsu_min} cycles ({tsu_min * 20} ns): smallest TLOW that works {hi} "
+                 f"({tries} tries); bus SDA set-up there {su_ok} cycles; TLOW {hi - 1}: {res_below}, set-up {su_below}")
+        assert su_ok >= tsu_min - 1 and su_below <= tsu_min, (tsu_min, su_ok, su_below)
+
+
 @cocotb.test(skip=GL)
 async def test_flex_trigger(dut):
     """fw/trigger.s (option O5): pulse delay from the start edge of a matching UART byte at 16 start phases, for the

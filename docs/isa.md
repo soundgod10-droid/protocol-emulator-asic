@@ -210,7 +210,7 @@ If a thread executes OUT for a pin that it does not own, or for pin 15:
 - The ERR status of the thread becomes 1.
 - The rest of the instruction executes (the register shift of the source, section 8.3). The instruction does not wait.
 
-Thus, two threads can never drive the same pin [A1 section 8.2: "Two threads never drive the same pin."]. The first thread that the host gives the pin to is the only one that changes it. Each thread can read each input pin.
+Thus, two threads can never drive the same pin. The first thread that the host gives the pin to is the only one that changes it. Each thread can read each input pin.
 
 ### 5.3 Open-drain mode
 

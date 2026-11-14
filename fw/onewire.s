@@ -76,6 +76,9 @@ reset:  OUT     OW, 0           ; reset pulse at T (G = 0)
         SHL     r1, 5
         TADD    r1              ; T = T + H
         OUT     OW, Z           ; release
+        SAMPLE  OW, r2>>, 2     ; blocks until the release, so the presence SAMPLE below is
+                                ; issued with a lead of I, inside the 32,767-cycle limit
+                                ; (isa 4.2); at 60 MHz H + I is 33,000 cycles
         TADD    TI2
         TADD    TI2             ; T = T + I
         SAMPLE  OW, r2>>, 2     ; presence sample at H + I

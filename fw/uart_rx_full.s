@@ -9,11 +9,12 @@
 ;   horizon). Lower rates: fw/uart_rx_slow.s.
 ;
 ; Why:
-;   G1 step 3a: measured word count of the full firmware for the memory
-;   size (decision D2, D4 item 13). The WAIT for the next start edge comes
-;   12 to 16 cycles after the stop-bit sample (DJNZ, PUSH, slot phase). H
-;   sets the sample point. G1 measured in the model the sender bit-time
-;   error that this firmware accepts (test/test_fw_full.py): slow sender up
+;   The word count (13) is measured by test_fw_full_word_count against the
+;   128-word memory (docs/decisions.md entry 3). The WAIT for the next start
+;   edge comes 12 to 16 cycles after the stop-bit sample (DJNZ, PUSH, slot
+;   phase). H sets the sample point. Measured in the model, the sender
+;   bit-time error that this firmware accepts (test/test_fw_full.py
+;   test_fw_full_uart_rx_tolerance): slow sender up
 ;   to H / 9B, fast sender up to (B - H - 18) / 10B. 1 Mbit/s at 50 MHz,
 ;   H 15: -4.0 % to +3.4 %. 1 Mbit/s at 40 MHz, H 12: -3.1 % to +3.4 %.
 ;

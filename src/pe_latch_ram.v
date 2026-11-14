@@ -52,7 +52,7 @@ module pe_latch_ram #(
 
   // The write data is loaded in each cycle (no enable, so no mux2): only
   // the clock gate of the addressed word decides if it is written.
-  // No reset (M2c, M2b open item 2): a reset in the first half of the
+  // No reset (docs/decisions.md entry 7): a reset in the first half of the
   // cycle after a write must not change the data of the open word. The
   // value is used only while a word is open, that is only in the cycle
   // after a write request, so it needs no reset value.

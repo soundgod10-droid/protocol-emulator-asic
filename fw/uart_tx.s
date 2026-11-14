@@ -5,7 +5,7 @@
 ;   of the word as one UART frame on UART_TX (uo_out[4], output pin UO4):
 ;   1 start bit (0), 8 data bits (LSB first), 1 stop bit (1), no parity
 ;   (8N1). One bit is BIT = 434 clock cycles. At 50 MHz this is
-;   115,207 bit/s, +0.0064 % from 115,200 bit/s (A1 section 3).
+;   115,207 bit/s, +0.0064 % from 115,200 bit/s.
 ;
 ; Why the bit time is correct:
 ;   Each OUT gives the pin value and the time T of the change (docs/isa.md

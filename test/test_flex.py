@@ -799,9 +799,9 @@ async def test_flex_jtag(dut):
     reset. Measures the smallest TCK low and high times at TDO delays of 3 and 8 cycles."""
     log = dut._log
     log.info(f"fw/jtag.s: {assemble('jtag.s').size} words")
-    fault, span, n = jtag_run_a(16, 32)
-    assert fault is None, f"H1 16, H2 32: {fault}"
-    log.info(f"H1 16, H2 32: correct; 64-bit IDCODE step: {n} TCK cycles in {span} clock cycles")
+    fault, span, n = jtag_run_a(12, 28)
+    assert fault is None, f"H1 12, H2 28: {fault}"
+    log.info(f"H1 12, H2 28 (defaults): correct; 64-bit IDCODE step: {n} TCK cycles in {span} clock cycles")
     log.info(f"fw/jtag_tap.s: {assemble('jtag_tap.s').size} words")
     fault, span, n = jtag_run_b(12, 28)
     assert fault is None, f"fw/jtag_tap.s H1 12, H2 28: {fault}"

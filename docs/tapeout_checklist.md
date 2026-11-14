@@ -24,7 +24,7 @@ There is no FPGA step: the design does not fit the only FPGA of the template wor
 - [ ] Keep `"PL_RESIZER_SETUP_SLACK_MARGIN": 0` and `"OPENROAD_THREADS": 4`. With the default margin (0.05 ns) the post-CTS resizer loops for hours on the latch endpoints (borrow slack 0.000) and the gds job no longer finishes inside the 6 h GitHub job limit (gds 40846505319 cancelled at 6 h 01 min). Margin 0 gives the same final metrics as the default flow (gds 40955756051 against 40793488418).
 - [ ] Keep the four keys above the line "DO NOT CHANGE ANYTHING BELOW THIS POINT", and the part below that line identical to the template src/config.json of branch cmos5l (compared 2026-11-07). The question to Tiny Tapeout about these keys is answered by documents: the shuttle uses the layout of the project's own run, and precheck.py reads no configuration (TinyTapeout/tt-support-tools, branch ihp-sg13cmos5l, precheck/precheck.py, read 2026-11-03). Ask the organizers again only if the final submission form says that they build the layout again. Fallback if a person forbids the margin key: fallback C, measured (default margin, latch D pins out of the PnR setup checks, gds 41813363136: 55 min 27 s, flip-flop slack +1.496 ns).
 
-## 3 Before the tape-out run: template, tools and GDS action (decision D11, R3 T6)
+## 3 Before the tape-out run: template, tools and GDS action
 
 - [ ] Read the newest commit of each branch below and compare it with the last check. The gds workflow uses the moving reference `@ihp-cmos5l`, so a new commit of the action can change the flow of the tape-out run. Last check (GitHub commits, read 2026-11-04):
 

@@ -31,7 +31,7 @@ The chip changes a protocol pin only when a program tells it to. After reset no 
 
 SPI mode 0: SCK is low when idle. The host changes MOSI after the falling SCK edge. Both sides sample at the rising SCK edge. Each byte is sent MSB first. A transaction starts when CS_N goes low. Its first byte is the command. The transaction ends when CS_N goes high; a byte that is not complete has no effect.
 
-The chip samples SCK, CS_N and MOSI with its clock (f_clk = 50 MHz, T = 20 ns) through 2-stage synchronizers with the same delay. Thus the port sees each SCK edge 1 to 2 clock cycles after it occurs at the pin, and it takes MOSI from the same cycle.
+The chip samples SCK, CS_N and MOSI with its clock (declared f_clk = 60 MHz, T = 16.7 ns; the values in sections 3 and 6 are given for 50 MHz, T = 20 ns, and section 11 gives them for each clock) through 2-stage synchronizers with the same delay. Thus the port sees each SCK edge 1 to 2 clock cycles after it occurs at the pin, and it takes MOSI from the same cycle.
 
 MISO: the chip sets the next bit at the end of the clock cycle in which it sees the rising SCK edge. Thus MISO changes after the rising SCK edge that sampled the bit before, not after the falling edge. The host samples MISO at the next rising edge, nearly a full SCK period later (section 6).
 

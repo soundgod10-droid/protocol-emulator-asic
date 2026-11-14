@@ -13,9 +13,10 @@
 ;   56 cycles = 1.12 us. SDA changes LOW1 = 35 cycles (700 ns) after SCL
 ;   falls, so the data set-up time before SCL rises is 700 ns. The
 ;   Fast-mode minimum values are tLOW 1.3 us, tHIGH 0.6 us, tSU;DAT 100 ns
-;   (A1 section 3). The START hold time, the STOP set-up time and the bus
-;   free time are 70 cycles (1.4 us); A1 does not give their minimum
-;   values [OPEN].
+;   (NXP UM10204 Rev. 7.0, Table 11). The START hold time, the STOP set-up
+;   time and the bus free time are 70 cycles (1.4 us), above the Fast-mode
+;   minimum values of the same table (tHD;STA 0.6 us, tSU;STO 0.6 us,
+;   tBUF 1.3 us).
 ;   SAMPLE reads SDA in the middle of each SCL high time. For the 9th bit
 ;   this is the ACK of the target. For the data bits, r1 gets the bus
 ;   value, which a later version can use for arbitration.

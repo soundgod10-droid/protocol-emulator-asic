@@ -621,7 +621,7 @@ module pe_core (
               end else begin  // LD: read in the next slot
                 n_ps     = PS_LD;
                 n_ldrd   = ir[10:9];
-                n_ldaddr = ir[6:0];
+                n_ldaddr = ir[7:0];
               end
             end
 

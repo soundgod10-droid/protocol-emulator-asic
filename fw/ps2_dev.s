@@ -91,5 +91,6 @@ ack:    OUT     DATA, 0         ; acknowledge in clock 12
         OUT     CLK, 1
         TADD    THI
         OUT     DATA, 1
+        TWAIT                   ; DATA released: else idle reads CLK high, DATA low as a new request
         PUSH    r1
         JMP     idle

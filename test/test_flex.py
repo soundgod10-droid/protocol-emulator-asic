@@ -1241,7 +1241,7 @@ class Ps2Host:
     falling edges 2 to 11, the acknowledge read after falling edge 12."""
 
     def __init__(self, cmd=None, cmd_at=None, t_rts=4000, tchg=100, inhibit_frame=None, inhibit_at=0,
-                 inhibit_delay=200, inhibit_len=5000):
+                 inhibit_delay=200, inhibit_len=2500):
         self.cmd, self.cmd_at, self.t_rts, self.tchg = cmd, cmd_at, t_rts, tchg
         self.inh = (inhibit_frame, inhibit_at, inhibit_delay, inhibit_len)
         self.clk_low = self.data_low = False

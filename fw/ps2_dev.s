@@ -34,7 +34,7 @@
         .equ    TLO, 2000       ; CLK low (40 us)
         .equ    THI, 1250       ; CLK rise to the next DATA change (25 us)
 
-dev:    TNOW    8
+dev:    TNOW    12              ; two OUT events follow (docs/isa.md 7: 4 x 2 + 4)
         OUT     CLK, 1
         OUT     DATA, 1
 idle:   TNOW    16

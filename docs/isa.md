@@ -145,7 +145,7 @@ OUT and SAMPLE have a 3-bit offset field (0 to 7). The event time is t = (T + of
 
 The instruction executes at cycle c. The lead is d = (t - c) mod 65,536.
 
-- If 4 <= d <= 32,767, the event is on time. The event occurs at cycle c + d. This agrees with A1 section 4.4: "A thread must issue an event at least 4 cycles before the event time." LEAD = 4.
+- If 4 <= d <= 32,767, the event is on time. The event occurs at cycle c + d. LEAD = 4 (docs/decisions.md entry 1).
 - If d < 4 or d >= 32,768, the event is late (section 4.3).
 
 Thus, the firmware must issue each event 4 to 32,767 cycles before its time. 32,767 cycles are 655 us at 50 MHz.

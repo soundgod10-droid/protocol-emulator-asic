@@ -328,7 +328,8 @@ def can_fault(bench, m, node, log=(), chip_frames=(), node_frames=(), expect_los
     if len(rx) != len(node.received):
         return (f"thread 1 reported {len(rx)} frames, the node saw {len(node.received)}: thread 1 "
                 f"{[(hex(can_decode(b)['ident']), can_decode(b)['data'], crcw) for b, crcw in rx]}, node "
-                f"{[(hex(r['ident']), r['data']) for r in node.received]}")
+                f"{[(hex(r['ident']), r['data']) for r in node.received]}; words {[hex(w) for w in bench.words(1)[:8]]}; "
+                f"first frame bits {''.join(map(str, rx[0][0][:40])) if rx else ''}")
     for (bits, crcw), r in zip(rx, node.received):
         d = can_decode(bits)
         want = dict((k, r[k]) for k in ("ident", "rtr", "dlc", "data"))

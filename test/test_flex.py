@@ -371,9 +371,11 @@ def can_trace(bt, sp, frame, n=24):
     bench, m, node = can_run(bt, sp)
     words, _ = can_tx_words(frame)
     bench.send(0, *words)
-    samples, prev = [], None
+    samples, prev, pcs = [], None, [(0, None)]
     for _ in range(int(60 * bt)):
         bench.run(1)
+        if m.threads[1].pc != pcs[-1][1]:
+            pcs.append((m.cycle, m.threads[1].pc))
         p = m.threads[1].pend
         at = p["at"] if p is not None and p["op"] == "sample" else None
         if at is not None and at != prev:

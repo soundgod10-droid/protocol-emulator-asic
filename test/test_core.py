@@ -1059,7 +1059,7 @@ async def test_core_random(dut):
     missing = [f"{op:X}" for op in range(16) if f"{op:X}" not in groups]
     if gl:
         # The 4 gate-level seeds are a subset; opcode 15 (weight 0.1) does not
-        # occur in them (GitHub gl_test, gds #11). test_core_illegal_halt
+        # occur in them (gl_test of gds run 40536804999). test_core_illegal_halt
         # executes opcode 15 at gate level, so only log the coverage here.
         dut._log.info(f"random streams (gate level): opcodes not executed by these seeds: {missing}")
     else:

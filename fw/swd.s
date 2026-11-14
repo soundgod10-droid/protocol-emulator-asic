@@ -40,6 +40,14 @@
 ; Words from the thread for a transaction: the ACK word (ACK[0:2] in bits
 ;   13 to 15); for a read with OK also RDATA[15:0], RDATA[31:16] and a
 ;   word with the parity bit in bit 14.
+; Limits (model, test/test_flex.py test_flex_swd): smallest correct SWCLK
+;   period 32 cycles (1.5625 MHz at 50 MHz) with H1 12 to 15 and H1 + H2 =
+;   32; a shorter period or H1 below 12 sets LATE. A DPIDR read takes
+;   1,596 clock cycles from the first to the last SWCLK edge (31.3 k reads
+;   per second without the host time). Target delays of 3 and 8 cycles
+;   after the rising edge pass. ADIv5 gives no times; use the data sheet.
+;   The same code with the bit loops in line is 76 words and 4 cycles
+;   faster per read.
 ; Not done: overrun detection (STICKYORUN data phase), turnaround of more
 ;   than 1 cycle (DLCR.TURNROUND), SWD protocol version 2 dormant state.
 

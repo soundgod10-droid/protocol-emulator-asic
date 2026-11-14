@@ -22,7 +22,7 @@
 //   and the synthesis of an alternative gives the comparison for a choice.
 
 // ---------------------------------------------------------------------------
-// Memory size (register line M2a-03): a 96 x 16 latch memory, the same
+// Memory size: a 96 x 16 latch memory, the same
 // module as the 128 x 16 program memory (pe_latch_ram).
 // ---------------------------------------------------------------------------
 module g1_ram96 (

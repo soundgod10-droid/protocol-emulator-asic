@@ -39,7 +39,7 @@
         .equ    RTS, 4000       ; CLK low before the start bit (80 us at 50 MHz)
         .equ    POLL, 2000      ; start-edge window between two host-FIFO checks
 
-host:   TNOW    8
+host:   TNOW    12              ; two OUT events follow (docs/isa.md 7: 4 x 2 + 4)
         OUT     CLK, 1          ; released
         OUT     DATA, 1
 idle:   TNOW    16

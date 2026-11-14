@@ -841,9 +841,9 @@ module pe_core (
     end
   end
 
-  // B5: The register selects (flip-flops loaded in the prefetch cycle,
-  //     M2c) are the fields of the instruction in ir: the same function
-  //     as the M2b decode from ir.
+  // B5: The register selects (flip-flops loaded in the prefetch cycle)
+  //     are the fields of the instruction in ir: the same function as a
+  //     decode from ir.
   always @* begin
     assert (sa == f_sa(ir));
     assert (sb == f_sb(ir));

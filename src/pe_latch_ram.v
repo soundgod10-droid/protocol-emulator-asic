@@ -17,10 +17,10 @@
 //   combinational: rdata is the word at raddr.
 //
 // Why:
-//   Decision D2: the 128 x 16 program and data memory is made of latches
-//   (plan B, no SRAM macro). The same module also holds the host FIFO
-//   words (A1 block D6: 512 latches). A latch costs 30.84 um2, a loadable
-//   flip-flop 67.13 um2 (R1_uart_tx.md 9.4 item 3).
+//   docs/decisions.md entry 3: the 128 x 16 program and data memory is
+//   made of latches (no SRAM macro). The same module also holds the host
+//   FIFO words (pe_host_fifo: 512 latches). A latch costs 30.84 um2, a
+//   loadable flip-flop 67.13 um2 (liberty cell areas, docs/isa.md Sources).
 //   The data comes from a flip-flop and the latches close at the falling
 //   edge, so the data is stable for half a clock period before and after
 //   the latch closes. There is no hold race at the closing edge.

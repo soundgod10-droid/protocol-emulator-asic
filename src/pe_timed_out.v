@@ -93,7 +93,7 @@ module pe_timed_out #(
 
 `ifdef FORMAL
   // ---------------------------------------------------------------------
-  // Formal properties (formal/timed_out.sby with the harness
+  // Formal properties (formal/timed_out.sby with the wrapper
   // formal/timed_out_fv.v). Only Yosys with the FORMAL macro reads this
   // block; synthesis, the linter and the simulations do not. A monitor
   // (m_*) keeps a copy of each event that the slot must take and

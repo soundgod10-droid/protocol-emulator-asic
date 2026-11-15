@@ -42,6 +42,13 @@ VERILOG_SOURCES += $(PWD)/gate_level_netlist.v
 
 endif
 
+ifeq ($(SIM),verilator)
+# Coverage job (.github/workflows/coverage.yaml): line, branch and toggle coverage of the RTL
+# tests; behavioral latch and clock-gate models (src/pe_cells.v); lint is the flow's job.
+COMPILE_ARGS    += --coverage-line --coverage-toggle --timing -DPE_RTL_SIM
+COMPILE_ARGS    += -Wno-fatal -Wno-lint -Wno-style
+endif
+
 # Allow sharing configuration between design and testbench via `include`:
 COMPILE_ARGS 		+= -I$(SRC_DIR)
 

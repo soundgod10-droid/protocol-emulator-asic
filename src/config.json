@@ -43,6 +43,12 @@
   "//": "Signoff STA only: path groups so the flip-flop setup slack is reported (layout unchanged).",
   "SIGNOFF_SDC_FILE": "dir::signoff.sdc",
 
+  "//": "Clock tree: at most 8 sinks per leaf buffer (cell library default_max_fanout 8) and buffers every",
+  "//": "200 um on the trunk; max fanout pins 84 -> 8 (antenna diodes only), fast hold +0.010 -> +0.099 ns",
+  "//": "(gds 43672052931 vs 43693862885). docs/signoff.md, max fanout.",
+  "CTS_SINK_CLUSTERING_SIZE": 8,
+  "CTS_DISTANCE_BETWEEN_BUFFERS": 200,
+
   "//": "RUN_LINTER, LINTER_INCLUDE_PDK_MODELS - Disabling the linter is not recommended!",
   "RUN_LINTER": 1,
   "LINTER_INCLUDE_PDK_MODELS": 1,

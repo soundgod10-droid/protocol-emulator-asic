@@ -387,6 +387,7 @@ async def rtl_rx(dut, b, h, fmt, b_tx, data, slow_k=None, glitch=True, label="")
     bench = RtlBench(dut, prog.words, inputs=lambda c, uo, uio, oe: (ff.value_at(line, c) << ff.UI_RX, 0), label=label)
     bench.send(0, *host)
     await bench.run(t + 3 * b)
+    await bench.collect(0, len(frames))
     words = bench.words(0)
     assert len(words) == len(frames) and all(ff.rx_bits(w, nd1) == bits[:nd1 + 1] for w, (_, bits) in zip(words, frames)), (
         f"{label}: words {[hex(w) for w in words]}, sent {[bits for _, bits in frames]}")

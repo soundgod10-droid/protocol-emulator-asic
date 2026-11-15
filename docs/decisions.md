@@ -142,6 +142,18 @@ The record below is the earlier decision (6x4, before the rule change).
 - **Decision:** no instruction-set change in this version. The page sets no speed requirement, and each benefit is small against a full verification cycle.
 - **Would change it:** a protocol that cannot run at a standard setting without one of these; the one-slot `SAMPLE` is the first candidate.
 
+## 17. Clock tree and max fanout
+
+- **Question:** the signoff timing reports 84 pins above the max fanout of 8 at each corner (run [43672052931]): 80 leaf clock buffers with 10 to 17 sinks, the clock root with 16, and 4 placement buffers with 9 to 12 loads. The limit 8 is `default_max_fanout` of the CMOS5L standard-cell library; the flow's own constraint is 10 (`MAX_FANOUT_CONSTRAINT`). Slew and capacitance of all 84 pins were within limits. Clean it, or record why not?
+- **Options and evidence (same RTL, 60 MHz, one setting changed per run):**
+  - (a) default clock tree: 84 pins; fast-corner hold slack +0.010 ns; slow-corner flip-flop setup +3.687 ns; 6.66 mW; antenna 0 (run [43672052931]).
+  - (b) at most 8 sinks per leaf clock buffer (`CTS_SINK_CLUSTERING_SIZE` 8): 7 pins (clock root 16 and 6 data nets); hold +0.097 ns; +3.990 ns (run [43688768543]).
+  - (c) (b) and a clock trunk buffer every 200 um (`CTS_DISTANCE_BETWEEN_BUFFERS` 200): 8 pins, none on the clock tree; hold +0.099 ns; +3.841 ns; 7.55 mW (+0.90 mW); standard-cell area +5,015 um2 (+1.7 %); antenna 0; precheck and gate-level test pass (run [43693862885]). Each of the 8 nets drives at most 8 logic inputs; the extra loads are antenna diodes that the router adds on long wires (step netlists of the run traced on the runner). The diode capacitance is part of the max-capacitance and max-slew checks, which pass.
+  - (d) (c) with antenna repair by layer jumpers only, no diodes: 0 fanout pins, but 15 nets violate the antenna rule (run [43705472044]).
+  - (e) a design-repair fanout limit of 8 (`MAX_FANOUT_CONSTRAINT` 8), with (b) or (c): three runs stop at the disconnected-pins check; clock tree synthesis leaves the clock input of one clock-gate cell unconnected (runs [43688791463], [43698799514]; the tool defect of entry 3).
+- **Decision:** (c), in [src/config.json](../src/config.json). The antenna rule protects gate oxide during manufacturing and is not traded for a fanout count; the 8 counted pins are listed in [docs/signoff.md](signoff.md) with their logic fanout.
+- **Would change it:** a flow version without the clock-gate defect, so that (e) can run; or a slew or capacitance violation on one of the 8 nets.
+
 ## Claims with no public evidence yet
 
 - Pad electrical limits (I2C low-level output voltage, 5 V tolerance, Fast-mode Plus): transistor-level simulations of the pads exist, but their netlists are not in this repository. Until they are, the chip claims I2C Standard-mode and Fast-mode only, and makes no 5 V claim.

@@ -59,7 +59,7 @@ The record below is the earlier decision (6x4, before the rule change).
 
 - **Question:** the default flow on this design took 5 h 52 min (run [40793488418]), and a second run was cancelled at the 6 h job limit after 6 h 01 min (run [40846505319]). How does the layout run finish reliably?
 - **Options:** default settings; setup slack margin 0 and 4 OpenROAD threads, with Magic DRC off in development runs only.
-- **Evidence:** with margin 0, 4 threads and Magic DRC on, the layout job took 1 h 47 min (run [41380161509]). Its `final/metrics.csv` has the same values as the default-flow run 40793488418 in every row: cell count, area, utilisation, wire length, vias, hold buffers, hold slack, power. Magic DRC 0, LVS 0. Only two flow warnings differ. The present design takes 47 min 53 s with Magic DRC off (run [42744631446]).
+- **Evidence:** with margin 0, 4 threads and Magic DRC on, the layout job took 1 h 47 min (run [41380161509]). Its `final/metrics.csv` has the same values as the default-flow run 40793488418 in every row: cell count, area, utilisation, wire length, vias, hold buffers, hold slack, power. Magic DRC 0, LVS 0. Only two flow warnings differ. The 6x4 design took 47 min 53 s with Magic DRC off (run [42744631446]). The present 8x4 design: 44 min with Magic DRC off (run [43712217729]); 1 h 25 min with it on, Magic DRC 0 and every other signoff value the same (run [43731920994]).
 - **Decision:** `PL_RESIZER_SETUP_SLACK_MARGIN` 0 and `OPENROAD_THREADS` 4 in [src/config.json](../src/config.json). Magic DRC stays off in development runs and is on in the submitted run ([docs/tapeout_checklist.md](tapeout_checklist.md) section 2).
 - **Would change it:** a submission rule that requires the unchanged template configuration.
 

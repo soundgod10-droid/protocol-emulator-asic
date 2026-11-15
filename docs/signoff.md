@@ -71,7 +71,7 @@ Run [43712217710] (commit 69bbf37): line 173 / 173, branch 208 / 208, toggle 7,6
 
 1. **Magic DRC**: the DRC of every push is the precheck KLayout deck; Magic DRC is on only in the submitted run. Measured clean on the present layout (run [43731920994]); a change of RTL or settings needs the submitted run to show it again.
 2. **Fast-corner hold slack** +0.099 ns (+0.010 ns before the clock-tree setting): watch it on each RTL change.
-3. **IR drop** is an estimate without voltage-source locations.
+3. **IR drop** is a tile-level estimate without voltage-source locations (0.2 mV; section 1 gives why that is enough for a tile).
 4. **CDC by tool**: [formal/cdc.sby](../formal/cdc.sby) checks the synchronizer and reset structure (section 2). It does not judge reconvergence of synchronized bits (the three host bits, argued in section 2 and checked by `formal/host_port.sby`) and is not a commercial CDC tool with its full rule set.
 5. **Max fanout**: 8 pins over the library limit, each a net with at most 8 logic inputs plus antenna diodes (section 1). A design-repair fanout limit of 8 would remove them, but on this flow version it triggers a clock tree synthesis defect ([decisions.md](decisions.md) entries 3 and 17).
 

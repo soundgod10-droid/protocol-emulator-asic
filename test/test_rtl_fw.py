@@ -550,6 +550,7 @@ async def test_rtl_i2c(dut):
                 bus.sda_spike_at = (0, 1, at, 3)  # SDA reads 0 in the first address bit (the controller sends 1)
             send_pairs(bench, words)
             await bench.run(HOST_START + 36_000)
+            await bench.collect(0, len(replies))
             assert bench.words(0) == replies and ff.i2c_events(bus) == events, (
                 f"{label}: replies {[hex(w) for w in bench.words(0)]}, events {ff.i2c_events(bus)}")
             await bench.finish(log)

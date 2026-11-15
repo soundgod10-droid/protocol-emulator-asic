@@ -234,7 +234,7 @@ Aim: correct MISO in all four modes, correct at 1 MHz, and the highest correct r
 
 Host settings when it assembles the file: SE = 1 for modes 0 and 3, SE = 0 for modes 1 and 2 (the edge at which the controller samples MISO); GAP (cycles) for the SCK rate, see the rules below.
 
-Host words: one word for each MISO byte, the byte in bits 9 to 2. For a transfer of N bytes, give N + 1 words; the last word is not sent. With no word in the FIFO, the target sends 0xFF. The thread gives one word for each byte: bits 7 to 0 are the MOSI byte.
+Host words: one word for each MISO byte, the byte in bits 9 to 2. For a transfer of N bytes, give N + 1 words; the last word is not sent. With no word in the FIFO, the target sends 0xFF. The thread gives one word for each byte: bits 7 to 0 are the MOSI byte. After START the thread waits for the first word and does not answer a transfer before it: a host can push only after START (PUSH takes 24 SCK periods or more), so a first word could not be in the FIFO when the thread looks for it. The first version took it with PULL.NB about 12 cycles after START: the first transfer then sent 0xFF and every later byte one byte late (RTL test with the SPI host, test_rtl_spi_tgt in test/test_rtl_fw.py; the model tests give the words before cycle 0 and did not show it).
 
 Controller limits, measured in the model against an SPI controller model that does not use the firmware or the processor model (test_m3_spi_tgt, all four modes, 4 start phases, transfers of 5 and 2 bytes). Values in clock cycles of the chip; ns at 50 MHz:
 

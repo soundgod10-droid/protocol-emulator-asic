@@ -13,11 +13,8 @@ Each method below gives what it checks, what it does not check, and its latest r
 | Static timing and layout checks (present layout) | setup, hold, slew, capacitance, fanout, DRC, LVS, antenna, lint, precheck | 60 MHz: slow-corner setup margin +3.841 ns, no setup, hold, slew or capacitance violation at 3 corners; 8 max-fanout pins explained in [signoff.md](signoff.md); DRC, LVS, antenna, lint 0; precheck 10 of 10 |
 | Lockstep with the reference model | every pin and every host word, in every clock cycle | part of the RTL and gate-level tests |
 | Formal proofs (SymbiYosys, Z3) | barrel order, pin events, event slot, host port, latch memory; synchronizer and reset structure | 13 proof jobs and the structural CDC job pass (table below) |
-| Gate-level test | the layout netlist with the RTL tests, no delays | 44 pass, 17 skipped (model-only tests), run [42744631446] |
-| SDF gate-level simulation | the netlist with layout cell delays at 3 corners | 22 tests pass at each corner, on an earlier netlist (runs [41871325339], [41924796459]) |
-| Static timing at all corners | setup, hold, slew, fanout | no setup or hold violation at 3 corners; slow-corner setup margin +1.329 ns, run [42744631446] |
-| Synchronizer SPICE | metastability time constant of the input flip-flop | tau about 55 ps (typical), 100 ps (slow) |
-| Layout checks | DRC, LVS, antenna, lint, precheck | 0 errors; precheck 9 of 9, run [42744631446] |
+| Synchronizer SPICE | metastability time constant of the input flip-flop | tau about 54 ps (typical), 101 ps (slow) (section 7) |
+| Pad SPICE | the I/O pad cells: I2C output low voltage, output and input delay, load, 5 V tolerance, at 3 corners | Standard-mode and Fast-mode output low level met at every corner; Fast-mode Plus not met; not 5 V tolerant; output delay 1.13 to 3.32 ns, input 0.26 to 0.45 ns (section 9) |
 
 ## 1. RTL tests
 

@@ -26,11 +26,15 @@
 //   library cell. The formal checks (FORMAL) and the RTL simulation (no
 //   macro) use the behavioral model. The gate-level simulation does not
 //   read this file. The selection is in the file, because the local test
-//   runner does not use the COMPILE_ARGS of test/Makefile.
+//   runner does not use the COMPILE_ARGS of test/Makefile. The coverage
+//   simulation with Verilator defines PE_RTL_SIM (test/Makefile, SIM=verilator)
+//   to use the behavioral model, as the RTL simulation does.
 
 `ifdef FORMAL
 `define PE_CELLS_BEHAVIORAL
 `elsif SYNTHESIS
+`elsif PE_RTL_SIM
+`define PE_CELLS_BEHAVIORAL
 `elsif VERILATOR
 `else
 `define PE_CELLS_BEHAVIORAL

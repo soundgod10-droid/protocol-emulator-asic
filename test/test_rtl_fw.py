@@ -458,6 +458,7 @@ async def test_rtl_spi_ctl(dut):
                 bench.watch("cs", lambda uo, uio, oe: ff.level(uio, oe, ff.P_CS))
                 bench.send(0, h, *ff.SPI_WORDS)
                 await bench.run(HOST_START + len(ff.SPI_WORDS) * (20 * h + 120) + 2000)
+                await bench.collect(0, len(ff.SPI_WORDS))
                 fault = ff.spi_fault(bench, bench.m, dev)
                 assert fault is None, f"{label}: {fault}"
                 periods, n = ff.spi_half_periods(bench)

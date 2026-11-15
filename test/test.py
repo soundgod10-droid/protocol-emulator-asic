@@ -358,6 +358,17 @@ async def test_host_id_status_rules(dut):
         await host.clear()
     assert await host.read_mem(5, 1) == [0x1234], "a code that is not valid changed the memory"
     log.info(f"{len(bad)} codes that are not valid (0x00, 0xFF, every code with 1 wrong bit): CMD_ERR, no effect")
+    # Codes of the valid form {c, not c} whose c is not a command (0, B to F): also CMD_ERR, no effect.
+    undefined = [(c << 4) | (~c & 0xF) for c in range(16)]
+    undefined = [b for b in undefined if b not in hs.ALL_COMMANDS]
+    assert len(undefined) == 6 and all(hs.code_ok(b) for b in undefined), f"test fault: {undefined}"
+    for b in undefined:
+        await host.transaction([b, 5, 0xAB, 0xCD])
+        st = await host.read_status()
+        assert st["cmd_err"] == 1 and st["running"] == 0, f"code {b:02X}: status {st}"
+        await host.clear()
+    assert await host.read_mem(5, 1) == [0x1234], "an undefined code changed the memory"
+    log.info(f"{len(undefined)} codes of the valid form with no command ({', '.join(f'{b:02X}' for b in undefined)}): CMD_ERR, no effect")
 
     # Rules while stopped: PUSH and PULL are refused.
     for t in ([hs.PUSH, 0, 0x00, 0x41], [hs.PULL, 0, 0, 0, 0]):

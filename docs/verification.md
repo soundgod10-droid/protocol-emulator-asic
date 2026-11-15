@@ -124,3 +124,6 @@ The chip was designed and verified by the engineer working with an AI assistant.
 [42744631302]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/42744631302
 [42744631446]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/42744631446
 [43592752852]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43592752852
+[43647479367]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43647479367
+[43651078000]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43651078000
+[43653069782]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43653069782

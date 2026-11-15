@@ -47,8 +47,28 @@ def main(root, label, pairs):
             if fo != last:
                 lines.append(f"{step}: {fo}")
                 last = fo
+        if texts:
+            lines.append("load cells in the last netlist: " + load_cells(texts[-1][1], inst, pin))
         notice(f"{label} {inst}/{pin} through the steps", "\n".join(lines) or "no netlists found")
     return 0
+
+
+def load_cells(text, inst, pin):
+    """Cell type and pin of every load on the net of inst.pin, counted by type."""
+    m = re.search(r"\s" + re.escape(inst) + r"\s*\((.*?)\);", text, re.S)
+    p = re.search(r"\." + re.escape(pin) + r"\s*\(\s*([^\s)]+)\s*\)", m.group(1)) if m else None
+    if not p:
+        return "net not found"
+    net = p.group(1)
+    found = {}
+    for b in re.finditer(r"^\s*(\w+)\s+(\\?\S+)\s*\((.*?)\);", text, re.S | re.M):
+        master, name, body = b.group(1), b.group(2), b.group(3)
+        if name == inst:
+            continue
+        for q in re.finditer(r"\.(\w+)\s*\(\s*" + re.escape(net) + r"\s*\)", body):
+            key = f"{master}.{q.group(1)}"
+            found[key] = found.get(key, 0) + 1
+    return ", ".join(f"{k} x{v}" for k, v in sorted(found.items()))
 
 
 if __name__ == "__main__":

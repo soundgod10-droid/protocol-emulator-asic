@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        run_id: [43672052931, 43688768543, 43688791463, 43688812992]
+        run_id: [43688791463, 43688812992]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v6

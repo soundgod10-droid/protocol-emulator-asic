@@ -13,6 +13,14 @@ What it does:
   1-Wire (fw/onewire.s): written from Analog Devices application note 126 ("1-Wire
   Communication Through Software", Tables 1 and 2); device model from the DS18B20 data sheet
   (Maxim 19-7487 Rev 6, 7/19: AC table page 3, reset and presence page 15, time slots page 16).
+
+  AM2302 (fw/am2302.s) and PDI (fw/pdi.s) were chosen by a stated rule: the first two entries of the
+  sigrok libsigrokdecode decoder list (decoders/, alphabetical) that read logic channels, are a link
+  between two devices, are not in fw/ and not named on the competition page, can be made with 3.3 V
+  pins and external parts, allow a bit time of 1 us or more, and have a public specification.
+  AM2302: device model from the AM2302 data sheet (Aosong; start signal and bit times page 4, data
+  format page 3, supply page 5). PDI: device model from the XMEGA AU manual (Atmel 8331F-AVR-04/2013,
+  section 32: physical layer 32.3, controller and instruction set 32.5 and 32.6, registers 32.7).
 """
 
 import os

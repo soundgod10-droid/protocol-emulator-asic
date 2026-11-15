@@ -259,7 +259,7 @@ class RtlBench:
         s = self.sched
         s.idle(2)
         head, pins = hs.config_words(self.start_pc, self.run_mask, self.owner, self.od)
-        for out in (hs.t_write_mem(0, self.image), hs.t_write_cfg(0, head), hs.t_write_cfg(16, pins)):
+        for out in (hs.t_write_mem(0, self.image[:self.used]), hs.t_write_cfg(0, head), hs.t_write_cfg(16, pins)):
             s.add(out, "load")
         k = s.add([hs.START], "START")
         self.t0 = s.act_cycle(k, 0) + 2  # docs/host_port.md 8: cycle 0 is 2 cycles after the START act

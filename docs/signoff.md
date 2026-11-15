@@ -55,14 +55,24 @@ Reset tree:
 | SDF simulation, this run | [43651078000] | all 6 jobs succeed: the main part (`test_r3_sdf`, `test.py`, `test_core.py`) and the counter part (`test_counter_sequence`, 256 back-to-back UART frames) at slow, typical and fast; the slow counter job took 1 h 16 min |
 | SDF simulation, first 8x4 run | [43642622272] | all 6 jobs succeed (main and counter parts at the 3 corners); the slow counter job took 4 h 30 min |
 
-## 4 Open items
+## 4 Code coverage
 
-1. **Max fanout (84 pins).** 80 are clock-tree buffers that clock tree synthesis sizes by slew and capacitance, not by the fanout limit of 8; 4 are placement buffers with fanout 9 to 12. All 84 meet the slew and capacitance limits at the 3 corners. Option to close: a lower `MAX_FANOUT_CONSTRAINT` or clock-tree fanout setting in a research run, compared by slack and slew.
-2. **Magic DRC** is on only in the submitted run; the precheck KLayout DRC runs on every push.
-3. **Fast-corner hold slack** +0.010 ns: positive, below the 0.05 ns margin the hold repair aims for. Watch it on each RTL change; an option is a larger hold margin in a research run.
-4. **IR drop** is an estimate without voltage-source locations.
-5. **Coverage** is not measured. Verilator can give line and toggle coverage with cocotb; it needs a second simulator build of the test bench and a CI job.
-6. **CDC by tool**: no structural CDC tool was run; section 2 is a review by hand of 17 asynchronous inputs and the reset tree.
+The coverage job builds the same cocotb test bench with Verilator 5.042 (`SIM=verilator`, line, branch and toggle coverage; [test/coverage_summary.py](../test/coverage_summary.py) makes the table) and runs every test module. Only the tests that drive the RTL add coverage: `test.py` (10) and `test_core.py` (14); the other modules run the reference model or the assembler. The memory and clock-gate cells use their behavioural models there, as in the Icarus RTL run.
+
+Run [43712217710] (commit 69bbf37): line 173 / 173, branch 208 / 208, toggle 7,663 / 7,782 (98.5 %). Two tests were added because the first coverage run showed gaps: the command codes of the valid form that are no command (one line of the host command decode was never reached) and `test_core_start_top` (thread start addresses at the top of the memory; most start-address bits never toggled). The 119 toggle points left are not functional gaps:
+
+- constant bits by construction (zero-extended fields of the configuration and status words, unused upper bits of the owner and pin-enable vectors);
+- `ena`, which is 1 during every test (template input, not used);
+- bits 21 to 31 of the cycle counter (`pe_cycle_counter.v` 48 / 70): a test runs at most about 1.1 million cycles, so these bits never change in simulation;
+- some bits of the shift masks, which change only for some shift amounts.
+
+## 5 Open items
+
+1. **Magic DRC** is on only in the submitted run; the precheck KLayout DRC runs on every push.
+2. **Fast-corner hold slack** +0.099 ns (+0.010 ns before the clock-tree setting): watch it on each RTL change.
+3. **IR drop** is an estimate without voltage-source locations.
+4. **CDC by tool**: no structural CDC tool was run; section 2 is a review by hand of 17 asynchronous inputs and the reset tree.
+5. **Max fanout**: 8 pins over the library limit, each a net with at most 8 logic inputs plus antenna diodes (section 1). A design-repair fanout limit of 8 would remove them, but on this flow version it triggers a clock tree synthesis defect ([decisions.md](decisions.md) entries 3 and 17).
 
 [43622834317]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43622834317
 [43642622272]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43642622272

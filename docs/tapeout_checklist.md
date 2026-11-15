@@ -15,7 +15,7 @@ There is no FPGA step: the design does not fit the only FPGA of the template wor
 | E5 | Magic DRC 0 in the submitted run itself | precheck runs only the KLayout deck on SG13CMOS5L (section 2); docs/decisions.md entry 6 | `magic__drc_error__count` = 0 in final/metrics.csv of the submitted run (section 2) |
 | E6 | The submitted layout is one named GitHub Actions run, on the tape-out commit | the shuttle takes the layout of that run (section 2) | the run id in the submission (commit_id.json workflow_url) is the tape-out run of section 4 |
 | E7 | The newest commits of the template, the tools and the GDS action are compared with the last check | the gds workflow uses moving action references (section 3) | section 3 |
-| E8 | Max fanout "violations" are only the known set, and max slew and max capacitance are 0 | run 43647479367 (8x4, 60 MHz): max slew and max capacitance 0 at the three corners; max fanout 84 pins = 80 clock-tree buffers and 4 placement buffers, all within slew and capacitance limits (docs/signoff.md open item 1) | section 5 |
+| E8 | Max fanout "violations" are only the known set, and max slew and max capacitance are 0 | run 43712217729 (8x4, 60 MHz, clock tree of docs/decisions.md entry 17): max slew and max capacitance 0 at the three corners; max fanout 8 pins, none on the clock tree, each a net with at most 8 logic inputs plus antenna diodes (docs/signoff.md section 1) | section 5 |
 | E9 | The SDF gate-level job passes at the three corners on the final gds run | docs/decisions.md entry 13 | section 4 step 3 |
 
 ## 2 Flow configuration (src/config.json)

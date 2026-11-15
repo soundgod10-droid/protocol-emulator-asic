@@ -312,6 +312,14 @@ class RtlBench:
             self.stats["compared"] += 1
             self.t = t + 1
 
+    async def collect(self, n, count, limit=20_000):
+        """Runs until the host has read `count` words of thread n, at most `limit` more cycles (the host polls
+        the status: a word that the thread pushes comes to the host some hundred cycles later)."""
+        for _ in range(limit // 200):
+            if len(self.from_thread[n]) >= count:
+                return
+            await self.run(200)
+
     async def finish(self, log=None):
         """One more READ_STATUS after the host's planned transactions: RUN, LATE and ERR of each thread as the host
         reads them must equal the model's, with no command error and no dropped PUSH."""

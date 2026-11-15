@@ -54,9 +54,11 @@
 
         TNOW    8
         OUT     MISO, Z         ; released while CS is high
+        PULL    r0              ; after START: wait for the first byte (a host can push only after START)
+        JMP     got
 idle:   LDI     r0, 0x3FC
         PULL.NB r0              ; first byte x 4, or 0xFF x 4
-        SHL     r0, 6           ; first byte to bits 15 to 8
+got:    SHL     r0, 6           ; first byte to bits 15 to 8
         LDI     r2, 7
         WAIT    CS, FALL, r3, CT ; T = CS low
         TADD    LAT

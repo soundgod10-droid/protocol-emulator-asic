@@ -71,6 +71,12 @@ def corner_facts(checks):
 
 def main(root, label):
     wokwi = os.path.join(root, "runs", "wokwi")
+    steps = sorted(d for d in glob.glob(os.path.join(wokwi, "[0-9]*-*")) if os.path.isdir(d))
+    if steps:
+        notice(f"{label} last step", os.path.basename(steps[-1]))
+    error_log = os.path.join(wokwi, "error.log")
+    if os.path.exists(error_log) and os.path.getsize(error_log):
+        notice(f"{label} error.log", "\n".join(read(error_log).splitlines()[-40:]))
     sta_dirs = sorted(glob.glob(os.path.join(wokwi, "*-openroad-stapostpnr")))
     if not sta_dirs:
         notice(f"{label} signoff", f"no stapostpnr step under {wokwi}")

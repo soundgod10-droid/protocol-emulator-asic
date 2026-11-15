@@ -53,8 +53,8 @@ def main(root, label, args):
         if name not in args:
             continue
         lines = read(path).splitlines()
-        zero = [f"{n}: {l.strip()}" for n, l in enumerate(lines, 1) if l.startswith("%")]
-        notice(f"{label} {name} lines with no point hit", "\n".join(zero[:80]) or "none")
+        zero = [f"{n}: {l.strip()}" for n, l in enumerate(lines, 1) if l.startswith(("%", "~"))]
+        notice(f"{label} {name} lines with points not hit (% none hit, ~ some)", "\n".join(zero[:80]) or "none")
     return 0
 
 

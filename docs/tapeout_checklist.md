@@ -33,7 +33,7 @@ There is no FPGA step: the design does not fit the only FPGA of the template wor
   | TinyTapeout/ttihp-verilog-template, main | "docs(info.yaml): fix IHP tile dimensions and list all valid tile sizes" (2026-10-28) |
   | TinyTapeout/tt-gds-action, ttihp27a | "fix(custom_gds): install the KLayout package matching the runner's Ubuntu" (2026-10-29) |
 
-  Both are older than the layout runs of 2026-11-14 (for example 43647479367), so those runs used them.
+  Both are older than the layout runs of 2026-11-14 and 2026-11-15 (for example 43712217729), so those runs used them.
 
 - [ ] If a commit is new: read what it changes. The flow gives the same metrics for the same netlist and settings, so a change of `final/metrics.csv` between the last development run and a run of the same commit shows a tool change. Write the PDK and LibreLane versions of the tape-out run (resolved.json) in docs/verification.md.
 

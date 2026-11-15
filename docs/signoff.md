@@ -52,8 +52,8 @@ Reset tree:
 |---|---|---|
 | Precheck | [43647479367] job `precheck` | pass, 10 of 10 checks (`precheck_reports/results.md`): KLayout pin labels, KLayout SG13CMOS5L DRC, KLayout zero area, KLayout checks, pin, boundary, layer, cell name, analog pin, Verilog syntax |
 | Gate-level test | [43647479367] job `gl_test` | pass: 44 tests pass, 25 skipped (protocol tests that run only in the model), 0 failures (`gatelevel_test_results/results.xml`) |
-| SDF simulation, this run | [43651078000] | `test_r3_sdf`, `test.py` and `test_core.py` pass at slow, typical and fast; `test_counter_sequence` passes at typical and fast; at slow it was still running when this page was updated (it takes about 5 h) |
-| SDF simulation, first 8x4 run | [43642622272] | main part passes at the 3 corners; the counter part was still running when this page was updated |
+| SDF simulation, this run | [43651078000] | all 6 jobs succeed: the main part (`test_r3_sdf`, `test.py`, `test_core.py`) and the counter part (`test_counter_sequence`, 256 back-to-back UART frames) at slow, typical and fast; the slow counter job took 1 h 16 min |
+| SDF simulation, first 8x4 run | [43642622272] | all 6 jobs succeed (main and counter parts at the 3 corners); the slow counter job took 4 h 30 min |
 
 ## 4 Open items
 

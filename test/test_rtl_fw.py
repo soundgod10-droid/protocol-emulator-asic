@@ -312,6 +312,14 @@ class RtlBench:
             self.stats["compared"] += 1
             self.t = t + 1
 
+    def diag(self):
+        """State for a fault message: model cycle, PCs, FIFOs, the last status the host read, the host queues."""
+        m = self.m
+        return (f"model cycle {m.cycle}, PCs {[th.pc for th in m.threads]}, run {[th.run for th in m.threads]}, "
+                f"model in-FIFOs {[list(map(hex, q)) for q in m.fifo_in]}, out-FIFOs {[list(map(hex, q)) for q in m.fifo_out]}; "
+                f"last chip status {self.status}; host queue {[list(q) for q in self.to_thread]}, plan {list(self.plan)}, "
+                f"transactions {dict((k, v) for k, v in self.stats.items())}")
+
     async def collect(self, n, count, limit=20_000):
         """Runs until the host has read `count` words of thread n, at most `limit` more cycles (the host polls
         the status: a word that the thread pushes comes to the host some hundred cycles later)."""

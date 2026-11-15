@@ -25,7 +25,7 @@ dc I1 0 40m 1m
 meas dc vol3 find v(pad1) at=3m
 meas dc vol10 find v(pad1) at=10m
 meas dc vol20 find v(pad1) at=20m
-meas dc i04 find v-sweep when v(pad1)=0.4
+meas dc i04 find i-sweep when v(pad1)=0.4
 tran 10p 50n
 meas tran tout_r trig v(c2) val=0.54 rise=1 targ v(pad2) val=1.5 rise=1
 meas tran tout_f trig v(c2) val=0.54 fall=1 targ v(pad2) val=1.5 fall=1

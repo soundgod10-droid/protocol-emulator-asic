@@ -888,6 +888,7 @@ async def test_rtl_onewire(dut):
     bench.send(0, *ho.OW_SCRIPT)
     resets = sum(1 for w in ho.OW_SCRIPT if w & 0x100)
     await bench.run(HOST_START + resets * 1000 * F_MHZ + (len(ho.OW_SCRIPT) - resets) * 8 * 72 * F_MHZ)
+    await bench.collect(0, len(ho.ow_expected()))
     assert bench.words(0) == ho.ow_expected(), f"{label}: replies {[hex(w) for w in bench.words(0)]}"
     assert dev.resets == 3 and dev.scratch[2:5] == [0x19, 0xE6, 0x3F], (dev.resets, dev.scratch)
     kinds = ho.ow_check_times(dev.master, F_MHZ)

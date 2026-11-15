@@ -77,3 +77,5 @@ The chip has only 3.3 V digital pins; it makes no 5 V tolerance claim. Every pro
 | SWD host (`swd.s`) | `uo_out[3]` SWCLK, `uio[4]` SWDIO | the pull-up on SWDIO at the target (Arm IHI0031H B4-118); a level shifter if the target is not 3.3 V |
 | PS/2 host and device (`ps2_host.s`, `ps2_dev.s`) | `uio[4]` CLK, `uio[5]` DATA, open drain | PS/2 devices use a 5 V bus (IBM PS/2 Technical Reference): a bidirectional open-drain level shifter with pull-ups on both sides |
 | Timed trigger (`trigger.s`) | `ui_in[3]` in, `uo_out[5]` out | none |
+| AM2302 / DHT22 sensor reader (`am2302.s`) | `uio[5]`, open drain | pull-up resistor to 3.3 V on the data line; the sensor runs from 3.3 V (AM2302 data sheet, supply 3.3 to 6 V) |
+| AVR XMEGA PDI programmer (`pdi.s`) | `uio[2]` PDI_CLK (device RESET), `uio[3]` PDI_DATA | none for a device that runs from 3.3 V; VCC and GND connected between the board and the device (XMEGA AU manual 32.3) |

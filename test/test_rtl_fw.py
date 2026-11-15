@@ -65,6 +65,10 @@ I2C_EQU60 = {
 
 def start_clock(dut):
     cocotb.start_soon(Clock(dut.clk, CLK_PS, unit="ps").start())
+    try:
+        dut.dump_off.value = 1  # no waveform dump during these long tests (test/tb.v); not in the Verilator build
+    except AttributeError:
+        pass
 
 
 def bits_word(bits):

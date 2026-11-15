@@ -20,7 +20,9 @@ Each method below gives what it checks, what it does not check, and its latest r
 
 ## 1. RTL tests
 
-`test/Makefile` runs five cocotb modules on the RTL in `src/`. The test job of every push runs them.
+`test/Makefile` runs six cocotb modules on the RTL in `src/`. The test job of every push runs them.
+
+- `test/test_holdout.py` (2 tests): hold-out trials, protocols not named on the competition page or in the design documents, written from their public documents on the unchanged instruction set and assembler. `test_holdout_onewire`: `fw/onewire.s` (1-Wire controller, Analog Devices AN126) against a device model written from the DS18B20 data sheet (Maxim 19-7487 Rev 6, pages 3, 15, 16), at five device-timing corners, at 50 and 60 MHz; every controller low and high time is checked against the data sheet limits. `test_holdout_onewire_words`: 40 words; it fits next to any three of the four example programs, not next to all four. The trial found a real limit: the application note's 60 us write-0 time has no margin against a device that samples at 60 us, so the firmware uses 65 us.
 
 - `test/test.py` (9 tests): loads `fw/uart_tx.s` through the host SPI port with the host model `test/host_spi.py` (written from [docs/host_port.md](host_port.md), not from the RTL), reads the memory back and decodes `uo_out[4]` with a UART receiver model that does not use the processor. It checks the bit time to 1 ps against 434 cycles, every edge position, back-to-back frames for 256 bytes (`test_counter_sequence`), the chip ID, the command rules and the invalid codes (every valid code with one wrong bit), the SCK limit, STOP and START, and the reset during a frame.
 - `test/test_core.py` (13 tests): lockstep, section 2.

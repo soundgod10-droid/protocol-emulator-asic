@@ -1,0 +1,132 @@
+decoder,inputs,tags,status,reason,prediction,prediction_reason
+ac97,logic,Audio;PC,pool,,FAIL-LIMIT,BIT_CLK is fixed at 12.288 MHz: 4.9 clock cycles a bit at 60 MHz is less than one instruction of one thread per bit
+ad5626,spi,IC;Analog/digital,excluded-stacked,input is another decoder (spi),,
+ad79x0,spi,IC;Analog/digital,excluded-stacked,input is another decoder (spi),,
+ade77xx,spi,Analog/digital;IC;Sensor,excluded-stacked,input is another decoder (spi),,
+adf435x,spi,Clock/timing;IC;Wireless/RF,excluded-stacked,input is another decoder (spi),,
+adns5020,spi,IC;PC;Sensor,excluded-stacked,input is another decoder (spi),,
+adxl345,spi,IC;Sensor,excluded-stacked,input is another decoder (spi),,
+am230x,logic,IC;Sensor,excluded-in-fw,firmware exists before this commit (fw/am2302.s),,
+amulet_ascii,uart,Display,excluded-stacked,input is another decoder (uart),,
+arm_etmv3,uart,Debug/trace,excluded-stacked,input is another decoder (uart),,
+arm_itm,uart,Debug/trace,excluded-stacked,input is another decoder (uart),,
+arm_tpiu,uart,Debug/trace,excluded-stacked,input is another decoder (uart),,
+atsha204a,i2c,Security/crypto;IC;Memory,excluded-stacked,input is another decoder (i2c),,
+aud,logic,Debug/trace,pool,,UNCERTAIN,AUDCK comes from the CPU in branch-trace mode (fast) and from the debugger in RAM-monitor mode (any rate the device allows): the role of the scenario decides
+avr_isp,spi,Debug/trace,excluded-stacked,input is another decoder (spi),,
+avr_pdi,logic,Debug/trace,excluded-in-fw,firmware exists before this commit (fw/pdi.s),,
+caliper,logic,Analog/digital;Sensor,pool,,PASS,clock and data of a few tens of kHz
+can,logic,Automotive,excluded-named,named on the competition page (CAN),,
+cc1101,spi,IC;Wireless/RF,excluded-stacked,input is another decoder (spi),,
+cec,logic,Display;PC,pool,,PASS,one open-drain line with bit times of about 2.4 ms
+cfp,mdio,Networking,excluded-stacked,input is another decoder (mdio),,
+cjtag,logic,Debug/trace,pool,,PASS,two pins; TCKC rate set by the controller with no minimum
+counter,logic,Util,excluded-util-encoding,tag Util (a measurement aid; no protocol),,
+dali,logic,Embedded/industrial;Lighting,pool,,PASS,Manchester at 1200 bit/s
+dcf77,logic,Clock/timing,pool,,PASS,one bit per second (100 and 200 ms pulses); long times by loops of time additions
+dmx512,uart,Embedded/industrial;Lighting,excluded-stacked,input is another decoder (uart),,
+ds1307,i2c,Clock/timing;IC,excluded-stacked,input is another decoder (i2c),,
+ds2408,onewire_network,Embedded/industrial;IC,excluded-stacked,input is another decoder (onewire_network),,
+ds243x,onewire_network,IC;Memory,excluded-stacked,input is another decoder (onewire_network),,
+ds28ea00,onewire_network,IC;Sensor,excluded-stacked,input is another decoder (onewire_network),,
+dsi,logic,Embedded/industrial;Lighting,pool,,PASS,Manchester at 1200 bit/s
+edid,i2c,Display;Memory;PC,excluded-stacked,input is another decoder (i2c),,
+eeprom24xx,i2c,IC;Memory,excluded-stacked,input is another decoder (i2c),,
+eeprom93xx,microwire,IC;Memory,excluded-stacked,input is another decoder (microwire),,
+em4100,logic,IC;RFID,pool,,PASS,demodulated data at about 2 kbit/s (125 kHz carrier / 64)
+em4305,logic,IC;RFID,pool,,PASS,demodulated data at a few kbit/s
+enc28j60,spi,Embedded/industrial;Networking,excluded-stacked,input is another decoder (spi),,
+flexray,logic,Automotive,pool,,FAIL-LIMIT,lowest rate 2.5 Mbit/s (24 cycles a bit) and the receiver samples each bit several times; transmit alone may give PARTIAL
+graycode,logic,Encoding,excluded-util-encoding,tag Encoding (a signal format; no protocol),,
+guess_bitrate,logic,Clock/timing;Util,excluded-util-encoding,tag Util (a measurement aid; no protocol),,
+hdcp,i2c,PC;Security/crypto,excluded-stacked,input is another decoder (i2c),,
+i2c,logic,Embedded/industrial,excluded-named,named on the competition page (I2C),,
+i2cdemux,i2c,Util,excluded-stacked,input is another decoder (i2c),,
+i2cfilter,i2c,Util,excluded-stacked,input is another decoder (i2c),,
+i2s,logic,Audio;PC,pool,,PASS,no minimum bit clock; a low sample rate is allowed
+ieee488,logic,PC;Retro computing,pool,,UNCERTAIN,8 data and 8 control lines; each open-collector handshake line needs an input and an output; 20 pins of fixed direction may cover only some roles
+ir_irmp,logic,IR,excluded-not-one-protocol,wrapper of an external multi-protocol library (IRMP) that decodes many IR protocols; it names no single protocol and overlaps ir_nec ir_rc5 ir_rc6 ir_sirc of the pool,,
+ir_nec,logic,IR,pool,,PASS,562.5 us units on one line
+ir_rc5,logic,IR,pool,,PASS,Manchester with 889 us half bits
+ir_rc6,logic,IR,pool,,PASS,Manchester with 444 us units
+ir_sirc,logic,IR,pool,,PASS,600 us units on one line
+jitter,logic,Clock/timing;Util,excluded-util-encoding,tag Util (a measurement aid; no protocol),,
+jtag,logic,Debug/trace,excluded-named,named on the competition page (JTAG),,
+jtag_ejtag,jtag,Debug/trace,excluded-stacked,input is another decoder (jtag),,
+jtag_stm32,jtag,Debug/trace,excluded-stacked,input is another decoder (jtag),,
+lfast,logic,Embedded/industrial,pool,,FAIL-LIMIT,slow mode about 5 Mbit/s (12 cycles a bit): above the rate at which one thread can sample a bit
+lin,uart,Automotive,excluded-stacked,input is another decoder (uart),,
+lm75,i2c,Sensor,excluded-stacked,input is another decoder (i2c),,
+lpc,logic,PC,pool,,FAIL-LIMIT,LCLK 33 MHz is more than half of the 60 MHz chip clock
+ltc242x,spi,IC;Analog/digital,excluded-stacked,input is another decoder (spi),,
+ltc26x7,i2c,IC;Analog/digital,excluded-stacked,input is another decoder (i2c),,
+maple_bus,logic,Retro computing,pool,,UNCERTAIN,about 2 Mbit/s on two alternating lines (about 30 cycles a bit)
+max72xx,spi,Display,excluded-stacked,input is another decoder (spi),,
+mcp230xx,i2c,IC,excluded-stacked,input is another decoder (i2c),,
+mcs48,logic,Retro computing,pool,,UNCERTAIN,external memory cycle of an 8048 at a 6 to 11 MHz crystal: the memory side must answer within a few hundred ns
+mdio,logic,Networking,pool,,PASS,MDC up to 2.5 MHz with no minimum
+microwire,logic,Embedded/industrial,pool,,PASS,synchronous serial with no minimum clock
+midi,uart,Audio;PC,excluded-stacked,input is another decoder (uart),,
+miller,logic,Encoding,excluded-util-encoding,tag Encoding (a line code; no protocol),,
+mlx90614,i2c,IC;Sensor,excluded-stacked,input is another decoder (i2c),,
+modbus,uart,Embedded/industrial,excluded-stacked,input is another decoder (uart),,
+morse,logic,Encoding,excluded-util-encoding,tag Encoding (a code; no protocol),,
+mrf24j40,spi,IC;Wireless/RF,excluded-stacked,input is another decoder (spi),,
+mxc6225xu,i2c,IC;Sensor,excluded-stacked,input is another decoder (i2c),,
+nes_gamepad,spi,Retro computing,excluded-stacked,input is another decoder (spi),,
+nrf24l01,spi,IC;Wireless/RF,excluded-stacked,input is another decoder (spi),,
+nrf905,spi,IC;Wireless/RF,excluded-stacked,input is another decoder (spi),,
+numbers_and_state,logic,Encoding;Util,excluded-util-encoding,tags Encoding and Util (a display aid; no protocol),,
+nunchuk,i2c,Sensor,excluded-stacked,input is another decoder (i2c),,
+onewire_link,logic,Embedded/industrial,excluded-in-fw,firmware exists before this commit (fw/onewire.s),,
+onewire_network,onewire_link,Embedded/industrial,excluded-stacked,input is another decoder (onewire_link),,
+ook,logic,Encoding,excluded-util-encoding,tag Encoding (a modulation; no protocol),,
+ook_oregon,ook,Sensor,excluded-stacked,input is another decoder (ook),,
+ook_vis,ook,Encoding,excluded-stacked,input is another decoder (ook),,
+pan1321,uart,Wireless/RF,excluded-stacked,input is another decoder (uart),,
+parallel,logic,Util,excluded-util-encoding,tag Util (a generic bus view; no protocol),,
+pca9571,i2c,Embedded/industrial;IC,excluded-stacked,input is another decoder (i2c),,
+pjdl,logic,Embedded/industrial,pool,,PASS,single-wire link with bit times above 10 us
+pjon,pjon_link,Embedded/industrial,excluded-stacked,input is another decoder (pjon_link),,
+ps2,logic,PC,excluded-named,named on the competition page (PS/2),,
+pwm,logic,Encoding,excluded-util-encoding,tag Encoding (a signal format; no protocol),,
+qi,logic,Embedded/industrial;Wireless/RF,pool,,PASS,demodulated biphase data at 2 kbit/s
+rc_encode,logic,IC;IR,pool,,PASS,PT2262-family pulses of hundreds of us
+rfm12,spi,Wireless/RF,excluded-stacked,input is another decoder (spi),,
+rgb_led_spi,spi,Display,excluded-stacked,input is another decoder (spi),,
+rgb_led_ws281x,logic,Display;IC,pool,,PASS,800 kHz with +/-150 ns pulse windows against 16.7 ns event resolution
+rtc8564,i2c,Clock/timing,excluded-stacked,input is another decoder (i2c),,
+sae_j1850_vpw,logic,Automotive,pool,,PASS,10.4 kbit/s with 64 and 128 us pulses
+sbus_futaba,uart,Remote Control,excluded-stacked,input is another decoder (uart),,
+sda2506,logic,IC;Memory,pool,,PASS,serial EEPROM clocked by the controller
+sdcard_sd,logic,Memory,pool,,UNCERTAIN,SD mode CMD and DAT with CRC7 and CRC16 and no CRC instruction; the clock may be slow (identification at 100 to 400 kHz)
+sdcard_spi,spi,Memory,excluded-stacked,input is another decoder (spi),,
+sdq,logic,Embedded/industrial,pool,,PASS,one-wire link with bit times of tens of us
+seven_segment,logic,Display,pool,,PASS,static segment levels (a signal format with no framing; reported in its own column)
+signature,logic,Debug/trace;Util;Encoding,excluded-util-encoding,tags Util and Encoding (an analysis aid; no protocol),,
+sipi,lfast,Embedded/industrial,excluded-stacked,input is another decoder (lfast),,
+sle44xx,logic,Memory,pool,,PASS,memory card clocked by the reader at kHz rates
+spdif,logic,Audio;PC,pool,,UNCERTAIN,biphase mark at 2.048 Mbit/s for 32 kHz sampling: 14.6 cycles a half bit (not a whole number)
+spi,logic,Embedded/industrial,excluded-named,named on the competition page (SPI),,
+spiflash,spi,IC;Memory,excluded-stacked,input is another decoder (spi),,
+ssi32,spi,Embedded/industrial,excluded-stacked,input is another decoder (spi),,
+st25r39xx_spi,spi,IC;Wireless/RF,excluded-stacked,input is another decoder (spi),,
+st7735,logic,Display;IC,pool,,PASS,SPI-like write with a data/command pin and no minimum clock
+stepper_motor,logic,Embedded/industrial,pool,,PASS,step and direction levels (a signal format with no framing; reported in its own column)
+swd,logic,Debug/trace,excluded-named,named on the competition page (SWD),,
+swim,logic,Debug/trace,pool,,PASS,STM8 SWIM low speed: pulse widths of a few us; the target answer is measured with input edge times
+t55xx,logic,IC;RFID,pool,,PASS,demodulated RFID data at kbit/s rates
+tca6408a,i2c,Embedded/industrial;IC,excluded-stacked,input is another decoder (i2c),,
+tdm_audio,logic,Audio,pool,,PASS,no minimum bit clock
+timing,logic,Clock/timing;Util,excluded-util-encoding,tag Util (a measurement aid; no protocol),,
+tlc5620,logic,IC;Analog/digital,pool,,PASS,serial DAC load with no minimum clock
+uart,logic,Embedded/industrial,excluded-named,named on the competition page (UART),,
+usb_packet,usb_signalling,PC,excluded-stacked,input is another decoder (usb_signalling),,
+usb_power_delivery,logic,PC,pool,,PASS,BMC at 300 kbit/s (200 cycles a bit); CRC-32 and 4b5b made by the host
+usb_request,usb_packet,PC,excluded-stacked,input is another decoder (usb_packet),,
+usb_signalling,logic,PC,excluded-named,named on the competition page (low-speed USB),,
+wiegand,logic,Embedded/industrial;RFID,pool,,PASS,pulses of 20 to 100 us on two lines
+x2444m,spi,IC;Memory,excluded-stacked,input is another decoder (spi),,
+xfp,i2c,Networking,excluded-stacked,input is another decoder (i2c),,
+xy2-100,logic,Embedded/industrial,pool,,UNCERTAIN,clock fixed at 2 MHz with sync and data lines: 30 cycles a period for 4 or more pin events
+z80,logic,Retro computing,pool,,UNCERTAIN,the 11 required lines (D0-D7 /M1 /RD /WR) fit; a slow bus is legal only for static CMOS parts

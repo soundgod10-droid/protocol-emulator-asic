@@ -44,7 +44,7 @@ Reset tree:
 - Chip reset `rst_n_int` (from `pe_reset_sync`): every flip-flop with a reset, including the input synchronizers and the host port.
 - Processor reset `run_rst_n = rst_n_int & running`: the core, the host FIFOs, the event slots and the pin registers. Both inputs are flip-flop outputs, so the AND has no glitch and its release is at a clock edge. STOP (host command) asserts it; START releases it at a known cycle ([host_port.md](host_port.md) section 8).
 - No reset: the memory latches and their write-data flip-flops ([decisions.md](decisions.md) entry 7; `formal/mem_full_reset.sby` proves the memory properties with a free reset in every step). The host loads the memory after every power-up and select (host rule 6).
-- Gated clocks: only through the integrated clock-gate cells of the memory and FIFO latch arrays (`pe_cg`); the gate enable comes from flip-flops of the same domain and is checked by the clock-gating setup check of the timing run (slack +9.1 ns at the slow corner).
+- Gated clocks: only through the integrated clock-gate cells of the memory and FIFO latch arrays (`pe_cg`); the gate enable comes from flip-flops of the same domain and is checked by the clock-gating setup check of the timing run (slack +8.818 ns at the slow corner, `nom_slow_1p08V_125C/checks.rpt`).
 
 ## 3 Results that come after this page
 

@@ -63,7 +63,7 @@ Does not check: the whole chip in one proof (the jobs prove blocks: core, event 
 
 ## 4. Gate-level test
 
-The `gl_test` job of the gds workflow runs the same cocotb modules on the layout netlist with functional cell models (no delays). In run [42744631446]: 44 pass, 17 skipped. Of the 44, 22 drive the netlist (`test.py` 9, `test_core.py` 13 with 4 random seeds); the other 22 are assembler and model tests that do not use the netlist (`test_isa.py` 21, `test_fw_full_word_count`). The 17 skipped tests are the model-only protocol tests of `test_fw_full.py`.
+The `gl_test` job of the gds workflow runs the same cocotb modules on the layout netlist with functional cell models (no delays). In run [43712217729] (present layout): 75 testcases, 47 pass, 28 skipped. Of the 47, 23 drive the netlist (`test.py` 9, `test_core.py` 14 with 4 random seeds); the other 24 are assembler and model tests that do not use the netlist (`test_isa.py` 21 and the three word counts `test_fw_full_word_count`, `test_holdout_onewire_words`, `test_holdout_am2302_pdi_words`). The 28 skipped tests are the model-only protocol tests (`test_fw_full.py` 16, `test_flex.py` 7, `test_holdout.py` 4) and `test_r2_host_sck_clocks`. The job takes 41 min; `test_counter_sequence` alone takes 1,787 s of it.
 
 Does not check: delays; see sections 5 and 6.
 

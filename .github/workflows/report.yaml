@@ -1,0 +1,31 @@
+name: report
+# Research branch only: signoff facts of finished layout runs, read from their GDS_logs
+# artifacts on the runner and given as annotations and in the run summary.
+on:
+  push:
+    branches: [m3c-reports]
+permissions:
+  actions: read
+  contents: read
+jobs:
+  signoff:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        run_id: [43672052931, 43688768543, 43688791463, 43688812992]
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+
+      - name: Download GDS_logs of the run
+        uses: actions/download-artifact@v4
+        with:
+          name: GDS_logs
+          run-id: ${{ matrix.run_id }}
+          github-token: ${{ github.token }}
+          path: logs
+
+      - name: Signoff facts
+        shell: bash
+        run: python .github/signoff_facts.py logs "run ${{ matrix.run_id }}"

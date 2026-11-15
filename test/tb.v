@@ -7,11 +7,14 @@
 module tb ();
 
   // Dump the signals to a FST file. You can view it with gtkwave or surfer.
+  // Not in the Verilator coverage simulation (no trace support built in).
+`ifndef VERILATOR
   initial begin
     $dumpfile("tb.fst");
     $dumpvars(0, tb);
     #1;
   end
+`endif
 
   // SDF job only (test/Makefile SDF_FILE): annotate the cell delays of the layout.
 `ifdef SDF_FILE

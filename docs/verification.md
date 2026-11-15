@@ -1,12 +1,15 @@
 # Verification
 
-Each method below gives what it checks, what it does not check, and its latest result. A reader can open each run link or re-run each job. The present design is branch `cmos5l`, commit 6e2a0fd (test run [42744631302], layout run [42744631446]).
+Each method below gives what it checks, what it does not check, and its latest result. A reader can open each run link or re-run each job. The present design is branch `cmos5l`: 8x4 tiles, 60 MHz, layout run [43647479367] (commit fcf649d), test run [43653069782] (commit c930e72, same RTL). The signoff checks of the layout at all corners are in [signoff.md](signoff.md); the sections below that name older runs describe the method and keep their results for comparison.
 
 ## Summary
 
 | Method | Checks | Latest result |
 |---|---|---|
-| RTL tests (cocotb, Icarus Verilog) | host port, firmware UART on the chip pins, processor against the reference model, assembler, full protocol firmware in the model, firmware for protocols outside the instruction-set design | 68 tests, 0 failures, run [43592752852] (commit 33873db; the RTL is that of 6e2a0fd) |
+| RTL tests (cocotb, Icarus Verilog) | host port, firmware UART on the chip pins, processor against the reference model, assembler, full protocol firmware in the model, firmware for protocols outside the instruction-set design, hold-out trials | 71 tests, 0 failures, run [43653069782] |
+| Gate-level test (present layout) | the layout netlist with the RTL tests, no delays | 44 pass, 25 skipped (model-only tests), run [43647479367] |
+| SDF gate-level simulation (present layout) | the netlist with layout cell delays at 3 corners | `test_r3_sdf`, `test.py`, `test_core.py` pass at slow, typical and fast (run [43651078000]); see [signoff.md](signoff.md) section 3 for the long counter test |
+| Static timing and layout checks (present layout) | setup, hold, slew, capacitance, fanout, DRC, LVS, antenna, lint, precheck | 60 MHz: slow-corner setup margin +3.687 ns, no setup, hold, slew or capacitance violation at 3 corners; DRC, LVS, antenna, lint 0; precheck 10 of 10 ([signoff.md](signoff.md)) |
 | Lockstep with the reference model | every pin and every host word, in every clock cycle | part of the RTL and gate-level tests |
 | Formal proofs (SymbiYosys, Z3) | barrel order, pin events, event slot, host port, latch memory | 13 jobs pass (table below) |
 | Gate-level test | the layout netlist with the RTL tests, no delays | 44 pass, 17 skipped (model-only tests), run [42744631446] |

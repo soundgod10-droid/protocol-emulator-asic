@@ -52,8 +52,8 @@ Reset tree:
 |---|---|---|
 | Precheck | [43712217729] job `precheck` | pass, 10 of 10 checks (`precheck_reports/results.md`): KLayout pin labels, KLayout SG13CMOS5L DRC, KLayout zero area, KLayout checks, pin, boundary, layer, cell name, analog pin, Verilog syntax |
 | Gate-level test | [43712217729] job `gl_test` | pass: 47 of 75 tests pass, 28 skipped (protocol tests that run only in the model, and `test_r2_host_sck_clocks`), 0 failures (`gatelevel_test_results/results.xml`); 23 of the 47 drive the netlist (`test.py` 9, `test_core.py` 14) |
-| SDF simulation, this run | [43651078000] | all 6 jobs succeed: the main part (`test_r3_sdf`, `test.py`, `test_core.py`) and the counter part (`test_counter_sequence`, 256 back-to-back UART frames) at slow, typical and fast; the slow counter job took 1 h 16 min |
-| SDF simulation, first 8x4 run | [43642622272] | all 6 jobs succeed (main and counter parts at the 3 corners); the slow counter job took 4 h 30 min |
+| SDF simulation, this run | [43716786712] | all 6 jobs succeed: the main part (`test_r3_sdf`, `test.py`, `test_core.py`: 22 tests pass at each corner, 0 failures) and the counter part (`test_counter_sequence`, 256 back-to-back UART frames) at slow, typical and fast; 4 "SDF ERROR" lines at each corner (the header lines of the file, as expected); the slow counter job took 1 h 18 min |
+| SDF simulation, earlier 8x4 runs | [43651078000] (commit fcf649d), [43642622272] (first 8x4 run) | all 6 jobs succeed in each |
 
 ## 4 Code coverage
 

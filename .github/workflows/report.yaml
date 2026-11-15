@@ -14,7 +14,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - run_id: 43698825176
+          - run_id: 43705472044
+            cell: 'g_word[108].u_cg.u_cell'
+          - run_id: 43698799514
             cell: 'g_word[108].u_cg.u_cell'
     steps:
       - name: Checkout repo

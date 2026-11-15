@@ -29,3 +29,28 @@ jobs:
       - name: Signoff facts
         shell: bash
         run: python .github/signoff_facts.py logs "run ${{ matrix.run_id }}"
+
+  coverage:
+    runs-on: ubuntu-24.04
+    env:
+      RUN_ID: 43689031658
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+
+      - name: Download coverage of the run
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage
+          run-id: ${{ env.RUN_ID }}
+          github-token: ${{ github.token }}
+          path: cov
+
+      - name: Coverage summary
+        run: python .github/coverage_facts.py cov "run $RUN_ID" summary
+
+      - name: Lines not hit, core and host port
+        run: python .github/coverage_facts.py cov "run $RUN_ID" pe_core.v pe_host_port.v pe_timed_in.v pe_timed_out.v
+
+      - name: Lines not hit, other blocks
+        run: python .github/coverage_facts.py cov "run $RUN_ID" pe_proc.v project.v pe_config.v pe_host_fifo.v pe_cycle_counter.v pe_sync.v pe_latch_ram.v pe_cells.v

@@ -857,6 +857,7 @@ async def test_rtl_trigger(dut):
         bench.watch("trg", lambda uo, uio, oe: (uo >> 5) & 1)
         bench.send(0, b, match, d)
         await bench.run(starts[-1] + 12 * b + d + 500)
+        await bench.collect(0, 2)
         rises = [c for i, (c, v) in enumerate(bench.changes("trg")) if v == 1 and i > 0]
         assert len(rises) == 2 and bench.words(0) == [match, match], f"{label}: pulses {rises}, words {bench.words(0)}"
         lat += [rises[0] - starts[1], rises[1] - starts[3]]

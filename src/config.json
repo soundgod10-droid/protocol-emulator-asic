@@ -34,7 +34,7 @@
 
   "//": "Development runs only: no Magic DRC (the precheck job runs the SG13CMOS5L KLayout DRC on",
   "//": "every push). Set to 1 for the tape-out run: docs/tapeout_checklist.md.",
-  "RUN_MAGIC_DRC": 0,
+  "RUN_MAGIC_DRC": 1,
 
   "//": "Reserve of docs/decisions.md entry 5 (d): timing-driven placement, 1.2 ns max transition in PnR.",
   "PL_TIMING_DRIVEN": 1,

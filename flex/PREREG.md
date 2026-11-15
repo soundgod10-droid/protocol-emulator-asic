@@ -93,3 +93,7 @@ Reported in `docs/flexibility.md` and the README, whatever the result:
 - Firmware size (median and maximum words), writing time per protocol, CI minutes per protocol.
 - The share of protocols that use no protocol-specific RTL feature: a feature is protocol-specific if one protocol's standard defines it and no other protocol of the census uses it; the usage table (feature by protocol) is measured from the census firmware.
 - Tier 0 (section 3) in its own table.
+
+## Record of the commit history change (2026-11-15)
+
+On 2026-11-15 the commit history of this repository was rewritten to set the author of every commit to the engineer. No file content changed. The commit hashes changed with it. This file was first pushed as commit 26b43bf69c44d0e83bb03b3fe219bac230cb4f2a; after the change the same commit is 775a971898943f00c9567bb620b9dc8fd3608f09. The GitHub Actions runs of the first push keep the original server time, 2026-11-15T20:21:51Z: test 43757647585, gds 43757647489, coverage 43757647451, docs 43757647518.

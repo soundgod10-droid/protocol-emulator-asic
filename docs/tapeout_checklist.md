@@ -26,7 +26,7 @@ There is no FPGA step: the design does not fit the only FPGA of the template wor
 
 ## 3 Before the tape-out run: template, tools and GDS action
 
-- [ ] Read the newest commit of each branch below and compare it with the last check. The gds workflow uses the moving reference `@ttihp27a` (template main flow since commit 4b96571), so a new commit of the action can change the flow of the tape-out run. Last check (GitHub API commits, read 2026-11-15, unchanged since 2026-11-14):
+- [ ] Read the newest commit of each branch below and compare it with the last check. The gds workflow uses the moving reference `@ttihp27a` (template main flow since commit 8eff15d), so a new commit of the action can change the flow of the tape-out run. Last check (GitHub API commits, read 2026-11-15, unchanged since 2026-11-14):
 
   | Repository, branch | Newest commit at the last check |
   |---|---|

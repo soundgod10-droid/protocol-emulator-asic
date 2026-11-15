@@ -6,7 +6,7 @@ Each method below gives what it checks, what it does not check, and its latest r
 
 | Method | Checks | Latest result |
 |---|---|---|
-| RTL tests (cocotb, Icarus Verilog) | host port, firmware UART on the chip pins, processor against the reference model, assembler, full protocol firmware in the model, firmware for protocols outside the instruction-set design, hold-out trials | 71 tests, 0 failures, run [43653069782] |
+| RTL tests (cocotb, Icarus Verilog) | host port, firmware UART on the chip pins, processor against the reference model, assembler, full protocol firmware in the model, firmware for protocols outside the instruction-set design, hold-out trials | 75 tests, 0 failures, run [43672052915] (commit a5a8003) |
 | Gate-level test (present layout) | the layout netlist with the RTL tests, no delays | 44 pass, 25 skipped (model-only tests), run [43647479367] |
 | SDF gate-level simulation (present layout) | the netlist with layout cell delays at 3 corners | `test_r3_sdf`, `test.py`, `test_core.py` pass at slow, typical and fast (run [43651078000]); see [signoff.md](signoff.md) section 3 for the long counter test |
 | Static timing and layout checks (present layout) | setup, hold, slew, capacitance, fanout, DRC, LVS, antenna, lint, precheck | 60 MHz: slow-corner setup margin +3.687 ns, no setup, hold, slew or capacitance violation at 3 corners; DRC, LVS, antenna, lint 0; precheck 10 of 10 ([signoff.md](signoff.md)) |

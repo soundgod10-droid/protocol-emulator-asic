@@ -98,6 +98,27 @@ Does not check: the pads, process variation (one corner each, no Monte Carlo).
 
 Run [43712217729] (present layout), `final/metrics.csv`: route DRC 0, antenna violations 0, LVS errors 0, lint errors and warnings 0, utilisation 0.246. Precheck: 10 of 10 checks pass (`precheck_reports/results.md`). Magic DRC is off in development runs. The present 8x4 layout with Magic DRC on gave 0 errors and the same signoff values as run [43712217729] (run [43731920994]); the earlier 6x4 layout also gave 0 (run [41380161509]). The submitted run will have it on ([docs/tapeout_checklist.md](tapeout_checklist.md) section 2).
 
+## 9. Pad SPICE
+
+The I/O cells of the CMOS5L Tiny Tapeout chip are `sg13cmos5l_IOPadInOut30mA` on `uio`, `sg13cmos5l_IOPadOut30mA` on `uo_out` and `sg13cmos5l_IOPadIn` on `ui_in` (cell names in the foundry netlist of the earlier CMOS5L shuttle TTIHP0p4, `tt_ihp_wrapper.nl.v`). The netlists in `spice/` simulate these cells with ngspice, the IHP-Open-PDK CMOS5L models and the schematic netlist `sg13cmos5l_io.spice` (no layout extraction), at the three signoff corners: slow `pad_ss.sp` (mos_ss, 1.08 V core, 3.0 V IO, 125 °C), typical `pad_tt.sp` (mos_tt, 1.20 V, 3.3 V, 25 °C), fast `pad_ff.sp` (mos_ff, 1.32 V, 3.6 V, -40 °C). Output load 5 pF; input pad edges 2 ns.
+
+| Value | Slow | Typical | Fast | Limit (source) |
+|---|---|---|---|---|
+| Output low voltage of the 30 mA pad sinking 3 mA | 0.142 V | 0.087 V | 0.059 V | 0.4 V for Standard-mode and Fast-mode I2C (UM10204 Rev. 7.0 Table 10) |
+| Sink current at 0.4 V | 7.6 mA | not run | 18.4 mA | 20 mA for Fast-mode Plus (same table) |
+| Output low voltage sinking 10 mA / 20 mA | 0.568 V / no drive (3.72 V) | not run / 0.756 V | 0.204 V / 0.441 V | - |
+| Output delay, core input 50 % to pad 50 %, rise / fall | 3.32 / 3.18 ns | 2.03 / 1.74 ns | 1.46 / 1.13 ns | - |
+| Pad edge 10 to 90 %, rise / fall | 1.49 / 1.75 ns | 1.00 / 1.16 ns | 0.74 / 0.86 ns | - |
+| Input pad delay, pad 50 % to core 50 %, rise / fall | 0.45 / 0.42 ns | 0.32 / 0.34 ns | 0.26 / 0.28 ns | - |
+
+`pad_load_ss.sp`, slow corner, output into 5 / 15 / 30 pF: delay rise 3.32 / 4.36 / 5.73 ns, fall 3.18 / 4.06 / 5.28 ns; edge rise 1.49 / 3.21 / 5.86 ns, fall 1.75 / 3.15 / 5.57 ns (about 0.1 ns of delay per pF). The input pad with a 50 MHz and a 100 MHz clock on the pad gives core-side high and low times of 9.97 / 10.03 ns and 4.97 / 5.03 ns with a full swing (-0.02 to 1.10 V), so the pad does not limit the clock up to at least 100 MHz; the core does ([signoff.md](signoff.md)).
+
+`pad_5v.sp`, typical corner, IOVDD 3.3 V, current into the pad at 3.3 / 3.6 / 4.0 / 5.0 V: input pad 30 pA / 36 pA / 2.2 uA / 0.42 mA; bidirectional pad with its output off 34 pA / 0.46 uA / 1.27 mA / 20.8 mA. The pads are not 5 V tolerant: keep every pin at IOVDD or below.
+
+Results: I2C Standard-mode and Fast-mode output levels are met at every corner (0.142 V at 3 mA, slow); Fast-mode Plus is not (7.6 mA at 0.4 V slow, 18.4 mA fast, against 20 mA), so the chip claims Standard-mode and Fast-mode only.
+
+Does not check: layout parasitics of the pad ring and package; the Tiny Tapeout multiplexer between the pads and the tile (inside the host port allowance, [host_port.md](host_port.md) section 6); the diodes stay at their typical model (`cornerDIO.lib` has only `dio_tt`); one sample per corner, no Monte Carlo; silicon.
+
 ## What is not verified
 
 - No FPGA prototype: the design needs 154 % of the logic cells of the template FPGA (run [41817455061], [docs/decisions.md](decisions.md) entry 12).

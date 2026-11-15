@@ -69,6 +69,8 @@ jobs:
           python coverage_summary.py coverage.dat | tee coverage_summary.md
           echo "## Coverage of the RTL tests (Verilator $VERILATOR_VERSION)" >> "$GITHUB_STEP_SUMMARY"
           cat coverage_summary.md >> "$GITHUB_STEP_SUMMARY"
+          # The same table as an annotation, readable through the public API without sign-in.
+          echo "::notice title=coverage summary::$(sed -e 's/%/%25/g' coverage_summary.md | sed -e ':a;N;$!ba;s/\n/%0A/g')"
           verilator_coverage --annotate coverage_annotated --annotate-all --annotate-min 1 coverage.dat
           verilator_coverage --write-info coverage.info coverage.dat
 

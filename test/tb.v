@@ -14,6 +14,9 @@ module tb ();
     $dumpvars(0, tb);
     #1;
   end
+  // A long test can stop the dump while it runs (dump_off = 1) and start it again (test/test_rtl_fw.py).
+  reg dump_off = 1'b0;
+  always @(dump_off) if (dump_off) $dumpoff; else $dumpon;
 `endif
 
   // SDF job only (test/Makefile SDF_FILE): annotate the cell delays of the layout.

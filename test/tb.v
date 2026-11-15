@@ -39,6 +39,10 @@ module tb ();
   wire host_mosi = ui_in[5];
   wire host_miso = uo_out[7];
 
+  // All chip outputs in one vector, so a test that reads them in every clock cycle needs one read
+  // (test/test_rtl_fw.py).
+  wire [23:0] out_pins = {uo_out, uio_out, uio_oe};
+
   tt_um_soundgod10_droid_protocol_emulator user_project (
       .ui_in  (ui_in),    // Dedicated inputs
       .uo_out (uo_out),   // Dedicated outputs

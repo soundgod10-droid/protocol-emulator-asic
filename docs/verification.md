@@ -12,7 +12,7 @@ Each method below gives what it checks, what it does not check, and its latest r
 | SDF gate-level simulation (present layout) | the netlist with layout cell delays at 3 corners | `test_r3_sdf`, `test.py`, `test_core.py` pass at slow, typical and fast (run [43716786712]); see [signoff.md](signoff.md) section 3 for the long counter test |
 | Static timing and layout checks (present layout) | setup, hold, slew, capacitance, fanout, DRC, LVS, antenna, lint, precheck | 60 MHz: slow-corner setup margin +3.841 ns, no setup, hold, slew or capacitance violation at 3 corners; 8 max-fanout pins explained in [signoff.md](signoff.md); DRC, LVS, antenna, lint 0; precheck 10 of 10 |
 | Lockstep with the reference model | every pin and every host word, in every clock cycle | part of the RTL and gate-level tests |
-| Formal proofs (SymbiYosys, Z3) | barrel order, pin events, event slot, host port, latch memory | 13 jobs pass (table below) |
+| Formal proofs (SymbiYosys, Z3) | barrel order, pin events, event slot, host port, latch memory; synchronizer and reset structure | 13 proof jobs and the structural CDC job pass (table below) |
 | Gate-level test | the layout netlist with the RTL tests, no delays | 44 pass, 17 skipped (model-only tests), run [42744631446] |
 | SDF gate-level simulation | the netlist with layout cell delays at 3 corners | 22 tests pass at each corner, on an earlier netlist (runs [41871325339], [41924796459]) |
 | Static timing at all corners | setup, hold, slew, fanout | no setup or hold violation at 3 corners; slow-corner setup margin +1.329 ns, run [42744631446] |

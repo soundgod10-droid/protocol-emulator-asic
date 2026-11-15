@@ -33,7 +33,8 @@
 //   Each command code is {c, not c} (high nibble c, low nibble its
 //   complement). Thus two codes differ in 2 bits or more, a single wrong
 //   bit gives no command, and a stuck MOSI line (0x00 or 0xFF) gives no
-//   command (test_host_id_status_rules sends every code with one wrong bit).
+//   command (test_host_id_status_rules sends every code with one wrong bit,
+//   and the six codes of the form {c, not c} that are no command).
 //
 // Rules (docs/host_port.md):
 //   - WRITE_MEM, READ_MEM and WRITE_CFG only while the threads stop.

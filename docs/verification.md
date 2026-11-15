@@ -96,7 +96,7 @@ Does not check: the pads, process variation (one corner each, no Monte Carlo).
 
 ## 8. Layout checks
 
-Run [42744631446], `final/metrics.csv`: route DRC 0, antenna violations 0, LVS errors 0, lint warnings 0, utilisation 0.306. Precheck: 9 of 9 checks pass (`precheck_reports/results.md`). Magic DRC is off in development runs. The present 8x4 layout with Magic DRC on gave 0 errors and the same signoff values as run [43712217729] (run [43731920994]); the earlier 6x4 layout also gave 0 (run [41380161509]). The submitted run will have it on ([docs/tapeout_checklist.md](tapeout_checklist.md) section 2).
+Run [43712217729] (present layout), `final/metrics.csv`: route DRC 0, antenna violations 0, LVS errors 0, lint errors and warnings 0, utilisation 0.246. Precheck: 10 of 10 checks pass (`precheck_reports/results.md`). Magic DRC is off in development runs. The present 8x4 layout with Magic DRC on gave 0 errors and the same signoff values as run [43712217729] (run [43731920994]); the earlier 6x4 layout also gave 0 (run [41380161509]). The submitted run will have it on ([docs/tapeout_checklist.md](tapeout_checklist.md) section 2).
 
 ## What is not verified
 

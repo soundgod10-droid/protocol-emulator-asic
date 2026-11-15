@@ -295,8 +295,11 @@ class RtlBench:
             else:
                 ui = uin = 0
                 exp = RESET_PINS
-            ui_h.value = (sck << hs.SCK_BIT) | (cs_n << hs.CS_N_BIT) | (mosi << hs.MOSI_BIT) | (ui & 0x1F)
-            uin_h.value = uin & 0xFF
+            ui_v = (sck << hs.SCK_BIT) | (cs_n << hs.CS_N_BIT) | (mosi << hs.MOSI_BIT) | (ui & 0x1F)
+            if ui_v != last_ui:
+                ui_h.value = last_ui = ui_v
+            if uin != last_uin:
+                uin_h.value = last_uin = uin & 0xFF
             if (uo7, uio_v, oe_v) != exp:
                 where = f"model cycle {t - t0}" if t >= t0 else f"load cycle {t}"
                 raise AssertionError(

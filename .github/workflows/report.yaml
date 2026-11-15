@@ -42,6 +42,16 @@ jobs:
         shell: bash
         run: python .github/trace_net.py logs "run ${{ matrix.run_id }}" place3079 X place3115 X place3119 X place3085 X
 
+      - name: Netlist changes of steps 36 to 43
+        if: always()
+        shell: bash
+        run: |
+          for d in logs/runs/wokwi/3[6-9]-* logs/runs/wokwi/4[0-3]-*; do
+            [ -d "$d" ] || continue
+            msg=$(cat "$d"/*.log 2>/dev/null | grep -iE 'insert|remov|clone|resiz|buffer|repair|diode|fanout|swap' | grep -v -i 'warning ord-0039' | sort | uniq -c | sort -rn | head -n 25)
+            echo "::notice title=run ${{ matrix.run_id }} $(basename "$d")::$(printf '%s\n' "${msg:-no matching lines}" | sed -e 's/%/%25/g' | sed -e ':a;N;$!ba;s/\n/%0A/g')"
+          done
+
       - name: Clock tree synthesis warnings
         if: always()
         shell: bash

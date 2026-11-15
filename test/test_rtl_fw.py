@@ -427,6 +427,7 @@ async def test_rtl_uart_rx(dut):
                      inputs=lambda c, uo, uio, oe: (ff.value_at(line, c) << ff.UI_RX, 0), label=label)
     bench.send(0, b, ff.rx_h(b))
     await bench.run(HOST_START + 21 * b + 3 * b)
+    await bench.collect(0, 2)
     words = bench.words(0)
     assert [ff.rx_bits(w, 9) for w in words] == [x[:10] for x in line_bits], [hex(w) for w in words]
     await bench.finish(log)

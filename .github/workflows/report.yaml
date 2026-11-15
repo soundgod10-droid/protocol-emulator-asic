@@ -30,6 +30,11 @@ jobs:
         shell: bash
         run: python .github/signoff_facts.py logs "run ${{ matrix.run_id }}"
 
+      - name: Clock-gate cell through the steps
+        if: always()
+        shell: bash
+        run: python .github/trace_cell.py logs "run ${{ matrix.run_id }}" 'g_word[108].u_cg.u_cell'
+
   coverage:
     runs-on: ubuntu-24.04
     env:

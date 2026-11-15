@@ -46,6 +46,9 @@
   "//": "Clock tree: at most 8 sinks per leaf clock buffer, the cell library max fanout (default_max_fanout 8).",
   "CTS_SINK_CLUSTERING_SIZE": 8,
 
+  "//": "Design repair to the same fanout limit as the cell library (the default constraint is 10).",
+  "MAX_FANOUT_CONSTRAINT": 8,
+
   "//": "RUN_LINTER, LINTER_INCLUDE_PDK_MODELS - Disabling the linter is not recommended!",
   "RUN_LINTER": 1,
   "LINTER_INCLUDE_PDK_MODELS": 1,

@@ -8,7 +8,7 @@ Each method below gives what it checks, what it does not check, and its latest r
 |---|---|---|
 | RTL tests (cocotb, Icarus Verilog) | host port, firmware UART on the chip pins, processor against the reference model, assembler, full protocol firmware in the model, firmware for protocols outside the instruction-set design, hold-out trials | 75 tests, 0 failures, 0 skipped, run [43712217681] |
 | Code coverage (Verilator) | line, branch and toggle coverage of the RTL tests | line 100 %, branch 100 %, toggle 98.5 %, run [43712217710] ([signoff.md](signoff.md) section 4) |
-| Gate-level test (present layout) | the layout netlist with the RTL tests, no delays | 47 pass, 28 skipped (model-only tests), run [43712217729] |
+| Gate-level test (present layout) | the layout netlist with the RTL tests, no delays | 47 pass (23 drive the netlist), 28 skipped (model-only tests), run [43712217729] (section 4) |
 | SDF gate-level simulation (present layout) | the netlist with layout cell delays at 3 corners | `test_r3_sdf`, `test.py`, `test_core.py` pass at slow, typical and fast (run [43716786712]); see [signoff.md](signoff.md) section 3 for the long counter test |
 | Static timing and layout checks (present layout) | setup, hold, slew, capacitance, fanout, DRC, LVS, antenna, lint, precheck | 60 MHz: slow-corner setup margin +3.841 ns, no setup, hold, slew or capacitance violation at 3 corners; 8 max-fanout pins explained in [signoff.md](signoff.md); DRC, LVS, antenna, lint 0; precheck 10 of 10 |
 | Lockstep with the reference model | every pin and every host word, in every clock cycle | part of the RTL and gate-level tests |

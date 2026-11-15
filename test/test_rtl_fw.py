@@ -468,7 +468,7 @@ async def test_rtl_spi_ctl(dut):
                 await bench.run(HOST_START + len(ff.SPI_WORDS) * (20 * h + 120) + 2000)
                 await bench.collect(0, len(ff.SPI_WORDS))
                 fault = ff.spi_fault(bench, bench.m, dev)
-                assert fault is None, f"{label}: {fault}"
+                assert fault is None, f"{label}: {fault}; {bench.diag()}"
                 periods, n = ff.spi_half_periods(bench)
                 assert periods == {h} and n == 16 * len(ff.SPI_WORDS), (label, periods, n)
                 await bench.finish(log)

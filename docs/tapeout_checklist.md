@@ -26,13 +26,14 @@ There is no FPGA step: the design does not fit the only FPGA of the template wor
 
 ## 3 Before the tape-out run: template, tools and GDS action
 
-- [ ] Read the newest commit of each branch below and compare it with the last check. The gds workflow uses the moving reference `@ihp-cmos5l`, so a new commit of the action can change the flow of the tape-out run. Last check (GitHub commits, read 2026-11-04):
+- [ ] Read the newest commit of each branch below and compare it with the last check. The gds workflow uses the moving reference `@ttihp27a` (template main flow since commit 4b96571), so a new commit of the action can change the flow of the tape-out run. Last check (GitHub API commits, read 2026-11-14):
 
   | Repository, branch | Newest commit at the last check |
   |---|---|
-  | TinyTapeout/ttihp-verilog-template, cmos5l | "fix(test): add sg13cmos5l UDP models to gate-level simulation" (2026-10-19) |
-  | TinyTapeout/tt-support-tools, ihp-sg13cmos5l | "feat(ihp): 8x4 tile size for ihp-sg13cmos5l" |
-  | TinyTapeout/tt-gds-action, ihp-cmos5l | "fix: install ihp-sg13cmos5l from the merged IHP-Open-PDK tree #52; Pin PDK version and bump the default LibreLane to 3.1.0.dev3" |
+  | TinyTapeout/ttihp-verilog-template, main | "docs(info.yaml): fix IHP tile dimensions and list all valid tile sizes" (2026-10-28) |
+  | TinyTapeout/tt-gds-action, ttihp27a | "fix(custom_gds): install the KLayout package matching the runner's Ubuntu" (2026-10-29) |
+
+  Both are older than the layout runs of 2026-11-14 (for example 43647479367), so those runs used them.
 
 - [ ] If a commit is new: read what it changes. The flow gives the same metrics for the same netlist and settings, so a change of `final/metrics.csv` between the last development run and a run of the same commit shows a tool change. Write the PDK and LibreLane versions of the tape-out run (resolved.json) in docs/verification.md.
 

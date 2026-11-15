@@ -31,7 +31,10 @@
 ;   The thread takes the first word when it waits for CS low, and the word
 ;   for byte k + 1 when byte k starts. For a transfer of N bytes the host
 ;   gives N + 1 words before the controller starts it (the FIFO holds 4); the
-;   last word is not sent. With no word the thread sends 0xFF.
+;   last word is not sent. With no word the thread sends 0xFF. After START
+;   the thread waits for the first word and does not answer before it (the
+;   host can push only after START, so a word could not be there in time;
+;   test_rtl_spi_tgt with the SPI host).
 ; Words to the host: one for each byte: bits 7 to 0 the MOSI byte, bits 15
 ;   to 8 the MOSI byte before it.
 ; Controller limits in clock cycles (model, test_m3_spi_tgt): SCK half

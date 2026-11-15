@@ -32,7 +32,7 @@ Example, `fw/uart_tx.s` (12 words): the bit time is `TADD 434` between two `OUT`
 
 ## Flexibility: protocols the instruction set was not designed for
 
-The instruction set ([docs/isa.md](docs/isa.md) section 13) was designed from UART, SPI and I2C firmware. The protocols below were written later, each from its public specification, with the same instruction set, assembler and host port, and no hardware change. Each test runs the firmware in the cycle-exact reference model against a protocol model written from the specification (not from the firmware). All four protocols are named on the competition page, so they were known when the instruction set was made. Rates at 50 MHz.
+The instruction set ([docs/isa.md](docs/isa.md) section 13) was designed from UART, SPI and I2C firmware. The protocols below were written later, each from its public specification, with the same instruction set, assembler and host port, and no hardware change. Each test runs the firmware in the cycle-exact reference model against a protocol model written from the specification (not from the firmware). All four protocols are named on the competition page, so they were known when the instruction set was made. The rates in this table were measured in the reference model at 50 MHz, the clock declared when these tests were written; the chip is now declared at 60 MHz, and the 60 MHz values of this table are not measured yet.
 
 | Protocol | Specification | Firmware, words | Highest rate measured | Test | What the instruction set lacked (workaround) |
 |---|---|---|---|---|---|

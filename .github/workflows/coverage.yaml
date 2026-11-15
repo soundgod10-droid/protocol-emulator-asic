@@ -72,6 +72,9 @@ jobs:
           # The same table as an annotation, readable through the public API without sign-in.
           echo "::notice title=coverage summary::$(sed -e 's/%/%25/g' coverage_summary.md | sed -e ':a;N;$!ba;s/\n/%0A/g')"
           verilator_coverage --annotate coverage_annotated --annotate-all --annotate-min 1 coverage.dat
+          # Source lines with no coverage point hit ("%" in the annotated files), test bench left out.
+          missed=$(grep -rn --include='*.v' '^%' coverage_annotated | grep -v '/tb\.v:' || true)
+          echo "::notice title=lines with no point hit::$(printf '%s\n' "${missed:-none}" | sed -e 's/%/%25/g' | sed -e ':a;N;$!ba;s/\n/%0A/g')"
           verilator_coverage --write-info coverage.info coverage.dat
 
       - name: Test Summary

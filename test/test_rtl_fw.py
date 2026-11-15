@@ -204,7 +204,9 @@ class RtlBench:
                 plan.append(("PUSH", n, words))
         for n in range(pe_model.N_THREADS):
             if st["out_cnt"][n]:
-                plan.append(("PULL", n, st["out_cnt"][n]))
+                # All 4 word slots: the port takes the next word when it loads it into MISO, at the end of the byte
+                # before it (docs/host_port.md 9), so a PULL that ends before the K-th word loses a word.
+                plan.append(("PULL", n, pe_model.FIFO_DEPTH))
         return plan
 
     def _host(self, t):

@@ -353,6 +353,57 @@ class RtlBench:
         return st
 
 
+# ----- host port: PULL length rule -----
+
+
+async def spi_load(dut, host, image, owner=None, od=None):
+    """Chip reset, then WRITE_MEM of 128 words, WRITE_CFG (thread 0 runs from 0), START, with the real-time host."""
+    dut.ena.value = 1
+    dut.uio_in.value = 0
+    dut.rst_n.value = 0
+    await ClockCycles(dut.clk, 5)
+    await FallingEdge(dut.clk)
+    dut.rst_n.value = 1
+    await ClockCycles(dut.clk, 4)
+    words = [0] * pe_model.MEM_WORDS
+    for a, w in image.items():
+        words[a] = w
+    head, pins = hs.config_words((0, 0, 0, 0), (True, False, False, False), owner or [None] * pe_model.N_OUT,
+                                 od or [False] * pe_model.N_OUT)
+    await host.write_mem(0, words)
+    await host.write_cfg(0, head)
+    await host.write_cfg(16, pins)
+    await host.start()
+
+
+@cocotb.test()
+async def test_rtl_pull_rule(dut):
+    """docs/host_port.md 9 on the chip, with the independent real-time host model (test/host_spi.py SpiTimed,
+    SCK 100 ns): the port takes the next out-FIFO word when it loads it into MISO, at the end of the byte before it.
+    Thread 0 pushes 3 words. A PULL that the host ends after 1 word takes 2 words: the second is lost (count 1, then
+    the third word). A PULL that clocks all K words gives all 3 and leaves the FIFO empty."""
+    start_clock(dut)
+    log = dut._log
+    prog = pe_asm.assemble("LDI r0, 0x11\nPUSH r0\nLDI r0, 0x22\nPUSH r0\nLDI r0, 0x33\nPUSH r0\nHALT", "pull_rule", 0)
+    host = hs.SpiTimed(dut, period_ns=100)
+    await spi_load(dut, host, prog.words)
+    await ClockCycles(dut.clk, 200)
+    st = await host.read_status()
+    assert st["out_cnt"][0] == 3, st
+    first, k1 = await host.pull(0, max_words=1)
+    st = await host.read_status()
+    rest, k2 = await host.pull(0)
+    log.info(f"PULL ended after 1 word: count {k1}, words {[hex(w) for w in first]}; then status out-FIFO "
+             f"{st['out_cnt'][0]}; next PULL count {k2}, words {[hex(w) for w in rest]}")
+    assert (k1, first, st["out_cnt"][0], k2, rest) == (3, [0x11], 1, 1, [0x33]), (k1, first, st, k2, rest)
+    await spi_load(dut, host, prog.words)
+    await ClockCycles(dut.clk, 200)
+    words, k = await host.pull(0, max_words=4)
+    st = await host.read_status()
+    log.info(f"PULL of all K words: count {k}, words {[hex(w) for w in words]}; then status out-FIFO {st['out_cnt'][0]}")
+    assert (k, words, st["out_cnt"][0]) == (3, [0x11, 0x22, 0x33], 0), (k, words, st)
+
+
 # ----- UART -----
 
 

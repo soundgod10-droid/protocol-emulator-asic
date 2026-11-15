@@ -37,6 +37,11 @@ jobs:
         shell: bash
         run: python .github/trace_cell.py logs "run ${{ matrix.run_id }}" '${{ matrix.cell }}'
 
+      - name: Fanout of the placement buffers through the steps
+        if: always()
+        shell: bash
+        run: python .github/trace_net.py logs "run ${{ matrix.run_id }}" place3079 X place3115 X place3119 X place3085 X
+
       - name: Clock tree synthesis warnings
         if: always()
         shell: bash

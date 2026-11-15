@@ -71,7 +71,7 @@ Run [43712217710] (commit 69bbf37): line 173 / 173, branch 208 / 208, toggle 7,6
 1. **Magic DRC** is on only in the submitted run; the precheck KLayout DRC runs on every push.
 2. **Fast-corner hold slack** +0.099 ns (+0.010 ns before the clock-tree setting): watch it on each RTL change.
 3. **IR drop** is an estimate without voltage-source locations.
-4. **CDC by tool**: no structural CDC tool was run; section 2 is a review by hand of 17 asynchronous inputs and the reset tree.
+4. **CDC by tool**: [formal/cdc.sby](../formal/cdc.sby) checks the synchronizer and reset structure (section 2). It does not judge reconvergence of synchronized bits (the three host bits, argued in section 2 and checked by `formal/host_port.sby`) and is not a commercial CDC tool with its full rule set.
 5. **Max fanout**: 8 pins over the library limit, each a net with at most 8 logic inputs plus antenna diodes (section 1). A design-repair fanout limit of 8 would remove them, but on this flow version it triggers a clock tree synthesis defect ([decisions.md](decisions.md) entries 3 and 17).
 
 [43622834317]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43622834317

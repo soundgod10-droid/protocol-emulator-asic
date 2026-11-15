@@ -42,7 +42,7 @@ Does not check: programs that break the store-and-read rule of isa section 3.3, 
 
 ## 3. Formal proofs
 
-The properties are in the RTL (`ifdef FORMAL`) and in the wrapper files `formal/*_fv.v`. Each proof job stops with an error if fewer property cells than written reach the solver (`select -assert-min`), so a pass cannot come from properties that synthesis removed. Run with `sby -f formal/<job>.sby`. Last run: commit 6e2a0fd, SymbiYosys with Z3.
+The properties are in the RTL (`ifdef FORMAL`) and in the wrapper files `formal/*_fv.v`. Each proof job stops with an error if fewer property cells than written reach the solver (`select -assert-min`), so a pass cannot come from properties that synthesis removed. Run with `sby -f formal/<job>.sby`. Last run: commit a5a8003 (14 November 2026; its RTL is the RTL of the present layout run), SymbiYosys with Z3: every job gives the result in the table (mem_full 556 s, mem_full_reset 636 s, host_port_cover 722 s). The run before: commit 6e2a0fd.
 
 | Job | What | Mode, depth | Result |
 |---|---|---|---|

@@ -21,7 +21,7 @@ Example, `fw/uart_tx.s` (12 words): the bit time is `TADD 434` between two `OUT`
 | Item | State |
 |---|---|
 | Processor, timed pin events, 128 x 16 memory, host SPI port, I2C input spike filter | built; RTL tests, formal proofs, gate-level test pass ([docs/verification.md](docs/verification.md)) |
-| Layout at 60 MHz, 8x4 tiles, template main flow | passes; slow-corner setup margin +3.69 ns, no setup, hold, max-slew or max-capacitance violation at three corners, lint 0 ([docs/signoff.md](docs/signoff.md)) |
+| Layout at 60 MHz, 8x4 tiles, template main flow | passes (precheck 10 of 10, gate-level test); slow-corner setup margin +3.84 ns, fast-corner hold +0.10 ns, no setup, hold, max-slew or max-capacitance violation at three corners; DRC, LVS, antenna, lint 0; RTL code coverage line 100 %, branch 100 %, toggle 98.5 % ([docs/signoff.md](docs/signoff.md)) |
 | UART transmitter firmware `fw/uart_tx.s` | runs on the RTL and on the gate-level netlist (`test/test.py`) |
 | UART TX and RX 300 bit/s to 1 Mbit/s, SPI controller (4 modes), SPI target (4 modes, up to 1 MHz), I2C controller (Standard-mode and Fast-mode) | firmware in `fw/`, tested in the cycle-exact reference model against independent protocol models (`test/test_fw_full.py`); UART TX, UART RX, SPI controller and I2C controller fit together in 103 of 128 words (`test_fw_full_word_count`) |
 | CAN 2.0A node, JTAG controller, SWD host, PS/2 host and device, timed trigger | firmware in `fw/`, tested in the reference model against protocol models written from each specification (`test/test_flex.py`); words, rates and limits in the Flexibility section below |

@@ -6,10 +6,10 @@ How to read a value: open the run, artifact `GDS_logs`. Timing: `runs/wokwi/55-o
 
 ## 1 Checks and results
 
-| Check | Source of the practice | Result (run [43647479367] unless stated) | State |
+| Check | Source of the practice | Result (run [43712217729] unless stated) | State |
 |---|---|---|---|
-| Setup timing, all corners | signoff static timing of the LibreLane flow (step `OpenROAD.STAPostPNR`, checker step `Checker.SetupViolations`) | 0 violations at the 3 corners; slow-corner flip-flop slack +3.687 ns at 16.667 ns (group `flops`, [src/signoff.sdc](../src/signoff.sdc)); latch paths borrow up to 3.15 ns of the 8.05 ns allowed | clean |
-| Hold timing, all corners | same flow, `Checker.HoldViolations` | 0 violations; worst slack +0.010 ns (fast), +0.224 ns (typical), +0.592 ns (slow) | clean; the fast-corner slack is small (open item 3) |
+| Setup timing, all corners | signoff static timing of the LibreLane flow (step `OpenROAD.STAPostPNR`, checker step `Checker.SetupViolations`) | 0 violations at the 3 corners; flip-flop slack at 16.667 ns (group `flops`, [src/signoff.sdc](../src/signoff.sdc)): +3.841 ns slow, +8.458 ns typical, +11.202 ns fast; latch paths borrow time and report 0.000 | clean |
+| Hold timing, all corners | same flow, `Checker.HoldViolations` | 0 violations; worst slack +0.099 ns (fast), +0.273 ns (typical), +0.586 ns (slow) | clean |
 | Max transition (slew) | Liberty `max_transition` of the cells, `Checker.MaxSlewViolations` | 0 at the 3 corners | clean |
 | Max capacitance | Liberty `max_capacitance`, `Checker.MaxCapViolations` | 0 at the 3 corners | clean |
 | Max fanout | design rule of the flow's default constraints (limit 8); the flow has no checker step for it | 84 pins at each corner: 80 clock-tree buffers (fanout 10 to 17) and 4 placement buffers (`place3079`, `place3083` fanout 12; `place3118`, `place3126` fanout 9); slew and capacitance of all of them within limits | open item 1 |

@@ -522,6 +522,7 @@ async def test_rtl_i2c(dut):
             bench, bus = i2c_bench(dut, mode, stretch, label)
             send_pairs(bench, words)
             await bench.run(HOST_START + (36_000 if mode == "Fm" else 100_000))
+            await bench.collect(0, len(replies))
             assert bench.words(0) == replies, f"{label}: replies {[hex(w) for w in bench.words(0)]}"
             assert ff.i2c_events(bus) == events, f"{label}: bus events {ff.i2c_events(bus)}"
             ff.check_i2c_times(log, bus.changes, mode, F_MHZ, label)

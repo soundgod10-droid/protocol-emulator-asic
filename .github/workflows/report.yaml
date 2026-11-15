@@ -46,6 +46,7 @@ jobs:
         if: always()
         shell: bash
         run: |
+          set +e +o pipefail
           for d in logs/runs/wokwi/3[6-9]-* logs/runs/wokwi/4[0-3]-*; do
             [ -d "$d" ] || continue
             msg=$(cat "$d"/*.log 2>/dev/null | grep -iE 'insert|remov|clone|resiz|buffer|repair|diode|fanout|swap' | grep -v -i 'warning ord-0039' | sort | uniq -c | sort -rn | head -n 25)

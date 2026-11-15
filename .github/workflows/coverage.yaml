@@ -16,7 +16,7 @@ jobs:
 
       - name: Cache Verilator
         id: cache-verilator
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/verilator
           key: verilator-${{ env.VERILATOR_VERSION }}-ubuntu-24.04

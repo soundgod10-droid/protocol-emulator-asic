@@ -71,7 +71,8 @@ def corner_facts(checks):
 
 def main(root, label):
     wokwi = os.path.join(root, "runs", "wokwi")
-    steps = sorted(d for d in glob.glob(os.path.join(wokwi, "[0-9]*-*")) if os.path.isdir(d))
+    steps = sorted((d for d in glob.glob(os.path.join(wokwi, "[0-9]*-*")) if os.path.isdir(d)),
+                   key=lambda d: int(os.path.basename(d).split("-")[0]))
     if steps:
         notice(f"{label} last step", os.path.basename(steps[-1]))
     error_log = os.path.join(wokwi, "error.log")

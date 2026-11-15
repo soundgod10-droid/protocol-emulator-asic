@@ -934,6 +934,95 @@ async def test_rtl_trigger(dut):
     assert set(lat) == {want}, f"pulse delays {lat}, expected {want} at every phase"
 
 
+# ----- four protocols at the same time (all 4 threads) -----
+
+
+@cocotb.test()
+async def test_rtl_four_protocols(dut):
+    """Four protocols at the same time on the 4 threads, from one 128-word image, each against its independent model
+    with its own checks: thread 0 UART TX (fw/uart_tx_full.s, 1 Mbit/s 8N1, 12 back-to-back frames, check_tx),
+    thread 1 SPI controller (fw/spi_ctl.s mode 0 at the smallest half period, the SPI device model), thread 2 I2C
+    controller (fw/i2c_ctl.s Fast-mode with 360-cycle clock stretching, UM10204 Table 11 times), thread 3 JTAG
+    (fw/jtag.s, TCK 1.5 MHz, the two-TAP chain, all five steps). The host serves all four threads through the one SPI
+    port (READ_STATUS, PUSH, PULL)."""
+    start_clock(dut)
+    log = dut._log
+    files = (("uart_tx_full.s", {}), ("spi_ctl.s", dict(CPOL=0, CL=0, D=0)), ("i2c_ctl.s", I2C_EQU60["Fm"]),
+             ("jtag.s", dict(H1=12, H2=28)))
+    image, bases, addr = {}, [], 0
+    for name, equ in files:
+        prog = ff.assemble(name, addr, **equ)
+        bases.append(addr)
+        image.update(prog.words)
+        addr += prog.size
+    assert addr <= pe_model.MEM_WORDS, f"{addr} words"
+    rate = 1_000_000
+    k, c, b = ff.uart_cfg(F_CLK, rate)
+    rng = random.Random(4)
+    frames = [ff.frame_bits(rng.randrange(256), "8N1") for _ in range(12)]
+    h_spi = ff.spi_h_min(0, 0, 0)
+    spi = ff.SpiDevice(0, 0, ff.SPI_DEV)
+    bus = ff.I2cBus(ff.I2C_ADDR, ff.I2C_READ, stretch=360)
+    words, replies, events = ff.i2c_script()
+    devs = fx.jtag_devices()
+    chain = fx.JtagChain(devs)
+
+    def inputs(cy, uo, uio, oe):
+        _, miso = spi(cy, uo, uio, oe)
+        _, i2c = bus(cy, uo, uio, oe)
+        tdo, _ = chain(cy, uo, uio, oe)
+        return tdo, miso | i2c
+
+    owner = ff.owners({ff.P_TX: 0, ff.P_CS: 1, ff.P_MOSI: 1, ff.P_SCK: 1, ff.P_SCL: 2, ff.P_SDA: 2,
+                       fx.P_TCK: 3, fx.P_TMS: 3, fx.P_TDI: 3})
+    label = (f"rtl four protocols: UART TX {rate} bit/s, SPI H {h_spi} ({F_CLK / 2e3 / h_spi:.0f} kHz), I2C Fm with "
+             f"stretching, JTAG TCK 1.5 MHz; {addr} words")
+    bench = RtlBench(dut, image, start_pc=tuple(bases), run=(True,) * 4, owner=owner,
+                     od=ff.open_drain({ff.P_SCL, ff.P_SDA}), inputs=inputs, label=label)
+    bench.watch("tx", lambda uo, uio, oe: (uo >> 4) & 1)
+    bench.watch("sck", lambda uo, uio, oe: ff.level(uio, oe, ff.P_SCK))
+    bench.watch("cs", lambda uo, uio, oe: ff.level(uio, oe, ff.P_CS))
+    bench.send(0, c, k, *[ff.frame_word(f) for f in frames])
+    bench.send(1, h_spi, *ff.SPI_WORDS)
+    send_pairs_n(bench, 2, words)
+    await bench.run(50)
+    for step, ((tms, tdi, idx), want) in enumerate(fx.jtag_steps()):
+        n = len(tms)
+        n0 = len(bench.words(3))
+        bench.send(3, n, *[w for g in range(0, n, 16) for w in (fx.lsb_word(tms[g:g + 16]), fx.lsb_word(tdi[g:g + 16]))])
+        need = n0 + (n + 15) // 16
+        for _ in range(400):
+            if len(bench.words(3)) >= need:
+                break
+            await bench.run(1000)
+        got = bench.words(3)[n0:]
+        assert len(got) == need - n0, f"{label}: JTAG step {step}: {len(got)} TDO words; {bench.diag()}"
+        tdo = fx.jtag_tdo(got, n)
+        assert [tdo[i] for i in idx] == want, f"{label}: JTAG step {step}: TDO {[tdo[i] for i in idx]}, expected {want}"
+    await bench.run(HOST_START + 36_000)
+    await bench.collect(1, len(ff.SPI_WORDS))
+    await bench.collect(2, len(replies))
+    ff.check_tx(log, bench.changes("tx"), b, F_CLK / rate, frames, f"{label}: uart_tx")
+    assert not spi.errors and spi.rx == [w & 0xFF for w in ff.SPI_WORDS], (spi.errors, spi.rx)
+    assert [w & 0xFF for w in bench.words(1)] == ff.SPI_DEV, [hex(w) for w in bench.words(1)]
+    periods, nedge = ff.spi_half_periods(bench)
+    assert periods == {h_spi} and nedge == 16 * len(ff.SPI_WORDS), (periods, nedge)
+    assert bench.words(2) == replies, [hex(w) for w in bench.words(2)]
+    assert ff.i2c_events(bus) == events, ff.i2c_events(bus)
+    ff.check_i2c_times(log, bus.changes, "Fm", F_MHZ, f"{label}: i2c")
+    for d in devs:
+        assert not d.errors, f"{label}: JTAG device errors {d.errors[:3]}"
+    assert devs[1].updates == [0xA53, 0], devs[1].updates
+    ff.assert_status_clean(bench.m, [0, 1, 2, 3])
+    await bench.finish(log)
+    log.info(f"{label}: all four correct at the same time, no LATE, no ERR")
+
+
+def send_pairs_n(bench, n, words):
+    for i in range(0, len(words), 2):
+        bench.send_group(n, *words[i:i + 2])
+
+
 # ----- hold-out trials -----
 
 

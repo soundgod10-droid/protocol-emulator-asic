@@ -255,7 +255,7 @@ Rules for the controller and the host:
 1. SCK up to 1 MHz at a 50 MHz chip clock. The limit comes from the instruction rate, not from the pins: one instruction every 4 cycles with a lead of 4 cycles (docs/isa.md 3.1, 4.2) gives 49 cycles between the sample edges at the start and at the end of a byte. An earlier estimate of about 5 MHz does not hold (docs/decisions.md entry 11).
 2. The target ends a transfer when no sample edge comes GAP cycles after the end of a byte: set GAP so that 2 x half period + the longest pause between bytes is GAP + 16 or less, and keep CS high GAP + 57 cycles or more after the last sample edge. MISO stays driven up to GAP + 39 cycles after the last sample edge: with other targets on the same MISO line, wait this time before you select another target.
 3. CS low to the first SCK edge: 21 cycles or more in modes 0 and 2 (420 ns at 50 MHz; an SPI controller that waits one half period at 1 MHz meets it).
-4. Memory: fw/spi_tgt.s has 31 words. With fw/uart_tx_full.s, fw/uart_rx_full.s and fw/i2c_ctl.s: 15 + 13 + 31 + 49 = 108 of 128 words.
+4. Memory: fw/spi_tgt.s has 33 words (31 before the wait for the first word after START). With fw/uart_tx_full.s, fw/uart_rx_full.s and fw/i2c_ctl.s: 15 + 13 + 33 + 49 = 110 of 128 words.
 
 Alternatives measured: a thread that also waits for the shift edge (no SE setting) needs a half period of 49 cycles (510 kHz at 50 MHz). Two earlier orders of the same instructions met the half period of 25 but needed a CS lead of 29 cycles (1 MHz with a CS lead of one half period failed in modes 0 and 2), or a MOSI hold of 25 cycles (no margin at 1 MHz).
 

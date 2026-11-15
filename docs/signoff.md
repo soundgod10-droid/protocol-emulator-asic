@@ -16,7 +16,7 @@ How to read a value: open the run, artifact `GDS_logs`. Timing: `runs/wokwi/55-o
 | Lint | Verilator lint of the flow (`Verilator.Lint`, checkers for errors, warnings, timing constructs) | 0 errors, 0 warnings, 0 timing constructs, 0 inferred latches (the latch cells are instantiated); 2 local waivers for the power pins of the two instantiated cells ([decisions.md](decisions.md) entry 14) | clean |
 | DRC | foundry deck run by the Tiny Tapeout precheck (KLayout); Magic DRC in the flow | precheck KLayout SG13CMOS5L DRC: pass; route DRC 0 (detailed router); Magic DRC is off in development runs and on in the submitted run ([tapeout_checklist.md](tapeout_checklist.md) section 2) | open item 2 |
 | LVS | Netgen LVS of the flow (`Netgen.LVS`, `Checker.LVS`) | 0 errors, 0 unmatched devices, nets or pins | clean |
-| Antenna | OpenROAD antenna check and repair of the flow | 0 violating nets after 3 diodes | clean |
+| Antenna | OpenROAD antenna check and repair of the flow | 0 violating nets (`antenna__violating__nets`); repair by diodes, not by layer jumpers only, which left 15 violating nets (run [43705472044], entry 17) | clean |
 | Disconnected pins | `Checker.DisconnectedPins` of the flow | 1 disconnected pin, 0 critical (the unused `ena` input of the template) | clean |
 | Power grid | `Checker.PowerGridViolations`; IR drop report | 0 grid violations; worst IR drop 0.2 mV at typical, estimated without voltage-source locations (the flow warns that the value is approximate) | clean, estimate only |
 | Precheck | Tiny Tapeout precheck (the competition's requirement) | 10 of 10 checks pass | clean |

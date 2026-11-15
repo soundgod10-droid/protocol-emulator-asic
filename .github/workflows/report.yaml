@@ -43,7 +43,7 @@ jobs:
         run: python .github/trace_net.py logs "run ${{ matrix.run_id }}" place3079 X place3115 X place3119 X place3085 X
 
       - name: Netlist changes of steps 36 to 43
-        if: always()
+        if: false
         shell: bash
         run: |
           set +e +o pipefail

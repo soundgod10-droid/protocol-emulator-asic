@@ -18,7 +18,7 @@ How to read a value: open the run, artifact `GDS_logs`. Timing: `runs/wokwi/55-o
 | LVS | Netgen LVS of the flow (`Netgen.LVS`, `Checker.LVS`) | 0 errors, 0 unmatched devices, nets or pins | clean |
 | Antenna | OpenROAD antenna check and repair of the flow | 0 violating nets (`antenna__violating__nets`); repair by diodes, not by layer jumpers only, which left 15 violating nets (run [43705472044], entry 17) | clean |
 | Disconnected pins | `Checker.DisconnectedPins` of the flow | 1 disconnected pin, 0 critical (the unused `ena` input of the template) | clean |
-| Power grid | `Checker.PowerGridViolations`; IR drop report | 0 grid violations; worst IR drop 0.2 mV at typical in run [43647479367] (before the clock-tree setting), estimated without voltage-source locations (the flow warns that the value is approximate) | clean, estimate only |
+| Power grid | `Checker.PowerGridViolations`; IR drop report | 0 grid violations; worst IR drop 0.2 mV at typical (VPWR 0.19 mV, VGND 0.22 mV), estimated without voltage-source locations (the flow warns that the value is approximate) | clean, estimate only |
 | Precheck | Tiny Tapeout precheck (the competition's requirement) | 10 of 10 checks pass | clean |
 | Gate-level simulation, functional | Tiny Tapeout `gl_test` job (recommended by the competition) | 44 pass, 25 skipped (model-only), 0 failures | clean |
 | Gate-level simulation with layout delays | SDF back-annotated simulation, a standard post-layout check | `.github/workflows/sdf.yaml` on this run: section 3; on the first 8x4 run (commit 9c38482, 50 MHz, `@ihp-cmos5l` flow, run [43622834317]; same RTL apart from the lint waivers): job [43642622272] | see section 3 |

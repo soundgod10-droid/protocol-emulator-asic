@@ -75,7 +75,7 @@ Does not check: delays; see sections 5 and 6.
 
 Result: 22 tests pass at each of the three corners, with the netlist of gds run 41404293323 (runs [41871325339] and [41924796459]).
 
-The 8x4 netlists have their own SDF runs ([signoff.md](signoff.md) section 3: runs [43651078000] and 43642622272, all jobs pass at the three corners); the SDF job runs again on the submitted layout run ([docs/tapeout_checklist.md](tapeout_checklist.md) section 4).
+The 8x4 netlists have their own SDF runs ([signoff.md](signoff.md) section 3: the present layout in run [43716786712], earlier ones in runs [43651078000] and 43642622272; all jobs pass at the three corners); the SDF job runs again on the submitted layout run ([docs/tapeout_checklist.md](tapeout_checklist.md) section 4).
 
 Does not check: wire delays (Icarus Verilog stops on the interconnect lines, so they are not loaded); timing checks (Icarus Verilog applies the delays but does not run the setup and hold checks of the cell models). Static timing stays the setup and hold check.
 

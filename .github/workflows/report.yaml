@@ -37,7 +37,14 @@ jobs:
       - name: Clock-gate cell through the steps
         if: always()
         shell: bash
-        run: python .github/trace_cell.py logs "run ${{ matrix.run_id }}" 'g_word[108].u_cg.u_cell'
+        run: python .github/trace_cell.py logs "run ${{ matrix.run_id }}" '${{ matrix.cell }}'
+
+      - name: Clock tree synthesis warnings
+        if: always()
+        shell: bash
+        run: |
+          msg=$(grep -h -E 'WARNING|ERROR|CTS-[0-9]+' logs/runs/wokwi/*-openroad-cts/*.log | sort | uniq -c | sort -rn | head -n 40)
+          echo "::notice title=run ${{ matrix.run_id }} CTS warnings::$(printf '%s\n' "${msg:-none}" | sed -e 's/%/%25/g' | sed -e ':a;N;$!ba;s/\n/%0A/g')"
 
   coverage:
     runs-on: ubuntu-24.04

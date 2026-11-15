@@ -940,7 +940,7 @@ async def test_rtl_trigger(dut):
 @cocotb.test()
 async def test_rtl_four_protocols(dut):
     """Four protocols at the same time on the 4 threads, from one 128-word image, each against its independent model
-    with its own checks: thread 0 UART TX (fw/uart_tx_full.s, 1 Mbit/s 8N1, 12 back-to-back frames, check_tx),
+    with its own checks: thread 0 UART TX (fw/uart_tx_full.s, 460,800 bit/s 8N1, 12 back-to-back frames, check_tx),
     thread 1 SPI controller (fw/spi_ctl.s mode 0 at the smallest half period, the SPI device model), thread 2 I2C
     controller (fw/i2c_ctl.s Fast-mode with 360-cycle clock stretching, UM10204 Table 11 times), thread 3 JTAG
     (fw/jtag.s, TCK 1.5 MHz, the two-TAP chain, all five steps). The host serves all four threads through the one SPI

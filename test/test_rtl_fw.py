@@ -86,10 +86,13 @@ class RtlBench:
     def __init__(self, dut, image, start_pc=(0, 0, 0, 0), run=(True, False, False, False), owner=None, od=None,
                  inputs=None, label="rtl"):
         words = [0] * pe_model.MEM_WORDS
+        used = 0
         for a, w in (image.items() if isinstance(image, dict) else enumerate(image)):
             words[a] = w & 0xFFFF
+            used = max(used, a + 1)
         self.dut, self.label, self.inputs = dut, label, inputs
         self.image = words
+        self.used = used  # the host writes the words that the firmware uses (docs/host_port.md 8, rule 6)
         self.start_pc = tuple(start_pc)
         self.run_mask = tuple(bool(x) for x in run)
         self.owner = list(owner) if owner is not None else [None] * pe_model.N_OUT

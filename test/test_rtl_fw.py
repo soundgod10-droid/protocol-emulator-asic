@@ -956,7 +956,10 @@ async def test_rtl_four_protocols(dut):
         image.update(prog.words)
         addr += prog.size
     assert addr <= pe_model.MEM_WORDS, f"{addr} words"
-    rate = 1_000_000
+    # 460,800 bit/s: at 1 Mbit/s the frames are correct but the one host port (status first, then PUSH and 4-word
+    # PULLs for four threads) cannot refill the UART FIFO every 600 cycles, so frames get idle gaps (measured:
+    # start-to-start 600, 1,012 and 1,540 cycles; docs/host_port.md 10: not all four protocols at full rate).
+    rate = 460_800
     k, c, b = ff.uart_cfg(F_CLK, rate)
     rng = random.Random(4)
     frames = [ff.frame_bits(rng.randrange(256), "8N1") for _ in range(12)]

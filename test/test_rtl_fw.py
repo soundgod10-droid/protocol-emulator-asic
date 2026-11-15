@@ -848,7 +848,9 @@ async def test_rtl_ps2(dut):
     start_clock(dut)
     log = dut._log
     frames = fx.PS2_BYTES[:3]
-    prog = fx.assemble("ps2_host.s", LATE="st", RTS=4800)
+    # RTS keeps its file value 4,000 cycles: 66.7 us at 60 MHz, more than the 60 us of page 40 (80 us would be 4,800
+    # cycles, more than one TADD can add).
+    prog = fx.assemble("ps2_host.s", LATE="st")
     dev = fx.Ps2Device(PS2_PERIOD, frames, gap=3600, rts_delay=600, start=HOST_START + 1000)
     label = "rtl ps2_host.s 12.5 kHz device clock"
     bench = RtlBench(dut, prog.words, owner=ff.owners({fx.P_PCLK: 0, fx.P_PDATA: 0}), od=fx.od((fx.P_PCLK, fx.P_PDATA)),

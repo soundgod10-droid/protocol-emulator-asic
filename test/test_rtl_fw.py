@@ -481,6 +481,7 @@ async def test_rtl_spi_tgt(dut):
         for _, miso in ff.SPI_TGT_XFERS:
             bench.send(0, *[byte << 2 for byte in miso], 0)
         await bench.run(ctl.end + 1000)
+        await bench.collect(0, sum(len(mosi) for mosi, _ in ff.SPI_TGT_XFERS))
         fault = ff.spi_tgt_fault(bench, bench.m, ctl)
         assert fault is None, f"{label}: {fault}"
         su, hold, rel, _ = ctl.miso_timing()

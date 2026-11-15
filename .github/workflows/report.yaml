@@ -13,7 +13,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        run_id: [43688791463, 43688768543]
+        include:
+          - run_id: 43688791463
+            cell: 'g_word[108].u_cg.u_cell'
+          - run_id: 43623912585
+            cell: 'u_mem.g_word[61].u_cg.u_cell'
     steps:
       - name: Checkout repo
         uses: actions/checkout@v6

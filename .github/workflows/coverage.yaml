@@ -78,7 +78,7 @@ jobs:
           verilator_coverage --write-info coverage.info coverage.dat
 
       - name: Test Summary
-        uses: test-summary/action@v2.4
+        uses: test-summary/action@v2.6
         with:
           paths: "test/results.xml"
         if: always()

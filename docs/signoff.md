@@ -1,6 +1,6 @@
 # Signoff review
 
-The competition asks for "a clean run through the Tiny Tapeout flow and precheck" and recommends gate-level simulation. This page goes further and applies the usual signoff checks of a digital tape-out. For each check it gives the source of the practice, our result with its run, and what stays open. The design reviewed is branch `cmos5l` at commit fcf649d: 8x4 tiles, 60 MHz, template main flow (`tt-gds-action@ttihp27a`), layout run [43647479367].
+The competition asks for "a clean run through the Tiny Tapeout flow and precheck" and recommends gate-level simulation. This page goes further and applies the usual signoff checks of a digital tape-out. For each check it gives the source of the practice, our result with its run, and what stays open. The design reviewed is branch `cmos5l` at commit 69bbf37: 8x4 tiles, 60 MHz, template main flow (`tt-gds-action@ttihp27a`), clock tree of [decisions.md](decisions.md) entry 17, layout run [43712217729]. The layout job prints the signoff values of all three corners in its run summary and as annotations (step `Signoff facts`, [.github/signoff_facts.py](../.github/signoff_facts.py)), so they can be read without downloading the log artifact.
 
 How to read a value: open the run, artifact `GDS_logs`. Timing: `runs/wokwi/55-openroad-stapostpnr/<corner>/checks.rpt` and `summary.rpt`. Counts: `runs/wokwi/final/metrics.csv`. Corners: `nom_slow_1p08V_125C`, `nom_typ_1p20V_25C`, `nom_fast_1p32V_m40C`.
 

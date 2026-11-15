@@ -68,7 +68,7 @@ Run [43712217710] (commit 69bbf37): line 173 / 173, branch 208 / 208, toggle 7,6
 
 ## 5 Open items
 
-1. **Magic DRC** runs on every push only through the precheck KLayout deck; Magic itself is on in the submitted run. Measured clean on the present layout (run [43731920994]); a change of RTL or settings needs the submitted run to show it again.
+1. **Magic DRC**: the DRC of every push is the precheck KLayout deck; Magic DRC is on only in the submitted run. Measured clean on the present layout (run [43731920994]); a change of RTL or settings needs the submitted run to show it again.
 2. **Fast-corner hold slack** +0.099 ns (+0.010 ns before the clock-tree setting): watch it on each RTL change.
 3. **IR drop** is an estimate without voltage-source locations.
 4. **CDC by tool**: [formal/cdc.sby](../formal/cdc.sby) checks the synchronizer and reset structure (section 2). It does not judge reconvergence of synchronized bits (the three host bits, argued in section 2 and checked by `formal/host_port.sby`) and is not a commercial CDC tool with its full rule set.

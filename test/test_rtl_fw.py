@@ -261,17 +261,17 @@ class RtlBench:
         if self.t0 is None:
             await self._start()
         dut, m, s = self.dut, self.m, self.sched
-        uo_h, uio_h, oe_h, ui_h, uin_h = dut.uo_out, dut.uio_out, dut.uio_oe, dut.ui_in, dut.uio_in
+        out_h, ui_h, uin_h = dut.out_pins, dut.ui_in, dut.uio_in
         fe = FallingEdge(dut.clk)
         watches = list(self.watches.values())
         inputs, t0 = self.inputs, self.t0
         target = m.cycle + cycles
+        last_ui = last_uin = None
         while m.cycle < target:
             await fe
             t = self.t
-            uo_v = uo_h.value.to_unsigned()
-            uio_v = uio_h.value.to_unsigned()
-            oe_v = oe_h.value.to_unsigned()
+            v = out_h.value.to_unsigned()  # {uo_out, uio_out, uio_oe} (test/tb.v)
+            uo_v, uio_v, oe_v = v >> 16, (v >> 8) & 0xFF, v & 0xFF
             smp = s.samples.get(t)
             if smp is not None and smp[0] in self.need:
                 self.miso.setdefault(smp[:2], []).append((uo_v >> hs.MISO_BIT) & 1)

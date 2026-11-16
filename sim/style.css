@@ -221,7 +221,8 @@ table { border-collapse: collapse; width: 100%; }
   .sub { font-size: 12px; }
   .pick { flex: 1 1 auto; min-width: 0; }
   .pick select { min-width: 0; width: 100%; max-width: none; }
-  .engine { flex-basis: 100%; }
+  .engine { flex-basis: 100%; white-space: normal; }
+  .controls .cyc { flex-wrap: wrap; row-gap: 2px; }
   .controls { padding: 8px 16px; gap: 8px 12px; }
   .controls .group:first-child { flex-wrap: wrap; }
   .prog { flex-basis: 100%; justify-content: flex-start; }

@@ -311,7 +311,7 @@ EXAMPLES = [
          source="test_fw_full.all_four, test_fw_full.check_all_four",
          pins=[["uo4", "TX"], ["ui3", "RX"]] + SPI_PINS + I2C_PINS,
          decoders=[_uart_dec("uo4 TX", 60), dict(_uart_dec("ui3 RX", 60), name="UART RX"), SPI_DEC, I2C_DEC],
-         text="One 128-word memory holds four programs, one per thread: UART TX and UART RX at 1 Mbit/s (sender "
+         text="One memory image (103 words of the 512-word program memory) holds four programs, one per thread: UART TX and UART RX at 1 Mbit/s (sender "
               "+3.3 %), SPI controller at its smallest half period, I2C Fast-mode with 300-cycle clock stretching. "
               "Each thread has a fixed slot every 4th cycle; a waiting thread keeps its slot."),
     dict(id="E4", title="UART receiver, sender +3.3 %", clock_hz=60e6, proc=e4,

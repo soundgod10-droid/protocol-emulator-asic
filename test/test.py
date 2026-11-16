@@ -387,7 +387,8 @@ async def test_host_id_status_rules(dut):
     assert (await host.read_status())["cmd_err"] == 1
     await host.clear()
     got = await host.transaction(hs.t_read_mem(5, 1))
-    assert got[2:] == [0, 0] and (await host.read_status())["cmd_err"] == 1, f"READ_MEM while running: {got}"
+    assert got[hs.READ_MEM_SKIP:] == [0, 0] and (await host.read_status())["cmd_err"] == 1, \
+        f"READ_MEM while running: {got}"
     await host.clear()
     await host.start()
     assert (await host.read_status())["cmd_err"] == 1

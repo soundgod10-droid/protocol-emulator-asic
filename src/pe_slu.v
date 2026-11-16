@@ -290,7 +290,14 @@ module pe_slu #(
 
   wire        rx_word_full = r_data_v && (rx_nb == 5'd15);
   wire [15:0] rx_word      = {r_data, rx_sh[15:1]};
-  wire [15:0] rx_part      = rx_sh >> (5'd16 - rx_nb);
+  // rx_sh >> (16 - rx_nb), written as mux stages: a variable shift cell can stall the SHARE pass
+  // of the layout flow's synthesis for hours (pe_core, shifter).
+  wire [4:0]  rx_ps        = 5'd16 - rx_nb;
+  wire [15:0] rx_p0        = rx_ps[0] ? {1'b0, rx_sh[15:1]} : rx_sh;
+  wire [15:0] rx_p1        = rx_ps[1] ? {2'b0, rx_p0[15:2]} : rx_p0;
+  wire [15:0] rx_p2        = rx_ps[2] ? {4'b0, rx_p1[15:4]} : rx_p1;
+  wire [15:0] rx_p3        = rx_ps[3] ? {8'b0, rx_p2[15:8]} : rx_p2;
+  wire [15:0] rx_part      = rx_ps[4] ? 16'd0 : rx_p3;
   wire        rx_push      = (rx_word_full || (r_eop && rx_nb != 5'd0));
   wire [15:0] rx_push_w    = rx_word_full ? rx_word : rx_part;
   wire        rx_pop       = p_re && (p_addr == 4'd1) && (rx_cnt != 2'd0);

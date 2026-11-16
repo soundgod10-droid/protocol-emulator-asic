@@ -138,13 +138,15 @@ def main(argv):
             if phone or s["file"] in ("can_gl.vcd", "i2c_fm_rtl.vcd"):
                 b.shot(os.path.join(out, f"wave_{s['file'][:-4]}_1440.png"), full=True)
             if phone:
-                b.viewport(390, 844, scale=2, mobile=True)
-                b.open(f"{base}/wave/demo.html?n=p{k}#s={s['file'][:-4]}")
-                b.wait(f"document.body.dataset.ready === '{s['file']}'", timeout=120)
-                width = b.eval("document.documentElement.scrollWidth")
-                rows[-1]["phone_scroll_width"] = width
-                rows[-1]["pass"] = good and width <= 390
-                b.shot(os.path.join(out, f"wave_{s['file'][:-4]}_390.png"), full=True)
+                pw = {}
+                for w in (320, 390):
+                    b.viewport(w, 844, scale=2, mobile=True)
+                    b.open(f"{base}/wave/demo.html?n=p{k}w{w}#s={s['file'][:-4]}")
+                    b.wait(f"document.body.dataset.ready === '{s['file']}'", timeout=120)
+                    pw[w] = b.eval("document.documentElement.scrollWidth")
+                    b.shot(os.path.join(out, f"wave_{s['file'][:-4]}_{w}.png"), full=True)
+                rows[-1]["phone_scroll_width"] = pw
+                rows[-1]["pass"] = good and all(pw[w] <= w for w in pw)
         ok["L5d"] = bool(rows) and all(x["pass"] for x in rows)
         res["checks"]["L5d"] = {"pass": ok["L5d"], "samples": rows}
         errors = [m for m in b.console if m.startswith("[exception]")]

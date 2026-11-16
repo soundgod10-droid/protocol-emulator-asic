@@ -411,10 +411,10 @@ module pe_slu #(
   // ----------------------------------------------------------------------------------------------
   always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
-      c_mode <= 16'd0; c_txper <= 16'd1; c_loop0 <= 16'd0; c_loop1 <= 16'd0; c_loop2 <= 16'd0;
-      c_loop3 <= 16'd0; c_pat <= 16'd0; c_pat2 <= 16'd0; c_sel <= 16'hFFFF; c_pa <= 32'd0;
-      c_ra <= 32'd0; c_crcb <= 16'd0; c_crcw <= 16'd0; c_tail <= 16'd0; c_lta <= 16'd0;
-      c_ltb <= 16'd0; c_ltc <= 16'd0; c_sq <= 16'd0; c_lp <= 16'd0; cfg_adr <= 5'd0;
+      c_mode <= F_MODE; c_txper <= F_TXPER; c_loop0 <= F_LOOP0; c_loop1 <= F_LOOP1;
+      c_loop2 <= F_LOOP2; c_loop3 <= F_LOOP3; c_pat <= F_PAT; c_pat2 <= F_PAT2; c_sel <= 16'hFFFF;
+      c_pa <= F_PA; c_ra <= F_RA; c_crcb <= F_CRCB; c_crcw <= F_CRCW; c_tail <= F_TAIL;
+      c_lta <= F_LTA; c_ltb <= F_LTB; c_ltc <= F_LTC; c_sq <= F_SQ; c_lp <= F_LP; cfg_adr <= 5'd0;
       evmask <= 16'd0; sticky <= 16'd0; tstamp <= 16'd0;
       din_prev <= 1'b0; q_cnt <= 6'd0; carrier <= 1'b0; sq_gap <= 7'd0; sq_good <= 4'd0;
       lp_w <= 6'd0; lt_a <= 16'd0; lt_b <= 16'd0; lt_a_hit <= 1'b0; lt_b_hit <= 1'b0;

@@ -104,6 +104,7 @@ function onPy(msg) {
       for (const [a, ln] of Object.entries(p.lines)) run.addr.set(+a, { file: fi, line: ln });
     });
     showFiles();
+    $("ex-threads").textContent = threadsText();
     ui.dirty = true;
     return;
   }

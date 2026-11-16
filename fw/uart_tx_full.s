@@ -10,7 +10,7 @@
 ;
 ; Why:
 ;   The word count (15) is measured by test_fw_full_word_count against the
-;   128-word memory (docs/decisions.md entry 3). The host makes the frame
+;   512-word program memory (docs/decisions.md entry 3). The host makes the frame
 ;   word, so the same 15 words send 8N1, 8E1, 8N2 and other formats.
 ;   OUT does not wait for its event, so the thread waits for each event
 ;   time (TWAIT) before it moves T: then each lead is C or less.

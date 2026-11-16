@@ -95,7 +95,10 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 button.small { padding: 3px 9px; font-size: 12px; }
 .prog { flex: 1 1 260px; min-width: 0; justify-content: flex-end; }
 .bar { flex: 1; max-width: 260px; height: 6px; background: var(--line-soft); border-radius: 3px; overflow: hidden; }
-#bar { height: 100%; width: 0; background: var(--accent); transition: width 0.15s; }
+.bar { position: relative; }
+#bar, #bar-done { position: absolute; left: 0; top: 0; height: 100%; width: 0; background: var(--accent); }
+#bar-done { opacity: 0.3; }
+.status { flex-basis: 100%; margin: 0; min-height: 19px; font-size: 13px; color: var(--fg); overflow-wrap: anywhere; }
 #progress { font-size: 12px; color: var(--fg-2); min-width: 0; overflow-wrap: anywhere; }
 
 /* grid */

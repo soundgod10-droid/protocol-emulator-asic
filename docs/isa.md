@@ -198,7 +198,11 @@ Input pins (SAMPLE, WAIT, port PINS):
 |---|---|---|
 | 0 to 7 | uio[0] to uio[7] (pad value) | UIO0 to UIO7 |
 | 8 to 12 | ui_in[0] to ui_in[4] | UI0 to UI4 |
-| 13 to 15 | none, read as 0 | none |
+| 13 | event output of the USB helper (docs/helpers.md: any STATUS flag that EVMASK selects) | none (use 13) |
+| 14 | event output of the 10BASE-Te helper | none (use 14) |
+| 15 | none, read as 0 | none |
+
+Inputs 13 and 14 have no synchronizer (they come from flip-flops of the chip); they have the same 2-cycle delay as a pin, so that WAIT and SAMPLE time them as pin edges.
 
 ui_in[7:5] and uo_out[7] are the host SPI port (docs/host_port.md section 2). They are not thread pins. The default UART pins are UART_TX = uo_out[4] = output 12 (UO4) and UART_RX = ui_in[3] = input 11 (UI3).
 

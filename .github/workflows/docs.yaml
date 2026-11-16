@@ -6,6 +6,8 @@ name: docs
 #   waveform figures (figures/waves.py); the VCDs are kept in the cache while the RTL and the tests do not change;
 # - site: the block diagram from the RTL (Yosys), the layout render (KLayout) and the results page from the newest
 #   finished gds, test, coverage and formal runs, and the documentation site (mkdocs --strict, mkdocs.yml);
+# - sim: the browser simulator and its checks (.github/workflows/sim.yaml); the site job puts it under sim/, so the site
+#   is deployed only when the simulator's checks have passed;
 # - deploy: GitHub Pages, from the default branch only.
 # The site is built again when a gds, test, coverage or formal run of the default branch ends, so that its figures and
 # results come from the newest finished runs. This is the only workflow that deploys Pages (a repository has one Pages

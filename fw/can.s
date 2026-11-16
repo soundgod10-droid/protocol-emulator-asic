@@ -54,7 +54,7 @@
 ;   needs about 88 cycles from the sample point to the end of the bit
 ;   (the ACK decision) with exact clocks, more with clock error. 500 kbit/s
 ;   and 1 Mbit/s do not fit (one instruction every 4 cycles per thread).
-;   123 words: no other example program fits next to it in 128 words.
+;   123 words of the 512-word program memory (test_flex_word_count).
 ; Not done: error frames, overload frames, error counters, stuff and form
 ;   error checks (a stuff error shows as a CRC error), DLC 9 to 15, bit
 ;   errors after the arbitration field (thread 0).

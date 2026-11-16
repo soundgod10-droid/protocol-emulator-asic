@@ -59,6 +59,12 @@ The inputs are chosen with SEL: USB DIN = RCV (transceiver receive output), AUX0
 
 The analog parts are on the board: a USB low-speed transceiver (for example TUSB1106) and, for 10BASE-T, the transmit resistor network, the receive comparators and the magnetics.
 
+### 3.1 Receive loop
+
+The receive loop (src/pe_slu_loop.v) recovers the bit clock from the line edges: a phase accumulator counts the position in the bit in 1/4,096 sample steps, each accepted edge corrects it, and the bit is the line level at the decision point. USB: 40 samples per bit (one per cycle), every edge in a window of 20 samples sets the phase (hard resynchronization). 10BASE-Te: 12 samples per bit (two per cycle, on both clock edges), a second-order loop with gain steps after 8 and 24 edges.
+
+In a cycle with two samples, the loop uses at most one edge: an edge at the second sample right after an edge at the first is a pulse of half a cycle (8.3 ns at 60 MHz), which is not a 10BASE-T symbol (the shortest half bit with 13.5 ns of jitter is 50 - 27 = 23 ns, IEEE 802.3 14.3.1.3.1). With this rule the logic of the second sample does not wait for the edge logic of the first, which brought the slow-corner path through the loop from -1.449 ns to inside the 60 MHz period (docs/decisions.md entry 4). test_slu_loop_equiv compares the loop with its bit-exact model in every cycle.
+
 ## 4 Measured results
 
 | Test (test/test_slu.py) | Result |

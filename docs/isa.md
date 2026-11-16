@@ -311,10 +311,10 @@ Notation: rd = destination register, rs = source register, ra = address register
 | SHR rd, n | rd = rd >> n (logical, 0 in at the top) | Z, N, C |
 | ASR rd, n | rd = rd >> n (arithmetic, bit 15 in at the top) | Z, N, C |
 | ROR rd, n | rotate right by n | Z, N, C |
-| LD rd, addr | rd = memory[addr]. 2 slots. | none |
-| ST rs, addr | memory[addr] = rs | none |
-| LDX rd, [ra] | rd = memory[ra mod 128]. 2 slots. | none |
-| STX rs, [ra] | memory[ra mod 128] = rs | none |
+| LD rd, addr | rd = memory[addr], addr = 0 to 511 (program memory). 2 slots. | none |
+| ST rs, addr | memory[addr] = rs. 2 slots. | none |
+| LDX rd, [ra] | rd = memory[ra mod 2,048] (section 2.2). 2 slots. | none |
+| STX rs, [ra] | memory[ra mod 2,048] = rs. 2 slots. | none |
 
 ### 8.3 Pin events
 

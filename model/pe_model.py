@@ -335,12 +335,13 @@ class PeModel:
             if sub == 1:  # NOP
                 return nxt
             if sub == 2:  # JR
-                return th.r[ra]
-            if sub == 3:  # LDX rd, [ra]: 2 slots (isa 3.3)
-                th.pend = {"op": "ld", "reg": ra, "addr": th.r[rb] & 0x7F}
+                return th.r[ra] & PC_MASK
+            if sub == 3:  # LDX rd, [ra]: 2 slots, address ra mod 2,048 (isa 3.3)
+                th.pend = {"op": "ld", "reg": ra, "addr": th.r[rb] & (MEM_WORDS - 1)}
                 return None
-            if sub == 4:  # STX rs, [ra]
-                self._store(th.r[rb] & 0x7F, th.r[ra], c)
+            if sub == 4:  # STX rs, [ra]: 2 slots
+                self._store(th.r[rb], th.r[ra], c)
+                th.pend = {"op": "st"}
                 return nxt
             self._illegal(th, w)
             return None

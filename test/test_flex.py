@@ -1472,7 +1472,7 @@ async def test_flex_word_count(dut):
         for combo in itertools.combinations(names, k):
             if sum(PROGRAMS[n][0] for n in combo) > pe_model.N_THREADS or not any(n in NEW for n in combo):
                 continue
-            if sum(size[n] for n in combo) > pe_model.MEM_WORDS:
+            if sum(size[n] for n in combo) > pe_model.PROG_WORDS:
                 continue
             total = combo_image(combo)
             assert total == sum(size[n] for n in combo), (combo, total)

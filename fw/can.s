@@ -28,8 +28,9 @@
 ; Why:
 ;   A protocol that the instruction set was not designed for (flexibility).
 ;   Two threads, because the node does not fit in one: the same functions
-;   in one thread need 171 words (more than the 128-word memory), and the
-;   CRC of a bit is ready only after the next bit must be sent. A pin has
+;   in one thread need 171 words (more than the 128-word memory of the first
+;   chip version), and the CRC of a bit is ready only after the next bit
+;   must be sent. A pin has
 ;   one owner thread (docs/isa.md 5.2), so the two threads drive two pins
 ;   that the board joins.
 ;

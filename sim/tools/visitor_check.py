@@ -24,6 +24,8 @@ What it does:
                   past the cycles computed for the chosen example) and the editor tabs (files of the chosen run only);
     threads       when the run is computed, the example card names every thread that the example starts, and says why
                   the other threads stay stopped;
+    flags         (D) the thread cards show LATE and ERR labels only for flags that are set, and the example card says
+                  that ERR is the expected result;
     no exception in the page.
   Writes OUT_DIR/visitor_check.json (every sample) and screenshots of each step (the screen as the visitor sees it).
 

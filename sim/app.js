@@ -844,9 +844,17 @@ async function boot() {
   }
   const first = params.get("ex") && exById(params.get("ex")) ? params.get("ex") : "E1";
   sel.value = first;
-  if (params.get("speed")) {
-    $("speed").value = params.get("speed");
-    ui.speed = +params.get("speed");
+  const sp = params.get("speed");
+  if (sp && [...$("speed").options].some((o) => o.value === sp)) {
+    $("speed").value = sp;
+    ui.speed = +sp;
+  }
+  try {
+    // Cycle count of each example in the CPython reference of this build: the length shown while computing.
+    const j = await (await fetch("check/cpython.json")).json();
+    for (const e of j.examples) if (typeof e.cycles === "number") expected[e.id] = e.cycles;
+  } catch (err) {
+    console.info("no check/cpython.json: progress without the run length", err);
   }
   await startExample(first);
 }

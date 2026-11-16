@@ -60,6 +60,7 @@ class Engine {
     });
   }
   terminate() {
+    this.dead = true;
     this.w.terminate();
     for (const p of this.pending.values()) p.reject(new Error("engine restarted"));
     this.pending.clear();

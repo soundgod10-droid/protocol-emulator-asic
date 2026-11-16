@@ -1,0 +1,77 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+/* Waveform view. Colours are tokens; the dark set applies with the system setting unless data-theme="light". */
+.wv {
+  --wave-bg: #ffffff; --wave-fg: #1d2733; --wave-dim: #66727f; --wave-grid: #edf0f3; --wave-sep: #d3d9df;
+  --wave-label-bg: #f5f7f9; --wave-sel: rgba(31, 111, 178, 0.09);
+  --wave-line: #1f6fb2; --wave-bus: #23795c; --wave-z: #a37b00; --wave-x: #c92a2a;
+  --wave-cur-a: #d9480f; --wave-cur-b: #6741d9; --wave-arrow: #d9480f;
+  --dec-data: #1f6fb2; --dec-addr: #6741d9; --dec-ctrl: #5b6876; --dec-state: #23795c;
+  --dec-err: #c92a2a; --dec-warn: #b86200; --dec-bit: #8a96a3;
+  --wave-ok: #2b8a3e; --wave-bad: #c92a2a;
+  --wave-btn: #ffffff; --wave-btn-border: #c9d1d9;
+  color: var(--wave-fg); background: var(--wave-bg);
+  font: 13px/1.4 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  border: 1px solid var(--wave-sep); border-radius: 8px; overflow: hidden;
+}
+.wv[data-theme="dark"] {
+  --wave-bg: #12171d; --wave-fg: #dfe6ed; --wave-dim: #8a97a5; --wave-grid: #1e252d; --wave-sep: #2e3741;
+  --wave-label-bg: #171d24; --wave-sel: rgba(100, 170, 240, 0.12);
+  --wave-line: #5aa9f0; --wave-bus: #4fc196; --wave-z: #d9b23a; --wave-x: #ff6b6b;
+  --wave-cur-a: #ff8a3d; --wave-cur-b: #a98bff; --wave-arrow: #ff8a3d;
+  --dec-data: #5aa9f0; --dec-addr: #a98bff; --dec-ctrl: #9aa7b4; --dec-state: #4fc196;
+  --dec-err: #ff6b6b; --dec-warn: #f0a83a; --dec-bit: #6c7885;
+  --wave-ok: #51cf66; --wave-bad: #ff6b6b;
+  --wave-btn: #1b222a; --wave-btn-border: #36414c;
+}
+@media (prefers-color-scheme: dark) {
+  .wv:not([data-theme="light"]) {
+    --wave-bg: #12171d; --wave-fg: #dfe6ed; --wave-dim: #8a97a5; --wave-grid: #1e252d; --wave-sep: #2e3741;
+    --wave-label-bg: #171d24; --wave-sel: rgba(100, 170, 240, 0.12);
+    --wave-line: #5aa9f0; --wave-bus: #4fc196; --wave-z: #d9b23a; --wave-x: #ff6b6b;
+    --wave-cur-a: #ff8a3d; --wave-cur-b: #a98bff; --wave-arrow: #ff8a3d;
+    --dec-data: #5aa9f0; --dec-addr: #a98bff; --dec-ctrl: #9aa7b4; --dec-state: #4fc196;
+    --dec-err: #ff6b6b; --dec-warn: #f0a83a; --dec-bit: #6c7885;
+    --wave-ok: #51cf66; --wave-bad: #ff6b6b;
+    --wave-btn: #1b222a; --wave-btn-border: #36414c;
+  }
+}
+.wv [hidden] { display: none !important; }
+.wv-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 8px 10px; border-bottom: 1px solid var(--wave-sep); background: var(--wave-label-bg); }
+.wv-title { font-weight: 600; flex: 1 1 auto; min-width: 8em; }
+.wv-tools { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.wv-tools button, .wv-tools select {
+  font: inherit; font-size: 12px; color: var(--wave-fg); background: var(--wave-btn);
+  border: 1px solid var(--wave-btn-border); border-radius: 6px; padding: 3px 9px; min-height: 28px; cursor: pointer;
+}
+.wv-tools button:hover, .wv-tools select:hover { border-color: var(--wave-line); }
+.wv-tools button:focus-visible, .wv-tools select:focus-visible, .wv canvas:focus-visible { outline: 2px solid var(--wave-line); outline-offset: 1px; }
+.wv-tsel { font-size: 12px; color: var(--wave-dim); display: inline-flex; gap: 4px; align-items: center; }
+.wv-read { padding: 5px 10px; font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; border-bottom: 1px solid var(--wave-sep); min-height: 1.5em; overflow-wrap: anywhere; }
+.wv-read .wv-a { color: var(--wave-bg); background: var(--wave-cur-a); padding: 0 4px; border-radius: 3px; font-weight: 700; }
+.wv-read .wv-b { color: var(--wave-bg); background: var(--wave-cur-b); padding: 0 4px; border-radius: 3px; font-weight: 700; }
+.wv-c, .wv-dim { color: var(--wave-dim); }
+.wv-main { position: relative; }
+.wv-main canvas { display: block; width: 100%; touch-action: pan-y; cursor: crosshair; }
+.wv-tip {
+  position: absolute; z-index: 2; max-width: min(420px, 90%); padding: 6px 8px; border-radius: 6px; pointer-events: none;
+  background: var(--wave-bg); color: var(--wave-fg); border: 1px solid var(--wave-sep); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  font: 12px/1.45 ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+}
+.wv-src { color: var(--wave-dim); font-size: 11px; }
+.wv-ok { color: var(--wave-ok); }
+.wv-bad { color: var(--wave-bad); }
+.wv-timing { padding: 6px 10px 8px; border-top: 1px solid var(--wave-sep); overflow-x: auto; }
+.wv-timing table { border-collapse: collapse; font-size: 12px; width: 100%; }
+.wv-timing th, .wv-timing td { text-align: left; padding: 3px 8px 3px 0; border-bottom: 1px solid var(--wave-grid); white-space: nowrap; }
+.wv-timing td:first-child { white-space: normal; }
+.wv-timing tbody tr { cursor: pointer; }
+.wv-timing tbody tr:hover { background: var(--wave-sel); }
+.wv-timing th { color: var(--wave-dim); font-weight: 600; }
+.wv-help { padding: 5px 10px 7px; font-size: 11px; color: var(--wave-dim); border-top: 1px solid var(--wave-sep); }
+@media (max-width: 600px) {
+  .wv-bar { padding: 6px 8px; }
+  .wv-tools button { padding: 3px 7px; }
+  .wv-help { display: none; }
+  .wv-timing th:nth-child(4), .wv-timing td:nth-child(4) { display: none; }
+  .wv-timing td:first-child .wv-dim { display: block; }
+}

@@ -106,29 +106,30 @@ module pe_core (
   // ---------------------------------------------------------------------
   // Thread state vector (one entry of the ring)
   // ---------------------------------------------------------------------
-  localparam integer F_T    = 64;   // [79:64]  time register T
-  localparam integer F_PC   = 80;   // [86:80]  PC
-  localparam integer F_Z    = 87;
-  localparam integer F_C    = 88;
-  localparam integer F_N    = 89;
-  localparam integer F_E    = 90;
-  localparam integer F_LATE = 91;
-  localparam integer F_ERR  = 92;
-  localparam integer F_RUN  = 93;
-  localparam integer F_PS   = 94;   // [96:94]  pending state
-  localparam integer F_LDRD = 97;   // [98:97]  LD/LDX destination register
-  localparam integer F_LDA  = 99;   // [105:99] LD/LDX address
-  localparam integer CW     = 106;  // r0 to r3 are [63:0], 16 bits each
+  localparam integer F_T    = 64;   // [79:64]   time register T
+  localparam integer F_PC   = 80;   // [88:80]   PC (9 bits, isa 2.1)
+  localparam integer F_Z    = 89;
+  localparam integer F_C    = 90;
+  localparam integer F_N    = 91;
+  localparam integer F_E    = 92;
+  localparam integer F_LATE = 93;
+  localparam integer F_ERR  = 94;
+  localparam integer F_RUN  = 95;
+  localparam integer F_PS   = 96;   // [99:96]   pending state
+  localparam integer F_LDRD = 100;  // [101:100] LD/LDX destination register
+  localparam integer F_LDA  = 102;  // [112:102] LD/LDX address (11 bits)
+  localparam integer CW     = 113;  // r0 to r3 are [63:0], 16 bits each
 
   // Pending state of a blocking instruction (isa 3.2)
-  localparam [2:0] PS_NONE  = 3'd0;  // no instruction pending
-  localparam [2:0] PS_LD    = 3'd1;  // LD/LDX: data word read for this slot
-  localparam [2:0] PS_SMP   = 3'd2;  // SAMPLE on time: complete in the first slot after T + offset
-  localparam [2:0] PS_SMPL1 = 3'd3;  // SAMPLE late: sample cycle is this slot cycle (c0 + 4)
-  localparam [2:0] PS_SMPL2 = 3'd4;  // SAMPLE late: complete now with s(c - 4)
-  localparam [2:0] PS_WAIT1 = 3'd5;  // WAIT, first slot after the start (edge at c - 4 does not count)
-  localparam [2:0] PS_WAIT  = 3'd6;  // WAIT, later slots
-  localparam [2:0] PS_WEXP  = 3'd7;  // WAIT with TO and T already past: time out now
+  localparam [3:0] PS_NONE  = 4'd0;  // no instruction pending
+  localparam [3:0] PS_LD    = 4'd1;  // LD/LDX: data word read for this slot
+  localparam [3:0] PS_SMP   = 4'd2;  // SAMPLE on time: complete in the first slot after T + offset
+  localparam [3:0] PS_SMPL1 = 4'd3;  // SAMPLE late: sample cycle is this slot cycle (c0 + 4)
+  localparam [3:0] PS_SMPL2 = 4'd4;  // SAMPLE late: complete now with s(c - 4)
+  localparam [3:0] PS_WAIT1 = 4'd5;  // WAIT, first slot after the start (edge at c - 4 does not count)
+  localparam [3:0] PS_WAIT  = 4'd6;  // WAIT, later slots
+  localparam [3:0] PS_WEXP  = 4'd7;  // WAIT with TO and T already past: time out now
+  localparam [3:0] PS_ST    = 4'd8;  // ST/STX: second slot (the store used this thread's fetch)
 
   reg [CW-1:0] st0, st1, st2, st3;
   reg [15:0]   ir;

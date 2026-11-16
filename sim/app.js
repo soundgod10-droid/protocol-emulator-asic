@@ -334,9 +334,7 @@ function renderThreads(st, exact) {
       }
       return `<div class="th${n === slot ? " slot" : ""}" style="--tc:var(--t${n})">
         <div class="th-head"><b>Thread ${n}</b>
-          <span class="badge ${th.run ? "on" : "off"}">${th.run ? "RUN" : "STOP"}</span>
-          <span class="badge late${th.status & 1 ? "" : " off"}">LATE</span>
-          <span class="badge err${th.status & 2 ? "" : " off"}">ERR</span></div>
+          <span class="badge ${th.run ? "on" : "off"}">${th.run ? "RUN" : "STOP"}</span>${flagBadges(th)}</div>
         <div class="th-pc" title="${escapeHtml(where)}">${used ? `PC ${th.pc} <span>${escapeHtml(where)}</span>` : "not started by the host (RUN = 0)"}</div>
         <div class="regs" title="registers: hex and decimal">${r}<span class="rk">T</span><span class="rv">${h4(th.t)}</span><span class="rd">${th.t}</span></div>
         <div class="flags">${flag("Z", th.z)}${flag("C", th.c)}${flag("N", th.n)}${flag("E", th.e)}

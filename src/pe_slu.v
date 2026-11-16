@@ -645,7 +645,10 @@ module pe_slu #(
               end
               default: ;
             endcase
-            if (t_dbit && tx_crcen && (tx_skipw == 3'd0 || (t_kind == K_DATA && 1'b0)))
+            // CRC over data bits from the first word after the skipped ones (a K_LOAD bit belongs
+            // to the next word, whose skip count is tx_skipw - 1)
+            if (tx_crcen && (((t_kind == K_DATA) && (tx_skipw == 3'd0)) ||
+                             ((t_kind == K_LOAD) && (tx_skipw <= 3'd1))))
               crc_t <= crc_step(crc_t, t_bit, c_pa) & crc_mask;
           end
           if (FULL && carrier && (tx_st == T_DATA || tx_st == T_CRC)) begin

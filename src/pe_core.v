@@ -926,8 +926,8 @@ module pe_core (
   end
   always @* begin
     if (rst_n && (f_ok3 == 3'd3) && h_run && (h_ps != PS_ST)) begin
-      assert (!f_we_q1);
-      assert (f_addr_q1 == ((h_ps == PS_LD) ? h_ldaddr : {2'b00, h_pc}));
+      assert (!f_we_q2);
+      assert (f_addr_q2 == ((h_ps == PS_LD) ? h_ldaddr : {2'b00, h_pc}));
     end
     // B6: a store request replaces only the fetch of the thread that stored: that thread (now in
     //     st3, after its slot of the last cycle) has the second store slot pending.

@@ -139,22 +139,38 @@ module tt_um_soundgod10_droid_protocol_emulator (
       .th_err       (th_err)
   );
 
-  // Cycle counter: the common time base of all pin events. START
-  // clears it, so the first thread cycle is cycle 0 (docs/isa.md 3.1).
+  // Processor reset: the chip reset, or the threads stop. Both inputs are
+  // flip-flop outputs (pe_reset_sync, pe_host_port), so the AND has no
+  // glitch, and the release is at a clock edge.
+  wire run_rst_n = rst_n_int & running;
+
+  // Start sequence: the memory needs each instruction requested 3 cycles before its slot
+  // (pe_core, pe_sram), so the first 2 cycles after the release fetch for threads 0 and 1, and
+  // the third cycle is the start cycle (the ring gets the start values, the counter is cleared).
+  reg  pre1, pre2;
+  always @(posedge clk or negedge run_rst_n) begin
+    if (!run_rst_n) begin
+      pre1 <= 1'b0;
+      pre2 <= 1'b0;
+    end else begin
+      pre1 <= h_start;
+      pre2 <= pre1;
+    end
+  end
+  wire [1:0] prestart = h_start ? 2'd1 : (pre1 ? 2'd2 : 2'd0);
+  wire       c_start  = pre2;
+
+  // Cycle counter: the common time base of all pin events. The start
+  // cycle clears it, so the first thread cycle is cycle 0 (docs/isa.md 3.1).
   wire [31:0] cycle_count;
   pe_cycle_counter #(
       .WIDTH(32)
   ) u_cycle_counter (
       .clk  (clk),
       .rst_n(rst_n_int),
-      .clear(h_start),
+      .clear(c_start),
       .count(cycle_count)
   );
-
-  // Processor reset: the chip reset, or the threads stop. Both inputs are
-  // flip-flop outputs (pe_reset_sync, pe_host_port), so the AND has no
-  // glitch, and the release is at a clock edge.
-  wire run_rst_n = rst_n_int & running;
 
   // ---------------------------------------------------------------------
   // Configuration and processor

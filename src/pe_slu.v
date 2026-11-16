@@ -434,7 +434,10 @@ module pe_slu #(
       // ---------------- line conditions ----------------
       din_prev <= x1;
       if (m_usb) q_cnt <= se0 ? ((q_cnt == 6'd63) ? 6'd63 : q_cnt + 6'd1) : 6'd0;
-      else       q_cnt <= din_rise ? 6'd0 : ((q_cnt == 6'd63) ? 6'd63 : q_cnt + 6'd1);
+      // Manchester data has an edge at least every bit (127 ns with +/-13.5 ns jitter: 7.6 cycles);
+      // TP_IDL holds the line for 2.25-4.5 BT, so no edge for the qualifier time (10 cycles) is the
+      // end of the frame (IEEE 802.3 14.3.1.3.3: idle within 2.3 BT = 13.8 cycles).
+      else       q_cnt <= din_edge ? 6'd0 : ((q_cnt == 6'd63) ? 6'd63 : q_cnt + 6'd1);
       if (!ca_hold)     lt_a <= 16'd0;
       else if (lt_tick) lt_a <= (lt_a == 16'hFFFF) ? lt_a : lt_a + 16'd1;
       if (!cb_hold)     lt_b <= 16'd0;

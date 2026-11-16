@@ -22,8 +22,8 @@
 //       other location (also the same 9 low bits in the other macro) does not change the word of A.
 //
 // Why bounded (mode bmc): the memory content is a state of the macro models, which the wrapper
-//   cannot name, so k-induction would start from an arbitrary content. Every write-read pair with
-//   up to 8 other requests between them is in the bound.
+//   cannot name, so k-induction would start from an arbitrary content. formal/sram.sby checks 9
+//   steps (reset, then 8 cycles): every write-read pair with up to 5 other requests between them.
 
 module sram_fv (
     input wire        clk,

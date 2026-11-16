@@ -110,16 +110,18 @@ def main(argv):
         res["checks"]["L5b"] = {"pass": ok["L5b"], "file": name, "message": msg, "marker": marker}
         print(f"L5b {'PASS' if ok['L5b'] else 'FAIL'}: {msg!r}, marker {marker}")
 
-        # L5c
-        b.viewport(390, 844, scale=2, mobile=True)
-        b.open(f"{base}/index.html?ex=E1")
-        b.wait(DONE, timeout=600)
-        check = b.eval("document.getElementById('ex-check').textContent")
-        width = b.eval("document.documentElement.scrollWidth")
-        ok["L5c"] = check.startswith("pass") and width <= 390
-        b.shot(os.path.join(out, "e1_390.png"), full=True)
-        res["checks"]["L5c"] = {"pass": ok["L5c"], "test_check": check, "scroll_width": width}
-        print(f"L5c {'PASS' if ok['L5c'] else 'FAIL'}: E1 at 390 px, page width {width} px, {check[:60]}")
+        # L5c (320 px: the narrowest phone screens in use; 390 px: a common one)
+        widths, checks = {}, []
+        for w in (320, 390):
+            b.viewport(w, 844, scale=2, mobile=True)
+            b.open(f"{base}/index.html?ex=E1&w={w}")
+            b.wait(DONE, timeout=600)
+            checks.append(b.eval("document.getElementById('ex-check').textContent"))
+            widths[w] = b.eval("document.documentElement.scrollWidth")
+            b.shot(os.path.join(out, f"e1_{w}.png"), full=True)
+        ok["L5c"] = all(c.startswith("pass") for c in checks) and all(widths[w] <= w for w in widths)
+        res["checks"]["L5c"] = {"pass": ok["L5c"], "test_check": checks, "scroll_width": widths}
+        print(f"L5c {'PASS' if ok['L5c'] else 'FAIL'}: E1 page width {widths} at screen widths 320 and 390 px, {checks[0][:60]}")
 
         # L5d
         rows = []

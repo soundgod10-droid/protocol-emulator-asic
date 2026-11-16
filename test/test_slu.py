@@ -621,8 +621,8 @@ async def test_slu_tx_late_underflow(dut):
 
 @cocotb.test(skip=GL)
 async def test_slu_eth_collision(dut):
-    """10BASE-Te collision: a receive carrier while the helper sends sets COLLISION; the helper sends a 32-bit jam
-    (IEEE 802.3 4.2.3.2.4, jamSize 32 bits), then the TP_IDL tail, and sets TXDONE."""
+    """10BASE-Te collision: a receive carrier while the helper sends sets COLLISION; the helper sends its 32-bit jam
+    (docs/helpers.md section 1), then the TP_IDL tail, and sets TXDONE."""
     s = await slu_reset(dut)
     await s.cfg(ETH_CFG)
     u = dut.u_slu_ut

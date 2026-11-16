@@ -3,7 +3,7 @@
 What it does:
   Yosys reads the RTL files of info.yaml (the files of the layout flow) and writes the module hierarchy as JSON.
   This script counts the instances of each module in that JSON and reads the sizes from it: memory words and
-  width (pe_latch_ram parameters), threads (width of the FIFO thread select), FIFO depth, event slots, inputs,
+  width (the SRAM macro cells of pe_sram), the kind of each line helper (pe_slu SPEC), threads (width of the FIFO thread select), FIFO depth, event slots, inputs,
   synchronizers, spike filters and the cycle-counter width. It draws the blocks with these numbers.
   It stops with an error if the RTL has a module that the drawing does not show, so the diagram cannot fall
   behind the RTL. The pin names come from info.yaml.

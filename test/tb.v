@@ -94,6 +94,30 @@ module tb ();
       .init_edge(slu_ut_init_edge), .bit_v(slu_ut_bit_v), .bit_d(slu_ut_bit_d),
       .nacc(slu_ut_nacc), .locked_init(slu_ut_init)
   );
+
+  // Serial line unit (FULL build) alone: port bus, pins and now driven by test/test_slu.py.
+  reg  [15:0] slu_now = 16'd0;
+  reg         slu_we = 1'b0;
+  reg         slu_re = 1'b0;
+  reg  [3:0]  slu_addr = 4'd0;
+  reg  [15:0] slu_wdata = 16'd0;
+  wire [15:0] slu_rdata;
+  reg  [12:0] slu_pins = 13'h0000;
+  reg  [12:0] slu_ps1 = 13'h0000, slu_ps2 = 13'h0000;   // 2-stage synchronizer, as pe_sync2
+  wire [3:0]  slu_txv;
+  wire        slu_txoe;
+  wire        slu_ev;
+  always @(posedge clk) begin
+    slu_now <= slu_now + 16'd1;
+    slu_ps1 <= slu_pins;
+    slu_ps2 <= slu_ps1;
+  end
+
+  pe_slu #(.FULL(1)) u_slu_ut (
+      .clk(clk), .rst_n(slu_ut_rst_n), .now(slu_now), .p_we(slu_we), .p_re(slu_re),
+      .p_addr(slu_addr), .p_wdata(slu_wdata), .p_rdata(slu_rdata), .pin_raw(slu_pins),
+      .pin_sync(slu_ps2), .tx_v(slu_txv), .tx_oe(slu_txoe), .ev(slu_ev)
+  );
 `endif
 
   tt_um_soundgod10_droid_protocol_emulator user_project (

@@ -168,7 +168,7 @@ async function startExample(id) {
   setupWave(ex);
   showExample(ex);
   showFiles();
-  ui.dirty = true;
+  render(); // now, not on the next frame: after the change no panel shows the previous example even for one frame
   setEngine("busy", `Running ${ex.id}`);
   updateButtons();
   try {

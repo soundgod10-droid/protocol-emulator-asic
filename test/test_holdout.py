@@ -768,6 +768,6 @@ async def test_holdout_am2302_pdi_words(dut):
                  ("am2302.s", "pdi.s"), ("am2302.s", "onewire.s"), ("pdi.s", "onewire.s"),
                  ("am2302.s", "pdi.s", "onewire.s")):
         total = sum(size[s] for s in sets)
-        dut._log.info(f"{' + '.join(sets)}: {total} of {pe_model.MEM_WORDS} words "
-                      f"({'fits' if total <= pe_model.MEM_WORDS else 'does not fit'})")
+        dut._log.info(f"{' + '.join(sets)}: {total} of {pe_model.PROG_WORDS} program words "
+                      f"({'fits' if total <= pe_model.PROG_WORDS else 'does not fit'})")
     assert size["am2302.s"] == 56 and size["pdi.s"] == 52, (size["am2302.s"], size["pdi.s"])

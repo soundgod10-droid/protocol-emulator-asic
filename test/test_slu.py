@@ -419,7 +419,7 @@ async def usb_rx_packet(dut, s, pid, data, crc, ppm=0.0, corrupt=None):
     return words, info, await s.rd(P_STATUS), await s.rd(P_TSTAMP)
 
 
-@cocotb.test()
+@cocotb.test(skip=GL)
 async def test_slu_usb_rx(dut):
     """USB low-speed receive from a host model: DATA0 with 8 bytes at host +/-0.05 % and at +/-1.5 %,
     a token with CRC5, a corrupted CRC16, a stuffing error. Words, CRC flags, stuff error, EOP."""

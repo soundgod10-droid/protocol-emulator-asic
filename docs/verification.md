@@ -1,6 +1,6 @@
 # Verification
 
-Each method below gives what it checks, what it does not check, and its latest result. A reader can open each run link or re-run each job. The present design is branch `cmos5l`: 8x4 tiles, 60 MHz, layout run [43712217729], test run [43712217681] and coverage run [43712217710] (all commit dc9a62e). The signoff checks of the layout at all corners are in [signoff.md](signoff.md); the sections below that name older runs describe the method and keep their results for comparison.
+Each method below gives what it checks, what it does not check, and its latest result. A reader can open each run link or re-run each job. The present design is branch `cmos5l`: 8x4 tiles, 60 MHz, layout run [43712217729] (commit dc9a62e; run [43779857970] at commit a668e4d gives the same layout values), test run [43779858063] and coverage run [43779858026] (commit a668e4d). The signoff checks of the layout at all corners are in [signoff.md](signoff.md); the sections below that name older runs describe the method and keep their results for comparison.
 
 ## Summary
 

@@ -308,7 +308,7 @@ def draw(f, top, clock, tiles, pins, commit, out):
     s.text(20, 820, f"Counts and sizes from the Yosys hierarchy of the RTL (info.yaml source files) at commit {commit}: "
            f"{f['lat_total']:,} latches, {f['cg_total']} clock gates, {f['sync_total']} two-stage synchronizers.",
            size=11, colour="muted")
-    s.text(20, 708, "Pin names from info.yaml. The host port, the threads and the pins share the one clock; "
+    s.text(20, 838, "Pin names from info.yaml. The host port, the threads and the pins share the one clock; "
            "every output comes from a flip-flop.", size=11, colour="muted")
     s.save(out, "Block diagram of the protocol emulator chip",
            f"{f['threads']}-thread barrel core with {f['mem_words']} x {f['mem_width']} latch memory, "

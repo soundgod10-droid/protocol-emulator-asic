@@ -325,7 +325,7 @@ def fig_uart(vcd, out):
     ok_err = abs(err) <= ff.SHARE
     table = [
         ("Rate error against 115,200 bit/s", f"{err * 100:+.3f} % ({b} cycles per bit)",
-         f"within ±{ff.SHARE * 100:g} %", "design share of the UART clock budget (test_fw_full.SHARE)", ok_err),
+         f"within ±{ff.SHARE * 100:g} %", "design share of the clock budget (test_fw_full.SHARE)", ok_err),
         ("Edges on the bit grid", f"all {len(offs)} edges at k × {b} cycles", "every edge",
          "receiver model test_fw_full.check_tx", all(o % b == 0 for o in offs)),
         ("Frames back to back", f"{len(starts)} frames, start to start {sorted(set(gaps))[0]:,} cycles",

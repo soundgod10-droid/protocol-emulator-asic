@@ -26,6 +26,26 @@ jobs:
         shell: bash
         run: python .github/signoff_facts.py . "gds"
 
+      # Research branch: start and end points of the slow-corner flip-flop paths, the first full path, and the
+      # disconnected-pin report, as annotations (the run artifacts are too large to fetch here).
+      - name: Path facts
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e +o pipefail
+          r=$(ls -d runs/*/ | head -n 1)
+          f=$(ls ${r}*-openroad-stapostpnr/nom_slow_1p08V_125C/checks.rpt 2>/dev/null | head -n 1)
+          if [ -n "$f" ]; then
+            body=$(grep -E "^Startpoint|^Endpoint|slack \(" "$f" | head -n 75 | sed ':a;N;$!ba;s/\n/%0A/g')
+            echo "::notice title=slow paths::${body}"
+            body=$(awk '/^Startpoint/{n++} n==1' "$f" | head -n 110 | sed ':a;N;$!ba;s/\n/%0A/g')
+            echo "::notice title=slow worst path::${body}"
+          fi
+          body=$(grep -rh -i -B2 -A8 "disconnected" ${r}*-checker-disconnectedpins/*.log ${r}*-odb-checkdisconnectedpins/*.log ${r}*disconnected*/*.rpt 2>/dev/null | head -n 40 | sed ':a;N;$!ba;s/\n/%0A/g')
+          echo "::notice title=disconnected pins::${body}"
+          true
+
   precheck:
     needs: gds
     runs-on: ubuntu-24.04

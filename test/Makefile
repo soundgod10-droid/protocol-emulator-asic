@@ -42,6 +42,13 @@ VERILOG_SOURCES += $(PWD)/gate_level_netlist.v
 
 endif
 
+ifeq ($(PIN_VCD),1)
+# Waveform figures (.github/workflows/docs.yaml): the chip pins as VCD (test/tb.v PIN_VCD); run with FST= so that
+# Icarus writes VCD. Own build folder, so that the normal RTL build is not reused.
+SIM_BUILD       = sim_build/pins
+COMPILE_ARGS    += -DPIN_VCD
+endif
+
 ifeq ($(SIM),verilator)
 # Coverage job (.github/workflows/coverage.yaml): line, branch and toggle coverage of the RTL
 # tests; behavioral latch and clock-gate models (src/pe_cells.v); lint is the flow's job.

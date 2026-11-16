@@ -9,6 +9,7 @@ count must be equal. It also counts the frames whose data bits the loop decodes 
 check of the stimulus (the margin study is a separate test).
 """
 
+import os
 import random
 
 import cocotb

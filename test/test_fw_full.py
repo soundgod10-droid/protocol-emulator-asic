@@ -668,8 +668,8 @@ async def test_fw_full_word_count(dut):
                          ("full, UART RX for 300 bit/s to 1,525 bit/s", SLOW)):
         total = sum(sizes[f] for f in files)
         dut._log.info(f"{label}: " + " + ".join(f"{f} {sizes[f]}" for f in files)
-                      + f" = {total} of {pe_model.MEM_WORDS} words, margin {pe_model.MEM_WORDS - total}")
-        assert total <= pe_model.MEM_WORDS, f"{label}: {total} words do not fit"
+                      + f" = {total} of {pe_model.PROG_WORDS} words, margin {pe_model.PROG_WORDS - total}")
+        assert total <= pe_model.PROG_WORDS, f"{label}: {total} words do not fit"
 
 
 @cocotb.test(skip=GL)

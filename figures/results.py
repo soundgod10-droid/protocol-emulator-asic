@@ -257,7 +257,7 @@ def main(runs_dir, fig_dir, out_md):
     L.append("")
 
     slu_rtl = {n: v for n, v in rtl.items() if v[0] == "test_slu"}
-    slu_gl = {n: v for n, v in gl.items() if v[0] == "test_slu"}
+    slu_gl = testcases(find(art(gds, "gl_protocols_3"), "results.xml"))
     if slu_rtl or slu_gl:
         L.append("## Line helpers on the RTL and on the gate-level netlist\n")
         L.append(f"The USB low-speed and 10BASE-Te helpers ([Line helpers](helpers.md)): unit tests against references "

@@ -786,33 +786,49 @@ module pe_core (
   // At start, each ring entry gets the start PC and RUN of the thread
   // that it holds in cycle 0 (entry i holds thread i). The other fields
   // are 0 from the chip reset (the asynchronous reset below).
-  function [CW-1:0] at_start(input [CW-1:0] x, input [6:0] pc, input run);
+  function [CW-1:0] at_start(input [CW-1:0] x, input [8:0] pc, input run);
     begin
       at_start          = x;
-      at_start[F_PC+:7] = pc;
+      at_start[F_PC+:9] = pc;
       at_start[F_RUN]   = run;
-      at_start[F_PS+:3] = PS_NONE;
+      at_start[F_PS+:4] = PS_NONE;
     end
   endfunction
 
   always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
-      st0 <= {CW{1'b0}};
-      st1 <= {CW{1'b0}};
-      st2 <= {CW{1'b0}};
-      st3 <= {CW{1'b0}};
-      ir  <= 16'h0000;
-      sa  <= 2'd0;  // f_sa(16'h0000)
-      sb  <= 2'd0;  // f_sb(16'h0000)
+      st0       <= {CW{1'b0}};
+      st1       <= {CW{1'b0}};
+      st2       <= {CW{1'b0}};
+      st3       <= {CW{1'b0}};
+      ir        <= 16'h0000;
+      sa        <= 2'd0;  // f_sa(16'h0000)
+      sb        <= 2'd0;  // f_sb(16'h0000)
+      st_pend   <= 1'b0;
+      st_addr   <= 11'd0;
+      st_data   <= 16'h0000;
+      mem_addr  <= 11'd0;
+      mem_we    <= 1'b0;
+      mem_wdata <= 16'h0000;
     end else begin
       // Each entry loads in every cycle from one source: no enable mux.
-      st3 <= start ? at_start(nc, start_pc[27:21], run_mask[3]) : nc;
-      st2 <= start ? at_start(st3, start_pc[20:14], run_mask[2]) : st3;
-      st1 <= start ? at_start(st2, start_pc[13:7], run_mask[1]) : st2;
-      st0 <= start ? at_start(st1, start_pc[6:0], run_mask[0]) : st1;
+      st3 <= start ? at_start(nc, start_pc[35:27], run_mask[3]) : nc;
+      st2 <= start ? at_start(st3, start_pc[26:18], run_mask[2]) : st3;
+      st1 <= start ? at_start(st2, start_pc[17:9], run_mask[1]) : st2;
+      st0 <= start ? at_start(st1, start_pc[8:0], run_mask[0]) : st1;
+      // The word of the request of two cycles ago (pe_sram) is the instruction, or the data
+      // word of LD/LDX, of the slot of the next cycle.
       ir  <= mem_rdata;
       sa  <= f_sa(mem_rdata);
       sb  <= f_sb(mem_rdata);
+      // Store of this slot: held for one cycle, then sent in place of the next fetch.
+      st_pend <= s_we;
+      st_addr <= s_waddr;
+      st_data <= ra;
+      // Memory request register (inputs of the macros come from flip-flops).
+      mem_we    <= st_pend;
+      mem_addr  <= st_pend ? st_addr : f_addr;
+      mem_wdata <= st_data;
     end
   end
 

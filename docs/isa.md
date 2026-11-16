@@ -33,7 +33,7 @@ Sources:
 |---|---|---|
 | r0, r1, r2, r3 | 4 x 16 | Data registers. |
 | T | 16 | Time register. It gives the time of the pin events (section 4). |
-| PC | 7 | Address of the next instruction. PC + 1 wraps from 127 to 0. |
+| PC | 9 | Address of the next instruction (program memory). PC + 1 wraps from 511 to 0. |
 | Z, C, N, E | 4 | Flags (section 9). Z zero, C carry, N negative (bit 15), E event (result of SAMPLE, WAIT and of the non-blocking FIFO operations). |
 | LATE | 1 | Sticky status. It becomes 1 when the thread gave a pin event too late (section 4.3). Only IOW to port STATUS clears it. |
 | ERR | 1 | Sticky status. It becomes 1 when the thread wrote a pin that it does not own (section 5.2) or executed an illegal instruction (section 12). Only IOW to port STATUS clears it. |

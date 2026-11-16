@@ -108,7 +108,7 @@ Run [43712217729] (present layout), `final/metrics.csv`: route DRC 0, antenna vi
 
 ## 9. Pad SPICE
 
-The I/O cells of the CMOS5L Tiny Tapeout chip are `sg13cmos5l_IOPadInOut30mA` on `uio`, `sg13cmos5l_IOPadOut30mA` on `uo_out` and `sg13cmos5l_IOPadIn` on `ui_in` (cell names in the foundry netlist of the earlier CMOS5L shuttle TTIHP0p4, `tt_ihp_wrapper.nl.v`). The netlists in `spice/` simulate these cells with ngspice, the IHP-Open-PDK CMOS5L models and the schematic netlist `sg13cmos5l_io.spice` (no layout extraction), at the three signoff corners: slow `pad_ss.sp` (mos_ss, 1.08 V core, 3.0 V IO, 125 °C), typical `pad_tt.sp` (mos_tt, 1.20 V, 3.3 V, 25 °C), fast `pad_ff.sp` (mos_ff, 1.32 V, 3.6 V, -40 °C). Output load 5 pF; input pad edges 2 ns.
+The I/O cells of the CMOS5L shuttle chip are `sg13cmos5l_IOPadInOut30mA` on `uio`, `sg13cmos5l_IOPadOut30mA` on `uo_out` and `sg13cmos5l_IOPadIn` on `ui_in` (cell names in the foundry netlist of the earlier CMOS5L shuttle TTIHP0p4, `tt_ihp_wrapper.nl.v`). The netlists in `spice/` simulate these cells with ngspice, the IHP-Open-PDK CMOS5L models and the schematic netlist `sg13cmos5l_io.spice` (no layout extraction), at the three signoff corners: slow `pad_ss.sp` (mos_ss, 1.08 V core, 3.0 V IO, 125 °C), typical `pad_tt.sp` (mos_tt, 1.20 V, 3.3 V, 25 °C), fast `pad_ff.sp` (mos_ff, 1.32 V, 3.6 V, -40 °C). Output load 5 pF; input pad edges 2 ns.
 
 | Value | Slow | Typical | Fast | Limit (source) |
 |---|---|---|---|---|

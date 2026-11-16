@@ -31,23 +31,26 @@ module pe_config (
     input  wire        we,
     input  wire [6:0]  addr,
     input  wire [15:0] data,
-    output reg  [27:0] start_pc,   // thread n: [7n+6:7n]
+    output reg  [35:0] start_pc,   // thread n: [9n+8:9n]
     output reg  [3:0]  run_mask,
     output reg  [29:0] pin_owner,  // pin p: [2p+1:2p]
     output reg  [14:0] pin_en,
-    output reg  [14:0] pin_od
+    output reg  [14:0] pin_od,
+    output reg  [14:0] pin_hdrv,   // pin p is driven by a line helper
+    output reg  [14:0] pin_hsel,   // that helper: 0 USB, 1 10BASE-Te
+    output reg  [44:0] pin_hsig    // its signal, pin p: [3p+2:3p]
 );
 
-  // docs/isa.md 2.4: start address 0, no owner, push-pull after reset.
+  // docs/isa.md 2.4: start address 0, no owner, push-pull, no helper after reset.
   genvar n, p;
   generate
     for (n = 0; n < 4; n = n + 1) begin : g_start
       localparam [6:0] A = n;
       always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-          start_pc[7*n+:7] <= 7'd0;
+          start_pc[9*n+:9] <= 9'd0;
         end else if (we && (addr == A)) begin
-          start_pc[7*n+:7] <= data[6:0];
+          start_pc[9*n+:9] <= data[8:0];
         end
       end
     end
@@ -59,10 +62,16 @@ module pe_config (
           pin_owner[2*p+:2] <= 2'd0;
           pin_en[p]         <= 1'b0;
           pin_od[p]         <= 1'b0;
+          pin_hdrv[p]       <= 1'b0;
+          pin_hsel[p]       <= 1'b0;
+          pin_hsig[3*p+:3]  <= 3'd0;
         end else if (we && (addr == A)) begin
           pin_owner[2*p+:2] <= data[1:0];
           pin_en[p]         <= data[2];
           pin_od[p]         <= data[3];
+          pin_hdrv[p]       <= data[4];
+          pin_hsel[p]       <= data[5];
+          pin_hsig[3*p+:3]  <= data[8:6];
         end
       end
     end

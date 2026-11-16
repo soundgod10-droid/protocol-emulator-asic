@@ -734,18 +734,20 @@ module pe_core (
                   end
                 end
                 2'd2: begin  // IOR
-                  wen  = 1'b1;
-                  n_pc = pc1;
+                  wen   = 1'b1;
+                  n_pc  = pc1;
+                  io_rd = io_hport;
                   case (port)
                     6'd0:    wval = {14'd0, h_err, h_late};       // STATUS
                     6'd1:    wval = {12'd0, h_e, h_n, h_c, h_z};  // FLAGS
-                    6'd2:    wval = {3'd0, s_now};                // PINS
+                    6'd2:    wval = {1'b0, s_now};                // PINS (13, 14: helper events)
                     6'd3:    wval = {14'd0, tid};                 // THREAD
-                    default: wval = 16'h0000;
+                    default: wval = io_hport ? io_rdata : 16'h0000;  // 16-47: line helpers
                   endcase
                 end
                 default: begin  // IOW
-                  n_pc = pc1;
+                  n_pc  = pc1;
+                  io_wr = io_hport;
                   if (port == 6'd0) begin
                     if (ra[0]) n_late = 1'b0;
                     if (ra[1]) n_err = 1'b0;

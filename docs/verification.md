@@ -6,7 +6,7 @@ Each method below gives what it checks, what it does not check, and its latest r
 
 | Method | Checks | Latest result |
 |---|---|---|
-| RTL tests (cocotb, Icarus Verilog) | host port, firmware UART on the chip pins, processor against the reference model, assembler, full protocol firmware in the model, firmware for protocols outside the instruction-set design, hold-out trials | 75 tests, 0 failures, 0 skipped, run [43712217681] |
+| RTL tests (cocotb, Icarus Verilog) | host port, processor against the reference model, assembler, every protocol program of `fw/` on the chip pins against its independent protocol model, full protocol firmware and rate sweeps in the model, hold-out trials | 90 tests, 0 failures, 0 skipped, run [43779858063] |
 | Code coverage (Verilator) | line, branch and toggle coverage of the RTL tests | line 100 %, branch 100 %, toggle 98.5 %, run [43712217710] ([signoff.md](signoff.md) section 4) |
 | Gate-level test (present layout) | the layout netlist with the RTL tests, no delays | 47 pass (23 drive the netlist), 28 skipped (model-only tests), run [43712217729] (section 4) |
 | SDF gate-level simulation (present layout) | the netlist with layout cell delays at 3 corners | `test_r3_sdf`, `test.py`, `test_core.py` pass at slow, typical and fast (run [43716786712]); see [signoff.md](signoff.md) section 3 for the long counter test |

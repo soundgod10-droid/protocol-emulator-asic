@@ -45,6 +45,77 @@ jobs:
       - name: GL test
         uses: TinyTapeout/tt-gds-action/gl_test@ttihp27a
 
+  # The protocol tests (test/test_rtl_fw.py) on the gate-level netlist of this run, in two parts (GL_PARTS in that
+  # file) in parallel with gl_test and precheck, so that they do not make the run longer. Set up as the gl_test
+  # action of tt-gds-action@ttihp27a does (netlist and PDK revision from tt_submission, Icarus 13, -DFUNCTIONAL).
+  gl_protocols:
+    needs: gds
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [1, 2]
+    env:
+      PDK_ROOT: /home/runner/pdk
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: netlist of this run
+        uses: actions/download-artifact@v7
+        with:
+          name: tt_submission
+
+      - name: PDK name and version
+        run: |
+          echo "PDK=$(jq -r '.PDK' tt_submission/pdk.json)" >> $GITHUB_ENV
+          echo "PDK_VERSION=$(jq -r '.PDK_VERSION' tt_submission/pdk.json)" >> $GITHUB_ENV
+
+      - name: Install the PDK
+        uses: TinyTapeout/ciel-action@v1
+        with:
+          pdk_name: ${{ env.PDK }}
+          pdk_version: ${{ env.PDK_VERSION }}
+          pdk_root: ${{ env.PDK_ROOT }}
+
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: tools
+        run: |
+          wget -q https://github.com/TinyTapeout/iverilog/releases/download/v13.0/iverilog_13.0-1_amd64.deb
+          sudo apt-get update -y
+          sudo apt-get install -y ./iverilog_13.0-1_amd64.deb
+          pip install -r test/requirements.txt
+
+      - name: protocol tests at gate level, part ${{ matrix.part }}
+        shell: bash
+        run: |
+          cp tt_submission/*.v test/gate_level_netlist.v
+          cd test
+          rm -f tb.fst results.xml
+          make clean
+          GATES=yes GL_PART=${{ matrix.part }} make COCOTB_TEST_MODULES=test_rtl_fw
+          # make returns success even if tests fail, so check results.xml.
+          python -m cocotb_tools.check_results results.xml
+
+      - name: results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: gl_protocols_${{ matrix.part }}
+          path: test/results.xml
+
+      - name: Test Summary
+        if: always()
+        uses: test-summary/action@v2.6
+        with:
+          paths: test/results.xml
+
   viewer:
     needs: gds
     runs-on: ubuntu-24.04

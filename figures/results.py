@@ -146,7 +146,7 @@ def main(runs_dir, fig_dir, out_md):
              f"(https://github.com/{R['repo']}/blob/{R['branch']}/.github/workflows/docs.yaml), "
              f"[figures/results.py](https://github.com/{R['repo']}/blob/{R['branch']}/figures/results.py)) from the "
              f"newest completed run of each workflow on branch `{R['branch']}`. Site built from commit `{site}`"
-             + (f" in [this docs run]({docs_run})" if docs_run else "") + ". Each value links to its run; the commit "
+             + (f" in [this docs run]({this_run})" if this_run else "") + ". Each value links to its run; the commit "
              "of each run is in the last table. A run of an older commit is used until the run of the newest "
              "commit has finished.\n")
     L.append("## Key results\n")

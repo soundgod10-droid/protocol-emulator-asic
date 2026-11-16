@@ -786,3 +786,123 @@ async def test_slu_chip_eth_rx(dut):
     assert status & (1 << 6), "CRC-32 residue (CRCA_OK), status %04x" % status
     dut._log.info("chip 10BASE-Te RX: 64-byte frame at +80 ppm, 13.5 ns jitter on ui_in[0]: %d words "
                   "in the data memory equal to payload + FCS; status %04x (CRC ok)" % (n, status))
+
+
+async def drive_ui(dut, schedule):
+    """schedule: (time_ns from now, {k: level}) for ui_in[k] (k = DIN 0, AUX0 1, AUX1 2), host idle."""
+    t = 0.0
+    v = 1 << hs.CS_N_BIT
+    for tn, pins in schedule:
+        dt = tn - t
+        if dt > 0:
+            await Timer(round(dt * 1000), unit="ps")
+        t = tn
+        for p, lv in pins.items():
+            v = (v & ~(1 << p)) | (lv << p)
+        dut.ui_in.value = v
+
+
+USB_TX_FW = ETH_TX_FW.replace(".equ    E, 32", ".equ    E, 16")
+
+
+@cocotb.test()
+async def test_slu_chip_usb_tx(dut):
+    """USB low-speed helper in the chip: thread 0 sends DATA0 with 8 bytes from the data memory (SYNC
+    and PID word from the memory, CRC16 and stuffing by the helper); VPO on uio0 (TXA), VMO on uio1
+    (TXB), OE# on uio2 (not OE). Line levels at each bit centre = NRZI(stuff(SYNC PID DATA CRC16)),
+    then SE0 84 cycles and J 40 cycles, then OE# high."""
+    pid = 0xC3
+    data = bytes([0xFF, 0xFF, 0x00, 0x7E, 0x01, 0x80, 0xFE, 0x55])
+    words = [0x80 | (pid << 8)] + [data[i] | (data[i + 1] << 8) for i in range(0, 8, 2)]
+    prog = pe_asm.assemble(USB_TX_FW, "usb_tx")
+    pins = [0] * 15
+    pins[0], pins[1], pins[2] = helper_pin(0, 0), helper_pin(0, 1), helper_pin(0, 5)
+    host = await chip_start(dut, prog, [(512, [len(words)] + words)], pins)
+    caps = []
+
+    async def cap(n):
+        for _ in range(n):
+            await FallingEdge(dut.clk)
+            caps.append(int(dut.uio_out.value))
+    task = cocotb.start_soon(cap(40 * 140))
+    await host.start()
+    await task
+    oen = [(v >> 2) & 1 for v in caps]
+    first = next(i for i in range(1, len(oen)) if not oen[i] and oen[i - 1])
+    lines = [v & 3 for v in caps]                       # bit 1 VMO, bit 0 VPO
+    exp_line = ref.nrzi(ref.stuff(ref.usb_packet_bits(pid, data, crc="16")))
+    got = []
+    for i in range(len(exp_line)):
+        v = lines[first + 40 * i + 20]
+        assert v in (1, 2), "bit %d: not J or K (%d)" % (i, v)
+        got.append(1 if v == 2 else 0)
+    assert got == exp_line, "uio0/uio1 differ from NRZI(stuff(SYNC PID DATA CRC16))"
+    eop = first + 40 * len(exp_line)
+    se0 = 0
+    while lines[eop + se0] == 0:
+        se0 += 1
+    j = 0
+    while not oen[eop + se0 + j] and lines[eop + se0 + j] == 2:
+        j += 1
+    assert (se0, j) == (84, 40), "EOP: SE0 %d, J %d cycles" % (se0, j)
+    assert oen[eop + se0 + j] == 1, "OE# high after the EOP"
+    dut._log.info("chip USB TX: %d line bits on uio0/uio1 equal to NRZI(stuff(SYNC PID DATA CRC16)); "
+                  "SE0 %d cycles, J %d cycles, then OE# high" % (len(exp_line), se0, j))
+
+
+USB_RX_FW = """
+        .equ    E, 16
+        LDI     r0, 8
+        IOW     r0, E+12        ; CFGADR = 8 (SEL)
+        LDI     r0, 0xA9        ; SEL 0xA98: DIN = input 8 (ui_in[0], RCV), AUX0 = input 9 (VP),
+        SHL     r0, 4           ;            AUX1 = input 10 (VM)
+        ORI     r0, 8
+        IOW     r0, E+13
+        LDI     r2, 600
+rx:     IOR     r1, E+6
+        ANDI    r1, 0x60
+        BEQ     chk
+        IOR     r0, E+1
+        STX     r0, [r2]
+        ADDI    r2, 1
+        JMP     rx
+chk:    IOR     r1, E+2
+        ANDI    r1, 0x20
+        BEQ     rx
+drain:  IOR     r1, E+6
+        ANDI    r1, 0x60
+        BEQ     fin
+        IOR     r0, E+1
+        STX     r0, [r2]
+        ADDI    r2, 1
+        JMP     drain
+fin:    IOR     r1, E+2
+        PUSH    r1
+        PUSH    r2
+        HALT
+"""
+
+
+@cocotb.test()
+async def test_slu_chip_usb_rx(dut):
+    """USB low-speed helper in the chip: a host DATA0 packet with 8 bytes at -1.5 % on RCV/VP/VM
+    (ui_in[0..2]); thread 0 copies the words to the data memory; bytes and the CRC16 flag checked."""
+    data = bytes([0x12, 0xFF, 0xFF, 0x00, 0xA5, 0x7F, 0xFE, 0x80])
+    prog = pe_asm.assemble(USB_RX_FW, "usb_rx")
+    host = await chip_start(dut, prog, [], [0] * 15)
+    await host.start()
+    await ClockCycles(dut.clk, 200)
+    line = ref.nrzi(ref.stuff(ref.usb_packet_bits(0xC3, data, "16")))
+    sch, t_end = usb_host_schedule(line, 1000.0 / 1.5 * (1 - 0.015), 2000.0)
+    await drive_ui(dut, sch)
+    await Timer(round(5000 * 1000), unit="ps")
+    words_out, _ = await host.pull(0)
+    assert len(words_out) == 2, "thread pushed status and end address: %s" % words_out
+    status, end = words_out
+    await host.stop()
+    got = b"".join(w.to_bytes(2, "little") for w in await host.read_mem(600, end - 600))
+    exp = bytes([0xC3]) + data + ref.bytes_of_bits(ref.usb_crc16_bits(ref.bits_of_bytes(data)))
+    assert got[:len(exp)] == exp, "received bytes %s, expected %s" % (got.hex(), exp.hex())
+    assert status & (1 << 6), "CRC16 residue (CRCA_OK), status %04x" % status
+    dut._log.info("chip USB RX: DATA0 + 8 bytes at -1.5 %% on ui_in[0..2]: %d words in the data memory "
+                  "equal to PID, data and CRC16; status %04x" % (end - 600, status))

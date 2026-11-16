@@ -1461,7 +1461,7 @@ def combo_image(names):
 
 @cocotb.test(skip=GL)
 async def test_flex_word_count(dut):
-    """Word count of each program (assembler) and the sets that fit together in the 128-word memory and 4 threads:
+    """Word count of each program (assembler) and the sets that fit together in the program memory and 4 threads:
     each fitting set is assembled at consecutive base addresses; a pin used twice at the default pins is shown."""
     import itertools
     log = dut._log

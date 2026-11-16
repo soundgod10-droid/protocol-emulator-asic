@@ -661,7 +661,7 @@ module pe_slu #(
           if (FULL && jabber) tx_st <= T_IDLE;
         end
         T_TAIL1: begin
-          if (tx_tail == 8'd0) begin
+          if (tx_tail <= 8'd1) begin                     // tail 1 lasts c_tail[7:0] cycles
             if (m_usb) begin
               tx_st   <= T_TAIL2;
               tx_tail <= c_tail[15:8];

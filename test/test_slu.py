@@ -581,3 +581,202 @@ async def test_slu_eth_rx(dut):
 def binascii_crc(b):
     import binascii
     return binascii.crc32(b) & 0xFFFFFFFF
+
+
+# --------------------------------------------------------------------------------------------------
+# The helpers in the chip: a thread drives them through I/O ports 16-47, the pin configuration
+# gives them pins, the frame comes from and goes to the data memory (host WRITE_MEM / READ_MEM).
+# --------------------------------------------------------------------------------------------------
+
+import os  # noqa: E402
+import sys  # noqa: E402
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "asm"))
+import host_spi as hs  # noqa: E402
+import pe_asm  # noqa: E402
+
+CHIP_CLK_PS = 16666                 # 60 MHz
+ETH_PORT, USB_PORT = 32, 16
+PIN_HDRV, PIN_HETH = 1 << 4, 1 << 5
+
+
+def helper_pin(eth, signal):
+    """Pin configuration word of a helper pin: helper drive, helper select, signal (0 TXA .. 3 TXD,
+    4 OE, 5 not OE)."""
+    return PIN_HDRV | (PIN_HETH if eth else 0) | (signal << 6)
+
+
+async def chip_start(dut, prog, mem, pins):
+    """Chip reset, program and data words through the host port, pin words, START (thread 0 at 0)."""
+    cocotb.start_soon(Clock(dut.clk, CHIP_CLK_PS, unit="ps").start())
+    dut.ena.value = 1
+    dut.ui_in.value = 1 << hs.CS_N_BIT
+    dut.uio_in.value = 0
+    dut.rst_n.value = 0
+    await ClockCycles(dut.clk, 10)
+    dut.rst_n.value = 1
+    await ClockCycles(dut.clk, 5)
+    host = hs.SpiTimed(dut)
+    await host.write_mem(0, prog.image()[:prog.size])
+    for addr, words in mem:
+        await host.write_mem(addr, words)
+    head, _ = hs.config_words((0, 0, 0, 0), (True, False, False, False), [None] * 15, [False] * 15)
+    await host.write_cfg(0, head)
+    await host.write_cfg(16, pins)
+    return host
+
+
+ETH_TX_FW = """
+        .equ    E, 32
+        LDI     r2, 512         ; frame: count N at 512, then N words
+        LDX     r3, [r2]
+        ADDI    r2, 1
+        LDX     r0, [r2]
+        IOW     r0, E+0         ; TXDATA
+        ADDI    r2, 1
+        LDX     r0, [r2]
+        IOW     r0, E+0
+        ADDI    r2, 1
+        ADDI    r3, -2
+        LDI     r0, 544         ; TXCTRL: append CRC (32) + start now (512)
+        IOW     r0, E+4
+next:   LDX     r0, [r2]
+        ADDI    r2, 1
+        ADDI    r3, -1
+        BEQ     last
+w1:     IOR     r1, E+0         ; TX buffer free
+        CMPI    r1, 0
+        BEQ     w1
+        IOW     r0, E+0
+        JMP     next
+last:   IOR     r1, E+0
+        CMPI    r1, 0
+        BEQ     last
+        IOW     r0, E+14        ; TXLAST
+done:   IOR     r1, E+2         ; STATUS: wait for TXDONE
+        ANDI    r1, 1
+        BEQ     done
+        IOR     r1, E+2
+        PUSH    r1
+        HALT
+"""
+
+
+@cocotb.test()
+async def test_slu_chip_eth_tx(dut):
+    """10BASE-Te helper in the chip: thread 0 sends a 46-byte frame from the data memory (preamble
+    and SFD words from the memory, CRC-32 by the helper); TD+ on uio0 (TXA), TD- on uio1 (TXB), OE on
+    uio2, through the pin flip-flops. The pins must carry the IEEE 802.3 Manchester halves of the
+    frame with its FCS, then the TP_IDL hold, and the thread must see TXDONE."""
+    payload = bytes((7 * i + 3) & 0xFF for i in range(46))
+    words = [0x5555, 0x5555, 0x5555, 0xD555] + [payload[i] | (payload[i + 1] << 8) for i in range(0, 46, 2)]
+    prog = pe_asm.assemble(ETH_TX_FW, "eth_tx")
+    pins = [0] * 15
+    pins[0], pins[1], pins[2] = helper_pin(1, 0), helper_pin(1, 1), helper_pin(1, 4)
+    host = await chip_start(dut, prog, [(512, [len(words)] + words)], pins)
+    caps = []
+
+    async def cap(n):
+        for _ in range(n):
+            await FallingEdge(dut.clk)
+            caps.append((int(dut.uio_out.value), int(dut.uio_oe.value)))
+    task = cocotb.start_soon(cap(5000))
+    await host.start()
+    await task
+    assert all(oe & 0x7 == 0x7 for _, oe in caps), "helper pins uio0-2 are outputs (OE = 1) while running"
+    oe_sig = [(v >> 2) & 1 for v, _ in caps]
+    first = oe_sig.index(1)
+    td = [v & 1 for v, _ in caps]
+    tdm = [(v >> 1) & 1 for v, _ in caps]
+    exp = ref.manchester_halves(ref.eth_frame_bits(payload))
+    got = [td[first + 3 * i + 1] for i in range(len(exp))]
+    assert got == exp, "uio0 differs from the Manchester halves of preamble, SFD, payload, CRC-32"
+    assert all(tdm[first + 3 * i + 1] == 1 - exp[i] for i in range(len(exp))), "uio1 = not uio0"
+    end = first + 3 * len(exp)
+    hold = 0
+    while td[end + hold] == 1 and oe_sig[end + hold]:
+        hold += 1
+    last_high = 3 if exp[-1] == 1 else 0
+    assert 13 <= hold + last_high <= 27, "TP_IDL hold %d cycles" % (hold + last_high)
+    words_out, _ = await host.pull(0)
+    assert words_out and words_out[0] & 1, "thread saw TXDONE: %s" % words_out
+    dut._log.info("chip 10BASE-Te TX: thread 0 sent %d words from the data memory; %d Manchester half "
+                  "bits on uio0 equal to the frame with FCS, uio1 inverted, TP_IDL hold %d cycles; "
+                  "thread status word %04x" % (len(words), len(exp), hold + last_high, words_out[0]))
+
+
+ETH_RX_FW = """
+        .equ    E, 32
+        LDI     r0, 8
+        IOW     r0, E+12        ; CFGADR = 8 (SEL)
+        LDI     r0, 0x398       ; DIN = input 8 (ui_in[0]), AUX0 = input 9 (ui_in[1]), AUX1 none
+        ORI     r0, 0
+        IOW     r0, E+13
+        LDI     r2, 600         ; words go to the data memory from 600
+rx:     IOR     r1, E+6         ; RXINFO [6:5]: words in the RX buffer
+        ANDI    r1, 0x60
+        BEQ     chk
+        IOR     r0, E+1         ; RXDATA (pop)
+        STX     r0, [r2]
+        ADDI    r2, 1
+        JMP     rx
+chk:    IOR     r1, E+2         ; STATUS: RXEOP?
+        ANDI    r1, 0x20
+        BEQ     rx
+drain:  IOR     r1, E+6
+        ANDI    r1, 0x60
+        BEQ     fin
+        IOR     r0, E+1
+        STX     r0, [r2]
+        ADDI    r2, 1
+        JMP     drain
+fin:    IOR     r1, E+2
+        PUSH    r1
+        PUSH    r2
+        HALT
+"""
+
+
+@cocotb.test()
+async def test_slu_chip_eth_rx(dut):
+    """10BASE-Te helper in the chip: a 64-byte frame on ui_in[0] (slicer output) with the squelch
+    comparator on ui_in[1], +/-13.5 ns zero-crossing jitter and +80 ppm; thread 0 copies the received
+    words to the data memory and pushes the status; the host reads the words after STOP (READ_MEM)."""
+    rng = random.Random(16)
+    payload = bytes(rng.randrange(256) for _ in range(64))
+    prog = pe_asm.assemble(ETH_RX_FW.replace("0x398", "920"), "eth_rx")   # 0x398 = 920 (LDI is decimal-safe)
+    host = await chip_start(dut, prog, [], [0] * 15)
+    await host.start()
+    await ClockCycles(dut.clk, 200)
+    bits = ref.eth_frame_bits(payload)
+    lv0, ev = manchester_edges(bits, 100.0, 80.0, 13.5, rng, t0=2000.0)
+    ui = 1 << hs.CS_N_BIT
+
+    async def drive():
+        base = get_sim_time("ns")
+        events = [(2000.0 - 300.0, 0, lv0), (2000.0 - 300.0, 1, 1)]
+        events += [(t, 0, lv) for t, lv in ev]
+        tend = sorted(ev)[-1][0] + 100.0
+        events += [(tend, 0, 0), (tend + 300.0, 1, 0)]
+        level = {0: 0, 1: 0}
+        for t, pin, lv in sorted(events):
+            dt = base + t - get_sim_time("ns")
+            if dt > 0:
+                await Timer(round(dt * 1000), unit="ps")
+            level[pin] = lv
+            dut.ui_in.value = ui | level[0] | (level[1] << 1)
+        return tend
+    tend = await drive()
+    await Timer(round(5000 * 1000), unit="ps")
+    words_out, _ = await host.pull(0)
+    assert len(words_out) == 2, "thread pushed status and end address: %s" % words_out
+    status, end = words_out
+    await host.stop()
+    n = end - 600
+    got_words = await host.read_mem(600, n)
+    got = b"".join(w.to_bytes(2, "little") for w in got_words)
+    exp = payload + binascii_crc(payload).to_bytes(4, "little")
+    assert got[:len(exp)] == exp, "received bytes differ: %s" % got.hex()
+    assert status & (1 << 6), "CRC-32 residue (CRCA_OK), status %04x" % status
+    dut._log.info("chip 10BASE-Te RX: 64-byte frame at +80 ppm, 13.5 ns jitter on ui_in[0]: %d words "
+                  "in the data memory equal to payload + FCS; status %04x (CRC ok)" % (n, status))

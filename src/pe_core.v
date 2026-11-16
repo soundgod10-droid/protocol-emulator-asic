@@ -167,11 +167,15 @@ module pe_core (
   reg  [10:0] st_addr;
   reg  [15:0] st_data;
   reg  [10:0] f_addr;
+  // Request of cycle k for the slot at k + 3: the 2 pre-start cycles serve threads 0 and 1 (slots
+  // at cycles 0 and 1), the START cycle thread 2; from cycle 0 on, st3 holds the thread of slot k + 3.
   always @* begin
-    if (prestart != 2'd0)
-      f_addr = {2'b00, start_pc[9*(prestart-2'd1)+:9]};
+    if (prestart == 2'd1)
+      f_addr = {2'b00, start_pc[8:0]};
+    else if (prestart == 2'd2)
+      f_addr = {2'b00, start_pc[17:9]};
     else if (start)
-      f_addr = {2'b00, start_pc[35:27]};
+      f_addr = {2'b00, start_pc[26:18]};
     else if (st3[F_PS+:4] == PS_LD)
       f_addr = st3[F_LDA+:11];
     else

@@ -32,7 +32,7 @@ Each method below gives what it checks, what it does not check, and its latest r
 
 Result: 90 testcases, 0 failures, 0 skipped (`results.xml` of run [43779858063], commit a668e4d). Earlier: 75 testcases before the protocol tests on the RTL (run [43712217681]), 68 testcases before the hold-out trials (run [43592752852]), 61 before the flexibility tests (run [42744631302]).
 
-Does not check: `test_fw_full.py` and `test_flex.py` run the firmware in the model, not in the RTL; the RTL agrees with the model through the lockstep tests (section 2), not through these protocol runs. The CAN, JTAG, SWD and PS/2 models follow the cited specification pages only (no error frames or error counters in CAN, no boundary-scan register test in JTAG, no SWD protocol version 2, no PS/2 Resend), and only the four example programs have run at the same time in one memory.
+Does not check: the rate sweeps and timing-fault cases of `test_fw_full.py`, `test_flex.py` and `test_holdout.py` run in the model only; on the chip, `test_rtl_fw.py` runs one standard rate per protocol, and the chip agrees with the model in every cycle there and in the lockstep tests (section 2). The CAN, JTAG, SWD and PS/2 models follow the cited specification pages only (no error frames or error counters in CAN, no boundary-scan register test in JTAG, no SWD protocol version 2, no PS/2 Resend), and only the four example programs have run at the same time in one memory.
 
 ## 2. Reference model and lockstep
 

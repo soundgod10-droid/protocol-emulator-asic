@@ -2,12 +2,15 @@
 #
 # The design is flattened and mapped to single-bit cells, and every net is split to single bits.
 # Each "select -assert-count" line is one check; the job stops with an error at the first that fails.
-#   C1 The 16 asynchronous data inputs (ui_in, uio_in) reach storage only at 16 flip-flops with an
-#      asynchronous reset, the first stages of pe_sync2 synchronizers (net names *_sync.stage[0]).
-#   C2 Between a pin and its first stage there are 17 logic cells: the inverter of HOST_CS_N and the
-#      two cells of the pin multiplexer (uio_in & ~OE | V & OE) of each of the 8 uio inputs.
-#   C3 Each first stage drives only one cell, its second stage (net names *_sync.stage[1]): no logic
-#      reads a first stage.
+#   C1 The 16 asynchronous data inputs (ui_in, uio_in) reach storage only at 20 flip-flops with an
+#      asynchronous reset: 16 first stages of pe_sync2 synchronizers (net names *_sync.stage[0]) and
+#      the 4 first stages of the line inputs of the two helpers (pe_slu din_r1 on the rising and
+#      din_f1 on the falling clock edge).
+#   C2 Between a pin and its first stage there are 47 logic cells: the inverter of HOST_CS_N, the
+#      two cells of the pin multiplexer (uio_in & ~OE | V & OE) of each of the 8 uio inputs, and the
+#      line-input choice (SEL[3:0], 13 inputs) of each helper.
+#   C3 Each first stage drives only one cell, its second stage (net names *_sync.stage[1], din_r2,
+#      din_f2): no logic reads a first stage.
 #   R1 rst_n reaches only the 2 flip-flops of the reset synchronizer.
 #   R2 The asynchronous reset pins are driven by 3 nets only: rst_n (reset synchronizer), its output
 #      (u_reset_sync.stage[1]) and the processor reset run_rst_n.

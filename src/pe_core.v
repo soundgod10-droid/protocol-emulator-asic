@@ -352,13 +352,13 @@ module pe_core (
 
   // ---------------------------------------------------------------------
   // Input history of the pin of this instruction: hp[i] = s(c-1-i).
-  // Inputs 13 to 15 read 0 (isa 5.1).
+  // Inputs 13 and 14 are the line helper events; input 15 reads 0 (isa 5.1).
   // ---------------------------------------------------------------------
   wire [4:0] hp;
   genvar gi;
   generate
     for (gi = 0; gi < 5; gi = gi + 1) begin : g_hp
-      wire [15:0] hv = {3'b000, s_hist[13*gi+:13]};
+      wire [15:0] hv = {1'b0, s_hist[15*gi+:15]};
       assign hp[gi] = hv[pin];
     end
   endgenerate

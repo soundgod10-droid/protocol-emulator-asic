@@ -483,8 +483,8 @@ Bits with "-" have no effect. Thus, two words that differ only in "-" bits have 
 | SAMPLE blocks until the sample time | The next instruction usually needs the bit. One sample unit for each thread. | Non-blocking SAMPLE and a separate read instruction | One more word in each receive loop. |
 | Loop counter = DJNZ on a data register | No extra register. | A separate 16-bit loop counter | +64 loadable bits (4,296 um2). |
 | JAL and JR with a data register | No link register. | CALL and RET with a stack or a link register | More flip-flops for each thread. |
-| LD and LDX take 2 slots | The 128 x 16 latch memory needs only one read multiplexer (section 3.3). | LD in one slot | A second 16-bit 128:1 read multiplexer (about 25,900 um2, an estimate; not verified in this repository). |
-| Helper hooks as I/O ports 16 to 63 and opcode 15 | The helpers (CRC unit, line-code helpers) are not specified yet. The ports and the opcode keep space for them. | Helper instructions now | Their function is not known yet. |
+| LD, LDX, ST and STX take 2 slots | The single-port SRAM macros give one access in each cycle; the second slot of the thread gives the data access its own cycle (section 3.3). | Dual-port memory | The PDK has single-port SRAM macros only (RM_IHPSG13_1P_*). |
+| Line helpers on I/O ports 16 to 47 | The helpers are units with their own state (buffers, CRC, receive loop); ports need no new instruction and keep the 16-bit encoding. | Helper instructions with opcode 15 | A new instruction for each operation, and the decode grows; the ports give the same access in one slot. |
 | 0x0000 = HALT, illegal instructions stop the thread | A thread that runs into a cleared area or into data stops and sets ERR. | 0x0000 = NOP | The thread runs through the memory with no indication. |
 | Reset level of the output pins V = 1, OE = 0 | uio pins are inputs, UART_TX is at idle level 1. | V = 0 | UART_TX would show a start bit at reset. |
 

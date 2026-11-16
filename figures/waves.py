@@ -390,7 +390,7 @@ def fig_spi(vcd, out):
              dict(lane=0, ta=f0, tb=ed0[0], text=f"CS to SCK {lead[0]} cycles", pos="top")]
     one_h = len(halves) == 1
     table = [
-        ("SCK half periods inside each byte", f"{sorted(halves)} cycles, SCK {F_CLK / 2e6 / h:.2f} MHz",
+        ("SCK half periods inside each byte", f"{', '.join(str(x) for x in sorted(halves))} cycles, SCK {F_CLK / 2e6 / h:.2f} MHz",
          "one value H for all", "test rule (test_fw_full.spi_half_periods)", one_h),
         ("MOSI set-up before the sample edge", f"min {min(setup)} cycles = {1000 * us(min(setup)):.0f} ns",
          "> 0 (stable at the edge)", "device model samples at the edge", min(setup) > 0),

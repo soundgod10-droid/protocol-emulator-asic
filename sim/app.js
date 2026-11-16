@@ -481,8 +481,51 @@ function render() {
   renderPins(st);
   renderHost();
   renderEditorPc(st, exact);
-  $("run").textContent = ui.playing ? "Pause" : "Run";
+  $("run").textContent = ui.playing ? "Pause" : ui.played && run.done && ui.cursor >= run.frontier ? "Replay" : "Run";
+  updateStatus();
   if (run.done && !exact && !ui.pending) requestExact();
+}
+
+function expectedTotal() {
+  const e = edits[run.ex.id];
+  return e && Object.keys(e).length ? 0 : expected[run.ex.id] || 0;
+}
+
+function speedText() {
+  return ui.speed < 0 ? `whole run in ${-ui.speed} s` : `${fmt(ui.speed)} cycles/s`;
+}
+
+function setStatus(text, cls = "") {
+  if (text === statusShown) return; // a status region is read out when it changes: only on a change of state
+  statusShown = text;
+  $("status").textContent = text;
+  $("status").className = "status" + (cls ? " " + cls : "");
+}
+
+// The line next to the main button: what the page is doing now and what the button does.
+function updateStatus() {
+  const id = run.ex.id;
+  if (!run.done) {
+    if (ui.playing) {
+      return setStatus(ui.cursor >= run.frontier
+        ? `Playing ${id}: waiting for the engine, which is still computing the run.`
+        : `Playing ${id} from cycle 0 (${speedText()}) while the engine computes the rest.`);
+    }
+    if (ui.touched) return setStatus(`Paused at cycle ${fmt(ui.cursor)} while the engine computes ${id}. Run plays on from here.`);
+    return setStatus(`Computing ${id}. Run plays it from cycle 0 (${speedText()}); without a tap the page shows the end of the run.`);
+  }
+  const r = run.result || {};
+  if (!r.has_main) {
+    return setStatus(r.asm_errors && r.asm_errors.length ? "The firmware has assembler errors (see the firmware panel): nothing to run."
+      : `No run: ${r.text}`, "fail");
+  }
+  const check = `test check ${r.ok ? "pass" : "fail"}`;
+  if (ui.playing) return setStatus(`Playing ${id} (${speedText()}).`);
+  if (ui.cursor >= run.frontier) {
+    return setStatus(`${id} finished at cycle ${fmt(run.frontier)}: ${check}. ${ui.played ? "Replay" : "Run"} plays the run from cycle 0 (${speedText()}).`,
+      r.ok ? "pass" : "fail");
+  }
+  return setStatus(`Paused at cycle ${fmt(ui.cursor)} of ${fmt(run.frontier)}; the run ends with ${check}. Run plays on from here.`);
 }
 
 async function requestExact() {

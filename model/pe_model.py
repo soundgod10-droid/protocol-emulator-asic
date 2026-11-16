@@ -474,21 +474,22 @@ class PeModel:
                 or (cc == 6 and th.e)
                 or (cc == 7 and not th.e)
             )
-            return (w & 0x7F) if taken else nxt
+            return (w & PC_MASK) if taken else nxt
 
         if op == 0x9:  # DJNZ
             th.r[rd] = (th.r[rd] - 1) & 0xFFFF
-            return (w & 0x7F) if th.r[rd] else nxt
+            return (w & PC_MASK) if th.r[rd] else nxt
 
         if op == 0xA:  # JAL
-            th.r[rd] = nxt & 0x7F
-            return w & 0x7F
+            th.r[rd] = nxt & PC_MASK
+            return w & PC_MASK
 
-        if op == 0xB:  # LD, ST
+        if op == 0xB:  # LD, ST (9-bit address: program memory)
             r = (w >> 9) & 3
-            addr = w & 0x7F
-            if (w >> 11) & 1:
+            addr = w & PC_MASK
+            if (w >> 11) & 1:  # ST: 2 slots (isa 3.3)
                 self._store(addr, th.r[r], c)
+                th.pend = {"op": "st"}
                 return nxt
             th.pend = {"op": "ld", "reg": r, "addr": addr}
             return None

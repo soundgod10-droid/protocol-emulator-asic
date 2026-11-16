@@ -18,6 +18,10 @@ from cocotb.triggers import ClockCycles, FallingEdge, ReadOnly, RisingEdge
 
 from slu_loop_model import TENBASET, USB_LS, Loop
 
+# The unit tests drive the unit-test instances of test/tb.v, which the gate-level build does not have;
+# the chip-level tests at the end run at gate level too.
+GL = os.environ.get("GATES") == "yes"
+
 
 def manchester_edges(bits, bt_ns, ppm, jit_ns, rng, t0=50.0):
     """Line level changes of a Manchester stream: first half of a bit = not b, second half = b.

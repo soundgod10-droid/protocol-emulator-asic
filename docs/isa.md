@@ -227,7 +227,7 @@ Inputs 6 and 7 (uio[6], uio[7], the I2C pins SCL and SDA) also have a spike filt
 - A pulse on the pin that lasts 1 to 3 cycles has no effect on s.
 - A level that lasts 4 cycles or more reaches s 6 cycles after the pin change (2 synchronizer cycles + 4 filter cycles), not 2.
 
-Reason: I2C Fast-mode needs input filters that suppress spikes of less than 50 ns on SDA and SCL (NXP UM10204 Rev. 7.0, Table 10, tSP and note [8]). A spike of width w is sampled floor(w / T) or ceil(w / T) times, so at 50 MHz a spike of 41 to 49 ns can give 3 samples; K = 4 removes every spike of less than 60 ns at 50 MHz (75 ns at 40 MHz). K = 3 removes only spikes of less than 40 ns at 50 MHz. The other inputs have no filter: the UART and SPI firmware does not need one, and each filtered input costs 215.9 um2 (synthesis, typical corner) and 4 cycles of delay.
+Reason: I2C Fast-mode needs input filters that suppress spikes of less than 50 ns on SDA and SCL (NXP UM10204 Rev. 7.0, Table 10, tSP and note [8]). A spike of width w is sampled floor(w / T) or ceil(w / T) times, so at 50 MHz a spike of 41 to 49 ns can give 3 samples; K = 4 removes every spike of less than 3 T: 50 ns at the declared 60 MHz (exactly the tSP limit, no margin), 60 ns at 50 MHz, 75 ns at 40 MHz. K = 3 removes only spikes of less than 40 ns at 50 MHz. The other inputs have no filter: the UART and SPI firmware does not need one, and each filtered input costs 215.9 um2 (synthesis, typical corner) and 4 cycles of delay.
 
 ### 6.2 SAMPLE
 

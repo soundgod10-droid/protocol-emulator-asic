@@ -324,7 +324,7 @@ def main(out, hier_json=None):
     with open(hier_json, encoding="utf-8") as fp:
         data = json.load(fp)
     h = Hier(data, top)
-    missing = sorted(set(h.total) - set(DRAWN))
+    missing = sorted(set(h.total) - set(DRAWN) - set(MACROS))
     if missing:
         sys.exit(f"modules in the RTL that the block diagram does not show: {missing} (add them to figures/blocks.py)")
     gone = sorted(set(DRAWN) - set(h.total))

@@ -352,11 +352,14 @@ module pe_host_port #(
   //
   // A monitor (m_*) decodes the SPI pins after the synchronizers as
   // docs/host_port.md tells: bytes MSB first at the rising SCK edge, CS_N
-  // high ends the transaction, byte 0 is the command, byte 1 the address
-  // or thread, then words (high byte first) at address A, A + 1, ...
-  // (wrap 127 to 0). STOP and START change RUNNING (START only when
-  // stopped). The monitor does not use the port registers. The ID bytes
-  // below are the values of docs/host_port.md section 4, not CHIP_ID.
+  // high ends the transaction, byte 0 is the command. WRITE_CFG, PUSH and
+  // PULL: byte 1 is the address (wrap 127 to 0) or the thread, words from
+  // byte 2. WRITE_MEM: bytes 1 and 2 are address bits 10:8 and 7:0, words
+  // from byte 3 (wrap 2,047 to 0); READ_MEM: the same address and a dummy
+  // byte, words from byte 4. Words are high byte first at A, A + 1, ...
+  // STOP and START change RUNNING (START only when stopped). The monitor
+  // does not use the port registers. The ID bytes below are the values of
+  // docs/host_port.md section 4, not CHIP_ID.
   //
   // H1 to H7 are the properties. J1 to J8 are invariants: they connect
   // the port registers to the monitor, so that k-induction can prove H1

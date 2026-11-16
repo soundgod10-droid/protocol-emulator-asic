@@ -1482,7 +1482,7 @@ async def test_flex_word_count(dut):
     maximal = [f for f in fits if not any(set(f[0]) < set(g[0]) for g in fits)]
     for combo, total, clash in sorted(maximal, key=lambda f: (-len(f[0]), f[1])):
         log.info(f"fits: {' + '.join(f'{n} {size[n]}' for n in combo)} = {total} words, "
-                 f"{pe_model.MEM_WORDS - total} free; default pins {'shared: ' + ', '.join(clash) if clash else 'free'}")
+                 f"{pe_model.PROG_WORDS - total} free; default pins {'shared: ' + ', '.join(clash) if clash else 'free'}")
     log.info("words: " + ", ".join(f"{n} {size[n]}" for n in PROGRAMS))
     for n in NEW:
         log.info(f"{n} alone: {size[n]} words, {pe_model.MEM_WORDS - size[n]} free, {PROGRAMS[n][0]} thread(s)")

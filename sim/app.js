@@ -522,7 +522,7 @@ function updateStatus() {
   const check = `test check ${r.ok ? "pass" : "fail"}`;
   if (ui.playing) return setStatus(`Playing ${id} (${speedText()}).`);
   if (ui.cursor >= run.frontier) {
-    return setStatus(`${id} finished at cycle ${fmt(run.frontier)}: ${check}. ${ui.played ? "Replay" : "Run"} plays the run from cycle 0 (${speedText()}).`,
+    return setStatus(`${id} finished at cycle ${fmt(run.frontier)} on the reference model: ${check}. ${ui.played ? "Replay" : "Run"} plays the run from cycle 0 (${speedText()}).`,
       r.ok ? "pass" : "fail");
   }
   return setStatus(`Paused at cycle ${fmt(ui.cursor)} of ${fmt(run.frontier)}; the run ends with ${check}. Run plays on from here.`);

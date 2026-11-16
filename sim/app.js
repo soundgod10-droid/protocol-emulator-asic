@@ -330,7 +330,7 @@ function renderThreads(st, exact) {
       const hq = st.host_queue ? st.host_queue[n] : 0;
       if (!used) {
         return `<div class="th idle${n === slot ? " slot" : ""}" style="--tc:var(--t${n})"><div class="th-head"><b>Thread ${n}</b>
-          <span class="badge off">STOP</span></div><div class="th-pc">not started by the host (RUN = 0)</div></div>`;
+          <span class="badge off">STOP</span></div><div class="th-pc">not used in this example: the host does not start it (RUN = 0)</div></div>`;
       }
       return `<div class="th${n === slot ? " slot" : ""}" style="--tc:var(--t${n})">
         <div class="th-head"><b>Thread ${n}</b>

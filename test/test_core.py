@@ -530,7 +530,7 @@ async def test_core_branches_memory(dut):
         "        PUSH r0",
         "        LD r0, a1",           # an instruction word as data
         "        PUSH r0",
-        "        .word 0xB180 + 120",  # LD r0, 120 with the '-' bits set
+        "        .word 0xB000 + 120",  # LD r0, 120 as a word (no '-' bits with the 9-bit address)
         "        PUSH r0",
         "        LDI r1, done",
         "        JR r1",

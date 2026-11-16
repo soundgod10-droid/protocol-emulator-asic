@@ -173,7 +173,7 @@ def main(runs_dir, fig_dir, out_md):
              f"{m.get('design__lvs_error__count', NA)} / {m.get('antenna__violating__nets', NA)} | {link(gds)} |")
     L.append(f"| Lint errors / warnings (Verilator, flow) | {m.get('design__lint_error__count', NA)} / "
              f"{m.get('design__lint_warning__count', NA)} | {link(gds)} |")
-    L.append(f"| Tiny Tapeout precheck | " + (f"{pre_pass} of {len(pre_rows)} checks pass" if pre_rows else NA)
+    L.append(f"| Layout precheck of the shuttle | " + (f"{pre_pass} of {len(pre_rows)} checks pass" if pre_rows else NA)
              + (f", job {pre_job['conclusion']}" if pre_job else "") + f" | {link(gds)} job `precheck` |")
     if m:
         L.append(f"| Standard cells, area, utilisation, power | {int(m['design__instance__count__stdcell']):,} cells, "

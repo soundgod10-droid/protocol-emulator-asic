@@ -49,6 +49,71 @@
   "CTS_SINK_CLUSTERING_SIZE": 8,
   "CTS_DISTANCE_BETWEEN_BUFFERS": 200,
 
+  "//": "IHP SRAM macros (pe_sram) at the bottom edge (the tile pins are at the top left). FS puts the",
+  "//": "signal pins on top, facing the logic, and keeps the Metal4 supply columns vertical; x = 11.04 + 67.44 k",
+  "//": "keeps the columns under the stripes (src/pdn_cfg.tcl). Instance keys are the flattened paths.",
+  "MACROS": {
+    "RM_IHPSG13_1P_512x16_c2_bm_bist": {
+      "instances": { "u_proc.u_mem.u_pmem": { "location": [11.04, 40], "orientation": "FS" } },
+      "gds": ["pdk_dir::libs.ref/sg13cmos5l_sram/gds/RM_IHPSG13_1P_512x16_c2_bm_bist.gds"],
+      "lef": ["pdk_dir::libs.ref/sg13cmos5l_sram/lef/RM_IHPSG13_1P_512x16_c2_bm_bist.lef"],
+      "lib": {
+        "*_typ_*": ["pdk_dir::libs.ref/sg13cmos5l_sram/lib/RM_IHPSG13_1P_512x16_c2_bm_bist_typ_1p20V_25C.lib"],
+        "*_fast_*": ["pdk_dir::libs.ref/sg13cmos5l_sram/lib/RM_IHPSG13_1P_512x16_c2_bm_bist_fast_1p32V_m55C.lib"],
+        "*_slow_*": ["pdk_dir::libs.ref/sg13cmos5l_sram/lib/RM_IHPSG13_1P_512x16_c2_bm_bist_slow_1p08V_125C.lib"]
+      },
+      "spice": ["pdk_dir::libs.ref/sg13cmos5l_sram/cdl/RM_IHPSG13_1P_512x16_c2_bm_bist.cdl"]
+    },
+    "RM_IHPSG13_1P_1024x16_c2_bm_bist": {
+      "instances": { "u_proc.u_mem.u_dmem": { "location": [280.80, 40], "orientation": "FS" } },
+      "gds": ["pdk_dir::libs.ref/sg13cmos5l_sram/gds/RM_IHPSG13_1P_1024x16_c2_bm_bist.gds"],
+      "lef": ["pdk_dir::libs.ref/sg13cmos5l_sram/lef/RM_IHPSG13_1P_1024x16_c2_bm_bist.lef"],
+      "lib": {
+        "*_typ_*": ["pdk_dir::libs.ref/sg13cmos5l_sram/lib/RM_IHPSG13_1P_1024x16_c2_bm_bist_typ_1p20V_25C.lib"],
+        "*_fast_*": ["pdk_dir::libs.ref/sg13cmos5l_sram/lib/RM_IHPSG13_1P_1024x16_c2_bm_bist_fast_1p32V_m55C.lib"],
+        "*_slow_*": ["pdk_dir::libs.ref/sg13cmos5l_sram/lib/RM_IHPSG13_1P_1024x16_c2_bm_bist_slow_1p08V_125C.lib"]
+      },
+      "spice": ["pdk_dir::libs.ref/sg13cmos5l_sram/cdl/RM_IHPSG13_1P_1024x16_c2_bm_bist.cdl"]
+    }
+  },
+
+  "//": "Both macro supplies go to VPWR, the only supply a tile has.",
+  "PDN_MACRO_CONNECTIONS": [
+    "u_proc.u_mem.u_pmem VPWR VGND VDD! VSS!",
+    "u_proc.u_mem.u_pmem VPWR VGND VDDARRAY! VSS!",
+    "u_proc.u_mem.u_dmem VPWR VGND VDD! VSS!",
+    "u_proc.u_mem.u_dmem VPWR VGND VDDARRAY! VSS!"
+  ],
+
+  "//": "Full-height stripes through the macro supply columns, checked in the PDN step (src/pdn_cfg.tcl);",
+  "//": "the power-grid checker stays a fatal check. FP_PDN_VPITCH below is 67.44 (docs/decisions.md).",
+  "PDN_CFG": "dir::pdn_cfg.tcl",
+  "ERROR_ON_PDN_VIOLATIONS": true,
+  "FP_PDN_VSPACING": 3.52,
+  "FP_PDN_VOFFSET": 25.40,
+
+  "//": "Magic reads the macro LEF, where the POWER stripes cross a Metal4 OBS at the VDD!/VDDARRAY! break.",
+  "ERROR_ON_ILLEGAL_OVERLAPS": false,
+  "MAGIC_MACRO_STD_CELL_SOURCE": "PDK",
+
+  "//": "LVS treats the macros as black boxes (abstract cells).",
+  "MAGIC_EXT_ABSTRACT_CELLS": ["RM_IHPSG13_.*"],
+
+  "//": "Max slew and max capacitance violations at any corner stop the run, as setup and hold do.",
+  "MAX_SLEW_VIOLATION_CORNERS": ["*"],
+  "MAX_CAP_VIOLATION_CORNERS": ["*"],
+
+  "//": "SRAM pins: input max_transition 0.595 ns and A_DOUT max_capacitance 0.064 pF (macro liberty, slow).",
+  "//": "The repair margins alone left 29 slew pins and 1 cap pin at the macros (SRAM smoke run 43925649736);",
+  "//": "a 150 um wire-length cap in both design repairs removed them at all corners (run 43941919810).",
+  "DESIGN_REPAIR_MAX_SLEW_PCT": 40,
+  "DESIGN_REPAIR_MAX_CAP_PCT": 40,
+  "RUN_POST_GRT_DESIGN_REPAIR": true,
+  "GRT_DESIGN_REPAIR_MAX_SLEW_PCT": 40,
+  "GRT_DESIGN_REPAIR_MAX_CAP_PCT": 40,
+  "DESIGN_REPAIR_MAX_WIRE_LENGTH": 150,
+  "GRT_DESIGN_REPAIR_MAX_WIRE_LENGTH": 150,
+
   "//": "RUN_LINTER, LINTER_INCLUDE_PDK_MODELS - Disabling the linter is not recommended!",
   "RUN_LINTER": 1,
   "LINTER_INCLUDE_PDK_MODELS": 1,

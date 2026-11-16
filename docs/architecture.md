@@ -91,7 +91,7 @@ The pads are the 3.3 V digital I/O pads of the shuttle (TTIHP27a); they are not 
 
 ## 6 Clock and reset
 
-- Clock: one domain, timed at 60 MHz (CLOCK_PERIOD 16.667 ns) at three corners; the host may also run the chip at 50 or 40 MHz with its own firmware constants ([host_port.md](host_port.md) 11). Clock gating only in the memory and FIFO latch arrays, with integrated clock-gate cells.
+- Clock: one domain, timed at 60 MHz (CLOCK_PERIOD 16.667 ns) at three corners; the host may also run the chip at 50 or 40 MHz with its own firmware constants ([host_port.md](host_port.md) 11). Clock gating only in the FIFO latch arrays, with integrated clock-gate cells. The 10BASE-Te helper samples its data input on both clock edges (120 Msample/s at 60 MHz): one flip-flop on the falling edge, then two rising-edge stages, so that every sample reaches the logic through two stages like the other inputs ([signoff.md](signoff.md), asynchronous inputs).
 - Reset: `rst_n` asserts at once (pins go to the reset level without a clock) and is released at the second clock edge (`pe_reset_sync`). STOP is a second, synchronous reset source of the processor (`run_rst_n`, the AND of two flip-flop outputs). The review of every asynchronous input and of the reset tree is in [signoff.md](signoff.md).
 
 ## 7 Size and timing

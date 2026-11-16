@@ -101,6 +101,15 @@
   "MAX_SLEW_VIOLATION_CORNERS": ["*"],
   "MAX_CAP_VIOLATION_CORNERS": ["*"],
 
+  "//": "SRAM pins: input max_transition 0.595 ns and A_DOUT max_capacitance 0.064 pF (macro liberty, slow).",
+  "//": "Run 43898966408 without these keys: 29 max-slew and 1 max-cap pins at the slow corner. Repair to 60 %",
+  "//": "of each limit after placement and again after global routing, with buffering.",
+  "DESIGN_REPAIR_MAX_SLEW_PCT": 40,
+  "DESIGN_REPAIR_MAX_CAP_PCT": 40,
+  "RUN_POST_GRT_DESIGN_REPAIR": true,
+  "GRT_DESIGN_REPAIR_MAX_SLEW_PCT": 40,
+  "GRT_DESIGN_REPAIR_MAX_CAP_PCT": 40,
+
   "//": "Clock tree: at most 8 sinks per leaf buffer (cell library default_max_fanout 8) and buffers every",
   "//": "200 um on the trunk; max fanout pins 84 -> 8 (antenna diodes only), fast hold +0.010 -> +0.099 ns",
   "//": "(gds 43672052931 vs 43693862885). docs/signoff.md, max fanout.",

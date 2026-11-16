@@ -386,8 +386,8 @@ def fig_spi(vcd, out):
              dict(name="MOSI", sub="uio[1], chip out", ch=mosi, top=lab_mosi),
              dict(name="MISO", sub="uio[2], device", ch=miso, top=lab_miso), host_lane(vcd, ts, te)]
     marks = [dict(lane=1, ta=rise0[1], tb=rise0[2], text=f"SCK period {2 * h} cycles = {1000 * us(2 * h):.0f} ns",
-                  pos="bottom"),
-             dict(lane=0, ta=f0, tb=ed0[0], text=f"CS to SCK {lead[0]} cycles", pos="bottom")]
+                  pos="top"),
+             dict(lane=0, ta=f0, tb=ed0[0], text=f"CS to SCK {lead[0]} cycles", pos="top")]
     one_h = len(halves) == 1
     table = [
         ("SCK half periods inside each byte", f"{sorted(halves)} cycles, SCK {F_CLK / 2e6 / h:.2f} MHz",

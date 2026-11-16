@@ -752,6 +752,7 @@ module pe_slu #(
       tx_line_q <= tx_line;
       case (tx_st)
         T_DATA, T_CRC, T_JAM: begin
+          // (the first cycle of T_DATA loads the first bit; tx_line holds it from the next cycle)
           if (m_usb)                tx_v[1:0] <= {tx_line, ~tx_line};  // VMO = J, VPO = K
           else if (m_code == C_CLK) tx_v[1:0] <= {tx_sck, tx_bit};     // clock, data
           else                      tx_v[1:0] <= {~tx_line, tx_line};  // TD-, TD+ (TXB, TXA)

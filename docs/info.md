@@ -15,7 +15,7 @@ The design has these blocks:
 
 1. A barrel processor with 4 threads (docs/isa.md). Thread n executes one 16-bit instruction in each clock cycle c with c mod 4 = n. A stopped or waiting thread keeps its slot. The programs of all threads are in a program memory of 512 words of 16 bits; frames and tables are in a data memory of 1,024 words (two SRAM macros, docs/isa.md 2.2).
 2. A timed I/O unit. A thread does not set a pin at once: it writes a pin event with a 16-bit cycle time (OUT pin at T + offset) into the event slot of that pin. When the free-running cycle counter is equal to the event time, the pin flip-flop changes. Thus each pin edge is exact to one clock cycle, also with 4 threads. An event must be written 4 to 32,767 cycles ahead; a late event happens 4 cycles after the instruction and sets the LATE flag of the thread, which the host reads. SAMPLE and WAIT read the inputs at a given cycle in the same way. Each output pin has one owner thread, set by the host; pins can be push-pull or open-drain.
-3. Input synchronizers (2 flip-flops on each input). The inputs `uio[6]` and `uio[7]` (I2C) also have a spike filter that removes pulses of 1 to 3 clock cycles (I2C Fast-mode, docs/isa.md 6.1).
+3. Input synchronizers (2 flip-flops on each input). The inputs `uio[6]` and `uio[7]` (I2C) also have a spike filter that removes pulses of 1 to 4 clock cycles (I2C Fast-mode, docs/isa.md 6.1).
 4. Host FIFOs: 4 words in each direction for each thread (PULL and PUSH instructions).
 5. A host SPI port (docs/host_port.md). The host stops and starts the threads, writes and reads the memory, writes the configuration (start address of each thread, owner and mode of each output pin), reads the chip ID and the status, and gives and takes FIFO words.
 

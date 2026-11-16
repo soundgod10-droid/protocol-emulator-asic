@@ -53,8 +53,8 @@ Sources:
 | Line helpers | 2 | USB low-speed helper (ports 16 to 31, event input 13) and 10BASE-Te helper (ports 32 to 47, event input 14), docs/helpers.md. |
 | Sample and wait units | 4 | One for each thread: sample time, pin, captured bit, edge capture time. The RTL gives the same results with one 5-cycle input history shared by the four threads (src/pe_timed_in.v, docs/architecture.md section 2). |
 | Host FIFOs | 4 x 2 | For each thread: host-to-thread FIFO and thread-to-host FIFO, 4 words of 16 bits each (src/pe_host_fifo.v). |
-| Pin configuration | 15 | For each output pin: owner thread (2 bits), owner enable, open-drain mode. The host writes it (section 5). |
-| Start address | 4 x 7 | For each thread: the PC value at start. The host writes it. |
+| Pin configuration | 15 | For each output pin: owner thread (2 bits), owner enable, open-drain mode, helper drive, helper select and helper signal (3 bits). The host writes it (section 5, docs/host_port.md). |
+| Start address | 4 x 9 | For each thread: the PC value at start. The host writes it. |
 
 The host loads the memory and the configuration while the threads stop. Then the host sets RUN. The host SPI port is specified in docs/host_port.md: commands STOP, START, WRITE_MEM, READ_MEM, WRITE_CFG, READ_ID, READ_STATUS, PUSH, PULL, CLEAR. STOP puts the threads, the FIFOs, the event slots and the output pins into the state after reset; the memory and the configuration do not change.
 

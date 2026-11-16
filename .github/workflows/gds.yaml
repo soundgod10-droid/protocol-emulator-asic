@@ -66,15 +66,16 @@ jobs:
         uses: TinyTapeout/tt-gds-action/gl_test@ttihp27a
 
   # The protocol tests (test/test_rtl_fw.py) on the gate-level netlist of this run, in two parts (GL_PARTS in that
-  # file) in parallel with gl_test and precheck, so that they do not make the run longer. Set up as the gl_test
-  # action of tt-gds-action@ttihp27a does (netlist and PDK revision from tt_submission, Icarus 13, -DFUNCTIONAL).
+  # file), and the line-helper chip tests (test/test_slu.py, part 3; its unit tests skip at gate level), in parallel
+  # with gl_test and precheck, so that they do not make the run longer. Set up as the gl_test action of
+  # tt-gds-action@ttihp27a does (netlist and PDK revision from tt_submission, Icarus 13, -DFUNCTIONAL).
   gl_protocols:
     needs: gds
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
-        part: [1, 2]
+        part: [1, 2, 3]
     env:
       PDK_ROOT: /home/runner/pdk
     steps:

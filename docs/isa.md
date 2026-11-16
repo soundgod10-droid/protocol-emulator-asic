@@ -22,7 +22,7 @@ Sources:
 - Pin events: OUT changes an output pin at time T + offset. SAMPLE reads an input pin at time T + offset. WAIT waits for an edge on an input pin, with a timeout at time T, and gives the time of the edge. The time comes from T, not from the time of the instruction.
 - ALU: MOV, ADD, SUB, AND, OR, XOR, NOT, CMP, TST, shifts and rotate, immediate forms. Compare and branch: 8 conditions on the flags. Loop counter: DJNZ on a data register. Subroutines: JAL and JR.
 - Host: PULL reads a word from the host-to-thread FIFO. PUSH writes a word into the thread-to-host FIFO.
-- Helper hooks: IOR and IOW read and write I/O ports. Ports 16 to 63 are for the helpers (CRC unit, line-code helpers, process monitor). Opcode 15 is kept for helper instructions.
+- Helper hooks: IOR and IOW read and write I/O ports. Ports 16 to 63 are kept for helper units (for example a CRC unit or line-code helpers); this version has no helper unit (the RTL hierarchy in docs/architecture.md). Opcode 15 is kept for helper instructions.
 
 ## 2 Machine state
 

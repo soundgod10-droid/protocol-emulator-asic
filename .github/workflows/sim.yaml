@@ -298,3 +298,37 @@ jobs:
         with:
           name: sim-browser
           path: build/page-check
+
+  visitors:
+    needs: build
+    if: ${{ !cancelled() && needs.build.result == 'success' }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+
+      - name: The page
+        uses: actions/download-artifact@v7
+        with:
+          name: sim-site
+          path: build/pages/sim
+
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Playwright with WebKit and Chromium
+        run: |
+          pip install playwright==1.65.2
+          python -m playwright install --with-deps webkit chromium
+
+      - name: Visitor paths in phone views of WebKit (iPhone 13) and Chromium (Pixel 7) at 390 and 320 px (L5e)
+        run: python -I sim/tools/visitor_check.py build/pages build/visitor-check
+
+      - name: Upload the results and screenshots
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: sim-visitors
+          path: build/visitor-check

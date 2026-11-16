@@ -552,11 +552,12 @@ async def test_slu_eth_rx(dut):
         cocotb.start_soon(drive_levels(dut, sch))
         words = []
         while True:
+            st = await s.rd(P_STATUS)            # status first: words of an EOP seen here are queued
             info = await s.rd(P_RXINFO)
-            if (info >> 5) & 3:
+            while (info >> 5) & 3:
                 words.append(await s.rd(P_RXDATA, pop=True))
-            st = await s.rd(P_STATUS)
-            if st & (1 << 5) and not (info >> 5) & 3:
+                info = await s.rd(P_RXINFO)
+            if st & (1 << 5):
                 break
         got = b"".join(w.to_bytes(2, "little") for w in words)
         exp = payload + (binascii_crc(payload)).to_bytes(4, "little")

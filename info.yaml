@@ -23,6 +23,7 @@ project:
     - "pe_cycle_counter.v"
     - "pe_timed_out.v"
     - "pe_cells.v"
+    - "pe_latch_ram.v"
     - "pe_sram.v"
     - "sram_bb.v"
     - "pe_slu_loop.v"

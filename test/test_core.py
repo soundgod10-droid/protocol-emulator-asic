@@ -152,7 +152,9 @@ def build_schedule(scn):
     for t in txns[:-1]:
         sched.add(t, "load")
     n_start = sched.add(txns[-1], "START")
-    t0 = sched.act_cycle(n_start, 0) + 2  # START: release at the end of k0, start pulse in k0 + 1
+    # START: release at the end of k0; k0 + 1 and k0 + 2 fetch for threads 0 and 1 (pre-start),
+    # k0 + 3 is the start cycle (counter cleared), so model cycle 0 is k0 + 4.
+    t0 = sched.act_cycle(n_start, 0) + 4
     ops = {}
     pulls = []
     i = 0

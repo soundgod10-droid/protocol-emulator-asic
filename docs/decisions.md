@@ -162,6 +162,29 @@ The record below is the earlier decision (6x4, before the rule change).
 - **Decision:** (c), in [src/config.json](../src/config.json). The antenna rule protects gate oxide during manufacturing and is not traded for a fanout count; the 8 counted pins are listed in [docs/signoff.md](signoff.md) with their logic fanout.
 - **Would change it:** a flow version without the clock-gate defect, so that (e) can run; or a slew or capacitance violation on one of the 8 nets.
 
+## 18. Line helpers: a dedicated USB low-speed helper and a dedicated 10BASE-Te helper
+
+- **Question:** a thread executes one instruction every 4 cycles, too slow for the bit-level work of USB low speed (NRZI, stuffing, CRC at 1.5 Mbit/s) and 10BASE-T (Manchester at 10 Mbit/s, CRC-32, clock recovery on both clock edges). What does that work?
+- **Options:** two general serial line units (one RTL with a writable configuration for USB, 10BASE-T, UART, clocked lines); two dedicated helpers (the same RTL with the configuration fixed for USB low speed and for 10BASE-Te; only the pin choice writable).
+- **Evidence:** synthesis at the typical corner (Yosys, `stat -liberty`): general unit 102,201 um² (96,345 um² without the 10BASE-T blocks), dedicated USB helper 39,808 um², dedicated 10BASE-Te helper 52,161 um²; the receive loop alone is 30,061 um², because both-edge sampling needs two loop steps per cycle. The acceptance limit written before the measurement was 25,000 um² per general unit, and above 50,000 um² the dedicated form. The general units would have given faster firmware protocols (UART, SPI, JTAG, CAN rates by calculation), which are therefore not taken. Function: [docs/helpers.md](helpers.md) section 4 (unit tests against references written from USB 2.0 and IEEE 802.3, and chip tests with firmware through the I/O ports, the pins and the data memory). The receive loop equals a bit-exact model in every cycle; that model gives the same decided bits as the clock-recovery study's loop on the study's sampled streams.
+- **Decision:** the two dedicated helpers, on I/O ports 16 to 47.
+- **Would change it:** a general unit with the same functions at 50,000 um² or less.
+
+## 19. Power grid over the SRAM macros: stripe pitch 67.44 um
+
+- **Question:** a tile has one stripe layer (Metal4), the macros have their supply pins as Metal4 columns 11.24 um apart (VDD and VSS alternate), and the precheck forbids the layer above. How do the stripes reach the macros?
+- **Options:** keep the template pitch (50.0 um, a key below the template's "DO NOT CHANGE" line) with a later step that moves or removes the stripes over the macros and the power-grid check off; set the pitch to 6 x 11.24 = 67.44 um so that every stripe over a macro lies in a supply column of its own net, with a stripe step that keeps the stripes full height and a check of every stripe over a macro.
+- **Evidence:** 50 um is not a multiple of 11.24 um (50 mod 11.24 = 5.04, calculation), so with the template pitch successive stripes land on columns of the other net; no macro position puts every crossing stripe on a column of its own net. With 67.44 um and `src/pdn_cfg.tcl`: the power-grid checker passes with its error fatal in every SRAM run (runs [43898966408], [43941919810], [43962985880]), LVS 0, and the precheck passes once no channel stripe is left between the macros (run [43962985880]; with the data macro at 280.80 um a short channel stripe failed the precheck's supply-port rule, run [43958374639]). The precheck reads the GDS, the LEF and the netlist, not the configuration.
+- **Decision:** `FP_PDN_VPITCH` 67.44 with `FP_PDN_VSPACING` 3.52, `FP_PDN_VOFFSET` 25.40 and the stripe step of `src/pdn_cfg.tcl`; macros at x = 11.04 + 67.44 k um.
+- **Would change it:** a template rule that the pitch key must not change; then the template pitch with a stripe-removal step written for this project.
+
+## 20. DRC with the SRAM macros: the precheck's KLayout deck
+
+- **Question:** the tape-out checklist turned Magic DRC on for the submitted run. Does Magic DRC work with the SRAM macros?
+- **Evidence:** with the macros, Magic reports 173,163 and 173,165 errors (runs [43925649736], [43941919810]); the listed shapes are of the rule "N-Diffusion spacing to N-well in SRAM < 54 (NW.d exception)" at the macro edges, inside the IHP macro layout. The precheck's KLayout DRC with the PDK deck (sg13cmos5l, table main) passes on the same layout (run [43941919810], precheck log) and on the later smoke layout (run [43962985880]).
+- **Decision:** the KLayout DRC of the layout precheck is the DRC signoff; Magic DRC stays off ([docs/tapeout_checklist.md](tapeout_checklist.md)).
+- **Would change it:** a Magic rule set that reads the SRAM exception layers.
+
 ## Claims with no public evidence yet
 
 - Pad electrical limits (I2C low-level output voltage, 5 V tolerance, Fast-mode Plus): the evidence is now public. The pad SPICE netlists are in `spice/` and the results in [verification.md](verification.md) section 9: Standard-mode and Fast-mode output low level met at every corner, Fast-mode Plus not met, not 5 V tolerant. The chip claims I2C Standard-mode and Fast-mode only and makes no 5 V claim.

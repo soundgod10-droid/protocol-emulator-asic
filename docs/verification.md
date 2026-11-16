@@ -71,6 +71,8 @@ Every push runs all 14 jobs of the table in parallel (`.github/workflows/formal.
 
 The `gl_test` job of the gds workflow runs the same cocotb modules on the layout netlist with functional cell models (no delays). In run [43712217729] (present layout): 75 testcases, 47 pass, 28 skipped. Of the 47, 23 drive the netlist (`test.py` 9, `test_core.py` 14 with 4 random seeds); the other 24 are assembler and model tests that do not use the netlist (`test_isa.py` 21 and the three word counts `test_fw_full_word_count`, `test_holdout_onewire_words`, `test_holdout_am2302_pdi_words`). The 28 skipped tests are the model-only protocol tests (`test_fw_full.py` 16, `test_flex.py` 7, `test_holdout.py` 4) and `test_r2_host_sck_clocks`. The job takes 41 min; `test_counter_sequence` alone takes 1,787 s of it.
 
+The 15 protocol tests of `test_rtl_fw.py` (section 1) run on the same netlist in the `gl_protocols` jobs of the gds workflow, in two parts in parallel (`GL_PARTS` in that file, balanced by the measured gate-level time of each test). In `gl_test` they took 3,822 s and the job ended 36 min after precheck (run [43765915091]). In run [43779857970] (commit a668e4d; same layout values as run [43712217729]): part 1 (7 tests) 2,020 s of test time, job 35 min; part 2 (8 tests) 1,892 s, job 32 min; all 15 pass with the netlist pins equal to the model in every cycle; `gl_test` 75 testcases, 39 min. All three jobs end before precheck (67 min in run [43765915091]), so the protocol tests at gate level do not make the run longer.
+
 Does not check: delays; see sections 5 and 6.
 
 ## 5. SDF gate-level simulation

@@ -191,7 +191,7 @@ def path_a(v):
     computed = v.sample()
     threads = v.page.evaluate(THREADS)
     v.page.tap("#run")
-    after = v.watch(REPLAY_MAX_S, stop=finished, shot_at=9, shot_name="A3_two_s_after_tap")
+    after = v.watch(REPLAY_MAX_S, stop_all=ended_or_stalled, shot_at=9, shot_name="A3_two_s_after_tap")
     v.shot("A4_end")
     r = replay_checks(after)
     bad = [(s["t"], s["panels"]) for s in early if s.get("panels")]

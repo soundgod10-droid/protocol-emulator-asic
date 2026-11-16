@@ -113,14 +113,19 @@ module pe_slu_loop_step (
     end
 
     if (xe && init) begin
-      // eps = ((theta - 1/2 sample - MID + HALF) mod NONE) - HALF
-      a = t - 21'sd2048 - mid_s + half_s;
-      if (a < 0) a = a + none_s;
-      else if (a >= none_s) a = a - none_s;
-      eps = a - half_s;
-      w   = ((acq_n != 6'd0) && (nacc < acq_n)) ? $signed({3'b000, wina, 12'd0})
-                                                : $signed({3'b000, win, 12'd0});
-      ok  = ((eps < 0) ? -eps : eps) <= w;
+      // eps = ((theta - 1/2 sample - MID + HALF) mod NONE) - HALF, computed as b = theta - 1/2 sample
+      // - MID wrapped once into [-HALF, HALF) (theta stays in [-HALF, 2 NONE), so one wrap suffices)
+      a = t + kb_s;
+      if (a < -half_s) eps = a + none_s;
+      else if (a >= half_s) eps = a - none_s;
+      else eps = a;
+      if ((acq_n != 6'd0) && (nacc < acq_n)) begin
+        w  = wina_s;
+        ok = (eps <= wina_s) && (eps >= wina_n);
+      end else begin
+        w  = win_s;
+        ok = (eps <= win_s) && (eps >= win_n);
+      end
       if (ok) begin
         if (nacc < gn0) begin
           kp = kp0;

@@ -74,6 +74,12 @@ In a cycle with two samples, the loop uses at most one edge: an edge at the seco
 | test_slu_usb_rx, test_slu_chip_usb_rx | DATA0 with 8 bytes at 0, +/-500 ppm and +/-1.5 % (USB 2.0 7.1.11 low-speed function); CRC5 token; corrupted CRC16 rejected; 7 ones flagged |
 | test_slu_eth_tx, test_slu_chip_eth_tx | 928 half bits = IEEE 802.3 Manchester of preamble, SFD, 46 bytes and FCS; TP_IDL hold 13.5-27 cycles (Figure 14-11); link test pulse 6 cycles (Figure 14-13) |
 | test_slu_eth_rx, test_slu_chip_eth_rx | 20 frames of 64-200 bytes, zero-crossing jitter up to +/-13.5 ns (14.3.1.3.1), +/-100 ppm: data and CRC-32 correct; link pulses classified |
+| test_slu_tx_late_underflow | late TXTIME: TXLATE and start at write + 4, or no start with TXCTRL bit 6; empty buffer at the start or inside a frame: TXUNDER, then the tail and TXDONE |
+| test_slu_eth_collision | carrier while sending: COLLISION, 32 jam bits, TP_IDL tail, TXDONE (the test found a 31-bit jam, fixed) |
+| test_slu_jabber | JABBER after 4,194,097 cycles of continuous sending (2^22 = 4,194,304, 512-cycle ticks), the transmitter stops, no frame starts while JABBER is set; JABBER clears at the 65,536th idle tick |
+| test_slu_usb_line_conditions | SE0 of 17 ticks (272 cycles): no LINEA; 21 ticks: LINEA (bus reset); J for 14,000 ticks: no LINEB; 15,000 ticks (240,000 cycles, 4.0 ms): LINEB (suspend) |
+| test_slu_chip_eth_events, test_slu_chip_usb_events | a thread waits for TXDONE with WAIT on event input 14 (10BASE-Te) and 13 (USB) and wakes after the frame; the delayed taps TXC/TXD on pins: TXC = TXA one cycle later, TXD = not TXC |
+| 10BASE-T receive margin (A1 study, 1,000 frames of 1,518 bytes per case, the loop model on sampled streams of 60 MHz both edges with comparator skew +/-1.5 ns) | 1,000 of 1,000 frames at the 13.5 ns jitter limit at +/-200 ppm and duty 0.50 / 0.58; first failing jitter amplitude at least +1.34 ns above 13.5 ns when up to 3.0 ns of the jitter depends on the bit pattern (the rest uniform), +2.00 ns with uniform jitter; with 4.0 ns pattern share the margin at -200 ppm is +0.45 ns, with 5.0 ns one frame of 1,000 fails at -200 ppm, duty 0.58 |
 
 These are logic simulations at 60 MHz with ideal pads; the pad delays, the transceiver and the comparators are not in them (the layout timing is in docs/signoff.md).
 

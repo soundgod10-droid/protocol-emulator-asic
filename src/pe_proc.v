@@ -279,7 +279,7 @@ module pe_proc (
         else hv[p] <= hs;
       end
       assign pin_v[p]  = pin_hdrv[p] ? hv[p] : slot_v[p];
-      assign pin_oe[p] = pin_hdrv[p] ? 1'b1 : slot_oe[p];
+      assign pin_oe[p] = pin_hdrv[p] ? hrun : slot_oe[p];
     end
   endgenerate
 

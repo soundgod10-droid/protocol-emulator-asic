@@ -188,7 +188,11 @@ module pe_host_port #(
       tx        <= 8'd0;
       st        <= S_CMD;
       cmd       <= 4'd0;
-      addr      <= 7'd0;
+      addr      <= 11'd0;
+      mem_req   <= 1'b0;
+      mem_we    <= 1'b0;
+      mem_addr  <= 11'd0;
+      mem_wdata <= 16'h0000;
       tid       <= 2'd0;
       hold      <= 8'd0;
       idx       <= 3'd0;

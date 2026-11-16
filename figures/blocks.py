@@ -135,8 +135,6 @@ def facts(h):
     f = dict(
         threads=threads,
         mem_words=mp["WORDS"], mem_width=mp["WIDTH"],
-        mem_lat=h.count_in(base(mem), "pe_lat") if False else mp["WORDS"] * mp["WIDTH"],
-        mem_cg=mp["WORDS"],
         fifo_rams=h.count_in("pe_host_fifo", "pe_latch_ram"),
         fifo_words=fp["WORDS"], fifo_width=fp["WIDTH"],
         slots=h.count_in("pe_proc", "pe_timed_out"),

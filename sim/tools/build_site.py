@@ -11,7 +11,7 @@ What it does:
      git blob id of each file. A file that differs from the commit (a local change, a line-ending conversion) stops the
      build. The page's worker checks every file against this list before it runs it.
   3. Downloads the third-party files named in sim/tools/vendor.json from the npm registry, checks the SHA-256 of each,
-     and writes them with their licence texts and a notice (OUT/vendor/README.md) to OUT/vendor/.
+     and writes them with their licence texts and a notice (OUT/vendor/NOTICE.txt) to OUT/vendor/.
   4. Copies the waveform samples (SAMPLES: *.vcd and manifest.json from sim/tools/wave_samples.py) to OUT/wave/samples/.
   5. Size budget (check L7): writes OUT/check/size.json and OUT/check/files.json; stops if a budget is exceeded.
 

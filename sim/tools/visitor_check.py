@@ -174,7 +174,6 @@ def silent_stops(samples):
 def replay_checks(samples):
     """Checks of the samples after a tap on the main button, up to the end of the run."""
     last = samples[-1]
-    first = samples[0]
     n = moves(samples)
     stops = silent_stops(samples)
     total = max(last["frontier"], 1)

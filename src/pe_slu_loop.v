@@ -72,6 +72,25 @@ module pe_slu_loop_step (
   wire signed [20:0] win_n  = -win_s;
   wire signed [20:0] wina_n = -wina_s;
 
+  // (v + rnd) >>> s with rnd = 2^(s-1) for s > 0 (round half up), as mux stages and a decoder:
+  // a variable shift cell can stall the SHARE pass of the layout flow's synthesis for hours.
+  function signed [20:0] f_rsra(input signed [20:0] v, input [3:0] s);
+    reg signed [20:0] r;
+    reg        [20:0] rnd;
+    integer           j;
+    begin
+      rnd = 21'd0;
+      for (j = 1; j < 16; j = j + 1)
+        if (s == j) rnd[j-1] = 1'b1;
+      r = v + $signed(rnd);
+      r = s[0] ? {r[20], r[20:1]} : r;
+      r = s[1] ? {{2{r[20]}}, r[20:2]} : r;
+      r = s[2] ? {{4{r[20]}}, r[20:4]} : r;
+      r = s[3] ? {{8{r[20]}}, r[20:8]} : r;
+      f_rsra = r;
+    end
+  endfunction
+
   reg signed [20:0] t;        // theta during the step
   reg signed [20:0] a;        // edge position against the expected edge, before mod N
   reg signed [20:0] eps;

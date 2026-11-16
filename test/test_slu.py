@@ -106,11 +106,7 @@ async def run_stream(dut, cfg, xs):
             dut.slu_ut_x1.value = grp[1]
         else:
             dut.slu_ut_x1.value = grp[0]
-        mbit = None
-        for x in grp:
-            r = loop.step(x)
-            if r is not None:
-                mbit = r
+        mbit = loop.step_pair(grp[0], grp[1]) if cfg.ddr else loop.step(grp[0])
         await RisingEdge(dut.clk)
         await ReadOnly()
         cyc += 1

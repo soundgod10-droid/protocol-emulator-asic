@@ -345,7 +345,8 @@ async def test_slu_usb_tx(dut):
     while oe[eop + se0 + j] == 1 and lines[eop + se0 + j] == 2:
         j += 1
     assert se0 == 84, "SE0 %d cycles" % se0
-    assert j == 41 or j == 40, "J %d cycles" % j
+    assert j == 40, "J %d cycles" % j
+    assert (start_now - t0) & 0xFFFF == 0, "first symbol on tx_v in cycle TXTIME"
     assert oe[eop + se0 + j] == 0
     dut._log.info("USB TX: first K/J at now %d for TXTIME %d (offset %d cycles); %d line bits incl. %d "
                   "stuff bits; SE0 %d cycles, J %d cycles, then OE off" %

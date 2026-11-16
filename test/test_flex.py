@@ -1485,7 +1485,7 @@ async def test_flex_word_count(dut):
                  f"{pe_model.PROG_WORDS - total} free; default pins {'shared: ' + ', '.join(clash) if clash else 'free'}")
     log.info("words: " + ", ".join(f"{n} {size[n]}" for n in PROGRAMS))
     for n in NEW:
-        log.info(f"{n} alone: {size[n]} words, {pe_model.MEM_WORDS - size[n]} free, {PROGRAMS[n][0]} thread(s)")
+        log.info(f"{n} alone: {size[n]} words, {pe_model.PROG_WORDS - size[n]} free, {PROGRAMS[n][0]} thread(s)")
     clean = [f for f in maximal if not f[2]]
     log.info(f"{len(fits)} sets of 2 to 4 programs with at least one new protocol fit in {pe_model.MEM_WORDS} words "
              f"and {pe_model.N_THREADS} threads; {len(maximal)} of them cannot take one more program, "

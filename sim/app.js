@@ -725,9 +725,11 @@ function frame(t) {
 
 function bindControls() {
   $("run").onclick = () => {
-    if (!run) return;
-    if (!ui.playing && run.done && ui.cursor >= run.frontier) setCursor(0);
+    if (!run || (run.done && !(run.result || {}).has_main)) return;
+    if (!ui.playing && run.done && ui.cursor >= run.frontier) setCursor(0); // play after the end starts again at cycle 0
+    ui.touched = true;
     ui.playing = !ui.playing;
+    ui.acc = 0;
     ui.dirty = true;
   };
   $("step").onclick = stepCycle;
@@ -737,7 +739,8 @@ function bindControls() {
     setCursor(0);
   };
   $("speed").onchange = (e) => {
-    ui.speed = +e.target.value;
+    ui.speed = +e.target.value || -10;
+    ui.dirty = true;
   };
   $("example").onchange = (e) => {
     history.replaceState(null, "", `?ex=${e.target.value}`);

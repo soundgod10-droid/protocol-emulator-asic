@@ -947,7 +947,7 @@ module pe_core (
   always @* begin
     if (!h_run) begin
       assert (nc == st0);
-      assert (!mem_we && (ev_load == 15'd0) && !fifo_pull && !fifo_push);
+      assert (!s_we && !io_we && !io_re && (ev_load == 15'd0) && !fifo_pull && !fifo_push);
     end
   end
 

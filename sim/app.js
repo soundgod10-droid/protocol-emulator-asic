@@ -702,15 +702,18 @@ function frame(t) {
   ui.lastT = t;
   if (run && ui.playing) {
     const before = ui.cursor;
-    if (ui.speed === 0 && !run.done) ui.cursor = run.frontier;
-    else {
-      const rate = ui.speed || Math.max(100000, run.frontier / 4);
-      ui.acc += rate * dt;
-      const k = Math.floor(ui.acc);
-      ui.acc -= k;
-      ui.cursor = Math.min(run.frontier, ui.cursor + k);
+    // "Whole run in s seconds": the run's length (the reference length while computing) over s, at least 1 cycle/s.
+    const total = run.done ? run.frontier : Math.max(run.frontier, expectedTotal());
+    const rate = ui.speed > 0 ? ui.speed : Math.max(1, total / -ui.speed);
+    ui.acc += rate * dt;
+    const k = Math.floor(ui.acc);
+    ui.acc -= k;
+    ui.cursor = Math.min(run.frontier, ui.cursor + k); // waits at the computed cycles until the engine has more
+    if (run.done && ui.cursor >= run.frontier) {
+      ui.playing = false;
+      ui.played = true;
+      ui.dirty = true;
     }
-    if (run.done && ui.cursor >= run.frontier) ui.playing = false;
     if (ui.cursor !== before) ui.dirty = true;
   }
   if (ui.dirty) {

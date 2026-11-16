@@ -49,15 +49,25 @@ class Loop:
         self.decided = False
         self.xprev = 0
 
-    def step(self, x):
-        """One sample; returns the decided bit or None."""
+    def step_pair(self, x0, x1):
+        """Both clock edges: the two samples of one clock cycle (x0 first). At most one edge is used
+        in a cycle: after an edge between the last sample and x0, an edge between x0 and x1 (a pulse
+        of half a clock cycle, 8.3 ns at 60 MHz, shorter than any 10BASE-T pulse) is not used.
+        Returns the decided bit of the cycle or None."""
+        e0 = x0 != self.xprev
+        r0 = self.step(x0)
+        r1 = self.step(x1, allow=not e0)
+        return r1 if r0 is None else r0
+
+    def step(self, x, allow=True):
+        """One sample; returns the decided bit or None. allow = False: an edge here is not used."""
         c = self.c
         none = c.n * ONE
         half = none // 2
         mid = half if c.manch else 0
         tdec = (3 * c.n * 1024 - 2048) if c.manch else (half - 2048)
         th = self.th + ONE
-        edge = x != self.xprev
+        edge = allow and x != self.xprev
         self.xprev = x
         if edge and not self.init:
             self.nedge = min(self.nedge + 1, 3)

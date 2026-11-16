@@ -62,7 +62,7 @@ The structure follows the RTL hierarchy (`src/`). One clock domain (`clk`, decla
 ## 3 Memory
 
 - 128 words x 16 bits, one array for the programs and data of all threads (`pe_latch_ram`). Latches (`sg13cmos5l_dlhq_1`) instead of flip-flops, with one integrated clock gate (`sg13cmos5l_lgcp_1`) per word, so a write opens only the latches of one word and an address change near the clock edge cannot make a glitch. A word is written in the first half of the cycle after the request.
-- Area by synthesis: 97,044 um2 for the 128 x 16 array alone; the whole chip 216,632 um2 (typical corner). A 256 x 16 array was measured and not chosen for this version ([decisions.md](decisions.md), memory size): it fails the layout flow today and no measured program needs more than 128 words. The IHP 256 x 16 SRAM macro (`RM_IHPSG13_1P_256x16_c2_bm_bist`, IHP-Open-PDK) is 236.8 x 118.78 um (28,127 um2) with power on Metal4; it is the option for a larger memory.
+- Area by synthesis: 97,044 um2 for the 128 x 16 array alone (local synthesis, typical corner); the whole chip 228,405 um2 in the synthesis step of the layout flow (gds run 43779857970, `stats/synthesis-stats.txt` of the `tt_submission` artifact). A 256 x 16 array was measured and not chosen for this version ([decisions.md](decisions.md), memory size): it fails the layout flow today and no measured program needs more than 128 words. The IHP 256 x 16 SRAM macro (`RM_IHPSG13_1P_256x16_c2_bm_bist`, IHP-Open-PDK) is 236.8 x 118.78 um (28,127 um2) with power on Metal4; it is the option for a larger memory.
 - The memory has no reset (latches); the host loads it after every power-up and select ([host_port.md](host_port.md) section 8).
 
 ## 4 Host port

@@ -318,9 +318,9 @@ def fig_uart(vcd, out):
         byte = sum(v << i for i, v in enumerate(bits[1:9]))
         for k, name in enumerate(["S"] + [str(i) for i in range(8)] + ["P"]):
             labels.append((s0 + (k + 0.5) * bt, name))
-        topl.append((s0 + 5 * bt, f"frame {f + 1}: 0x{byte:02X}"))
+        topl.append((s0 + 7 * bt, f"frame {f + 1}: 0x{byte:02X}"))
     lanes = [dict(name="UART TX", sub="uo_out[4]", ch=tx, labels=labels, top=topl), host_lane(vcd, ts, te)]
-    marks = [dict(lane=0, ta=t_s0 + bt, tb=t_s0 + 2 * bt, text=f"1 bit = {b} cycles = {us(b):.3f} µs", pos="bottom"),
+    marks = [dict(lane=0, ta=t_s0 + bt, tb=t_s0 + 2 * bt, text=f"1 bit = {b} cycles = {us(b):.3f} µs", pos="top"),
              dict(lane=1, ta=t_s0, tb=t_s0 + 10 * bt, text=f"frame = 10 bits = {us(10 * b):.2f} µs", pos="bottom")]
     ok_err = abs(err) <= ff.SHARE
     table = [

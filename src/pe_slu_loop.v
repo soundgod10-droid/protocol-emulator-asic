@@ -164,7 +164,7 @@ module pe_slu_loop_step (
         corr = f_rsra(eps, {1'b0, kp});
         t    = t - corr;
         if (hk) begin
-          d    = (ki_sh == 4'd0) ? eps : ((eps + (21'sd1 <<< (ki_sh - 4'd1))) >>> ki_sh);
+          d    = f_rsra(eps, ki_sh);
           inew = $signed({{9{ii[11]}}, ii}) - d;
           if (inew > 21'sd2047) ii_o = 12'sd2047;
           else if (inew < -21'sd2047) ii_o = -12'sd2047;

@@ -8,15 +8,14 @@ TOPLEVEL_LANG ?= verilog
 SRC_DIR = $(PWD)/../src
 PROJECT_SOURCES = project.v pe_sync.v pe_cycle_counter.v pe_timed_out.v \
                   pe_cells.v pe_latch_ram.v pe_host_fifo.v pe_timed_in.v pe_config.v \
-                  pe_host_port.v pe_core.v pe_proc.v
+                  pe_host_port.v pe_core.v pe_proc.v \
+                  pe_slu_loop.v
 
 ifneq ($(GATES),yes)
 
-# RTL simulation:
+# RTL simulation (pe_slu_loop.v: serial line unit block, tested alone in tb.v by test/test_slu.py):
 SIM_BUILD				= sim_build/rtl
 VERILOG_SOURCES += $(addprefix $(SRC_DIR)/,$(PROJECT_SOURCES))
-# Serial line unit blocks tested alone in tb.v (test/test_slu.py) before they join the chip.
-VERILOG_SOURCES += $(SRC_DIR)/pe_slu_loop.v
 
 else
 

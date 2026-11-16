@@ -81,12 +81,13 @@ module tt_um_soundgod10_droid_protocol_emulator (
       .A_BIST_BM  (16'd0)
   );
 
-  RM_IHPSG13_1P_1024x16_c2_bm_bist u_dmem (
+  // Fallback memory set: a second 512 x 16 macro as the buffer.
+  RM_IHPSG13_1P_512x16_c2_bm_bist u_dmem (
       .A_CLK      (clk),
       .A_MEN      (men_q),
       .A_WEN      (dwen_q),
       .A_REN      (~dwen_q),
-      .A_ADDR     (addr),
+      .A_ADDR     (addr[8:0]),
       .A_DIN      ({data_q, data_q}),
       .A_DLY      (1'b1),
       .A_DOUT     (ddout),

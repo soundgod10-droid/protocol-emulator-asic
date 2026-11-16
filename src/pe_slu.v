@@ -394,7 +394,7 @@ module pe_slu #(
       tx_half <= 1'b0; tx_bit <= 1'b0; tx_line <= 1'b1; tx_sck <= 1'b0; tx_run <= 3'd0;
       tx_runbit <= 1'b0; tx_crcn <= 6'd0; tx_skipw <= 3'd0; tx_tail <= 8'd0; tx_jam <= 6'd0;
       tx_time <= 16'd0; tx_lastbits <= 5'd0; tx_crcen <= 1'b0; tx_droplate <= 1'b0;
-      tx_pulse <= 1'b0; crc_t <= 32'd0; jab_cnt <= 17'd0; jabber <= 1'b0;
+      tx_pulse <= 1'b0; crc_t <= 32'd0; tx_lead <= 1'b0; jab_cnt <= 17'd0; jabber <= 1'b0;
       tx_line_q <= 1'b1; tx_v <= 4'd0; tx_oe <= 1'b0;
     end else begin
       // ---------------- configuration and control ----------------

@@ -233,7 +233,7 @@ def draw(f, top, clock, tiles, pins, commit, out):
     box(80, 590, 150, 56, "pe_reset_sync", ["assert at once,", "release at a clock edge"], size=10.5)
 
     # Processor container
-    s.rect(250, 245, 700, 425, fill="#fbfcfe", stroke=S.LINE, dash="6 4", rx=10)
+    s.rect(250, 245, 700, 545, fill="#fbfcfe", stroke=S.LINE, dash="6 4", rx=10)
     s.text(262, 264, "pe_proc", size=13, weight="bold", mono=True, colour="line")
     s.text(330, 264, "held in reset while the threads are stopped (STOP)", size=11, colour="muted")
 

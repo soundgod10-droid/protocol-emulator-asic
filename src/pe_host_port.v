@@ -168,12 +168,10 @@ module pe_host_port #(
 
   // Write ports: the word completes with the last bit of its low byte.
   wire w_word = done && (st == S_WLO);
-  assign mem_we     = w_word && (cmd == K_WRITE_MEM) && !running;
+  wire w_mem  = w_word && (cmd == K_WRITE_MEM) && !running;
   assign cfg_we     = w_word && (cmd == K_WRITE_CFG) && !running;
   assign fifo_push  = w_word && (cmd == K_PUSH) && running;
-  assign mem_addr   = (st == S_ARG) ? bin[6:0] : addr;
-  assign mem_wdata  = {hold, bin};
-  assign cfg_addr   = addr;
+  assign cfg_addr   = addr[6:0];
   assign cfg_wdata  = {hold, bin};
   assign fifo_wdata = {hold, bin};
   assign fifo_tid   = tid;

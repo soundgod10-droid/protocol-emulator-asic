@@ -309,7 +309,7 @@ async def test_asm_errors(dut):
     for lineno, text in want.items():
         assert any(e.startswith(f"bad.s:{lineno}: ") and text in e for e in errors), f"no error '{text}' for line {lineno}"
     try:
-        pe_asm.assemble(".org 127\nNOP\nNOP", name="long.s")
+        pe_asm.assemble(".org 511\nNOP\nNOP", name="long.s")
     except pe_asm.AsmError as err:
         assert len(err.errors) == 1 and err.errors[0].startswith("long.s:3: ") and "longer than the memory" in err.errors[0], err.errors
     else:

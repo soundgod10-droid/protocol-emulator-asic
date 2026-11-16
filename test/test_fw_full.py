@@ -884,7 +884,7 @@ def all_four(f_clk, err, rx_name="uart_rx_full.s", rate=1_000_000, slow_k=None):
         bases.append(addr)
         image.update(prog.words)
         addr += prog.size
-    assert addr <= pe_model.MEM_WORDS, f"{addr} words"
+    assert addr <= pe_model.PROG_WORDS, f"{addr} words"
     m = pe_model.PeModel(image, start_pc=tuple(bases), run=(True,) * 4,
                          owner=owners({P_TX: 0, P_CS: 2, P_MOSI: 2, P_SCK: 2, P_SCL: 3, P_SDA: 3}),
                          open_drain=open_drain({P_SCL, P_SDA}))

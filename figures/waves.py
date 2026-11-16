@@ -501,8 +501,8 @@ def fig_can(vcd, out):
     if ack is not None:
         topl.append((ack + b * CLK_PS / 2, "ACK from the node"))
     lanes = [dict(name="CAN bus", sub="ui_in[4], RX", ch=rx, top=topl),
-             dict(name="TXA dominant", sub="uio[4], thread 0", ch=txa),
-             dict(name="TXB dominant", sub="uio[5], thread 1", ch=txb), host_lane(vcd, ts, te)]
+             dict(name="TXA, thread 0", sub="uio[4], low = dominant", ch=txa),
+             dict(name="TXB, thread 1", sub="uio[5], low = dominant", ch=txb), host_lane(vcd, ts, te)]
     ok_b = b == bt_nom
     table = [
         ("Bit time on every TXA edge of the frame", f"{b} cycles = {us(b):.3f} µs ({len(offs)} edges)",

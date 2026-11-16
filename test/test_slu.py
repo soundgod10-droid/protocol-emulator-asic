@@ -691,7 +691,8 @@ async def test_slu_chip_eth_tx(dut):
     assert (caps[0][1] & 0x7) == 0, "helper pins are released while the threads stop"
     assert (caps[-1][1] & 0x7) == 0x7, "helper pins uio0-2 are outputs (OE = 1) while running"
     oe_sig = [(v >> 2) & 1 for v, _ in caps]
-    first = oe_sig.index(1)
+    # the helper OE signal on uio2: V = 1 while stopped (reset level), 0 after START, 1 from the frame
+    first = next(i for i in range(1, len(oe_sig)) if oe_sig[i] and not oe_sig[i - 1])
     td = [v & 1 for v, _ in caps]
     tdm = [(v >> 1) & 1 for v, _ in caps]
     exp = ref.manchester_halves(ref.eth_frame_bits(payload))

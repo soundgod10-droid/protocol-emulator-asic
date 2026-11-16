@@ -58,9 +58,9 @@ Reset tree:
 
 ## 4 Code coverage
 
-The coverage job builds the same cocotb test bench with Verilator 5.042 (`SIM=verilator`, line, branch and toggle coverage; [test/coverage_summary.py](../test/coverage_summary.py) makes the table) and runs every test module. Only the tests that drive the RTL add coverage: `test.py` (10) and `test_core.py` (14); the other modules run the reference model or the assembler. The memory and clock-gate cells use their behavioural models there, as in the Icarus RTL run.
+The coverage job builds the same cocotb test bench with Verilator 5.042 (`SIM=verilator`, line, branch and toggle coverage; [test/coverage_summary.py](../test/coverage_summary.py) makes the table) and runs every test module. Only the tests that drive the RTL add coverage: `test.py` (10), `test_core.py` (14) and `test_rtl_fw.py` (15); the other modules run the reference model or the assembler. The memory and clock-gate cells use their behavioural models there, as in the Icarus RTL run.
 
-Run [43712217710] (commit dc9a62e): line 173 / 173, branch 208 / 208, toggle 7,663 / 7,782 (98.5 %). Two tests were added because the first coverage run showed gaps: the command codes of the valid form that are no command (one line of the host command decode was never reached) and `test_core_start_top` (thread start addresses at the top of the memory; most start-address bits never toggled). The 119 toggle points left are not functional gaps:
+Run [43779858026] (commit a668e4d, with the protocol tests on the RTL): line 173 / 173, branch 208 / 208, toggle 7,671 / 7,782 (98.6 %); run [43712217710] (commit dc9a62e, before them) gave toggle 7,663. Two tests were added because the first coverage run showed gaps: the command codes of the valid form that are no command (one line of the host command decode was never reached) and `test_core_start_top` (thread start addresses at the top of the memory; most start-address bits never toggled). The 119 toggle points left are not functional gaps:
 
 - constant bits by construction (zero-extended fields of the configuration and status words, unused upper bits of the owner and pin-enable vectors);
 - `ena`, which is 1 during every test (template input, not used);

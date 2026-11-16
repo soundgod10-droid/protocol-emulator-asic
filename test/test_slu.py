@@ -1058,3 +1058,72 @@ async def test_slu_chip_usb_rx(dut):
     assert status & (1 << 6), "CRC16 residue (CRCA_OK), status %04x" % status
     dut._log.info("chip USB RX: DATA0 + 8 bytes at -1.5 %% on ui_in[0..2]: %d words in the data memory "
                   "equal to PID, data and CRC16; status %04x" % (end - 600, status))
+
+
+def tx_event_fw(e, evin):
+    """ETH_TX_FW for the helper on ports e..e+15, with the end of the frame taken from the helper's event input
+    (EVMASK = TXDONE, then WAIT on input evin) instead of a STATUS poll."""
+    fw = ETH_TX_FW.replace(".equ    E, 32", ".equ    E, %d" % e)
+    fw = fw.replace("        LDI     r0, 544", "        LDI     r0, 1\n        IOW     r0, E+3         ; EVMASK = TXDONE\n"
+                    "        LDI     r0, 544")
+    old = ("done:   IOR     r1, E+2         ; STATUS: wait for TXDONE\n"
+           "        ANDI    r1, 1\n"
+           "        BEQ     done\n")
+    assert old in fw
+    return fw.replace(old, "        WAIT    %d, RISE, r1     ; helper event input: TXDONE\n" % evin)
+
+
+@cocotb.test()
+async def test_slu_chip_eth_events(dut):
+    """10BASE-Te helper in the chip, event input and delayed taps: thread 0 sends a frame and waits for TXDONE on
+    input 14 (WAIT; docs/isa.md 5.1), then pushes the status. Pins: TD+ uio0, TD- uio1, OE uio2, TXC (TD+ one cycle
+    later) uio3, TXD (TD- one cycle later) uio4. Checks the half bits on uio0, uio3 = uio0 one cycle later,
+    uio4 = not uio3, and that the thread saw TXDONE through the event input."""
+    payload = bytes((5 * i + 1) & 0xFF for i in range(46))
+    words = [0x5555, 0x5555, 0x5555, 0xD555] + [payload[i] | (payload[i + 1] << 8) for i in range(0, 46, 2)]
+    prog = pe_asm.assemble(tx_event_fw(ETH_PORT, 14), "eth_tx_ev")
+    pins = [0] * 15
+    pins[0], pins[1], pins[2] = helper_pin(1, 0), helper_pin(1, 1), helper_pin(1, 4)
+    pins[3], pins[4] = helper_pin(1, 2), helper_pin(1, 3)
+    host = await chip_start(dut, prog, [(512, [len(words)] + words)], pins)
+    caps = []
+
+    async def cap(n):
+        for _ in range(n):
+            await FallingEdge(dut.clk)
+            caps.append(int(dut.uio_out.value))
+    task = cocotb.start_soon(cap(5000))
+    await host.start()
+    await task
+    oe_sig = [(v >> 2) & 1 for v in caps]
+    first = next(i for i in range(1, len(oe_sig)) if oe_sig[i] and not oe_sig[i - 1])
+    exp = ref.manchester_halves(ref.eth_frame_bits(payload))
+    td = [v & 1 for v in caps]
+    txc = [(v >> 3) & 1 for v in caps]
+    txd = [(v >> 4) & 1 for v in caps]
+    assert [td[first + 3 * i + 1] for i in range(len(exp))] == exp, "uio0 differs from the Manchester halves"
+    assert all(txc[first + 3 * i + 2] == exp[i] for i in range(len(exp))), "uio3 (TXC) = uio0 one cycle later"
+    assert all(txd[k] == 1 - txc[k] for k in range(first + 1, first + 3 * len(exp))), "uio4 (TXD) = not uio3"
+    words_out, _ = await host.pull(0)
+    assert len(words_out) == 1 and words_out[0] & 1, "thread 0 waited for TXDONE on input 14: %s" % words_out
+    dut._log.info("chip 10BASE-Te events: %d half bits on uio0, the delayed taps on uio3/uio4; the thread woke on "
+                  "event input 14 and pushed status %04x" % (len(exp), words_out[0]))
+
+
+@cocotb.test()
+async def test_slu_chip_usb_events(dut):
+    """USB low-speed helper in the chip, event input: thread 0 sends DATA0 with 8 bytes and waits for TXDONE on
+    input 13 (WAIT), then pushes the status; VPO uio0, VMO uio1, OE# uio2."""
+    pid = 0xC3
+    data = bytes([0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80])
+    words = [0x80 | (pid << 8)] + [data[i] | (data[i + 1] << 8) for i in range(0, 8, 2)]
+    prog = pe_asm.assemble(tx_event_fw(USB_PORT, 13), "usb_tx_ev")
+    pins = [0] * 15
+    pins[0], pins[1], pins[2] = helper_pin(0, 0), helper_pin(0, 1), helper_pin(0, 5)
+    host = await chip_start(dut, prog, [(512, [len(words)] + words)], pins)
+    await host.start()
+    await ClockCycles(dut.clk, 40 * 140)
+    words_out, _ = await host.pull(0)
+    assert len(words_out) == 1 and words_out[0] & 1, "thread 0 waited for TXDONE on input 13: %s" % words_out
+    dut._log.info("chip USB events: the thread woke on event input 13 after the packet and pushed status %04x"
+                  % words_out[0])

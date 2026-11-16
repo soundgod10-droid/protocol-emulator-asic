@@ -87,7 +87,7 @@ SPI mode 0, MSB first, up to 10 MHz SCK; each pin through a 2-flip-flop synchron
 | `uo_out[6:0]` | processor outputs 8 to 14; 1 after reset (UART idle level) | out, no enable |
 | `uio[7:0]` | processor pins 0 to 7, output with enable and input; spike filter on uio[6], uio[7] | in/out |
 
-The pads are the Tiny Tapeout 3.3 V digital pads; they are not 5 V tolerant, so 5 V buses need level shifting ([info.md](info.md), external parts). Every output comes from a flip-flop (event slot pin register or the MISO register), so no output glitches.
+The pads are the 3.3 V digital I/O pads of the shuttle (TTIHP27a); they are not 5 V tolerant, so 5 V buses need level shifting ([info.md](info.md), external parts). Every output comes from a flip-flop (event slot pin register, helper pin register or the MISO register), so no output glitches. The host can give any of the 15 output pins to a line helper instead of a thread (pin configuration, [helpers.md](helpers.md)); the helpers read their line inputs from any of the 13 input pins.
 
 ## 6 Clock and reset
 

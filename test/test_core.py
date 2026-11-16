@@ -1013,7 +1013,9 @@ def random_scenario(seed, cycles):
         # Pin owners first: 1 pin in 10 has no owner.
         owner = [rng.choice([0, 1, 2, 3]) if rng.random() < 0.9 else None for _ in range(pe_model.N_OUT)]
         od = [rng.random() < 0.3 for _ in range(pe_model.N_OUT)]
-        image = [0] * 128
+        # The whole address space is loaded (zeros outside the program), so that JR and LDX with
+        # random register values read the same words in the RTL as in the model.
+        image = [0] * pe_model.MEM_WORDS
         data_addrs = set()
         for n in range(4):
             lo, hi, d0 = 32 * n, 32 * n + 27, 32 * n + 28

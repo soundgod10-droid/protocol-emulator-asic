@@ -1487,7 +1487,7 @@ async def test_flex_word_count(dut):
     for n in NEW:
         log.info(f"{n} alone: {size[n]} words, {pe_model.PROG_WORDS - size[n]} free, {PROGRAMS[n][0]} thread(s)")
     clean = [f for f in maximal if not f[2]]
-    log.info(f"{len(fits)} sets of 2 to 4 programs with at least one new protocol fit in {pe_model.MEM_WORDS} words "
+    log.info(f"{len(fits)} sets of 2 to 4 programs with at least one new protocol fit in {pe_model.PROG_WORDS} words "
              f"and {pe_model.N_THREADS} threads; {len(maximal)} of them cannot take one more program, "
              f"{len(clean)} of those with no shared pin at the default pins")
     four = combo_image(("uart_tx_full.s", "uart_rx_full.s", "spi_ctl.s", "i2c_ctl.s"))

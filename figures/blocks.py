@@ -270,6 +270,17 @@ def draw(f, top, clock, tiles, pins, commit, out):
         f"by the {f['threads']} threads: SAMPLE at a given",
         "cycle, WAIT returns the edge cycle"])
 
+    box(270, 670, 330, 108, "pe_slu u_usb", [
+        "USB low-speed helper, I/O ports 16 to 31",
+        "NRZI, bit stuffing, SYNC, EOP, CRC5 + CRC16,",
+        "SE0/J tail, bus reset and suspend timers",
+        f"receive loop: {f['loop_steps']} × pe_slu_loop_step; event in 13"], size=11)
+    box(630, 670, 300, 108, "pe_slu u_eth", [
+        "10BASE-Te helper, I/O ports 32 to 47",
+        "Manchester, both-edge receive loop, SFD,",
+        "CRC-32, TP_IDL, link pulses, squelch",
+        "event input 14; signals to pins by config"], size=11)
+
     # Connections inside
     s.line(435, 450, 435, 468, start=True, end=True)
     s.text(442, 463, "fetch, LD, ST", size=9.5, colour="muted")

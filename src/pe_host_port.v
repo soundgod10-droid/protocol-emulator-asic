@@ -384,7 +384,9 @@ module pe_host_port #(
   wire        m_done  = m_rise && (m_bit == 3'd7);
   wire [7:0]  m_byte  = {m_sr, mosi};
   wire [15:0] m_word  = {m_hi, m_byte};
-  wire        m_wword = m_done && (m_nb >= 3'd2) && m_lo;  // last bit of a word
+  wire        m_mem   = (m_cmd == 8'h5A) || (m_cmd == 8'h69);  // WRITE_MEM, READ_MEM: 2 address bytes
+  wire [2:0]  m_first = (m_cmd == 8'h5A) ? 3'd3 : (m_cmd == 8'h69) ? 3'd4 : 3'd2;  // first data byte
+  wire        m_wword = m_done && (m_nb >= m_first) && m_lo;  // last bit of a word
 
   always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin

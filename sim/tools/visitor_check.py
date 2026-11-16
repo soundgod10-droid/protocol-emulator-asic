@@ -89,6 +89,15 @@ THREADS = r"""(() => { const r = window.__v1.run(), el = document.getElementById
   const why = used.length === 4 || /not used|not start|stay stopped/i.test(text);
   return { used, text, missing, why, ok: !!el && used.length > 0 && !missing.length && why }; })()"""
 
+# LATE and ERR labels on the thread cards: shown only for set flags, and the example card says when a flag is expected.
+FLAGS = r"""(() => { const shown = [...document.querySelectorAll('#threads .badge')]
+    .filter((b) => /^(LATE|ERR)$/.test(b.textContent.trim()) && b.getClientRects().length);
+  const clear = shown.filter((b) => b.classList.contains('off')).length;
+  const text = (document.getElementById('ex-threads') || {}).textContent || '';
+  const said = /ERR/.test(text) && /expected/i.test(text);
+  return { shown: shown.length, clear, set: shown.length - clear, said,
+    ok: clear === 0 && shown.length - clear > 0 && said }; })()"""
+
 
 class Handler(http.server.SimpleHTTPRequestHandler):
     extensions_map = {**http.server.SimpleHTTPRequestHandler.extensions_map, ".js": "text/javascript",

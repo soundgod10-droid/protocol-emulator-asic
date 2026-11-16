@@ -1,4 +1,4 @@
-# web/wave: waveform view interface
+# sim/wave: waveform view interface
 
 The page shell loads `wave/waveview.js` (an ES module) and uses only this interface.
 

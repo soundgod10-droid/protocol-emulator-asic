@@ -35,10 +35,10 @@ def api(path):
     return json.loads(gh("api", "-H", "Accept: application/vnd.github+json", path))
 
 
-def newest_run(workflow, branch):
+def newest_run(workflow, branch, success_only=False):
     data = api(f"repos/{REPO}/actions/workflows/{workflow}/runs?branch={branch}&status=completed&per_page=30")
     for run in data["workflow_runs"]:
-        if run["conclusion"] in ("success", "failure"):
+        if run["conclusion"] == "success" or (not success_only and run["conclusion"] == "failure"):
             return run
     return None
 

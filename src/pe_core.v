@@ -958,7 +958,7 @@ module pe_core (
   wire [15:0] f_d      = f_t - now;                    // lead (isa 4.2)
   wire        f_ontime = (f_d >= 16'd4) && (f_d <= 16'd32767);
   wire        f_out    = h_run && (h_ps == PS_NONE) && (op == 4'hC) && (okind <= 3'd5);
-  wire        f_owned  = (pin != 4'd15) && pin_en[pin] && (pin_owner[2*pin+:2] == tid);
+  wire        f_owned  = (pin != 4'd15) && pin_en[pin] && !pin_hdrv[pin] && (pin_owner[2*pin+:2] == tid);
   wire        f_bit    = (okind == 3'd0) ? 1'b0 : (okind == 3'd1) ? 1'b1 : (okind == 3'd5) ? f_r[15] : f_r[0];
   wire        f_rel    = (okind == 3'd2) || (f_bit && pin_od[pin]);  // released (isa 4.5)
   wire [15:0] f_lead   = ev_time - now;

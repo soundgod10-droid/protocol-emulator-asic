@@ -56,8 +56,13 @@ COMPILE_ARGS 		+= -I$(SRC_DIR)
 VERILOG_SOURCES += $(PWD)/tb.v
 TOPLEVEL = tb
 
-# List test modules to run, separated by commas and without the .py suffix:
+# List test modules to run, separated by commas and without the .py suffix. At gate level the protocol tests
+# (test_rtl_fw) run in their own parallel jobs (.github/workflows/gds.yaml gl_protocols), not in gl_test:
+ifneq ($(GATES),yes)
 COCOTB_TEST_MODULES = test,test_isa,test_core,test_fw_full,test_flex,test_holdout,test_rtl_fw
+else
+COCOTB_TEST_MODULES = test,test_isa,test_core,test_fw_full,test_flex,test_holdout
+endif
 
 # include cocotb's make rules to take care of the simulator setup
 include $(shell cocotb-config --makefiles)/Makefile.sim

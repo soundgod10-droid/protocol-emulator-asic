@@ -99,7 +99,8 @@ The reset is the chip reset rst_n (asynchronous assert, release at a clock edge,
 | Sample and wait units | empty |
 | FIFOs | empty |
 | Pin configuration | no owner, push-pull |
-| Memory | not changed. Latches have no reset. The host must load the memory before it sets RUN. |
+| Memory | not changed by a reset or STOP. After power-up its content is not defined (SRAM); the host must load it before it sets RUN. |
+| Line helpers | stopped, buffers empty; a helper pin is released (OE = 0) until the threads run |
 
 Effect of V = 1, OE = 0 on the chip pins: uio_oe = 0 (all uio pins are inputs), uio_out = 0xFF, uo_out[6:0] = 1. Thus, UART_TX (uo_out[4]) is 1 (idle level) during and after reset. uo_out[7] is the host MISO pin (docs/host_port.md section 2). It is not an output pin of the threads.
 

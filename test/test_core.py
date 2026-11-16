@@ -977,16 +977,17 @@ def rand_insn(rng, lo, hi, d0, own_pins=()):
         return [tnow(), 0x7C00 | dash(9)]
     if k == "time_bad":
         return [0x7E00 | dash(9)]
+    # 9-bit address fields (isa 11.2): Bcc, LD and ST have no '-' bits left; DJNZ and JAL have bit 9.
     if k == "bcc":
-        return [0x8000 | rng.randrange(8) << 9 | dash(2) << 7 | tgt()]
+        return [0x8000 | rng.randrange(8) << 9 | tgt()]
     if k == "djnz":
-        return [0x9000 | r() << 10 | dash(3) << 7 | tgt()]
+        return [0x9000 | r() << 10 | dash(1) << 9 | tgt()]
     if k == "jal":
-        return [0xA000 | r() << 10 | dash(3) << 7 | tgt()]
+        return [0xA000 | r() << 10 | dash(1) << 9 | tgt()]
     if k == "ld":
-        return [0xB000 | r() << 9 | dash(2) << 7 | rng.randrange(128)]
+        return [0xB000 | r() << 9 | rng.randrange(128)]
     if k == "st":
-        return [0xB800 | r() << 9 | dash(2) << 7 | (d0 + rng.randrange(4))]
+        return [0xB800 | r() << 9 | (d0 + rng.randrange(4))]
     if k == "out":
         return [0xC000 | out_pin() << 8 | r() << 6 | rng.randrange(6) << 3 | rng.randrange(8)]
     if k == "sample":

@@ -256,6 +256,21 @@ def main(runs_dir, fig_dir, out_md):
         L.append(f"| `{name}` | {PROTOCOLS.get(name, '')} | {r[1] if r else NA} | {g[1] if g else NA} |")
     L.append("")
 
+    slu_rtl = {n: v for n, v in rtl.items() if v[0] == "test_slu"}
+    slu_gl = {n: v for n, v in gl.items() if v[0] == "test_slu"}
+    if slu_rtl or slu_gl:
+        L.append("## Line helpers on the RTL and on the gate-level netlist\n")
+        L.append(f"The USB low-speed and 10BASE-Te helpers ([Line helpers](helpers.md)): unit tests against references "
+                 f"written from USB 2.0 and IEEE 802.3 (RTL only), and chip tests in which a thread drives a helper "
+                 f"through the I/O ports, the pins and the data memory. RTL: {link(test)}; gate level: {link(gds)} "
+                 f"job `gl_test` (unit tests are skipped there: the netlist has no unit-test instances).\n")
+        L.append("| Test | RTL | Gate level |")
+        L.append("|---|---|---|")
+        for name in sorted(set(slu_rtl) | set(slu_gl)):
+            r, g = slu_rtl.get(name), slu_gl.get(name)
+            L.append(f"| `{name}` | {r[1] if r else NA} | {g[1] if g else NA} |")
+        L.append("")
+
     if fjobs:
         L.append("## Formal jobs\n")
         L.append(f"From {link(formal)}. A job passes when SymbiYosys returns 0: PASS for the proofs, all covers "

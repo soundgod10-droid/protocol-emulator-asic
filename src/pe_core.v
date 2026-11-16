@@ -61,17 +61,26 @@ module pe_core (
     input  wire [15:0] now,            // low 16 bits of the cycle counter
     // Host configuration (pe_config) and start
     input  wire        start,          // 1 = threads start; the counter is 0 in the next cycle
-    input  wire [27:0] start_pc,       // start address of thread n at [7n+6:7n]
+    input  wire [1:0]  prestart,       // 1 to 3 in the 3 cycles before start (fetch of threads 0 to 2)
+    input  wire [35:0] start_pc,       // start address of thread n at [9n+8:9n]
     input  wire [3:0]  run_mask,       // RUN of thread n at start
     input  wire [29:0] pin_owner,      // owner thread of output pin p at [2p+1:2p]
     input  wire [14:0] pin_en,         // 1 = output pin p has an owner
     input  wire [14:0] pin_od,         // 1 = output pin p is open drain
-    // Program and data memory (pe_latch_ram)
-    output wire [6:0]  mem_raddr,      // read address in this cycle, for the next slot
+    input  wire [14:0] pin_hdrv,       // 1 = output pin p is driven by a line helper (no thread owns it)
+    // Program and data memory (pe_sram): one request per cycle, from flip-flops. The request of
+    // cycle c reaches the macro at the end of cycle c + 1; the word read is on mem_rdata in
+    // cycle c + 2 and goes into ir for the slot at cycle c + 3.
+    output reg  [10:0] mem_addr,       // 0-511 program memory, 512-1535 data memory
+    output reg         mem_we,
+    output reg  [15:0] mem_wdata,
     input  wire [15:0] mem_rdata,
-    output reg         mem_we,         // store in this cycle
-    output reg  [6:0]  mem_waddr,
-    output wire [15:0] mem_wdata,
+    // Line helper ports (isa 10: ports 16 to 47)
+    output wire        io_we,
+    output wire        io_re,
+    output wire [5:0]  io_addr,
+    output wire [15:0] io_wdata,
+    input  wire [15:0] io_rdata,
     // Output event slots (pe_timed_out, one for each output pin 0 to 14)
     input  wire [14:0] ev_ready,       // 1 = slot of pin p is empty
     output wire [14:0] ev_load,        // 1 = write the event into the slot of pin p

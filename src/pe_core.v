@@ -160,8 +160,8 @@ module pe_core (
   // takes the request at the end of c + 1, its word is ready in c + 2 and
   // goes into ir at the end of c + 2. A store of the slot thread uses the
   // request of the next cycle in place of that thread's own next fetch, so
-  // ST and STX take 2 slots (isa 3.3). Before START, the 3 pre-start cycles
-  // fetch for threads 0 to 2 and the START cycle for thread 3.
+  // ST and STX take 2 slots (isa 3.3). START comes only in the third cycle after the processor
+  // reset ends (project.v), so no thread runs or stores in the 2 pre-start cycles.
   // ---------------------------------------------------------------------
   reg         st_pend;      // a store of the last cycle's slot thread
   reg  [10:0] st_addr;

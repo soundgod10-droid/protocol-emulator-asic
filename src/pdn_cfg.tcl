@@ -243,10 +243,22 @@ proc macro_pdn_columns { block layer macros_var keys_var } {
                 error "MACROPDN: $key has no net (PDN_MACRO_CONNECTIONS)"
             }
             dict set keys $key 0
-            # Use OpenDB's own transform: one box per pin shape via the ITerm geometry.
-            foreach box [$iterm getGeometries] {
-                if { [[$box getTechLayer] getName] ne $layer } { continue }
-                lappend cols [list $net $key [$box xMin] [$box yMin] [$box xMax] [$box yMax]]
+            # Master pin boxes moved to die coordinates: N keeps y, FS (MX) mirrors it.
+            foreach mpin [$mterm getMPins] {
+                foreach box [$mpin getGeometry] {
+                    if { [$box isVia] } { continue }
+                    if { [[$box getTechLayer] getName] ne $layer } { continue }
+                    set x1 [expr {[$bb xMin] + [$box xMin]}]
+                    set x2 [expr {[$bb xMin] + [$box xMax]}]
+                    if { $orient eq "R0" } {
+                        set y1 [expr {[$bb yMin] + [$box yMin]}]
+                        set y2 [expr {[$bb yMin] + [$box yMax]}]
+                    } else {
+                        set y1 [expr {[$bb yMax] - [$box yMax]}]
+                        set y2 [expr {[$bb yMax] - [$box yMin]}]
+                    }
+                    lappend cols [list $net $key $x1 $y1 $x2 $y2]
+                }
             }
         }
     }

@@ -82,7 +82,7 @@ class Program:
         return len(self.words)
 
     def image(self):
-        """All 128 memory words. Words that the program does not use are 0 (HALT)."""
+        """All program memory words. Words that the program does not use are 0 (HALT)."""
         return [self.words.get(a, 0) for a in range(MEM_WORDS)]
 
     def listing(self):

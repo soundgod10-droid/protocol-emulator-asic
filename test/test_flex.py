@@ -1491,7 +1491,7 @@ async def test_flex_word_count(dut):
              f"and {pe_model.N_THREADS} threads; {len(maximal)} of them cannot take one more program, "
              f"{len(clean)} of those with no shared pin at the default pins")
     four = combo_image(("uart_tx_full.s", "uart_rx_full.s", "spi_ctl.s", "i2c_ctl.s"))
-    log.info(f"UART TX + UART RX + SPI + I2C = {four} words, {pe_model.MEM_WORDS - four} free; smallest new program "
+    log.info(f"UART TX + UART RX + SPI + I2C = {four} words, {pe_model.PROG_WORDS - four} free; smallest new program "
              f"{min(size[n] for n in NEW)} words")
     for n in NEW:  # the four example programs already use all 4 threads; the words alone are shown here
         log.info(f"four example programs + {n}: {four + size[n]} words, {4 + PROGRAMS[n][0]} threads")

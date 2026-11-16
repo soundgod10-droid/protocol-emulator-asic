@@ -421,15 +421,22 @@ module pe_core (
   reg [1:0]  wsel;
   reg [15:0] wval;
   reg [15:0] n_t;
-  reg [6:0]  n_pc;
+  reg [8:0]  n_pc;
   reg        n_z, n_c, n_n, n_e, n_late, n_err, n_run;
-  reg [2:0]  n_ps;
+  reg [3:0]  n_ps;
   reg [1:0]  n_ldrd;
-  reg [6:0]  n_ldaddr;
+  reg [10:0] n_ldaddr;
   reg        o_load;   // write the event into the slot of "pin"
+  reg        s_we;     // the slot thread stores (ST, STX)
+  reg [10:0] s_waddr;
+  reg        io_rd, io_wr;  // IOR / IOW of a helper port (16 to 47)
 
-  assign mem_wdata  = ra;
   assign fifo_wdata = ra;
+  assign io_we      = io_wr;
+  assign io_re      = io_rd;
+  assign io_addr    = port;
+  assign io_wdata   = ra;
+  wire   io_hport   = (port >= 6'd16) && (port <= 6'd47);
   // One-hot slot select as a decoder, not "1 << pin" (no shift cell for
   // the SHARE pass, see the shifter).
   genvar gp;

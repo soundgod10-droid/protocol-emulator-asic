@@ -43,7 +43,8 @@ Sources:
 
 | Name | Size | Function |
 |---|---|---|
-| Memory | 128 x 16 | Program and data of all threads (docs/decisions.md entry 3). |
+| Program memory | 512 x 16 | Addresses 0 to 511: the programs of all threads, and data for LD and ST (SRAM macro RM_IHPSG13_1P_512x16, src/pe_sram.v). |
+| Data memory | 1,024 x 16 | LDX/STX addresses 512 to 1,535 (SRAM macro RM_IHPSG13_1P_1024x16). Addresses 1,536 to 2,047 are 512 to 1,023 again: the LDX/STX address is ra mod 2,048, and address a >= 512 is data word (a - 512) mod 1,024. |
 | Cycle counter | 32 bits | Free-running, +1 in each clock cycle (src/pe_cycle_counter.v). "now" is its low 16 bits. |
 | Output event slots | 15 | One slot for each output pin: event time (16 bits), value, output enable, valid (src/pe_timed_out.v). |
 | Pin registers | 15 x 2 | Value V and output enable OE of each output pin. The pin is the output of these flip-flops (src/pe_timed_out.v). |

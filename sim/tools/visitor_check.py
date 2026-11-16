@@ -227,7 +227,7 @@ def path_c(v):
     v.shot("C2_computed")
     threads = v.page.evaluate(THREADS)
     v.page.tap("#run")
-    after = v.watch(REPLAY_MAX_S, stop=finished, shot_at=9, shot_name="C3_two_s_after_tap")
+    after = v.watch(REPLAY_MAX_S, stop_all=ended_or_stalled, shot_at=9, shot_name="C3_two_s_after_tap")
     v.shot("C4_end")
     r = replay_checks(after)
     bad = [(s["t"], s["panels"]) for s in change if s.get("panels")]

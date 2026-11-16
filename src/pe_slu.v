@@ -575,7 +575,7 @@ module pe_slu #(
               tx_st <= T_IDLE;
             end else if (tx_pulse) begin
               tx_st   <= T_PULSE;
-              tx_tail <= c_tail[7:0];
+              tx_tail <= {4'd0, c_lp[15:12]};               // link test pulse width (cycles)
             end else if (tx_cnt == 2'd0) begin
               sticky[2] <= 1'b1;
               tx_st     <= T_IDLE;

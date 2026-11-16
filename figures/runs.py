@@ -20,7 +20,7 @@ import sys
 REPO = os.environ.get("GITHUB_REPOSITORY", "soundgod10-droid/protocol-emulator-asic")
 WORKFLOWS = {
     "gds": ("gds.yaml", ["tt_submission", "gatelevel_test_results", "gl_protocols_1", "gl_protocols_2",
-                         "precheck_reports"]),
+                         "gl_protocols_3", "precheck_reports"]),
     "test": ("test.yaml", ["test-results"]),
     "coverage": ("coverage.yaml", ["coverage"]),
     "formal": ("formal.yaml", []),

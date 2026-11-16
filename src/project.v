@@ -176,11 +176,14 @@ module tt_um_soundgod10_droid_protocol_emulator (
   // Configuration and processor
   // ---------------------------------------------------------------------
 
-  wire [27:0] start_pc;
+  wire [35:0] start_pc;
   wire [3:0]  run_mask;
   wire [29:0] pin_owner;
   wire [14:0] pin_en;
   wire [14:0] pin_od;
+  wire [14:0] pin_hdrv;
+  wire [14:0] pin_hsel;
+  wire [44:0] pin_hsig;
   pe_config u_config (
       .clk      (clk),
       .rst_n    (rst_n_int),
@@ -191,7 +194,10 @@ module tt_um_soundgod10_droid_protocol_emulator (
       .run_mask (run_mask),
       .pin_owner(pin_owner),
       .pin_en   (pin_en),
-      .pin_od   (pin_od)
+      .pin_od   (pin_od),
+      .pin_hdrv (pin_hdrv),
+      .pin_hsel (pin_hsel),
+      .pin_hsig (pin_hsig)
   );
 
   wire [14:0] pin_v;

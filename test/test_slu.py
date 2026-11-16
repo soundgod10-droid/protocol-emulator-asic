@@ -709,9 +709,9 @@ async def test_slu_jabber(dut):
 
 @cocotb.test(skip=GL)
 async def test_slu_usb_line_conditions(dut):
-    """USB line timers (docs/helpers.md section 1): SE0 for 19 ticks of 16 cycles sets LINEA (bus reset; USB 2.0
-    7.1.7.5: a device sees a reset after an SE0 of 2.5 us or more, here 304 cycles = 5.07 us), a shorter SE0 does
-    not; J for 15,000 ticks (240,000 cycles = 4.0 ms; 7.1.7.6: suspend after 3 ms of idle) sets LINEB."""
+    """USB line timers (docs/helpers.md section 1) with the fixed thresholds of the chip's USB helper: SE0 for 19
+    ticks of 16 cycles (304 cycles, 5.07 us) sets LINEA (bus reset), a shorter SE0 does not; J for 15,000 ticks
+    (240,000 cycles, 4.0 ms) sets LINEB (suspend), 14,000 ticks do not."""
     s = await slu_reset(dut)
     cfg = dict(USB_CFG_RX)
     cfg.update({16: 19, 17: 15000, 18: 0x0044})                 # the fixed values of the chip's USB helper

@@ -68,7 +68,7 @@ The instruction set ([isa.md](isa.md) section 13) was designed from UART, SPI an
 
 ### Hold-out trials
 
-A hold-out trial is a protocol that nobody had in view when the instruction set was made, written afterwards from its public documents on the unchanged chip. 1-Wire was the first. The next two were chosen by a rule that a reader can repeat: the first two entries of the sigrok [libsigrokdecode](https://github.com/sigrokproject/libsigrokdecode/tree/master/decoders) decoder list (alphabetical) that decode a logic-level link between two devices, are not in `fw/` and not named on the competition page, can be driven from 3.3 V pins with external parts, allow a bit time of 1 µs or more, and have a public specification. They are `am230x` and `avr_pdi` (`ac97` and `aud` need clocks of 12.288 and about 20 MHz; the other entries before them decode SPI, UART or I2C traffic).
+A hold-out trial is a protocol that nobody had in view when the instruction set was made, written afterwards from its public documents on the unchanged chip. 1-Wire was the first. The next two were chosen by a rule that a reader can repeat: the first two entries of the sigrok [libsigrokdecode](https://github.com/sigrokproject/libsigrokdecode/tree/master/decoders) decoder list (alphabetical) that decode a logic-level link between two devices, are not in `fw/` and not named on the competition page, can be driven from 3.3 V pins with external parts, allow a bit time of 1 us or more, and have a public specification. They are `am230x` and `avr_pdi` (`ac97` and `aud` need clocks of 12.288 and about 20 MHz; the other entries before them decode SPI, UART or I2C traffic).
 
 | Protocol | Result | What the instruction set lacked (workaround) |
 |---|---|---|

@@ -404,7 +404,9 @@ module pe_core (
   wire [15:0] pin_od16 = {1'b0, pin_od};
   wire [15:0] ready16  = {1'b0, ev_ready};
   wire [31:0] owner32  = {2'b00, pin_owner};
-  wire        owned    = pin_en16[pin] && (owner32[2*pin+:2] == tid);  // pin 15: never
+  wire [15:0] hdrv16   = {1'b0, pin_hdrv};
+  // A pin that a line helper drives has no thread owner (isa 5.2); pin 15: never owned.
+  wire        owned    = pin_en16[pin] && !hdrv16[pin] && (owner32[2*pin+:2] == tid);
   wire        obit     = (okind == 3'd0) ? 1'b0 : (okind == 3'd1) ? 1'b1 :
                          (okind == 3'd5) ? ra[15] : ra[0];
   wire        oz       = (okind == 3'd2) || (obit && pin_od16[pin]);

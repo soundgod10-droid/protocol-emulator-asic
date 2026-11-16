@@ -168,8 +168,8 @@ def draw(f, top, clock, tiles, pins, commit, out):
 
     # Host and the host pins
     s.rect(20, 80, 170, 120, fill="#f6f7f9", stroke=S.MUTED)
-    s.lines(32, 104, ["Host", "RP2350 of the demo board,", "or any SPI host"], size=12)
     s.text(32, 104, "Host", size=13, weight="bold")
+    s.lines(32, 124, ["RP2350 of the demo board,", "or any SPI host"], size=12)
     for i, (pin, name) in enumerate((("ui[7]", "SCK"), ("ui[6]", "CS_N"), ("ui[5]", "MOSI"))):
         y = 104 + 22 * i
         s.line(190, y, 270, y, end=True)

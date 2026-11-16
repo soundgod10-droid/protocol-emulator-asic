@@ -420,14 +420,20 @@ module pe_host_port #(
               else if ((m_byte == 8'h4B) && !m_run) m_run <= 1'b1; // START
             end
             3'd1: begin
-              m_addr <= m_byte[6:0];
+              m_addr <= m_mem ? {m_byte[2:0], 8'd0} : {4'd0, m_byte[6:0]};
               m_tid  <= m_byte[1:0];
               m_lo   <= 1'b0;
             end
             default: begin
-              if (!m_lo) m_hi <= m_byte;
-              else m_addr <= m_addr + 7'd1;
-              m_lo <= !m_lo;
+              if (m_nb < m_first) begin
+                if (m_nb == 3'd2) m_addr[7:0] <= m_byte;  // address bits 7:0 (READ_MEM byte 3: dummy)
+                m_lo <= 1'b0;
+              end else begin
+                if (!m_lo) m_hi <= m_byte;
+                else if (m_cmd == 8'h78) m_addr <= {4'd0, m_addr[6:0] + 7'd1};
+                else m_addr <= m_addr + 11'd1;
+                m_lo <= !m_lo;
+              end
             end
           endcase
         end

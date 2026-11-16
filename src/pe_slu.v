@@ -509,6 +509,7 @@ module pe_slu #(
           crc_b <= crc_step({24'd0, crc_b}, r_data, {24'd0, c_crcb[7:0]}) & crcb_mask;
         end
         rx_bits <= (rx_bits == 10'h3FF) ? rx_bits : rx_bits + 10'd1;
+        rx_bph  <= rx_bph + 3'd1;
         rx_sh   <= rx_word;
         rx_nb   <= (rx_nb == 5'd15) ? 5'd0 : rx_nb + 5'd1;
         if (rx_nb == 5'd15) rx_words <= rx_words + 9'd1;

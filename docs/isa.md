@@ -378,10 +378,14 @@ Host side of the FIFOs (docs/host_port.md section 9): the host PUSH and PULL use
 |---|---|---|---|
 | 0 | STATUS | bit 0 LATE, bit 1 ERR, other bits 0 | clears LATE if bit 0 = 1, clears ERR if bit 1 = 1 |
 | 1 | FLAGS | bit 0 Z, bit 1 C, bit 2 N, bit 3 E, other bits 0 | Z, C, N, E = bits 0 to 3 |
-| 2 | PINS | s(c) of the input pins 0 to 15 (section 6.1) at this cycle | ignored |
+| 2 | PINS | s(c) of the input pins 0 to 15 (section 6.1) at this cycle; bits 13 and 14 are the helper events | ignored |
 | 3 | THREAD | the thread number 0 to 3 | ignored |
 | 4 to 15 | none | 0 | ignored |
-| 16 to 63 | helper hooks | 0. Kept for the CRC unit, the line-code helpers, the process monitor and the event recorder; none of them is built. | ignored |
+| 16 to 31 | USB low-speed helper | port (p - 16) of the helper (docs/helpers.md) | port (p - 16) of the helper |
+| 32 to 47 | 10BASE-Te helper | port (p - 32) of the helper | port (p - 32) of the helper |
+| 48 to 63 | none | 0 | ignored |
+
+A helper port access happens in the slot of the instruction (IOR reads the helper value of that cycle; IOW writes at the end of the cycle). Reading RXDATA takes the word out of the helper's receive buffer.
 
 ## 11 Encoding
 

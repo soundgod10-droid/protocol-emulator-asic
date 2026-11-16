@@ -59,11 +59,13 @@ module pe_host_port #(
     // Threads
     output reg         running,        // 0 = processor held in reset
     output wire        start,          // 1 in the first cycle after the release
-    // Program memory (pe_latch_ram), only while running = 0
-    output wire        mem_we,
-    output wire [6:0]  mem_addr,       // write address, and read address while running = 0
-    output wire [15:0] mem_wdata,
-    input  wire [15:0] mem_rdata,      // word at mem_addr
+    // Program and data memory (pe_sram), only while running = 0: one registered request per
+    // access; the word read is on mem_rdata from the second cycle after the request.
+    output reg         mem_req,
+    output reg         mem_we,
+    output reg  [10:0] mem_addr,
+    output reg  [15:0] mem_wdata,
+    input  wire [15:0] mem_rdata,
     // Configuration (pe_config)
     output wire        cfg_we,
     output wire [6:0]  cfg_addr,

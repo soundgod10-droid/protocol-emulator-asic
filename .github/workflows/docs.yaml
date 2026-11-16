@@ -94,8 +94,11 @@ jobs:
           name: waveform-figures
           path: build/figures
 
+  sim:
+    uses: ./.github/workflows/sim.yaml
+
   site:
-    needs: waveforms
+    needs: [waveforms, sim]
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout repo

@@ -149,6 +149,10 @@ def main(runs_dir, fig_dir, out_md):
              + (f" in [this docs run]({this_run})" if this_run else "") + ". Each value links to its run; the commit "
              "of each run is in the last table. A run of an older commit is used until the run of the newest "
              "commit has finished.\n")
+    nf = R.get("newer_failed_gds")
+    if nf:
+        L.append(f"Note: a newer gds run, [run {nf['id']}]({nf['url']}) (commit `{nf['sha'][:7]}`), ended with failure; "
+                 f"the layout values below come from the newest successful gds run.\n")
     L.append("## Key results\n")
     L.append("| Item | Result | Source |")
     L.append("|---|---|---|")

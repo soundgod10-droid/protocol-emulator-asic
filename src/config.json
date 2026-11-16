@@ -110,6 +110,12 @@
   "GRT_DESIGN_REPAIR_MAX_SLEW_PCT": 40,
   "GRT_DESIGN_REPAIR_MAX_CAP_PCT": 40,
 
+  "//": "Run 43925649736 with the margins above: the same 29 slew pins and the A_DOUT[12] cap pin, so the",
+  "//": "resizer does not see the macro pin limits. A wire-length cap buffers every long net to and from",
+  "//": "the macros, whatever the pin limits: 150 um of Metal2 with a buffer at each end.",
+  "DESIGN_REPAIR_MAX_WIRE_LENGTH": 150,
+  "GRT_DESIGN_REPAIR_MAX_WIRE_LENGTH": 150,
+
   "//": "Clock tree: at most 8 sinks per leaf buffer (cell library default_max_fanout 8) and buffers every",
   "//": "200 um on the trunk; max fanout pins 84 -> 8 (antenna diodes only), fast hold +0.010 -> +0.099 ns",
   "//": "(gds 43672052931 vs 43693862885). docs/signoff.md, max fanout.",

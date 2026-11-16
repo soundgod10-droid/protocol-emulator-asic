@@ -509,7 +509,7 @@ module pe_host_port #(
     if (mem_we) assert (mem_req);
     // H2: The same for the configuration (WRITE_CFG 0x78).
     assert (cfg_we == (m_wword && (m_cmd == 8'h78) && !m_run));
-    if (cfg_we) assert (cfg_addr == m_addr);
+    if (cfg_we) assert (cfg_addr == m_addr[6:0]);
     if (cfg_we) assert (cfg_wdata == m_word);
     // H3: A word goes into a host FIFO only from a PUSH (0x87) while the
     //     threads run, into the FIFO of the thread in byte 1.

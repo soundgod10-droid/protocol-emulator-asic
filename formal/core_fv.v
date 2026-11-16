@@ -128,15 +128,19 @@ module core_fv (
       .fifo_wdata   (fifo_wdata),
       .fifo_in_valid(fifo_in_valid),
       .fifo_in_data (fifo_in_data),
-      .fifo_out_full(fifo_out_full)
+      .fifo_out_full(fifo_out_full),
+      .th_run       (th_run),
+      .th_late      (th_late),
+      .th_err       (th_err)
   );
 
-  // The properties are not empty: a store, an event write and a START
-  // during the run can occur.
+  // The properties are not empty: a store reaches the memory, an event write, a line helper
+  // write and a START occur.
   always @* begin
     cover (rst_n && mem_we);
     cover (rst_n && (ev_load != 15'd0));
-    cover (rst_n && start && (now[1:0] == 2'd2));
+    cover (rst_n && io_we);
+    cover (rst_n && start);
   end
 
 endmodule

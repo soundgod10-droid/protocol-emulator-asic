@@ -8,6 +8,8 @@ One step per sample, integers only, in the order of the RTL (pe_slu_loop_step):
      integrator I -= eps / 2^ki_sh in the last gear (clipped to +/-2047), accepted edges + 1
   4. theta >= N * 2^12: wrap, theta += I >> 4
   5. first sample of the bit period with theta >= the decision point: the bit is the sample.
+With both clock edges (step_pair), an edge on the second sample of a cycle is not used when the first
+sample of that cycle had an edge.
 
 This is the loop of the clock-recovery study that chose the 10BASE-T and USB configurations
 (second-order loop with gear shift for Manchester, hard resync for USB). test_slu.py runs it on

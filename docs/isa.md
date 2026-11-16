@@ -286,8 +286,8 @@ Notation: rd = destination register, rs = source register, ra = address register
 |---|---|---|
 | HALT | RUN = 0. The thread stops. | none |
 | NOP | nothing | none |
-| JR rs | PC = rs mod 128 | none |
-| JAL rd, addr | rd = (PC + 1) mod 128, PC = addr | none |
+| JR rs | PC = rs mod 512 | none |
+| JAL rd, addr | rd = (PC + 1) mod 512, PC = addr | none |
 | JMP addr | PC = addr | none |
 | Bcc addr | if the condition is true, PC = addr (section 9.2) | none |
 | DJNZ rd, addr | rd = rd - 1. If rd is not 0, PC = addr. | none |

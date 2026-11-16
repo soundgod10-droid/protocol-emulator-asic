@@ -278,7 +278,8 @@ function stateFor(cycle) {
       break;
     }
   }
-  if (!best && ui.exact) best = ui.exact;
+  // During a replay the exact state of an earlier cursor position is often newer than the last recorded copy.
+  if (ui.exact && ui.exact.cycle <= cycle && (!best || ui.exact.cycle > best.cycle)) best = ui.exact;
   return { st: best, exact: false };
 }
 

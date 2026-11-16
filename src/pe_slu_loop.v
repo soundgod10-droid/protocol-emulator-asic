@@ -113,7 +113,7 @@ module pe_slu_loop_step (
     decided_o = decided;
     bit_v     = 1'b0;
     bit_d     = x;
-    xe        = (x != xprev);
+    xe        = allow && (x != xprev);
     st        = 1'b0;
     ok        = 1'b0;
     a         = 21'sd0;

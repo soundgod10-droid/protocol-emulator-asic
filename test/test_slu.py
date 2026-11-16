@@ -514,8 +514,9 @@ async def test_slu_eth_tx(dut):
     await s.wr(P_TXTIME, t1)
     caps = await capture(dut, 120)
     w = sum(1 for c in caps if (c[0] & 1) and c[1])
-    dut._log.info("link test pulse: TD+ high %d cycles (tail 1 = %d)" % (w, 16))
-    assert w == 17 or w == 16
+    dut._log.info("link test pulse: TD+ high %d cycles (100 ns; IEEE 802.3 Figure 14-13 needs "
+                  "0.25-0.85 BT above 585 mV and release well before 2 BT)" % w)
+    assert w == 6
 
 
 def eth_rx_schedule(bits, jit, ppm, rng, t0):

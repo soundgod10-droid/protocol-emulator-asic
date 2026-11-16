@@ -744,7 +744,7 @@ async def test_slu_chip_eth_rx(dut):
     words to the data memory and pushes the status; the host reads the words after STOP (READ_MEM)."""
     rng = random.Random(16)
     payload = bytes(rng.randrange(256) for _ in range(64))
-    prog = pe_asm.assemble(ETH_RX_FW.replace("0x398", "920"), "eth_rx")   # 0x398 = 920 (LDI is decimal-safe)
+    prog = pe_asm.assemble(ETH_RX_FW, "eth_rx")
     host = await chip_start(dut, prog, [], [0] * 15)
     await host.start()
     await ClockCycles(dut.clk, 200)

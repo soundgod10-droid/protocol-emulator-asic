@@ -65,6 +65,12 @@ module pe_slu_loop_step (
   // Decision point: (3/4 N - 1/2) * 2^12 (Manchester) or (1/2 N - 1/2) * 2^12.
   wire signed [20:0] tdec_s = manch ? ($signed({1'b0, n, 10'd0}) + $signed({2'b00, n, 11'd0}) - 21'sd2048)
                                     : (half_s - 21'sd2048);
+  // Configuration-only terms (the same in both step copies; synthesis shares them).
+  wire signed [20:0] kb_s   = -21'sd2048 - mid_s;
+  wire signed [20:0] win_s  = $signed({3'b000, win, 12'd0});
+  wire signed [20:0] wina_s = $signed({3'b000, wina, 12'd0});
+  wire signed [20:0] win_n  = -win_s;
+  wire signed [20:0] wina_n = -wina_s;
 
   reg signed [20:0] t;        // theta during the step
   reg signed [20:0] a;        // edge position against the expected edge, before mod N

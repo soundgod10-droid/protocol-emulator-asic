@@ -21,16 +21,24 @@ The design has these blocks:
 
 Firmware in `fw/` (assembler `asm/pe_asm.py`):
 
-| File | Function | Words |
-|---|---|---|
-| `uart_tx.s` | UART transmitter, 115,200 bit/s 8N1 at 50 MHz (the example below) | 12 |
-| `uart_tx_full.s`, `uart_rx_full.s` | UART transmitter and receiver, 8N1, 8E1, 8N2, up to 1 Mbit/s | 15, 13 |
-| `uart_rx_slow.s` | UART receiver for bit times of more than 32,767 cycles (300 to 1,525 bit/s at 50 MHz) | 24 |
-| `spi_ctl.s` | SPI controller, modes 0 to 3, up to 1 MHz at 50 MHz | 26 |
-| `spi_tgt.s` | SPI target, modes 0 to 3, up to 1 MHz at 50 MHz | 31 |
-| `i2c_ctl.s` | I2C controller, Standard-mode and Fast-mode, clock stretching, repeated START, arbitration loss | 49 |
+| File | Function | Words | Tested on the RTL and the netlist at 60 MHz |
+|---|---|---|---|
+| `uart_tx.s` | UART transmitter, 115,200 bit/s 8N1 (the example below) | 12 | 115,200 bit/s, at 50 MHz (`test/test.py`) |
+| `uart_tx_full.s`, `uart_rx_full.s` | UART transmitter and receiver, 8N1, 8E1, 8N2 | 15, 13 | 1 Mbit/s and 115,200 bit/s; transmitter also 9,600 bit/s 8E1 |
+| `uart_rx_slow.s` | UART receiver for bit times of more than 32,767 cycles (below 1,831 bit/s at 60 MHz) | 24 | 1,200 bit/s |
+| `spi_ctl.s` | SPI controller, modes 0 to 3 | 26 | all four modes, SCK up to 1.2 MHz |
+| `spi_tgt.s` | SPI target, modes 0 to 3 | 33 | all four modes at 1 MHz |
+| `i2c_ctl.s` | I2C controller, Standard-mode and Fast-mode, clock stretching, repeated START, arbitration loss | 49 | Standard-mode and Fast-mode |
+| `can.s` | CAN 2.0A node (2 threads) | 123 | 250 kbit/s |
+| `jtag.s`, `jtag_tap.s` | JTAG controller | 31, 67 | TCK 1.5 MHz |
+| `swd.s` | SWD host | 62 | SWCLK 1.875 MHz |
+| `ps2_host.s`, `ps2_dev.s` | PS/2 host and device | 62, 60 | 12.5 kHz device clock |
+| `trigger.s` | timed trigger: a pulse a set time after a matching UART byte | 30 | 115,200 bit/s, 0 cycles of jitter |
+| `onewire.s` | 1-Wire controller | 40 | DS18B20 device times |
+| `am2302.s` | AM2302 / DHT22 sensor reader | 56 | sensor times x 1.2 |
+| `pdi.s` | AVR XMEGA PDI programmer | 52 | PDI_CLK 1 MHz |
 
-`uart_tx.s` runs on the RTL and the gate-level netlist in the tests. The other files are tested in the cycle-exact reference model (`model/pe_model.py`), which the RTL matches in lockstep tests (docs/verification.md). Clock-dependent values are host words or assembler constants (docs/host_port.md section 11).
+Each program runs on the RTL and on the gate-level netlist against an independent protocol model, with the cycle-exact reference model (`model/pe_model.py`) in lockstep on every pin (`test/test_rtl_fw.py`; docs/protocols.md gives the conditions and the waveforms). `fw/uart_rx.s`, `fw/spi_mode0.s` and `fw/i2c_write.s` are the short outline programs of the first design, tested in the model. Clock-dependent values are host words or assembler constants (docs/host_port.md section 11).
 
 Reset: when `rst_n` is low, and while the threads are stopped, each processor output has the value 1 and no output enable: `uo_out[6:0]` = 1 (a UART TX line is idle high), all `uio` pins are inputs. The reset is asynchronous, so the pins go to this state at once, also when the clock is stopped. The memory does not change at reset.
 

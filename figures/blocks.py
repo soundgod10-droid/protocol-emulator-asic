@@ -250,10 +250,9 @@ def draw(f, top, clock, tiles, pins, commit, out):
                        "per thread: PC, T (16-bit time), r0 to r3,",
                        "flags Z C N E, RUN, LATE, ERR"], size=11.5)
 
-    lat_mem = f["mem_words"] * f["mem_width"]
-    box(270, 468, 330, 82, f"pe_latch_ram  {f['mem_words']} × {f['mem_width']}", [
-        "programs and data of all threads",
-        f"{lat_mem:,} latches (pe_lat), {f['mem_words']} clock gates (pe_cg)"])
+    box(270, 468, 330, 82, "pe_sram  2 SRAM macros", [
+        f"{f['pmem_words']} × {f['mem_width']}: programs, LD/ST data",
+        f"{f['dmem_words']:,} × {f['mem_width']}: data for LDX/STX (frames)"])
     lat_fifo = f["fifo_rams"] * f["fifo_words"] * f["fifo_width"]
     box(270, 568, 330, 82, "pe_host_fifo", [
         f"{f['fifo_depth']}-word in-FIFO and {f['fifo_depth']}-word out-FIFO per thread",

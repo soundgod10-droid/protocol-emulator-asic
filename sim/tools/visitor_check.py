@@ -242,7 +242,34 @@ def path_c(v):
     return r, [playing] + change + after
 
 
-PATHS = (("A", path_a), ("B", path_b), ("C", path_c))
+def path_d(v):
+    """E2b: threads 1 and 2 end with ERR, the expected result of the test; the page must say so."""
+    v.open("E2b")
+    v.shot("D1_computed")
+    flags = v.page.evaluate(FLAGS)
+    threads = v.page.evaluate(THREADS)
+    return {"flags": flags, "threads": threads, "pass": flags["ok"] and threads["ok"]}, [v.sample()]
+
+
+def summary(r):
+    if "error" in r:
+        return r["error"]
+    parts = []
+    if "moves" in r:
+        parts.append(f"moves {r['moves']}, silent stops {len(r['silent_stops_at_s'])}, "
+                     f"result in view {r['result_in_view_pass']}")
+    if "own_example_pass" in r:
+        parts.append(f"own example {r['own_example_pass']}")
+    if "flags" in r:
+        parts.append(f"flags {r['flags']}")
+    if "threads" in r:
+        parts.append(f"threads {r['threads']['ok']} {r['threads']['used']}")
+    if "end" in r:
+        parts.append(f"end: {r['end']['status']!r} button {r['end']['button']!r}")
+    return ", ".join(parts)
+
+
+PATHS = (("A", path_a), ("B", path_b), ("C", path_c), ("D", path_d))
 
 
 def main(argv):

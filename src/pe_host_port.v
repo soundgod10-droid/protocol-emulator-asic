@@ -204,6 +204,15 @@ module pe_host_port #(
     end else begin
       sck_q     <= sck;
       running_q <= running;
+      mem_req   <= 1'b0;
+      mem_we    <= 1'b0;
+      if (w_mem) begin
+        // WRITE_MEM word: request at the address of the word.
+        mem_req   <= 1'b1;
+        mem_we    <= 1'b1;
+        mem_addr  <= addr;
+        mem_wdata <= {hold, bin};
+      end
       if (!cs) begin
         // No transaction: the next byte is a command, MISO is 0.
         nbit <= 3'd0;

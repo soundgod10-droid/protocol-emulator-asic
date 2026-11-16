@@ -25,8 +25,9 @@ Simulator in the browser: **<https://soundgod10-droid.github.io/protocol-emulato
 - **Four threads in fixed slots.** Thread n executes one 16-bit instruction in each clock cycle c with c mod 4 = n. A waiting thread keeps its slot. Thus the timing of one thread does not change with the other three.
 - **Timed output events.** `OUT` does not change the pin at once. It writes an event for a set cycle into the slot of that pin, and the pin changes in exactly that cycle. A late event still occurs and sets a LATE flag for the host.
 - **Timed inputs.** `SAMPLE` reads a pin at a set cycle. `WAIT` stops the thread until an edge and gives the cycle of the edge.
-- **Pins for real buses.** The host gives each output pin to one thread. Pins can be push-pull or open-drain. Two inputs have a spike filter for I2C.
-- **Memory and host port.** 128 words of 16 bits hold the programs and data of all threads. The host SPI port (mode 0, up to 10 MHz) loads the memory, starts and stops the threads, and moves data through a 4-word FIFO in each direction for each thread.
+- **Pins for real buses.** The host gives each output pin to one thread or to a line helper. Pins can be push-pull or open-drain. Two inputs have a spike filter for I2C.
+- **Line helpers for USB low speed and 10BASE-T.** A USB low-speed helper (NRZI, bit stuffing, CRC5 and CRC16, end of packet, bus reset and suspend timers) and a 10BASE-Te helper (Manchester, receive clock recovery on both clock edges, CRC-32, link pulses, squelch, collision and jabber) on I/O ports. A thread gives and takes 16-bit words and starts a frame at a cycle that it chooses ([helpers](docs/helpers.md)).
+- **Memory and host port.** Two SRAM macros: 512 words of 16 bits for the programs of all threads, 1,024 words for frames and tables. The host SPI port (mode 0, up to 10 MHz) loads the memory, starts and stops the threads, and moves data through a 4-word FIFO in each direction for each thread.
 - **Status.** The layout passes all checks of the shuttle's layout precheck. No chip is made yet.
 
 ## Key results

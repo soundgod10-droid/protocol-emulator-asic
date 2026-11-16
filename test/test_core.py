@@ -785,8 +785,9 @@ def filter_stimulus(cycles):
 
 @cocotb.test()
 async def test_core_spike_filter(dut):
-    """Spike filter of inputs 6 and 7 (isa 6.1): pulses of 1 to 3 cycles give no edge; a pulse of w >= 4 cycles
-    that starts at cycle p gives edges at p + 6 and p + w + 6 (2 synchronizer stages + 4 filter samples).
+    """Spike filter of inputs 6 and 7 (isa 6.1): pulses of 1 to K - 1 cycles give no edge; a pulse of w >= K
+    cycles that starts at cycle p gives edges at p + 2 + K and p + w + 2 + K (2 synchronizer stages + K filter
+    samples; K = 5).
 
     The expected edge cycles come from the rule, not from the model; the lockstep also compares the model.
     """

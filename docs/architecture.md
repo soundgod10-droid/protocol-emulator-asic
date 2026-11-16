@@ -4,7 +4,11 @@ This document describes the blocks of the chip, how they connect, and the number
 
 ## 1 Block diagram
 
-The structure follows the RTL hierarchy (`src/`). One clock domain (`clk`, declared 60 MHz); every block below is clocked by it.
+![Block diagram of the chip, drawn from the RTL hierarchy](https://soundgod10-droid.github.io/protocol-emulator-asic/figures/block_diagram.svg)
+
+*The docs workflow draws this figure on every push from the module hierarchy that Yosys reads from the RTL of `info.yaml` ([figures/blocks.py](../figures/blocks.py)); the counts and sizes in it come from that hierarchy, and the script fails if the RTL gets a module that the figure does not show.*
+
+The structure follows the RTL hierarchy (`src/`). One clock domain (`clk`, declared 60 MHz); every block below is clocked by it. The text diagram gives the same blocks with their main signals.
 
 ```
                    ui_in[7:5] (SCK, CS_N, MOSI)                 uo_out[7] (MISO)

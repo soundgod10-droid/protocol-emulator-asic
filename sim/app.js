@@ -660,6 +660,7 @@ function onEdit(name, text) {
 
 function setCursor(c) {
   ui.cursor = Math.max(run.config ? run.config.cycle0 : 0, c);
+  ui.touched = true;
   ui.dirty = true;
 }
 

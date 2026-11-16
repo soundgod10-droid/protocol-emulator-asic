@@ -85,13 +85,16 @@ endmodule
 //   I2C Fast-mode needs input filters on SDA and SCL that suppress spikes
 //   of less than 50 ns (NXP UM10204 Rev. 7.0, Table 10 tSP and note [8],
 //   PDF pages 43 and 44). A pulse of width w is sampled floor(w / T) or
-//   ceil(w / T) times, depending on its phase, so at 50 MHz (T = 20 ns) a
-//   41 to 49 ns spike can give 3 samples. K = 4 suppresses every spike
-//   shorter than 3 T: 60 ns at 50 MHz, 75 ns at 40 MHz. The input d must
-//   come from a synchronizer (pe_sync2).
+//   ceil(w / T) times, depending on its phase. At the declared 60 MHz
+//   (T = 16.667 ns) a spike just under 50 ns can give 3 samples; K = 4
+//   suppresses only pulses shorter than 3 T = 50.0 ns, exactly tSP with no
+//   margin. K = 5 suppresses every pulse shorter than 4 T = 66.7 ns, so
+//   every spike under tSP with 16.7 ns of margin (80 ns at 50 MHz, 100 ns
+//   at 40 MHz); the cost is one cycle more delay on these inputs. The input
+//   d must come from a synchronizer (pe_sync2).
 
 module pe_spike_filter #(
-    parameter integer K = 4  // samples in a row for a change, 2 to 4
+    parameter integer K = 5  // samples in a row for a change, 2 to 8
 ) (
     input  wire clk,
     input  wire rst_n,  // active low, asynchronous assert
@@ -99,21 +102,21 @@ module pe_spike_filter #(
     output reg  q       // filtered output
 );
 
-  localparam [1:0] LAST = K[1:0] - 2'd1;  // K - 1 in 2 bits
+  localparam [2:0] LAST = K[2:0] - 3'd1;  // K - 1 in 3 bits
 
-  reg [1:0] cnt;  // samples in a row before this one with d not equal to q
+  reg [2:0] cnt;  // samples in a row before this one with d not equal to q
 
   always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
       q   <= 1'b0;  // as the synchronizer (docs/isa.md 2.4)
-      cnt <= 2'd0;
+      cnt <= 3'd0;
     end else if (d == q) begin
-      cnt <= 2'd0;
+      cnt <= 3'd0;
     end else if (cnt == LAST) begin
       q   <= d;
-      cnt <= 2'd0;
+      cnt <= 3'd0;
     end else begin
-      cnt <= cnt + 2'd1;
+      cnt <= cnt + 3'd1;
     end
   end
 

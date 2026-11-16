@@ -11,13 +11,13 @@
 ;   controller sends 1 and must see 1), a 0 on the bus stops the byte at
 ;   once: SCL and SDA stay released and the thread tells the host.
 ;   Times are set with .equ when the host assembles the file (Fast-mode at
-;   50 MHz below). The times after a WAIT start at the filtered edge, 6
+;   50 MHz below). The times after a WAIT start at the filtered edge, 7
 ;   cycles after the pin edge (synchronizer and spike filter of SCL and SDA,
-;   docs/isa.md 6.1), so each real time is 6 cycles longer.
+;   K = 5, docs/isa.md 6.1), so each real time is 7 cycles longer.
 ;
 ; Why:
-;   The word count (49) is measured by test_fw_full_word_count against the
-;   128-word memory (docs/decisions.md entry 3).
+;   The word count (49) is measured by test_fw_full_word_count (512-word
+;   program memory, docs/decisions.md entry 3).
 ;
 ; Host words to this thread, two for each byte:
 ;   1. Byte word: bit 15 = START before the byte (repeated START in a

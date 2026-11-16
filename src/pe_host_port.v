@@ -108,6 +108,8 @@ module pe_host_port #(
   localparam [3:0] S_PLA  = 4'd7;  // PULL: count byte or low byte on MISO
   localparam [3:0] S_PLB  = 4'd8;  // PULL: high byte on MISO
   localparam [3:0] S_IGN  = 4'd9;  // the rest of the transaction has no effect
+  localparam [3:0] S_ARG2 = 4'd10; // WRITE_MEM, READ_MEM: second address byte (bits 7:0)
+  localparam [3:0] S_RDD  = 4'd11; // READ_MEM: dummy byte while the first word is read
 
   reg        sck_q;      // SCK in the cycle before
   reg [2:0]  nbit;       // bits of the byte received so far

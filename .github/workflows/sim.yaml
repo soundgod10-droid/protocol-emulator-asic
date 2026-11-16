@@ -14,7 +14,10 @@ name: sim
 #                side, sim/tools/fidelity_cpython.py);
 #   decoders:    the page decoders against sigrok-cli on every sample (L3, sim/tools/sigrok_compare.py);
 #   browser:     the page in the runner's Google Chrome: L1 browser side (every example's trace hash under Pyodide equal
-#                to CPython) and the smoke test L5 (sim/tools/page_check.py).
+#                to CPython) and the smoke test L5 (sim/tools/page_check.py);
+#   visitors:    what a first-time visitor sees, in phone views of WebKit (iPhone 13) and Chromium (Pixel 7) at 390 and
+#                320 px: the run moves after a tap and ends with the result on screen, no silent stop, no panel of the
+#                previous example after a change, the threads of each example named (L5e, sim/tools/visitor_check.py).
 
 on:
   workflow_call:

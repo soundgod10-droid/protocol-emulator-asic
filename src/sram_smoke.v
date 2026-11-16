@@ -97,7 +97,7 @@ module tt_um_soundgod10_droid_protocol_emulator (
       .A_BIST_MEN (1'b0),
       .A_BIST_WEN (1'b0),
       .A_BIST_REN (1'b0),
-      .A_BIST_ADDR(10'd0),
+      .A_BIST_ADDR(9'd0),
       .A_BIST_DIN (16'd0),
       .A_BIST_BM  (16'd0)
   );

@@ -24,6 +24,12 @@ Then run:
 make -B GATES=yes
 ```
 
+At gate level this runs every module except the protocol tests `test_rtl_fw.py`, which the gds workflow runs in two parallel jobs. To run them on the netlist (all 15, or one part with `GL_PART=1` or `GL_PART=2`):
+
+```sh
+GL_PART=1 make -B GATES=yes COCOTB_TEST_MODULES=test_rtl_fw
+```
+
 If you wish to save the waveform in VCD format instead of FST format, edit tb.v to use `$dumpfile("tb.vcd");` and then run:
 
 ```sh

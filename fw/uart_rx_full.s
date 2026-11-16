@@ -9,8 +9,8 @@
 ;   horizon). Lower rates: fw/uart_rx_slow.s.
 ;
 ; Why:
-;   The word count (13) is measured by test_fw_full_word_count against the
-;   128-word memory (docs/decisions.md entry 3). The WAIT for the next start
+;   The word count (13) is measured by test_fw_full_word_count (512-word
+;   program memory, docs/decisions.md entry 3). The WAIT for the next start
 ;   edge comes 12 to 16 cycles after the stop-bit sample (DJNZ, PUSH, slot
 ;   phase). H sets the sample point. Measured in the model, the sender
 ;   bit-time error that this firmware accepts (test/test_fw_full.py

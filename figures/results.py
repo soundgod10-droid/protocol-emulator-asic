@@ -137,7 +137,9 @@ def main(runs_dir, fig_dir, out_md):
             ", ".join(f"{s} {v}" for (s, _, _), v in zip(CORNERS, vals)) if all(vals) else NA)
 
     site = R.get("site_commit", "")[:7]
-    docs_run = waves.get("run", "")
+    docs_run = waves.get("run", "")  # the run that simulated the pin VCDs (the workflow can reuse them from its cache)
+    this_run = (f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/"
+                f"{os.environ['GITHUB_RUN_ID']}") if os.environ.get("GITHUB_RUN_ID") else ""
     L = []
     L.append("# Results\n")
     L.append(f"This page is generated on every push by the docs workflow ([.github/workflows/docs.yaml]"

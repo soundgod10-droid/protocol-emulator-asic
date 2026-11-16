@@ -47,7 +47,15 @@ def main(branch, out):
     os.makedirs(out, exist_ok=True)
     result = dict(repo=REPO, branch=branch, site_commit=os.environ.get("GITHUB_SHA", ""), runs={})
     for key, (workflow, artifacts) in WORKFLOWS.items():
-        run = newest_run(workflow, branch)
+        # The layout, its signoff values and the gate-level results exist only in a gds run that finished its
+        # jobs: take the newest successful gds run, and name a newer failed one.
+        run = newest_run(workflow, branch, success_only=(key == "gds"))
+        if key == "gds":
+            latest = newest_run(workflow, branch)
+            if latest and run and latest["id"] != run["id"]:
+                result["newer_failed_gds"] = dict(id=latest["id"], url=latest["html_url"], sha=latest["head_sha"])
+                print(f"::warning title=gds::newer run {latest['id']} ended with failure; the layout and the results "
+                      f"come from run {run['id']}")
         if run is None:
             result["runs"][key] = None
             print(f"::warning title=no {key} run::no completed {workflow} run on {branch}")

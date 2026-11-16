@@ -15,6 +15,8 @@ ifneq ($(GATES),yes)
 # RTL simulation:
 SIM_BUILD				= sim_build/rtl
 VERILOG_SOURCES += $(addprefix $(SRC_DIR)/,$(PROJECT_SOURCES))
+# Serial line unit blocks tested alone in tb.v (test/test_slu.py) before they join the chip.
+VERILOG_SOURCES += $(SRC_DIR)/pe_slu_loop.v
 
 else
 

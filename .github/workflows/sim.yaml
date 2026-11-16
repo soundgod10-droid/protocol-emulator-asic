@@ -230,6 +230,8 @@ jobs:
 
   decoders:
     needs: build
+    # explicit: a skipped samples_gl job further up would skip this job under the default condition
+    if: ${{ !cancelled() && needs.build.result == 'success' }}
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout repo

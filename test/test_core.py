@@ -453,9 +453,9 @@ async def test_core_alu_flags(dut):
 
 @cocotb.test()
 async def test_core_start_top(dut):
-    """All four threads start at the top address 127 (every start-address bit 1) and the PC wraps to 0."""
-    image = asm(("ADDI r0, 1", 127), ("PUSH r0\nHALT", 0))
-    scn = Scenario("start_top", image, start_pc=(127, 127, 127, 127), run=(True, True, True, True),
+    """All four threads start at the top address 511 (every start-address bit 1) and the PC wraps to 0."""
+    image = asm(("ADDI r0, 1", 511), ("PUSH r0\nHALT", 0))
+    scn = Scenario("start_top", image, start_pc=(511, 511, 511, 511), run=(True, True, True, True),
                    cycles=1600, host=pop_round_robin([0, 1, 2, 3]))
     m, popped, _ = await run_lockstep(dut, scn)
     assert_ended(m, popped, threads=(0, 1, 2, 3), min_words=4)

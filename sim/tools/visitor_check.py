@@ -117,14 +117,14 @@ class Visitor:
             s["panels"] = self.page.evaluate(PANELS)
         return s
 
-    def watch(self, seconds, stop=None, panels=False, every=EVERY_S, shot_at=None, shot_name=None):
+    def watch(self, seconds, stop=None, panels=False, every=EVERY_S, shot_at=None, shot_name=None, stop_all=None):
         out, end = [], time.perf_counter() + seconds
         while True:
             s = self.sample(panels)
             out.append(s)
             if shot_at is not None and shot_name and len(out) == shot_at:
                 self.shot(shot_name)
-            if (stop and stop(s)) or time.perf_counter() >= end:
+            if (stop and stop(s)) or (stop_all and stop_all(out)) or time.perf_counter() >= end:
                 return out
             self.page.wait_for_timeout(int(every * 1000))
 

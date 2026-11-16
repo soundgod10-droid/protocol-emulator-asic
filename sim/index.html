@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Protocol emulator simulator</title>
+<meta name="description" content="The reference model, assembler and test device models of the protocol emulator chip, running in the browser.">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">
+{
+  "imports": {
+    "@codemirror/state": "./vendor/codemirror/state/index.js",
+    "@codemirror/view": "./vendor/codemirror/view/index.js",
+    "@codemirror/commands": "./vendor/codemirror/commands/index.js",
+    "@codemirror/language": "./vendor/codemirror/language/index.js",
+    "@codemirror/lint": "./vendor/codemirror/lint/index.js",
+    "@codemirror/streamparser": "./vendor/codemirror/streamparser/index.js",
+    "@lezer/common": "./vendor/codemirror/lezer-common/index.js",
+    "@lezer/highlight": "./vendor/codemirror/lezer-highlight/index.js",
+    "@marijn/find-cluster-break": "./vendor/codemirror/find-cluster-break/index.js",
+    "style-mod": "./vendor/codemirror/style-mod/index.js",
+    "w3c-keyname": "./vendor/codemirror/w3c-keyname/index.js",
+    "crelt": "./vendor/codemirror/crelt/index.js"
+  }
+}
+</script>
+<script type="module" src="app.js"></script>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <h1>Protocol emulator chip <span>simulator</span></h1>
+    <p class="sub" id="sub">Reference model, assembler and test device models of the chip, run in your browser</p>
+  </div>
+  <div class="pick">
+    <label for="example">Example</label>
+    <select id="example" disabled><option>Loading...</option></select>
+  </div>
+  <div class="engine" id="engine"><span class="dot"></span><span id="engine-text">Loading the engine</span></div>
+</header>
+
+<nav class="controls" aria-label="Run controls">
+  <div class="group">
+    <button id="run" class="primary" disabled title="Run or pause (space)">Run</button>
+    <button id="step" disabled title="One cycle (right arrow)">Step cycle</button>
+    <button id="stepi" disabled title="Until the thread completes an instruction (shift + right arrow)">Step instr.</button>
+    <select id="stepi-thread" aria-label="Thread for step instruction"><option value="0">T0</option><option value="1">T1</option><option value="2">T2</option><option value="3">T3</option></select>
+    <button id="reset" disabled title="Back to cycle 0">Reset</button>
+  </div>
+  <div class="group">
+    <label for="speed">Speed</label>
+    <select id="speed">
+      <option value="100">100 cycles/s</option>
+      <option value="1000">1,000 cycles/s</option>
+      <option value="10000">10,000 cycles/s</option>
+      <option value="100000">100,000 cycles/s</option>
+      <option value="0" selected>as fast as computed</option>
+    </select>
+  </div>
+  <div class="group cyc">
+    <span class="k">cycle</span> <span id="cycle" class="v mono">0</span>
+    <span class="k" id="time-label">time</span> <span id="time" class="v mono">0 us</span>
+    <span class="k">slot</span> <span id="slot" class="v mono">T0</span>
+  </div>
+  <div class="group prog"><div class="bar"><div id="bar"></div></div><span id="progress" class="mono"></span></div>
+</nav>
+
+<main class="grid">
+  <section class="card editor-card" aria-label="Firmware">
+    <div class="card-head">
+      <h2>Firmware</h2>
+      <div class="tabs" id="tabs"></div>
+      <div class="head-actions">
+        <button id="apply" class="small" disabled title="Assemble the edited files and run the example again">Assemble and run</button>
+        <button id="revert" class="small" disabled>Revert</button>
+      </div>
+    </div>
+    <div id="editor" class="editor"></div>
+    <div id="asm-msg" class="asm-msg"></div>
+  </section>
+
+  <section class="card threads-card" aria-label="Threads">
+    <div class="card-head"><h2>Threads</h2><span class="hint" id="state-hint"></span></div>
+    <div class="threads" id="threads"></div>
+  </section>
+
+  <section class="card pins-card" aria-label="Pins">
+    <div class="card-head"><h2>Pins</h2><span class="hint">drive, bus level, owner</span></div>
+    <div class="pins-wrap"><table class="pins" id="pins"></table></div>
+  </section>
+
+  <section class="card wave-card" aria-label="Waveform">
+    <div class="card-head"><h2>Waveform</h2><span class="hint" id="wave-hint"></span></div>
+    <div id="wave" class="wave"></div>
+  </section>
+
+  <section class="card info-card" aria-label="Example">
+    <div class="card-head"><h2 id="ex-title">Example</h2></div>
+    <p id="ex-text" class="ex-text"></p>
+    <dl class="facts">
+      <dt>Procedure</dt><dd id="ex-source" class="mono"></dd>
+      <dt>Clock</dt><dd id="ex-clock"></dd>
+      <dt>Test check</dt><dd id="ex-check">not run yet</dd>
+      <dt>Run</dt><dd id="ex-run"></dd>
+      <dt>Trace hash</dt><dd id="ex-hash" class="mono hash"></dd>
+    </dl>
+  </section>
+
+  <section class="card host-card" aria-label="Host words">
+    <div class="card-head"><h2>Host words</h2><span class="hint">at the word level, as the tests drive the model</span></div>
+    <div id="host" class="host"></div>
+  </section>
+
+  <section class="card check-card" id="check-card" hidden aria-label="Fidelity check">
+    <div class="card-head"><h2>Fidelity check: browser against CPython</h2><span class="hint" id="check-hint"></span></div>
+    <div class="table-wrap"><table class="check" id="check"></table></div>
+    <pre id="check-result" hidden></pre>
+  </section>
+</main>
+
+<footer class="foot" id="foot">
+  <p>What runs here: <span class="mono">model/pe_model.py</span> (the reference model the RTL is checked against cycle by cycle in
+  <span class="mono">test/test_core.py</span>), <span class="mono">asm/pe_asm.py</span> and the device models of the model tests, unchanged,
+  under Pyodide in a web worker. Not shown: the SPI bit timing of the host port, analog levels, the RTL itself.</p>
+  <p id="foot-src"></p>
+</footer>
+</body>
+</html>

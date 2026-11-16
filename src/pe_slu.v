@@ -89,7 +89,7 @@ module pe_slu #(
   // 18 LTC  [3:0] prescale shift, [5:4] condition A, [7:6] condition B (0 SE0, 1 J, 2 K,
   //         3 no DIN edge), [8] clocked: clock idle level, [9] clocked: data out with the leading edge
   // 19 SQ   [5:0] min and [11:6] max edge spacing (half cycles), [15:12] spacings in a row (carrier)
-  // 20 LP   [5:0] min and [11:6] max link pulse width (cycles)
+  // 20 LP   [5:0] min and [11:6] max received link pulse width, [15:12] sent pulse width (cycles)
 
   reg [15:0] c_mode, c_txper, c_loop0, c_loop1, c_loop2, c_loop3, c_pat, c_pat2, c_sel;
   reg [31:0] c_pa, c_ra;

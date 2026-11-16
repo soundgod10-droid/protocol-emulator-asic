@@ -142,7 +142,7 @@ def copy_vendor(out, cache):
                       f"{', '.join(names)} |")
     notice += ["", "Pyodide's python_stdlib.zip holds the standard library of CPython (Python Software Foundation "
                "License). Source code of Pyodide: https://github.com/pyodide/pyodide (tag of the version above).", ""]
-    with open(os.path.join(out, "vendor", "README.md"), "w", encoding="utf-8", newline="\n") as f:
+    with open(os.path.join(out, "vendor", "NOTICE.txt"), "w", encoding="utf-8", newline="\n") as f:
         f.write("\n".join(notice))
     return files
 

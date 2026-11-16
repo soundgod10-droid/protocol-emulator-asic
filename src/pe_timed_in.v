@@ -89,12 +89,12 @@ module pe_timed_in (
     end
   endgenerate
 
-  reg [64:0] hist;
+  reg [74:0] hist;
   always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
-      hist <= 65'd0;  // docs/isa.md 2.4: input synchronizer 0 after reset
+      hist <= 75'd0;  // docs/isa.md 2.4: input synchronizer 0 after reset
     end else begin
-      hist <= {hist[51:0], s_now};
+      hist <= {hist[59:0], s_now};
     end
   end
 

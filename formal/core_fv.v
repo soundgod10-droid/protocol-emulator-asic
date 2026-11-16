@@ -77,10 +77,16 @@ module core_fv (
       .count(now)
   );
 
-  wire [6:0]  mem_raddr;
+  wire [10:0] mem_addr;
   wire        mem_we;
-  wire [6:0]  mem_waddr;
   wire [15:0] mem_wdata;
+  wire        io_we;
+  wire        io_re;
+  wire [5:0]  io_addr;
+  wire [15:0] io_wdata;
+  wire [3:0]  th_run;
+  wire [3:0]  th_late;
+  wire [3:0]  th_err;
   wire [14:0] ev_load;
   wire [15:0] ev_time;
   wire        ev_value;

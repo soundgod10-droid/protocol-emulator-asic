@@ -9,7 +9,7 @@ There is no FPGA step: the design does not fit the only FPGA of the template wor
 | No. | Criterion | Reason | How to check |
 |---|---|---|---|
 | E1 | All RTL tests and formal jobs pass on the final RTL | the checks of docs/verification.md sections 1 to 3 must hold for the submitted RTL | test job (cocotb: test, test_isa, test_core, test_fw_full, test_flex, test_holdout, test_rtl_fw) and the formal workflow (core, core_cover, host_port, host_port_cover, host_port_mut_id, mem, mem_cover, mem_small, mem_full, mem_full_reset, mem_reset, timed_out, timed_out_cover, and the structural check cdc) run on the tape-out commit |
-| E2 | The template gate-level test passes | the competition FAQ recommends gate-level simulation | gl_test job of the submitted run |
+| E2 | The template gate-level test and the protocol tests at gate level pass | the competition FAQ recommends gate-level simulation | gl_test and gl_protocols jobs of the submitted run |
 | E3 | STA has no violation at the three flow corners | the flow fails only on typical-corner violations (section 5); docs/decisions.md entry 5 | section 5: summary.rpt and checks.rpt of all corners |
 | E4 | Precheck passes, every check (10 of 10 in run 43712217729) | the competition FAQ asks for a passing GDS and precheck from the Tiny Tapeout flow | precheck job, precheck_reports/results.md |
 | E5 | Magic DRC 0 in the submitted run itself | precheck runs only the KLayout deck on SG13CMOS5L (section 2); docs/decisions.md entry 6 | `magic__drc_error__count` = 0 in final/metrics.csv of the submitted run (section 2) |

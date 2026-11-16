@@ -313,7 +313,7 @@ async def test_asm_errors(dut):
     except pe_asm.AsmError as err:
         assert len(err.errors) == 1 and err.errors[0].startswith("long.s:3: ") and "longer than the memory" in err.errors[0], err.errors
     else:
-        raise AssertionError("no AsmError for a program longer than 128 words")
+        raise AssertionError("no AsmError for a program longer than 512 words")
 
 
 # ----- model -----

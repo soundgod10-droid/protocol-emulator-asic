@@ -46,6 +46,7 @@ nav:
   - Architecture: architecture.md
   - Instruction set: isa.md
   - Host port: host_port.md
+  - Line helpers: helpers.md
   - Protocols: protocols.md
   - Verification: verification.md
   - Signoff: signoff.md

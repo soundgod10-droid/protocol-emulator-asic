@@ -94,6 +94,7 @@ make -B COCOTB_TEST_MODULES=test_rtl_fw COCOTB_TEST_FILTER=test_rtl_uart_tx
 | [formal/](formal/) | formal proofs and covers (SymbiYosys) |
 | [spice/](spice/) | circuit simulations of the pads and the input synchronizers (ngspice) |
 | [figures/](figures/) | scripts that make the figures and the Results page in CI |
+| [sim/](sim/) | browser simulator: the page, the example setups, the waveform viewer and decoders, and its build and check scripts |
 | [docs/](docs/) | the documents (the pages of the documentation site) |
 | [flex/](flex/) | flexibility census: the rules, set before the census, and the protocol list |
 | [.github/workflows/](.github/workflows/) | CI: tests, coverage, formal, layout (gds), timing simulation (sdf), FPGA, documentation |

@@ -203,7 +203,7 @@ class SpiTimed:
         await self.transaction(t_write_mem(addr, words))
 
     async def read_mem(self, addr, n):
-        return bytes_to_words((await self.transaction(t_read_mem(addr, n)))[2:])
+        return bytes_to_words((await self.transaction(t_read_mem(addr, n)))[READ_MEM_SKIP:])
 
     async def write_cfg(self, addr, words):
         await self.transaction(t_write_cfg(addr, words))

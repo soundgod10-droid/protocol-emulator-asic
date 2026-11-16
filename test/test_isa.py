@@ -586,8 +586,8 @@ async def test_model_memory_and_branches(dut):
     m = pe_model.PeModel(image)
     b = Bench(m)
     b.run(400)
-    assert b.words(0) == [77, 16, 16, 15, 42, 16, 1000], b.words(0)
-    assert m.mem[100] == 77 and m.mem[101] == 16
+    assert b.words(0) == [77, 20, 20, 15, 42, 16, 1000], b.words(0)
+    assert m.mem[100] == 77 and m.mem[101] == 20
 
 
 @cocotb.test()

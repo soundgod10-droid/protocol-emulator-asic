@@ -194,7 +194,8 @@ module pe_core (
   wire [3:0] afn   = ir[7:4];    // ALU register function
   wire [1:0] ifn   = ir[9:8];    // ALU immediate and SHIFT function
   wire [3:0] shn   = ir[7:4];    // SHIFT amount
-  wire [6:0] pc1   = h_pc + 7'd1;
+  wire [8:0] pc1   = h_pc + 9'd1;  // wraps from 511 to 0
+  wire [8:0] baddr = ir[8:0];      // branch, JAL, DJNZ, LD and ST address (isa 11.2)
 
   // ---------------------------------------------------------------------
   // Register read ports. Port A is the register that the instruction

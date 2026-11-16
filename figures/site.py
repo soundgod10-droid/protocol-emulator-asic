@@ -40,6 +40,8 @@ def page_map():
 
 
 def rewrite(target, src, pages):
+    if target.startswith(PAGES + "sim/") or target.startswith(PAGES + "viewer/"):
+        return target  # put next to the site after mkdocs; a relative link would fail mkdocs --strict
     if target.startswith(PAGES):
         rest, _, frag = target[len(PAGES):].partition("#")
         frag = "#" + frag if frag else ""

@@ -514,7 +514,7 @@ module pe_slu #(
         if (rx_nb == 5'd15) rx_words <= rx_words + 9'd1;
       end
       // CRC residue at each octet boundary of the data (dribble bits do not count)
-      if (rx_st == R_DATA && !r_data_v && rx_bits != 10'd0 && rx_bits[2:0] == 3'd0) begin
+      if (rx_st == R_DATA && !r_data_v && rx_bits != 10'd0 && rx_bph == 3'd0) begin
         crc_a_byte <= ((crc_a ^ c_ra) & crc_mask) == 32'd0;
         crc_b_byte <= (crc_b == c_crcb[15:8]);
       end

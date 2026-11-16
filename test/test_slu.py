@@ -710,8 +710,7 @@ ETH_RX_FW = """
         .equ    E, 32
         LDI     r0, 8
         IOW     r0, E+12        ; CFGADR = 8 (SEL)
-        LDI     r0, 0x398       ; DIN = input 8 (ui_in[0]), AUX0 = input 9 (ui_in[1]), AUX1 none
-        ORI     r0, 0
+        LDI     r0, 0x398       ; DIN = input 8 (ui_in[0]), AUX0 = input 9 (ui_in[1]), AUX1 uio3 (unused)
         IOW     r0, E+13
         LDI     r2, 600         ; words go to the data memory from 600
 rx:     IOR     r1, E+6         ; RXINFO [6:5]: words in the RX buffer

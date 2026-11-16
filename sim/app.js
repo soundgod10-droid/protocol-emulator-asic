@@ -35,6 +35,7 @@ class Engine {
     this.pending = new Map();
     this.w = new Worker(new URL("worker.js", import.meta.url), { type: "module" });
     this.w.onmessage = (ev) => {
+      if (this.dead) return; // a run that was replaced: its last messages must not reach the new run
       const d = ev.data;
       if (d.kind === "py") {
         this.onPy(JSON.parse(d.data));

@@ -425,8 +425,8 @@ async def test_host_load_readback(dut):
     await host.write_mem(1534, [0xA5A5, 0x5A5A])        # last two data words
     assert await host.read_mem(1534, 2) == [0xA5A5, 0x5A5A]
     assert await host.read_mem(1536, 2) == edge[2:], "1,536 reads data word 512"
-    await host.write_mem(2047, [0xBEEF, 0xCAFE])        # 2,047 = data word 1,023, then 0
-    assert await host.read_mem(1023 + 512, 1) == [0xBEEF], "2,047 is data word 1,023"
+    await host.write_mem(2047, [0xBEEF, 0xCAFE])        # 2,047 = address 1,023 (alias), then 0
+    assert await host.read_mem(1023, 1) == [0xBEEF], "2,047 is address 1,023"
     assert (await host.read_mem(0, 1)) == [0xCAFE], "address wrap 2,047 -> 0"
     dut._log.info("128 words written and read back; boundary 511/512, top of data memory, alias "
                   "1,536 = 512 and wrap 2,047 -> 0 as documented")

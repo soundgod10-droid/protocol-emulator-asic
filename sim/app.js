@@ -73,7 +73,12 @@ let ready = false;
 let bootInfo = null;
 const edits = {}; // example id -> {file name: text}
 let run = null;
-const ui = { cursor: 0, playing: false, speed: 0, acc: 0, lastT: 0, exact: null, pending: false, dirty: true, follow: null, followCycle: null };
+// speed: cycles per second, or -s for "whole run in s seconds" (timed by the wall clock, not by the computer's speed).
+// touched: the visitor used Run, a step, Reset or the waveform cursor in this run; played: a replay reached the end.
+const ui = { cursor: 0, playing: false, speed: -10, acc: 0, lastT: 0, exact: null, pending: false, dirty: true, follow: null,
+  followCycle: null, touched: false, played: false };
+const expected = {}; // example id -> cycles of its run in the CPython reference of this build (check/cpython.json)
+let statusShown = null;
 let view = null;
 let editor = null;
 

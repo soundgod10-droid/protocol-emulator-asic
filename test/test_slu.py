@@ -465,7 +465,7 @@ ETH_CFG = {
     14: 32 | (1 << 6) | (4 << 7),           # width 32, preset ones, 4 TX words (preamble, SFD) skipped
     15: 16,                                 # TP_IDL: TD+ high 16 cycles after the last bit
     19: 3 | (16 << 6) | (4 << 12),          # squelch: 4 spacings of 3-16 half cycles
-    20: 2 | (12 << 6),                      # link pulse 2-12 cycles
+    20: 2 | (12 << 6) | (6 << 12),          # received link pulse 2-12 cycles; sent pulse 6 cycles
 }
 
 

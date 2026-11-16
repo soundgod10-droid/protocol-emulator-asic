@@ -48,6 +48,24 @@ module core_fv (
   // The check starts in reset. After it, reset can occur at any cycle.
   initial assume (!rst_n);
 
+  // Start sequence of project.v: the host start is the first cycle out of reset.
+  reg  rst_q;
+  reg  pre1, pre2;
+  wire h_start = rst_n && !rst_q;
+  always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+      rst_q <= 1'b0;
+      pre1  <= 1'b0;
+      pre2  <= 1'b0;
+    end else begin
+      rst_q <= 1'b1;
+      pre1  <= h_start;
+      pre2  <= pre1;
+    end
+  end
+  wire [1:0] prestart = h_start ? 2'd1 : (pre1 ? 2'd2 : 2'd0);
+  wire       start    = pre2;
+
   wire [15:0] now;
 
   pe_cycle_counter #(

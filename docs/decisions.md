@@ -99,8 +99,8 @@ The record below is the earlier decision (6x4, before the rule change).
 
 - **Question:** how fast can a thread act as an SPI target?
 - **Options:** wait for the sample edge only and set the next MISO bit after it; wait for both SCK edges.
-- **Evidence:** `test_m3_spi_tgt` runs `fw/spi_tgt.s` in all four modes against an SPI controller model that does not use the firmware or the processor model. Smallest SCK half period: 25 cycles, so up to 1 MHz at a 50 MHz clock. Waiting for both edges needs 49 cycles, 510 kHz ([docs/host_port.md](host_port.md) section 13). The limit comes from the instruction rate (one instruction every 4 cycles, lead 4), not from the pins. An earlier estimate of about 5 MHz did not hold.
-- **Decision:** one wait per bit, rated 1 MHz at 50 MHz.
+- **Evidence:** `test_m3_spi_tgt` runs `fw/spi_tgt.s` in all four modes against an SPI controller model that does not use the firmware or the processor model. Smallest SCK half period: 25 cycles, so up to 1.2 MHz at the declared 60 MHz (1 MHz at 50 MHz). Waiting for both edges needs 49 cycles, 612 kHz at 60 MHz ([docs/host_port.md](host_port.md) section 13). `test_rtl_spi_tgt` runs the firmware on the RTL at 60 MHz in all four modes at 1 MHz (half period 30) with the host port loading it. The limit comes from the instruction rate (one instruction every 4 cycles, lead 4), not from the pins. An earlier estimate of about 5 MHz did not hold.
+- **Decision:** one wait per bit, rated 1.2 MHz at 60 MHz.
 - **Would change it:** a helper in hardware for SPI target timing.
 
 ## 12. No FPGA prototype

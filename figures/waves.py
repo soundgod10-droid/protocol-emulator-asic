@@ -436,11 +436,10 @@ def fig_i2c(vcd, out):
     lanes = [dict(name="SCL", sub="uio[6], bus", ch=scl), dict(name="SDA", sub="uio[7], bus", ch=sda, labels=labels,
                                                                  top=topl),
              dict(name="SDA pulled low", sub="by the chip", ch=chip_sda)]
-    marks = [dict(lane=0, ta=sf[2], tb=sr[3], text=f"tLOW {us(cyc(sr[3] - sf[2])):.2f} µs", pos="top"),
-             dict(lane=0, ta=sr[3], tb=sf[3], text=f"tHIGH {us(cyc(sf[3] - sr[3])):.2f} µs", pos="bottom"),
-             dict(lane=1, ta=start, tb=sf[0], text=f"tHD;STA {us(cyc(sf[0] - start)):.2f} µs", pos="bottom",
-                  tx=None)]
-    marks[2].pop("tx")
+    # sf[k] is the SCL fall before the rise sr[k]: SCL low from sf[k] to sr[k], high from sr[k] to sf[k + 1].
+    marks = [dict(lane=0, ta=sf[3], tb=sr[3], text=f"tLOW {us(cyc(sr[3] - sf[3])):.2f} µs", pos="top"),
+             dict(lane=0, ta=sr[5], tb=sf[6], text=f"tHIGH {us(cyc(sf[6] - sr[5])):.2f} µs", pos="top"),
+             dict(lane=1, ta=start, tb=sf[0], text=f"tHD;STA {us(cyc(sf[0] - start)):.2f} µs", pos="bottom")]
     rows, ok_all = [], True
     names_t = dict(low="tLOW, SCL low", high="tHIGH, SCL high", hd_sta="tHD;STA, START hold",
                    su_sta="tSU;STA, repeated START set-up", su_sto="tSU;STO, STOP set-up",

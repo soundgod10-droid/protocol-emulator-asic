@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         job: [core, core_cover, timed_out, timed_out_cover, host_port, host_port_cover, host_port_mut_id,
-              mem, mem_small, mem_cover, mem_reset, mem_full, mem_full_reset, cdc]
+              mem, mem_small, mem_cover, mem_reset, mem_full, mem_full_reset, sram, sram_cover, cdc]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v6

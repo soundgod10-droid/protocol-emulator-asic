@@ -504,7 +504,7 @@ module pe_host_port #(
     assert (running == m_run);
     // H5: No write into the memory or the configuration while the
     //     threads run.
-    assert (!(mem_we && running));
+    assert (!(mem_req && running));
     assert (!(cfg_we && running));
     // H6: READ_ID gives the constant ID 0x50 0x45 0x02 0x03, then 0x00:
     //     at each rising SCK edge of response byte k, MISO is bit 7 - b of

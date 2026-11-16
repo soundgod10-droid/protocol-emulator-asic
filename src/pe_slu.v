@@ -390,6 +390,7 @@ module pe_slu #(
       lp_w <= 6'd0; lt_a <= 16'd0; lt_b <= 16'd0; lt_a_hit <= 1'b0; lt_b_hit <= 1'b0;
       lp_en <= 1'b0; rx_st <= R_OFF; rx_lvl_prev <= 1'b1; pat_sh <= 16'd0; rx_run <= 3'd0;
       rx_lastbit <= 1'b0; rx_sh <= 16'd0; rx_nb <= 5'd0; rx_words <= 9'd0; rx_bits <= 10'd0;
+      rx_bph <= 3'd0;
       rx_buf0 <= 16'd0; rx_buf1 <= 16'd0; rx_cnt <= 2'd0; rx_lastn <= 5'd0;
       crc_a <= 32'd0; crc_b <= 8'd0; crc_a_ok <= 1'b0; crc_b_ok <= 1'b0;
       crc_a_byte <= 1'b0; crc_b_byte <= 1'b0; ck_pend <= 16'd0; ck_bit_v <= 1'b0; ck_bit_d <= 1'b0;

@@ -190,7 +190,7 @@ def facts(h):
 
 
 def draw(f, top, clock, tiles, pins, commit, out):
-    s = S.Svg(1160, 720)
+    s = S.Svg(1160, 860)
     mhz = clock / 1e6
     s.text(20, 32, "Block diagram of the chip, drawn from the RTL hierarchy", size=19, weight="bold")
     s.text(20, 54, f"{top}  ·  one clock domain (clk), declared {mhz:g} MHz  ·  IHP SG13CMOS5L, {tiles} tiles",

@@ -57,8 +57,8 @@ Each command code is {c, not c}: the high nibble c, the low nibble its complemen
 | 0x2D | READ_STATUS | always | any (up to 7 dummy bytes) | 7 status bytes (section 5), then 0x00 |
 | 0x3C | STOP | always | none | none |
 | 0x4B | START | threads stopped | none | none |
-| 0x5A | WRITE_MEM | threads stopped | address A (bits 6:0), then words (2 bytes each, high byte first) | 0x00 |
-| 0x69 | READ_MEM | threads stopped | address A, then 2 dummy bytes for each word | after the address byte: the words at A, A + 1, ... (high byte first) |
+| 0x5A | WRITE_MEM | threads stopped | address bits 10:8 (in bits 2:0), address bits 7:0, then words (2 bytes each, high byte first) | 0x00 |
+| 0x69 | READ_MEM | threads stopped | the 2 address bytes, 1 dummy byte, then 2 dummy bytes for each word | after the dummy byte: the words at A, A + 1, ... (high byte first) |
 | 0x78 | WRITE_CFG | threads stopped | configuration address A, then words | 0x00 |
 | 0x87 | PUSH | threads running | thread n (bits 1:0), then words | 0x00 |
 | 0x96 | PULL | threads running | thread n, then 1 dummy byte, then 2 dummy bytes for each word | after the thread byte: the count byte K (words in the out-FIFO of thread n, 0 to 4), then the words; words after the first K are 0x0000 and are not taken from the FIFO |

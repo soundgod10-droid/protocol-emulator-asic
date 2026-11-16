@@ -36,9 +36,10 @@
 ;   with START: the host must not queue words after a byte that can lose.
 ; Limits of the .equ values (model runs; no test asserts them): TSMP 16 or more, THIGH2 + HD
 ;   36 or more. SCL and SDA have the input spike filter of docs/isa.md 6.1:
-;   spikes of 1 to 3 samples (every spike shorter than 60 ns at 50 MHz,
-;   UM10204 Fast-mode needs less than 50 ns) have no effect
-;   (test_fw_full_i2c_spikes); Fast-mode SCL period 130 cycles at 50 MHz.
+;   spikes of 1 to 4 samples (every spike shorter than 80 ns at 50 MHz and
+;   66.7 ns at 60 MHz; UM10204 Fast-mode needs less than 50 ns) have no
+;   effect (test_fw_full_i2c_spikes); Fast-mode SCL period 130 cycles at
+;   50 MHz.
 ; Registers: r0 byte word, r1 WAIT time and return address, r2 check
 ;   word, r3 bus levels and bit count mark.
 

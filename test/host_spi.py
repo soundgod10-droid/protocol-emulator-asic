@@ -105,7 +105,7 @@ def t_pull(thread, n):
 
 def config_words(start_pc, run, owner, od):
     """WRITE_CFG data: addresses 0 to 4 (start addresses, RUN mask) and 16 to 30 (pins)."""
-    head = [pc & 0x7F for pc in start_pc] + [sum(1 << n for n in range(4) if run[n])]
+    head = [pc & 0x1FF for pc in start_pc] + [sum(1 << n for n in range(4) if run[n])]
     pins = []
     for p in range(15):
         own = owner[p]

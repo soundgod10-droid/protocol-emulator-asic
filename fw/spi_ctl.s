@@ -14,8 +14,8 @@
 ;
 ; Why:
 ;   The word count (26) of the full controller (four modes, sample delay)
-;   is measured by test_fw_full_word_count against the 128-word memory
-;   (docs/decisions.md entry 3). The sample delay D (0 to 7 cycles) moves
+;   is measured by test_fw_full_word_count (512-word program memory,
+;   docs/decisions.md entry 3). The sample delay D (0 to 7 cycles) moves
 ;   the MISO sample later, for the pad and board round trip.
 ;
 ; Host words to this thread:

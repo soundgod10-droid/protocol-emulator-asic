@@ -252,7 +252,9 @@ def main(argv):
     ok = True
     with sync_playwright() as pw:
         for kind in kinds:
-            browser = getattr(pw, kind).launch()
+            # VISITOR_CHROMIUM_CHANNEL (for example msedge) runs the Chromium view in an installed Chromium browser
+            channel = os.environ.get("VISITOR_CHROMIUM_CHANNEL") if kind == "chromium" else None
+            browser = getattr(pw, kind).launch(**({"channel": channel} if channel else {}))
             for width in WIDTHS:
                 dev = {k: v for k, v in pw.devices[VIEWS[kind]].items() if k != "default_browser_type"}
                 dev["viewport"] = {"width": width, "height": dev["viewport"]["height"]}

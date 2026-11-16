@@ -758,7 +758,7 @@ async def test_holdout_pdi_rate(dut):
 
 @cocotb.test()
 async def test_holdout_am2302_pdi_words(dut):
-    """Memory words of fw/am2302.s and fw/pdi.s, and which other firmware fits next to them in the 128 words."""
+    """Memory words of fw/am2302.s and fw/pdi.s, and which other firmware fits next to them in the program memory."""
     size = {}
     for name in ("am2302.s", "pdi.s", "onewire.s", "uart_tx_full.s", "uart_rx_full.s", "spi_ctl.s", "i2c_ctl.s"):
         size[name] = pe_asm.assemble_file(os.path.join(ROOT, "fw", name)).size

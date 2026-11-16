@@ -141,9 +141,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh run download "$GDS_ID" -R "$GITHUB_REPOSITORY" -n tt_submission -D .
-          echo "PDK=$(jq -r '.PDK' tt_submission/pdk.json)" >> $GITHUB_ENV
-          echo "PDK_VERSION=$(jq -r '.PDK_VERSION' tt_submission/pdk.json)" >> $GITHUB_ENV
+          # the artifact also holds src/, docs/ and info.yaml of that run: keep it out of the checkout
+          gh run download "$GDS_ID" -R "$GITHUB_REPOSITORY" -n tt_submission -D build/gds
+          echo "PDK=$(jq -r '.PDK' build/gds/tt_submission/pdk.json)" >> $GITHUB_ENV
+          echo "PDK_VERSION=$(jq -r '.PDK_VERSION' build/gds/tt_submission/pdk.json)" >> $GITHUB_ENV
 
       - name: Install the PDK
         if: steps.cache.outputs.cache-hit != 'true'

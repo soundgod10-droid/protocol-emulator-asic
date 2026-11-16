@@ -149,9 +149,9 @@ rs:     TADD    20              ; T = sample point
         BEQ     rb
         LD      r3, CNT
         ADDI    r3, -2
-        ST      r3, CNT
-        BMI     re1             ; bit 20: the DLC is known
-        BEQ     ack             ; CRC delimiter: the next bit is the ACK slot
+        BMI     re1             ; bit 20: the DLC is known (re1 stores the new count)
+        BEQ     ack             ; CRC delimiter: the next bit is the ACK slot (the count is no longer used)
+        ST      r3, CNT         ; after the branches: a store takes 2 slots, so the ACK path has none
 rc:     SHL     r1, 1           ; C = CRC_RG(14)
         BES     q1
         BCC     q3              ; bit 0, CRC_RG(14) 0

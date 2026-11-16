@@ -26,7 +26,7 @@
 //   cycle x needs s(x-1) and s(x), so 5 values). Thus, one shared history
 //   of 65 flip-flops replaces a sample time register, a comparator and an
 //   edge-capture register for each thread (4 x (16-bit capture, 16-bit
-//   sample time)). These flip-flops shift in each cycle,
+//   sample time)); 75 flip-flops with the two event inputs. These flip-flops shift in each cycle,
 //   so they need no load-enable multiplexer.
 //
 // Pin level of a uio pin:

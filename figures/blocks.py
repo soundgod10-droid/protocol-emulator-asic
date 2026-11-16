@@ -133,9 +133,34 @@ class Hier:
         return len(m["ports"][port]["bits"])
 
 
+def sram_macros(h):
+    """(words, width) of each SRAM macro inside pe_sram, from the macro cell types (IHP names them
+    RM_IHPSG13_1P_<words>x<width>_...), sorted by size."""
+    out = []
+    for cell in h.mods[h.variants("pe_sram")[0]]["cells"].values():
+        g = re.match(r"\\?RM_IHPSG13_1P_(\d+)x(\d+)_", cell["type"])
+        if g:
+            out.append((int(g.group(1)), int(g.group(2))))
+    return sorted(out)
+
+
+def helper_specs(h):
+    """SPEC parameter of each pe_slu inside pe_proc (1 USB low-speed helper, 2 10BASE-Te helper)."""
+    specs = []
+    for m in h.variants("pe_proc"):
+        for t in h.children(m):
+            if base(t) == "pe_slu":
+                specs.append(params(h.mods, t).get("SPEC"))
+    return sorted(specs)
+
+
 def facts(h):
-    mem = h.child_variant("pe_proc", "pe_latch_ram")
-    mp = params(h.mods, mem)
+    macros = sram_macros(h)
+    if len(macros) != 2:
+        sys.exit(f"pe_sram has {len(macros)} SRAM macros; the drawing shows 2 (program and data)")
+    specs = helper_specs(h)
+    if specs != [1, 2]:
+        sys.exit(f"line helpers with SPEC {specs}; the drawing shows one USB (1) and one 10BASE-Te (2) helper")
     fifo_ram = h.child_variant("pe_host_fifo", "pe_latch_ram")
     fp = params(h.mods, fifo_ram)
     threads = 2 ** h.port_width("pe_host_fifo", "h_tid")

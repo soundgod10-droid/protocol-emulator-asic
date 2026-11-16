@@ -189,6 +189,9 @@ module pe_slu #(
   wire [5:0]  crc_w    = c_crcw[5:0];
   wire [31:0] crc_mask = (crc_w >= 6'd32) ? 32'hFFFFFFFF : ((32'd1 << crc_w) - 32'd1);
   wire [31:0] crc_init = c_crcw[6] ? crc_mask : 32'd0;
+  // CRC B width from its polynomial: the reflected form has the x^0 term (always 1) as its top bit.
+  wire [7:0]  crcb_mask = c_crcb[7] ? 8'hFF : c_crcb[6] ? 8'h7F : c_crcb[5] ? 8'h3F :
+                          c_crcb[4] ? 8'h1F : c_crcb[3] ? 8'h0F : c_crcb[2] ? 8'h07 : 8'h03;
   function [31:0] crc_step(input [31:0] c, input b, input [31:0] poly);
     crc_step = (c >> 1) ^ ((c[0] ^ b) ? poly : 32'd0);
   endfunction

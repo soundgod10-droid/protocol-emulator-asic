@@ -291,7 +291,8 @@ async def test_reset_during_frame(dut):
     st = await host.read_status()
     assert st["running"] == 0 and st["run"] == [0, 0, 0, 0], f"status after reset: {st}"
     back = await host.read_mem(0, 128)
-    assert back == image, "the memory changed at the chip reset (docs/isa.md 2.4)"
+    diff = [(a, f"{back[a]:04X}", f"{image[a]:04X}") for a in range(128) if back[a] != image[a]]
+    assert not diff, f"the memory changed at the chip reset (docs/isa.md 2.4): (address, read, loaded) {diff[:8]}"
     await Timer(2 * FRAME_BITS * T_DUT_PS, unit="ps")
     changes = [c for c in mon.changes if c[0] >= t_assert]
     dut._log.info(f"UART_TX changes from reset assert at {t_assert} ps: {changes}; memory unchanged after reset")

@@ -64,3 +64,7 @@ prep -top pe_sync2
 ../src/pe_timed_in.v
 ../src/pe_timed_out.v
 ../src/project.v
+../src/pe_sram.v
+../src/sram_sim.v
+../src/pe_slu_loop.v
+../src/pe_slu.v

@@ -208,7 +208,8 @@ module pe_slu #(
   reg  [15:0] rx_sh;
   reg  [4:0]  rx_nb;
   reg  [8:0]  rx_words;
-  reg  [9:0]  rx_bits;
+  reg  [9:0]  rx_bits;              // data bits since the pattern (saturating)
+  reg  [2:0]  rx_bph;               // octet phase of the data bits
   reg  [15:0] rx_buf0, rx_buf1;
   reg  [1:0]  rx_cnt;
   reg  [4:0]  rx_lastn;

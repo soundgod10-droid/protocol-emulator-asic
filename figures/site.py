@@ -43,7 +43,7 @@ def rewrite(target, src, pages):
     if target.startswith(PAGES):
         rest, _, frag = target[len(PAGES):].partition("#")
         frag = "#" + frag if frag else ""
-        if rest.endswith("/") and rest[:-1] + ".md" in pages.values():
+        if rest.endswith("/") and rest[:-1] + ".md" in set(pages.values()) | {"results.md"}:
             return rest[:-1] + ".md" + frag  # a page address on the site, for example .../results/
         return (rest or "index.md") + frag
     if target.startswith("#") or re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:", target):

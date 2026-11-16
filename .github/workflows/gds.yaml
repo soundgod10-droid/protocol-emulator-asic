@@ -46,6 +46,20 @@ jobs:
           fi
           d=$(ls ${r}*-magic-drc/*.log 2>/dev/null | head -n 1)
           [ -n "$d" ] && echo "::notice title=magic drc log::$(grep -iE 'error|COUNT' "$d" | tail -n 10 | sed ':a;N;$!ba;s/\n/%0A/g')"
+          # Supply ports of the tile LEF (the layout precheck wants each rectangle within 10 um of the
+          # top and bottom edges) and the die area.
+          l=$(ls ${r}final/lef/*.lef 2>/dev/null | head -n 1)
+          if [ -n "$l" ]; then
+            for p in VGND VDPWR; do
+              body=$(awk "/PIN $p/,/END $p/" "$l" | grep -E 'LAYER|RECT' | head -n 60 | sed ':a;N;$!ba;s/\n/%0A/g')
+              echo "::notice title=lef port $p::${body}"
+            done
+          fi
+          df=$(ls ${r}final/def/*.def 2>/dev/null | head -n 1)
+          if [ -n "$df" ]; then
+            body=$( (grep -m1 DIEAREA "$df"; awk '/^PINS/,/^END PINS/' "$df" | grep -A4 -E 'VGND|VDPWR' | head -n 60) | sed ':a;N;$!ba;s/\n/%0A/g')
+            echo "::notice title=def die and supply pins::${body}"
+          fi
           true
 
   precheck:

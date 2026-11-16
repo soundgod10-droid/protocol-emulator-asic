@@ -17,7 +17,8 @@ The design has these blocks:
 2. A timed I/O unit. A thread does not set a pin at once: it writes a pin event with a 16-bit cycle time (OUT pin at T + offset) into the event slot of that pin. When the free-running cycle counter is equal to the event time, the pin flip-flop changes. Thus each pin edge is exact to one clock cycle, also with 4 threads. An event must be written 4 to 32,767 cycles ahead; a late event happens 4 cycles after the instruction and sets the LATE flag of the thread, which the host reads. SAMPLE and WAIT read the inputs at a given cycle in the same way. Each output pin has one owner thread, set by the host; pins can be push-pull or open-drain.
 3. Input synchronizers (2 flip-flops on each input). The inputs `uio[6]` and `uio[7]` (I2C) also have a spike filter that removes pulses of 1 to 4 clock cycles (I2C Fast-mode, docs/isa.md 6.1).
 4. Host FIFOs: 4 words in each direction for each thread (PULL and PUSH instructions).
-5. A host SPI port (docs/host_port.md). The host stops and starts the threads, writes and reads the memory, writes the configuration (start address of each thread, owner and mode of each output pin), reads the chip ID and the status, and gives and takes FIFO words.
+5. A host SPI port (docs/host_port.md). The host stops and starts the threads, writes and reads the memory, writes the configuration (start address of each thread, owner and mode of each output pin, helper pins), reads the chip ID and the status, and gives and takes FIFO words.
+6. Two line helpers (docs/helpers.md): a USB low-speed helper (I/O ports 16 to 31) and a 10BASE-Te helper (ports 32 to 47). They do the bit-level work at line rate: NRZI or Manchester, bit stuffing, CRC generation and check, receive clock recovery, end of packet, link pulses. A thread works on words and frames with IOR and IOW; the host gives the helper its pins.
 
 Firmware in `fw/` (assembler `asm/pe_asm.py`):
 

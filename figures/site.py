@@ -63,9 +63,11 @@ def convert(text, src, pages):
 
 def viewer(out, sub):
     oas = sorted(glob.glob(os.path.join(sub, "**", "*.oas"), recursive=True))
-    pdk = json.load(open(sorted(glob.glob(os.path.join(sub, "**", "pdk.json"), recursive=True))[0]))["PDK"]
-    if not oas:
+    pdk_json = sorted(glob.glob(os.path.join(sub, "**", "pdk.json"), recursive=True))
+    if not oas or not pdk_json:
+        print(f"no layout files in {sub}: no viewer page")
         return
+    pdk = json.load(open(pdk_json[0], encoding="utf-8"))["PDK"]
     os.makedirs(os.path.join(out, "viewer"), exist_ok=True)
     shutil.copy(oas[0], os.path.join(out, "viewer", "tinytapeout.oas"))
     url = f"https://gds-viewer.tinytapeout.com/?pdk={pdk}&model=" + PAGES + "viewer/tinytapeout.oas"

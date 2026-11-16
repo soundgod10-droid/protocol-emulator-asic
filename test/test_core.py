@@ -518,7 +518,7 @@ async def test_core_branches_memory(dut):
         "a7:     JAL r1, sub",
         "        PUSH r1",
         "        .word 0x01FF",        # NOP with all '-' bits set
-        "        .word 0x8180 + a8",   # JMP a8 with the '-' bits set
+        "        .word 0x8000 + a8",   # JMP a8 as a word (bits 8:7 are address bits now, no '-' bits)
         "        HALT",
         "a8:     LDI r0, 0x3A5",
         "        ST r0, 120",

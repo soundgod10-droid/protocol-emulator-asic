@@ -405,7 +405,8 @@ async def usb_rx_packet(dut, s, pid, data, crc, ppm=0.0, corrupt=None):
     await s.wr(P_STATUS, 0xFFFF)
     cocotb.start_soon(drive_levels(dut, sch))
     words = []
-    for _ in range(int((t_end + 3000.0) / T_NS / 12)):
+    t_stop = get_sim_time("ns") + t_end + 3000.0
+    while get_sim_time("ns") < t_stop:
         info = await s.rd(P_RXINFO)
         if (info >> 5) & 3:
             words.append(await s.rd(P_RXDATA, pop=True))

@@ -30,6 +30,7 @@
 module pe_slu_loop_step (
     input  wire               x,         // sample
     input  wire               xprev,     // previous sample
+    input  wire               allow,     // 0: an edge at this sample is not used
     input  wire signed [19:0] th,        // phase, 2^-12 sample
     input  wire signed [11:0] ii,        // frequency integrator, 2^-16 sample per bit
     input  wire        [5:0]  nacc,      // accepted edges (saturating)

@@ -75,7 +75,7 @@ module pe_slu_loop_step (
   reg signed [20:0] inew;
   reg        [2:0]  kp;
   reg               hk;
-  reg               edge, st, ok;
+  reg               xe, st, ok;   // xe: edge between xprev and x
   reg        [1:0]  ne;
 
   always @(*) begin

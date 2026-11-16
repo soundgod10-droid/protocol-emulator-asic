@@ -96,6 +96,31 @@ module pe_slu #(
   // 19 SQ   [5:0] min and [11:6] max edge spacing (half cycles), [15:12] spacings in a row (carrier)
   // 20 LP   [5:0] min and [11:6] max received link pulse width, [15:12] sent pulse width (cycles)
 
+  // Fixed configuration of the dedicated forms (values of test/test_slu.py USB_CFG_RX and ETH_CFG):
+  // USB: NRZI, stuffing after 6 ones, 40 cycles a bit, hard-resync loop with a 20-sample window,
+  // SYNC end "001", EOP after 20 SE0 samples, CRC16 (A) and CRC5 (B), SE0 84 + J 40 cycles, line
+  // condition A = SE0 for 19 x 16 cycles (bus reset), B = J for 15,000 x 16 cycles (suspend).
+  // 10BASE-Te: Manchester, both edges, 3 cycles a half bit, second-order loop, SFD 10101011 after
+  // 16 edges, CRC-32, TP_IDL hold 16 cycles, link pulse 6 cycles, squelch 4 spacings of 3-16.
+  localparam [15:0] F_MODE  = (SPEC == 1) ? 16'h03B9 : (SPEC == 2) ? 16'h040E : 16'h0000;
+  localparam [15:0] F_TXPER = (SPEC == 1) ? 16'd40   : (SPEC == 2) ? 16'd3    : 16'd1;
+  localparam [15:0] F_LOOP0 = (SPEC == 1) ? 16'h0028 : (SPEC == 2) ? 16'h688C : 16'h0000;
+  localparam [15:0] F_LOOP1 = (SPEC == 2) ? 16'hA608 : 16'h0000;
+  localparam [15:0] F_LOOP2 = (SPEC == 1) ? 16'h4514 : (SPEC == 2) ? 16'h5143 : 16'h0000;
+  localparam [15:0] F_LOOP3 = (SPEC == 1) ? 16'h0080 : (SPEC == 2) ? 16'h0418 : 16'h0000;
+  localparam [15:0] F_PAT   = (SPEC == 1) ? 16'h0001 : (SPEC == 2) ? 16'h00AB : 16'h0000;
+  localparam [15:0] F_PAT2  = (SPEC == 1) ? 16'h5002 : (SPEC == 2) ? 16'h2807 : 16'h0000;
+  localparam [31:0] F_PA    = (SPEC == 1) ? 32'h0000A001 : (SPEC == 2) ? 32'hEDB88320 : 32'h0;
+  localparam [31:0] F_RA    = (SPEC == 1) ? 32'h0000B001 : (SPEC == 2) ? 32'hDEBB20E3 : 32'h0;
+  localparam [15:0] F_CRCB  = (SPEC == 1) ? 16'h0614 : 16'h0000;
+  localparam [15:0] F_CRCW  = (SPEC == 1) ? 16'h20D0 : (SPEC == 2) ? 16'h0260 : 16'h0000;
+  localparam [15:0] F_TAIL  = (SPEC == 1) ? 16'h2854 : (SPEC == 2) ? 16'h0010 : 16'h0000;
+  localparam [15:0] F_LTA   = (SPEC == 1) ? 16'h0013 : 16'h0000;
+  localparam [15:0] F_LTB   = (SPEC == 1) ? 16'h3A98 : 16'h0000;
+  localparam [15:0] F_LTC   = (SPEC == 1) ? 16'h0044 : 16'h0000;
+  localparam [15:0] F_SQ    = (SPEC == 2) ? 16'h4403 : 16'h0000;
+  localparam [15:0] F_LP    = (SPEC == 2) ? 16'h6302 : 16'h0000;
+
   reg [15:0] c_mode, c_txper, c_loop0, c_loop1, c_loop2, c_loop3, c_pat, c_pat2, c_sel;
   reg [31:0] c_pa, c_ra;
   reg [15:0] c_crcb, c_crcw, c_tail, c_lta, c_ltb, c_ltc, c_sq, c_lp;

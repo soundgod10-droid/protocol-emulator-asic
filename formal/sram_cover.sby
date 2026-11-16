@@ -1,6 +1,6 @@
 [options]
 mode cover
-depth 12
+depth 9
 
 [engines]
 smtbmc z3

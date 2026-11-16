@@ -1000,27 +1000,66 @@ module pe_core (
     end
   end
 
-  // Memory write port (isa 3.3, 8.2, 11.2): ST rs, addr = 1011 1ss- -mmm
+  // Memory write port (isa 3.3, 8.2, 11.2): ST rs, addr = 1011 1ssm mmmm
   // mmmm; STX rs, [ra] = 0000 0100 ssaa ----.
-  wire f_st    = (op == 4'hB) && ir[11];
-  wire f_stx   = (op == 4'h0) && (ir[11:8] == 4'h4);
-  wire f_store = h_run && (h_ps == PS_NONE) && (f_st || f_stx);
+  wire        f_st    = (op == 4'hB) && ir[11];
+  wire        f_stx   = (op == 4'h0) && (ir[11:8] == 4'h4);
+  wire        f_store = h_run && (h_ps == PS_NONE) && (f_st || f_stx);
+  wire [10:0] f_waddr = f_st ? {2'b00, ir[8:0]} : st0[16*ir[5:4]+:11];
+  wire [15:0] f_wdata = f_st ? st0[16*ir[10:9]+:16] : st0[16*ir[7:6]+:16];
 
   always @* begin
-    // W1: Only a running ST or STX in its slot writes the memory, and each
-    //     such store writes it. Thus, no store is lost and no other
-    //     instruction (also not an LD in its second slot) writes a word.
-    assert (mem_we == f_store);
-    if (mem_we) begin
-      // W2: The address and the data come from the fields of the store:
-      //     addr or ra mod 128, and rs.
-      assert (mem_waddr == (f_st ? ir[6:0] : st0[16*ir[5:4]+:7]));
-      assert (mem_wdata == (f_st ? st0[16*ir[10:9]+:16] : st0[16*ir[7:6]+:16]));
-      // W3: A store completes in its slot (PC + 1) and changes no other
-      //     field of the thread state.
+    // W1: Only a running ST or STX in its slot makes a store request.
+    assert (s_we == f_store);
+    if (s_we) begin
+      // W3: A store completes its slot (PC + 1), takes the second slot
+      //     (ps = PS_ST, isa 3.3) and changes no other field of the thread state.
       assert (n_pc == pc1);
-      assert ({nc[CW-1:F_PC+7], nc[F_PC-1:0]} == {st0[CW-1:F_PC+7], st0[F_PC-1:0]});
+      assert (n_ps == PS_ST);
+      assert ({nc[CW-1:F_PS+4], nc[F_PS-1:F_PC+9], nc[F_PC-1:0]} ==
+              {st0[CW-1:F_PS+4], st0[F_PS-1:F_PC+9], st0[F_PC-1:0]});
     end
+  end
+
+  // W2: Each store reaches the memory request register two cycles after its slot, with the
+  //     address (addr, or ra mod 2,048) and the data (rs) of the store, and nothing else writes
+  //     the memory. Thus no store is lost and no other instruction (also not an LD in its
+  //     second slot) writes a word.
+  reg [1:0] f_pv;  // cycles out of reset, saturating at 2
+  always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) f_pv <= 2'd0;
+    else if (f_pv != 2'd2) f_pv <= f_pv + 2'd1;
+  end
+  reg        f_store_q1, f_store_q2;
+  reg [10:0] f_waddr_q1, f_waddr_q2;
+  reg [15:0] f_wdata_q1, f_wdata_q2;
+  always @(posedge clk) begin
+    f_store_q1 <= f_store;
+    f_store_q2 <= f_store_q1;
+    f_waddr_q1 <= f_waddr;
+    f_waddr_q2 <= f_waddr_q1;
+    f_wdata_q1 <= f_wdata;
+    f_wdata_q2 <= f_wdata_q1;
+  end
+  always @* begin
+    if (rst_n && (f_pv == 2'd2)) begin
+      assert (mem_we == f_store_q2);
+      if (mem_we) begin
+        assert (mem_addr == f_waddr_q2);
+        assert (mem_wdata == f_wdata_q2);
+      end
+    end
+    if (rst_n && (f_pv != 2'd2)) assert (!mem_we);
+  end
+
+  // I1: Only a running IOR or IOW of a port 16 to 47 in its slot accesses a line helper
+  //     (isa 10), once, at the port of the instruction, with the word of register r.
+  wire f_io = h_run && (h_ps == PS_NONE) && (op == 4'hE) && (port >= 6'd16) && (port <= 6'd47);
+  always @* begin
+    assert (io_re == (f_io && (hfn == 2'd2)));
+    assert (io_we == (f_io && (hfn == 2'd3)));
+    assert (io_addr == ir[5:0]);
+    if (io_we) assert (io_wdata == st0[16*ir[9:8]+:16]);
   end
 `endif
 

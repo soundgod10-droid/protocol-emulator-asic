@@ -305,6 +305,34 @@ function sourceText(fi, line) {
   return t.replace(/;.*$/, "").trim();
 }
 
+const LATE_TIP = "LATE: an event of this thread was issued less than 4 cycles before its time, so it happened 4 cycles after the OUT (isa 4.3)";
+const ERR_TIP = "ERR: the chip refused an operation of this thread, for example an OUT to a pin that another thread owns (isa 5.2)";
+
+function flagBadges(th) {
+  return (th.status & 1 ? ` <span class="badge late" title="${LATE_TIP}">LATE</span>` : "") +
+    (th.status & 2 ? ` <span class="badge err" title="${ERR_TIP}">ERR</span>` : "");
+}
+
+function fileAt(pc) {
+  const a = run.addr.get(pc);
+  if (!a || !run.programs[a.file]) return null;
+  const name = run.programs[a.file].name;
+  return name === "<test>" ? "the test's program" : name;
+}
+
+// Example card: which threads the host starts in this example and why the others stay stopped.
+function threadsText() {
+  const cfg = run.config;
+  let used = "";
+  if (cfg) {
+    const on = cfg.run.map((x, n) => (x ? n : -1)).filter((n) => n >= 0);
+    const off = cfg.run.map((x, n) => (x ? -1 : n)).filter((n) => n >= 0);
+    const names = on.map((n) => `Thread ${n} (${fileAt(cfg.start_pc[n]) || "address " + cfg.start_pc[n]})`);
+    used = `Used: ${names.join(", ")}.` + (off.length ? ` Not used: thread${off.length > 1 ? "s" : ""} ${off.join(", ")}.` : "");
+  }
+  return `${used} ${run.ex.threads || ""}`.trim();
+}
+
 function renderThreads(st, exact) {
   const slot = ui.cursor % 4;
   const el = $("threads");

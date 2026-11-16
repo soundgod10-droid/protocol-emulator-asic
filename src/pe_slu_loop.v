@@ -161,7 +161,7 @@ module pe_slu_loop_step (
           hk = ki_en;
         end
         // corr = (eps + rnd) >> kp, rnd = 2^(kp-1) for kp > 0 (round half up), arithmetic shift
-        corr = (kp == 3'd0) ? eps : ((eps + (21'sd1 <<< (kp - 3'd1))) >>> kp);
+        corr = f_rsra(eps, {1'b0, kp});
         t    = t - corr;
         if (hk) begin
           d    = (ki_sh == 4'd0) ? eps : ((eps + (21'sd1 <<< (ki_sh - 4'd1))) >>> ki_sh);

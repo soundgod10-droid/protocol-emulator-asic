@@ -579,6 +579,162 @@ async def test_slu_eth_rx(dut):
                   "6 cycles counted, 20 cycles not" % ok)
 
 
+@cocotb.test(skip=GL)
+async def test_slu_tx_late_underflow(dut):
+    """Transmit start rules (docs/helpers.md section 2, TXTIME): a late TXTIME sets TXLATE and starts at
+    write + 4, or does not start with TXCTRL bit 6; an empty buffer at the start and a buffer that runs empty
+    inside a frame set TXUNDER, and the frame ends with the tail and TXDONE."""
+    s = await slu_reset(dut)
+    await s.cfg(ETH_CFG)
+    u = dut.u_slu_ut
+    await s.wr(P_STATUS, 0xFFFF)
+    await s.wr(P_TXCTRL, 0)
+    await s.wr(P_TXTIME, (await s.now() + 1) & 0xFFFF)          # lead below 4: late
+    await ClockCycles(dut.clk, 20)
+    st = await s.rd(P_STATUS)
+    assert st & 0x2, "TXLATE after a late TXTIME, status %04x" % st
+    assert st & 0x4, "TXUNDER: started with an empty buffer, status %04x" % st
+    assert not st & 0x1, "no TXDONE without a frame, status %04x" % st
+    await s.wr(P_STATUS, 0xFFFF)
+    await s.wr(P_TXCTRL, 1 << 6)                                 # no start when late
+    await s.wr(P_TXTIME, (await s.now() - 10) & 0xFFFF)
+    await ClockCycles(dut.clk, 20)
+    st = await s.rd(P_STATUS)
+    state = (await s.rd(P_TXCTRL)) & 0xF
+    assert st & 0x2 and not st & 0x4 and state == 0, "late with TXCTRL bit 6: status %04x, state %d" % (st, state)
+    await s.wr(P_STATUS, 0xFFFF)
+    await s.wr(P_TXCTRL, 0)
+    await s.wr(P_TXDATA, 0x5555)                                 # one word, not the last
+    await s.wr(P_TXTIME, (await s.now() + 20) & 0xFFFF)
+    oe_cycles = 0
+    for _ in range(20 + 16 * 6 + 60):
+        await RisingEdge(dut.clk)
+        await ReadOnly()
+        oe_cycles += int(dut.slu_txoe.value)
+    st = await s.rd(P_STATUS)
+    assert st & 0x4 and st & 0x1, "TXUNDER and TXDONE after a word with no next word, status %04x" % st
+    dut._log.info("TX start rules: late TXTIME -> TXLATE and start at write + 4 (TXUNDER with no word); late with "
+                  "TXCTRL bit 6 -> TXLATE, no start; underflow after one word -> TXUNDER, tail, TXDONE "
+                  "(OE for %d cycles: 16 bits x 6 + TP_IDL)" % oe_cycles)
+    assert int(u.tx_st.value) == 0
+
+
+@cocotb.test(skip=GL)
+async def test_slu_eth_collision(dut):
+    """10BASE-Te collision: a receive carrier while the helper sends sets COLLISION; the helper sends a 32-bit jam
+    (IEEE 802.3 4.2.3.2.4, jamSize 32 bits), then the TP_IDL tail, and sets TXDONE."""
+    s = await slu_reset(dut)
+    await s.cfg(ETH_CFG)
+    u = dut.u_slu_ut
+    await s.wr(P_STATUS, 0xFFFF)
+    await s.wr(P_TXCTRL, 0)
+    await s.wr(P_TXDATA, 0x5555)
+    await s.wr(P_TXLAST, 0x5555)
+    jam = {"bits": 0, "cycles": 0, "done": False}
+
+    async def watch():
+        while True:
+            await RisingEdge(dut.clk)
+            await ReadOnly()
+            st = int(u.tx_st.value)
+            if st == 7:
+                jam["cycles"] += 1
+                if int(u.bit_start.value) and int(u.t_kind.value) == 5:      # K_JAM
+                    jam["bits"] += 1
+            elif jam["cycles"]:
+                jam["done"] = True
+                return
+    task = cocotb.start_soon(watch())
+    await s.wr(P_TXTIME, (await s.now() + 30) & 0xFFFF)
+    sch, _ = eth_rx_schedule([1, 0] * 40, 0.0, 0.0, random.Random(3), 30 * T_NS + 300.0)
+    cocotb.start_soon(drive_levels(dut, sch))
+    for _ in range(2000):
+        await RisingEdge(dut.clk)
+        if jam["done"]:
+            break
+    await ClockCycles(dut.clk, 40)
+    st = await s.rd(P_STATUS)
+    dut._log.info("collision: %d jam bits in %d cycles of the jam state; status %04x" % (jam["bits"], jam["cycles"], st))
+    assert st & (1 << 14), "COLLISION, status %04x" % st
+    assert jam["bits"] == 32, "jam of %d bits, IEEE 802.3 jamSize is 32 bits" % jam["bits"]
+    assert st & 0x1, "TXDONE after the jam and the tail, status %04x" % st
+    task.kill()
+
+
+@cocotb.test(skip=GL)
+async def test_slu_jabber(dut):
+    """10BASE-Te jabber: a transmission longer than 2^22 cycles (69.9 ms at 60 MHz; IEEE 802.3 14.2.1.6 xmit_max
+    20-150 ms) stops the helper and sets JABBER; a new frame does not start while JABBER is set. The unjab time
+    (2^25 cycles, 0.559 s) is too long to simulate: the test sets the idle tick count to its last value and
+    checks that JABBER clears at the next tick."""
+    s = await slu_reset(dut)
+    await s.cfg(ETH_CFG)
+    u = dut.u_slu_ut
+    await s.wr(P_STATUS, 0xFFFF)
+    await s.wr(P_TXCTRL, 0)
+    await s.wr(P_TXDATA, 0x5555)
+    await s.wr(P_TXDATA, 0x5555)
+    await s.wr(P_TXTIME, (await s.now() + 20) & 0xFFFF)
+    while not int(dut.slu_txoe.value):
+        await RisingEdge(dut.clk)
+    t0 = get_sim_time("ns")
+    words = 2
+    while not int(u.jabber.value):
+        await Timer(round(120 * T_NS * 1000), unit="ps")      # one word lasts 96 cycles; the buffer holds 2
+        free = await s.rd(P_TXDATA)
+        for _ in range(free):
+            await s.wr(P_TXDATA, 0x5555)
+            words += 1
+    cycles = (get_sim_time("ns") - t0) / T_NS
+    await ClockCycles(dut.clk, 10)
+    st = await s.rd(P_STATUS)
+    assert st & (1 << 15), "JABBER, status %04x" % st
+    assert int(u.tx_st.value) == 0 and not int(dut.slu_txoe.value), "transmitter stopped"
+    assert 2 ** 22 - 1024 <= cycles <= 2 ** 22 + 2048, "jabber after %d cycles" % cycles
+    await s.wr(P_TXCTRL, 1 << 10)                               # empty the buffer
+    await s.wr(P_TXDATA, 0x5555)
+    await s.wr(P_TXTIME, (await s.now() + 20) & 0xFFFF)
+    oe = 0
+    for _ in range(200):
+        await RisingEdge(dut.clk)
+        oe |= int(dut.slu_txoe.value)
+    assert not oe, "no frame while JABBER is set"
+    u.jab_cnt.value = 0xFFFF
+    await ClockCycles(dut.clk, 600)
+    st = await s.rd(P_STATUS)
+    assert not st & (1 << 15), "JABBER clears after 65,536 idle ticks, status %04x" % st
+    dut._log.info("jabber: set after %d cycles of transmission (%d words), transmitter stopped, no frame while set, "
+                  "cleared at the 65,536th idle tick" % (cycles, words))
+
+
+@cocotb.test(skip=GL)
+async def test_slu_usb_line_conditions(dut):
+    """USB line timers (docs/helpers.md section 1): SE0 for 19 ticks of 16 cycles sets LINEA (bus reset; USB 2.0
+    7.1.7.5: a device sees a reset after an SE0 of 2.5 us or more, here 304 cycles = 5.07 us), a shorter SE0 does
+    not; J for 15,000 ticks (240,000 cycles = 4.0 ms; 7.1.7.6: suspend after 3 ms of idle) sets LINEB."""
+    s = await slu_reset(dut)
+    cfg = dict(USB_CFG_RX)
+    cfg.update({16: 19, 17: 15000, 18: 0x0044})                 # the fixed values of the chip's USB helper
+    await s.cfg(cfg)
+    await drive_levels(dut, [(0.0, {DIN: 1, AUX0: 0, AUX1: 1}), (100.0, {})])
+    await s.wr(P_STATUS, 0xFFFF)
+    await drive_levels(dut, [(0.0, {AUX0: 0, AUX1: 0}), (17 * 16 * T_NS, {AUX1: 1}), (17 * 16 * T_NS + 100.0, {})])
+    st17 = await s.rd(P_STATUS)
+    await drive_levels(dut, [(0.0, {AUX0: 0, AUX1: 0}), (21 * 16 * T_NS, {AUX1: 1}), (21 * 16 * T_NS + 100.0, {})])
+    st21 = await s.rd(P_STATUS)
+    await s.wr(P_STATUS, 0xFFFF)
+    await Timer(round((14000 * 16) * T_NS * 1000), unit="ps")
+    st_early = await s.rd(P_STATUS)
+    await Timer(round((1000 * 16 + 400) * T_NS * 1000), unit="ps")
+    st_j = await s.rd(P_STATUS)
+    dut._log.info("USB line timers: SE0 272 cycles -> %04x, SE0 336 cycles -> %04x; J 224,000 cycles -> %04x, "
+                  "J 240,400 cycles -> %04x" % (st17, st21, st_early, st_j))
+    assert not st17 & (1 << 10), "no bus reset after an SE0 of 17 ticks"
+    assert st21 & (1 << 10), "bus reset (LINEA) after an SE0 of 21 ticks"
+    assert not st_early & (1 << 11), "no suspend after 14,000 ticks of J"
+    assert st_j & (1 << 11), "suspend (LINEB) after 15,000 ticks of J"
+
+
 def binascii_crc(b):
     import binascii
     return binascii.crc32(b) & 0xFFFFFFFF

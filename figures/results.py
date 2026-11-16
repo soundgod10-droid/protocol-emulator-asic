@@ -259,12 +259,15 @@ def main(runs_dir, fig_dir, out_md):
         L.append(f"From {link(formal)}. A job passes when SymbiYosys returns 0: PASS for the proofs, all covers "
                  "reached for the cover jobs, and the expected counterexample for `host_port_mut_id` (the check of "
                  "the check).\n")
-        L.append("| Job | Result | Status line |")
-        L.append("|---|---|---|")
+        L.append("| Job | Job result | SymbiYosys status | Process time |")
+        L.append("|---|---|---|---|")
         for j in sorted(fjobs, key=lambda j: j["name"]):
             job = j["name"].replace("formal (", "").rstrip(")")
-            msg = (notices(formal, j["name"], f"formal {job}") or "").replace("|", "/").strip()
-            L.append(f"| `{job}` | {j['conclusion']} | {msg[:120]} |")
+            msg = notices(formal, j["name"], f"formal {job}") or ""
+            done = re.search(r"DONE \(([^)]*)\)", msg)
+            secs = re.search(r"Elapsed process time[^(]*\(secs\)\]: [\d:]+ \((\d+)\)", msg)
+            L.append(f"| `{job}` | {j['conclusion']} | {done.group(1) if done else NA} | "
+                     f"{secs.group(1) + ' s' if secs else NA} |")
         L.append("")
 
     L.append("## Runs used\n")

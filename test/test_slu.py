@@ -328,6 +328,16 @@ async def test_slu_usb_tx(dut):
         got.append(1 if v == 2 else 0)               # 2 = VMO high = J
     assert got == exp_line, "line levels differ from USB 2.0 NRZI(stuff(SYNC PID DATA CRC16))"
     eop = first + 40 * len(exp_line)
+    rle, prev, cnt = [], None, 0
+    for v, o in zip(lines[eop - 80:eop + 200], oe[eop - 80:eop + 200]):
+        if (v, o) == prev:
+            cnt += 1
+        else:
+            if prev is not None:
+                rle.append("%d/%d x%d" % (prev[0], prev[1], cnt))
+            prev, cnt = (v, o), 1
+    rle.append("%d/%d x%d" % (prev[0], prev[1], cnt))
+    dut._log.info("line/oe runs from 80 cycles before the expected EOP: " + ", ".join(rle))
     se0 = 0
     while lines[eop + se0] == 0:
         se0 += 1

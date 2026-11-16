@@ -180,10 +180,10 @@ def facts(h):
         counter_width=params(h.mods, counter).get("WIDTH"),
         lat_total=h.total["pe_lat"], cg_total=h.total["pe_cg"], sync_total=h.total["pe_sync2"],
     )
-    # The latch and clock-gate counts of one memory follow from its generate loops (one pe_cg per word, one pe_lat
-    # per bit); check them against the hierarchy totals.
-    want_lat = f["mem_words"] * f["mem_width"] + f["fifo_rams"] * f["fifo_words"] * f["fifo_width"]
-    want_cg = f["mem_words"] + f["fifo_rams"] * f["fifo_words"]
+    # The latch and clock-gate counts of the FIFO memories follow from their generate loops (one pe_cg per word,
+    # one pe_lat per bit); check them against the hierarchy totals.
+    want_lat = f["fifo_rams"] * f["fifo_words"] * f["fifo_width"]
+    want_cg = f["fifo_rams"] * f["fifo_words"]
     assert (f["lat_total"], f["cg_total"]) == (want_lat, want_cg), (f, want_lat, want_cg)
     f["fifo_depth"] = f["fifo_words"] // threads
     return f

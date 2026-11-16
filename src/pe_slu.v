@@ -44,7 +44,12 @@
 // 13 LINKPULSE, 14 COLLISION, 15 JABBER (level). Sticky flags stay until cleared.
 
 module pe_slu #(
-    parameter FULL = 1
+    parameter FULL = 1,
+    // SPEC = 0: the general unit (configuration words written by the thread). SPEC = 1: a dedicated
+    // USB low-speed helper, SPEC = 2: a dedicated 10BASE-Te helper; their configuration is fixed to
+    // the values below (only SEL, the pin choice, stays writable), so synthesis removes the other
+    // modes. SPEC 1 and 2 exist to measure the dedicated-helper alternative with the same RTL.
+    parameter SPEC = 0
 ) (
     input  wire        clk,
     input  wire        rst_n,

@@ -141,6 +141,13 @@ def finished(s):
     return s["done"] and s["cycle"] >= s["frontier"] and not s["playing"]
 
 
+def ended_or_stalled(samples):
+    """Stop watching a replay: it finished, or the run is computed and the counter stood still for 3 s."""
+    last = samples[-1]
+    still = samples[-12:]
+    return finished(last) or (last["done"] and len(still) == 12 and len({s["cycle"] for s in still}) == 1)
+
+
 def moves(samples):
     n, top = 0, None
     for s in samples:

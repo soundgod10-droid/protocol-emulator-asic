@@ -33,13 +33,22 @@ DRAWN = {
     "pe_config": "configuration",
     "pe_proc": "processor container",
     "pe_core": "barrel core",
-    "pe_latch_ram": "memory and FIFO words",
-    "pe_lat": "latch bits (counted in the memory and FIFO boxes)",
-    "pe_cg": "clock gates (counted in the memory and FIFO boxes)",
+    "pe_sram": "program and data memory (SRAM macros)",
+    "pe_latch_ram": "FIFO words",
+    "pe_lat": "latch bits (counted in the FIFO box)",
+    "pe_cg": "clock gates (counted in the FIFO box)",
     "pe_host_fifo": "host FIFOs",
     "pe_timed_out": "event slots",
     "pe_timed_in": "input unit",
     "pe_spike_filter": "spike filters (in the input box)",
+    "pe_slu": "line helpers",
+    "pe_slu_loop": "receive loop (in the helper boxes)",
+    "pe_slu_loop_step": "loop steps (counted in the helper boxes)",
+}
+# Black-box macros: in the hierarchy JSON only if Yosys writes the black-box modules; read from the cell types.
+MACROS = {
+    "RM_IHPSG13_1P_512x16_c2_bm_bist": "program memory macro",
+    "RM_IHPSG13_1P_1024x16_c2_bm_bist": "data memory macro",
 }
 
 

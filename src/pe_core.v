@@ -484,6 +484,12 @@ module pe_core (
           n_pc = pc1;
         end
 
+        // Second slot of ST/STX: the store used this thread's fetch, so ir
+        // holds no instruction; the slot only ends the store (isa 3.3).
+        PS_ST: begin
+          n_ps = PS_NONE;
+        end
+
         PS_SMP, PS_SMPL1, PS_SMPL2: begin
           if (h_ps == PS_SMPL1) begin
             // The late sample occurs at the end of this cycle (c0 + 4).

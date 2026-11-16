@@ -20,7 +20,15 @@ How to check a run value: open the run link. The layout and timing reports are i
 - **Decision:** 8x4 (`info.yaml`).
 - **Would change it:** nothing in the rules; 8x4 is the maximum.
 
-## 3. Program and data memory: 128 x 16 latch array
+## 3. Program and data memory: two SRAM macros, 512 x 16 program and 1,024 x 16 data
+
+- **Question:** the USB device and 10BASE-T stretch goals need a USB device program with its descriptors and room for one 1,518-byte Ethernet frame (759 words). What holds the program and the data of the four threads?
+- **Options:** the 128 x 16 latch array of the earlier decision (below); a larger latch array (256 x 16 was measured: +50 % synthesis area and a layout run stopped by the clock-gate tool defect, below); the IHP SRAM macros of the PDK: 512 x 16 (program) + 1,024 x 16 (data), or 2 x 512 x 16.
+- **Evidence:** layout runs of the two macros at their planned places with every input from a flip-flop (research branch `a1-sram-smoke-b`): with the stripe pitch of entry 19 the power-grid check passes with the checker fatal, LVS 0, routing DRC 0, antenna 0 (run [43898966408]); the macro input pins at first had 29 slow-corner max-slew violations and one A_DOUT max-capacitance violation (liberty limits 0.595 ns and 0.064 pF), which the resizer's slew and capacitance margins did not change (run [43925649736]); a 150 um wire-length limit in both design repairs removed them at all corners (run [43941919810]); with the data macro at x = 348.24 um the layout precheck passes (run [43962985880]). 2 x 512 x 16 gave the same grid and LVS results with 10 slew pins (run [43899055122]). In the chip (research branch `a1-int`): `src/pe_sram.v`, one access per cycle, the request from flip-flops 3 cycles before the slot ([docs/isa.md](isa.md) 3.3); ST and STX take 2 slots, the store-read rule is 5 cycles; `formal/sram.sby` checks that a read returns the last word written to its location through both macros and the address alias; `formal/core.sby` proves the fetch timing (B3, B6) and the store request (W1-W3) by k-induction; every RTL, model and firmware test passes, among them the lockstep tests and the 16 protocol programs on the RTL. Synthesis: the 97,044 um² latch memory is replaced by 124,983 um² of macros (LEF areas); 512 FIFO latches stay. The 4-word host FIFOs keep the latch cells of `src/pe_latch_ram.v`, which `formal/mem*.sby` still proves.
+- **Decision:** 512 x 16 program memory and 1,024 x 16 data memory (macros `RM_IHPSG13_1P_512x16_c2_bm_bist` and `RM_IHPSG13_1P_1024x16_c2_bm_bist`).
+- **Would change it:** a failing precheck or power-grid check of the full chip with the macros; then 2 x 512 x 16 (no 1,518-byte frame buffer).
+
+### 3 (earlier). Program and data memory: 128 x 16 latch array
 
 - **Question:** what holds the program and the data of the four threads?
 - **Options:** a latch array of standard cells; an SRAM macro; flip-flops.

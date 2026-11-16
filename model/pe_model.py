@@ -95,9 +95,9 @@ class PeModel:
                 self.mem[self._maddr(addr)] = word & 0xFFFF
         else:
             words = list(image)
-            if len(words) > PROG_WORDS:
-                raise ValueError(f"image has {len(words)} words, the program memory has {PROG_WORDS}")
-            for addr, word in enumerate(words):
+            if len(words) > MEM_WORDS:
+                raise ValueError(f"image has {len(words)} words, the address space has {MEM_WORDS}")
+            for addr, word in enumerate(words[:PROG_WORDS + 1024]):  # 1,536-2,047 are aliases
                 self.mem[addr] = word & 0xFFFF
         self.store_cycle = {}  # address -> cycle of the last store (isa 3.3)
 

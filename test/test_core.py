@@ -1001,7 +1001,8 @@ def rand_insn(rng, lo, hi, d0, own_pins=()):
         nb = 1 if rng.random() < 0.7 else 0
         return [0xE000 | (0 if k == "pull" else 1) << 10 | r() << 8 | nb << 7 | dash(7)]
     if k in ("ior", "iow"):
-        port = rng.randrange(4) if rng.random() < 0.85 else rng.randrange(64)
+        # Ports 16 to 47 are the line helpers (their own tests); the model has no helper here.
+        port = rng.randrange(4) if rng.random() < 0.85 else rng.choice(list(range(16)) + list(range(48, 64)))
         return [0xE000 | (2 if k == "ior" else 3) << 10 | r() << 8 | dash(2) << 6 | port]
     return [0xF000 | dash(12)]  # op15
 

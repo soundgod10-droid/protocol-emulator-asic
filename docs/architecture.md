@@ -36,10 +36,10 @@ The structure follows the RTL hierarchy (`src/`). One clock domain (`clk`, decla
         |   pe_core: 4-thread barrel, slot n in cycles c mod 4 = n        |
         |     per thread: PC, T (16-bit time), r0..r3, flags Z C N E,     |
         |     RUN, LATE, ERR                                              |
-        |        |  read port        | store / host write                 |
-        |        v                   v                                    |
-        |   pe_latch_ram 128 x 16 (program and data of all threads;       |
-        |     2,048 latches, one integrated clock gate per word)          |
+        |        |  one request per cycle: fetch, LD/LDX, ST/STX          |
+        |        v                                                        |
+        |   pe_sram: 512 x 16 program memory + 1,024 x 16 data memory     |
+        |     (two IHP SRAM macros, one access per cycle)                 |
         |                                                                 |
         |   pe_host_fifo: per thread 4-word in-FIFO and 4-word out-FIFO   |
         |                                                                 |

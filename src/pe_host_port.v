@@ -307,7 +307,7 @@ module pe_host_port #(
               st   <= S_WLO;
             end
             S_WLO: begin
-              addr <= addr + 7'd1;
+              addr <= ((cmd == K_WRITE_CFG) ? {4'd0, addr[6:0] + 7'd1} : addr + 11'd1);
               st   <= S_WHI;
               if ((cmd == K_PUSH) && fifo_in_full) err_drop <= 1'b1;
             end

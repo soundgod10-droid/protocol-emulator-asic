@@ -90,7 +90,6 @@ def main(argv):
         run = b.eval("(() => { const r = window.__v1.run(); return {done: r.done, frontier: r.frontier, pins: r.pins.length,"
                      " words: r.words.map((w) => w.length), ready_ms: window.__v1.boot.ready_page_ms}; })()")
         ok["L5a"] = check.startswith("pass") and run["done"] and run["pins"] > 0
-        b.wait("false", timeout=1.5) if False else None
         b.shot(os.path.join(out, "e3_1440.png"), full=True)
         res["checks"]["L5a"] = {"pass": ok["L5a"], "test_check": check, "run": run, "wait_s": round(t, 1)}
         print(f"L5a {'PASS' if ok['L5a'] else 'FAIL'}: E3 {check[:100]}; {run}")

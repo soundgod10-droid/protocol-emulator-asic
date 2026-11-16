@@ -44,7 +44,8 @@
 
   "//": "Smoke test: Magic DRC on but not fatal, to count what Magic reports with the macros against",
   "//": "the layout precheck's KLayout DRC (the PDK deck).",
-  "RUN_MAGIC_DRC": 1,
+  "//": "Run 43941919810: Magic 173,165 errors, all at the SRAM macros; the precheck KLayout DRC passed.",
+  "RUN_MAGIC_DRC": 0,
   "ERROR_ON_MAGIC_DRC": false,
   "MAGIC_MACRO_STD_CELL_SOURCE": "PDK",
 

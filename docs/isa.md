@@ -124,7 +124,7 @@ Some instructions must wait for an event. Such an instruction does not complete 
 | TWAIT | time T (section 7) |
 | PULL (blocking form) | a word in the host-to-thread FIFO |
 | PUSH (blocking form) | space in the thread-to-host FIFO |
-| LD, LDX | always one more slot (section 3.3) |
+| LD, LDX, ST, STX | always one more slot (section 3.3) |
 
 A blocking instruction that waits for a cycle t completes in the first slot of the thread after cycle t (first slot c with c > t).
 

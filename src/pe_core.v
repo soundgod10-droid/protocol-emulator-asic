@@ -141,7 +141,7 @@ module pe_core (
   wire [15:0] h_r2     = st0[47:32];
   wire [15:0] h_r3     = st0[63:48];
   wire [15:0] h_t      = st0[F_T+:16];
-  wire [6:0]  h_pc     = st0[F_PC+:7];
+  wire [8:0]  h_pc     = st0[F_PC+:9];
   wire        h_z      = st0[F_Z];
   wire        h_c      = st0[F_C];
   wire        h_n      = st0[F_N];
@@ -149,16 +149,34 @@ module pe_core (
   wire        h_late   = st0[F_LATE];
   wire        h_err    = st0[F_ERR];
   wire        h_run    = st0[F_RUN];
-  wire [2:0]  h_ps     = st0[F_PS+:3];
+  wire [3:0]  h_ps     = st0[F_PS+:4];
   wire [1:0]  h_ldrd   = st0[F_LDRD+:2];
-  wire [6:0]  h_ldaddr = st0[F_LDA+:7];
+  wire [10:0] h_ldaddr = st0[F_LDA+:11];
 
   // ---------------------------------------------------------------------
-  // Fetch: read the word for the next slot thread (st1) in this cycle.
-  // At start, st1 is not yet the state of thread 0, so use its start PC.
+  // Fetch (SRAM, one access per cycle). In cycle c the request register
+  // gets the read for the slot at c + 3: that thread's state is st3 (its
+  // slot at c - 1 has just written it), so its PC is complete. The macro
+  // takes the request at the end of c + 1, its word is ready in c + 2 and
+  // goes into ir at the end of c + 2. A store of the slot thread uses the
+  // request of the next cycle in place of that thread's own next fetch, so
+  // ST and STX take 2 slots (isa 3.3). Before START, the 3 pre-start cycles
+  // fetch for threads 0 to 2 and the START cycle for thread 3.
   // ---------------------------------------------------------------------
-  assign mem_raddr = start ? start_pc[6:0] :
-                     (st1[F_PS+:3] == PS_LD) ? st1[F_LDA+:7] : st1[F_PC+:7];
+  reg         st_pend;      // a store of the last cycle's slot thread
+  reg  [10:0] st_addr;
+  reg  [15:0] st_data;
+  reg  [10:0] f_addr;
+  always @* begin
+    if (prestart != 2'd0)
+      f_addr = {2'b00, start_pc[9*(prestart-2'd1)+:9]};
+    else if (start)
+      f_addr = {2'b00, start_pc[35:27]};
+    else if (st3[F_PS+:4] == PS_LD)
+      f_addr = st3[F_LDA+:11];
+    else
+      f_addr = {2'b00, st3[F_PC+:9]};
+  end
 
   // ---------------------------------------------------------------------
   // Instruction fields (isa 11)

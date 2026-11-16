@@ -105,6 +105,7 @@ make -B COCOTB_TEST_MODULES=test_rtl_fw COCOTB_TEST_FILTER=test_rtl_uart_tx
 - [Architecture](docs/architecture.md): the blocks, the thread slots and the pipeline, the memory, the pins, clock and reset, and a comparison with other programmable I/O engines
 - [Instruction set](docs/isa.md): every instruction and its encoding
 - [Host port](docs/host_port.md): the SPI commands, the host rules and the firmware limits
+- [Line helpers](docs/helpers.md): the USB low-speed and 10BASE-Te helpers, their ports, pins and measured results
 - [Protocols](docs/protocols.md): every firmware program, how it is tested, and the waveforms
 - [Verification](docs/verification.md): each verification method, what it checks and what it does not
 - [Signoff](docs/signoff.md): each signoff check with its source and result, the open items, the CDC and reset review

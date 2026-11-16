@@ -545,9 +545,9 @@ async def test_model_memory_and_branches(dut):
     """LD takes 2 slots; ST, LDX, STX; DJNZ loop; JAL and JR; branch conditions (isa 3.3, 8, 9.2)."""
     src = "\n".join([
         "        LDI     r0, 77",
-        "        ST      r0, 100",     # c4
-        "        LD      r1, 100",     # c8, data read at c12
-        "        NOW     r2",          # c16: shows the 2 slots of LD
+        "        ST      r0, 100",     # c4 and c8 (2 slots)
+        "        LD      r1, 100",     # c12, data read at c16
+        "        NOW     r2",          # c20: shows the 2 slots of ST and of LD
         "        PUSH    r1",
         "        PUSH    r2",
         "        LDI     r3, 101",

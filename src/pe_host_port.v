@@ -466,10 +466,13 @@ module pe_host_port #(
     else begin
       case (m_c)
         K_READ_ID, K_READ_STATUS: m_st = S_RESP;
-        K_WRITE_MEM, K_WRITE_CFG:
+        K_WRITE_MEM:
+          m_st = m_run ? S_IGN : (m_nb == 3'd1) ? S_ARG : (m_nb == 3'd2) ? S_ARG2 : (m_lo ? S_WLO : S_WHI);
+        K_WRITE_CFG:
           m_st = m_run ? S_IGN : (m_nb == 3'd1) ? S_ARG : (m_lo ? S_WLO : S_WHI);
         K_READ_MEM:
-          m_st = m_run ? S_IGN : (m_nb == 3'd1) ? S_ARG : (m_lo ? S_RDB : S_RDA);
+          m_st = m_run ? S_IGN : (m_nb == 3'd1) ? S_ARG : (m_nb == 3'd2) ? S_ARG2 :
+                 (m_nb == 3'd3) ? S_RDD : (m_lo ? S_RDB : S_RDA);
         K_PUSH:
           m_st = !m_run ? S_IGN : (m_nb == 3'd1) ? S_ARG : (m_lo ? S_WLO : S_WHI);
         K_PULL:

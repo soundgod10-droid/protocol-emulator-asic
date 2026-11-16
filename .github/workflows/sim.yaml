@@ -187,11 +187,17 @@ jobs:
 
   build:
     needs: [tests, samples_rtl, samples_gl]
-    if: ${{ !cancelled() && needs.samples_rtl.result == 'success' && (needs.samples_gl.result == 'success' || needs.samples_gl.result == 'skipped') }}
+    # The gate-level samples are an extra view; a failure there stays red in this run but does not
+    # stop the page, which then shows the RTL samples only (the same as a run with no gds run).
+    if: ${{ !cancelled() && needs.samples_rtl.result == 'success' }}
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout repo
         uses: actions/checkout@v6
+
+      - name: Gate-level samples missing
+        if: needs.samples_gl.result != 'success' && needs.samples_gl.result != 'skipped'
+        run: echo "::warning::Gate-level samples failed (result ${{ needs.samples_gl.result }}); the page is built with the RTL samples only."
 
       - name: Setup python
         uses: actions/setup-python@v6

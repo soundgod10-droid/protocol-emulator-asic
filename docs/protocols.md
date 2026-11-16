@@ -73,7 +73,7 @@ A hold-out trial is a protocol that nobody had in view when the instruction set 
 | Protocol | Result | What the instruction set lacked (workaround) |
 |---|---|---|
 | 1-Wire controller | correct at five device-timing corners; found that the 60 us write-0 time of AN126 has no margin against a device that samples at 60 us, so the firmware uses 65 us | `TADD` adds at most 4,095 cycles (two `TADD` for the 70 us presence wait at 60 MHz) |
-| AM2302 / DHT22 sensor reader | correct with all sensor times 0.8 to 1.2 times the data sheet; timeout status for no sensor and for a sensor that stops | `TADD` limit (two `TADD` for each 136 µs time limit) |
+| AM2302 / DHT22 sensor reader | correct with all sensor times 0.8 to 1.2 times the data sheet; timeout status for no sensor and for a sensor that stops | `TADD` limit (two `TADD` for each 136 us time limit) |
 | AVR XMEGA PDI programmer | KEY, control registers, data read and write, REPEAT with LD, parity error and BREAK recovery correct at 6 device corners | no parity instruction (the host makes the parity bit) |
 
 The next step is a census on the frozen chip: every protocol of a whole outside catalogue, in an order set by a public random beacon, with the rules fixed before the RTL change ([Flexibility census](../flex/PREREG.md)).

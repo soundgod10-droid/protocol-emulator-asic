@@ -288,6 +288,7 @@ module pe_slu #(
   reg  [4:0]  tx_lastbits;
   reg         tx_crcen, tx_droplate, tx_pulse;
   reg  [31:0] crc_t;
+  reg         tx_lead;              // first cycle after the start
   reg  [16:0] jab_cnt;
   reg         jabber;
 

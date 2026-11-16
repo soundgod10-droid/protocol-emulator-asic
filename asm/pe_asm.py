@@ -179,8 +179,8 @@ class _Assembler:
         else:
             if kind == "out":
                 raise _LineError(f"'{text.strip()}' is an output pin; SAMPLE and WAIT need an input pin (UIO0 to UIO7, UI0 to UI4)")
-            if not 0 <= val <= 12:
-                raise _LineError(f"input pin {val} is out of range 0 to 12")
+            if not 0 <= val <= 14:  # 13, 14: event inputs of the USB and 10BASE-Te helpers (isa 5.1)
+                raise _LineError(f"input pin {val} is out of range 0 to 14")
         return val
 
     def addr(self, text):

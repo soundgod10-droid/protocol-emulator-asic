@@ -430,11 +430,11 @@ Bits 15 to 12 are the opcode. In the bit patterns, the bits are in the sequence 
 | 0101 | SHIFT rd, n | 0101 ddff nnnn ---- | f: 00 SHL, 01 SHR, 10 ASR, 11 ROR; n = 0 to 15 |
 | 0110 | TADD imm12 | 0110 iiii iiii iiii | i = 0 to 4,095 |
 | 0111 | TIME | 0111 fffr riii iiii | f: 000 TADD rs, 001 TSET rs, 010 TGET rd, 011 NOW rd, 100 TNOW imm7, 101 TSYNC imm7, 110 TWAIT, 111 illegal. r is used by f = 000 to 011, i by f = 100 and 101. Bits that the function does not use are ignored. |
-| 1000 | Bcc addr | 1000 ccc- -mmm mmmm | c: section 9.2 |
-| 1001 | DJNZ rd, addr | 1001 dd-- -mmm mmmm | |
-| 1010 | JAL rd, addr | 1010 dd-- -mmm mmmm | |
-| 1011 | LD rd, addr | 1011 0dd- -mmm mmmm | |
-| 1011 | ST rs, addr | 1011 1ss- -mmm mmmm | |
+| 1000 | Bcc addr | 1000 cccm mmmm mmmm | c: section 9.2 |
+| 1001 | DJNZ rd, addr | 1001 dd-m mmmm mmmm | |
+| 1010 | JAL rd, addr | 1010 dd-m mmmm mmmm | |
+| 1011 | LD rd, addr | 1011 0ddm mmmm mmmm | |
+| 1011 | ST rs, addr | 1011 1ssm mmmm mmmm | |
 | 1100 | OUT / SAMPLE | 1100 pppp rrkk kooo | k: 000 OUT 0, 001 OUT 1, 010 OUT Z, 011 OUT r, 100 OUT r>>, 101 OUT r<<, 110 SAMPLE r>>, 111 SAMPLE r<<. r is ignored for k = 000 to 010. o = offset 0 to 7. |
 | 1101 | WAIT | 1101 pppp ddee tx-- | e: 00 FALL, 01 RISE, 10 ANY, 11 illegal. t = 1: TO. x = 1: CT. |
 | 1110 | HOST / IO | 1110 ffrr n-qq qqqq | f: 00 PULL rd, 01 PUSH rs, 10 IOR rd, 11 IOW rs. n = 1: non-blocking (.NB), PULL and PUSH only. q = port, IOR and IOW only. |

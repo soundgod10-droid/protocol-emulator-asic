@@ -47,8 +47,12 @@ The structure follows the RTL hierarchy (`src/`). One clock domain (`clk`, decla
         |     (event time, value, OE); the pin flip-flop changes when     |
         |     now = event time                                            |
         |                                                                 |
-        |   pe_timed_in: 13 inputs, pe_sync2 each; spike filter (K = 4)   |
+        |   pe_timed_in: 13 inputs, pe_sync2 each; spike filter (K = 5)   |
         |     on inputs 6, 7 (uio[6], uio[7]); 5-cycle input history      |
+        |                                                                 |
+        |   pe_slu u_usb: USB low-speed helper, I/O ports 16 to 31        |
+        |   pe_slu u_eth: 10BASE-Te helper, I/O ports 32 to 47; signals   |
+        |     to pins through one flip-flop; events as inputs 13, 14      |
         +-----------------------------+-----------------------------------+
                                       |
               uo_out[6:0] = V of pins 14..8;  uio_out / uio_oe = V / OE of pins 7..0

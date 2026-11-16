@@ -39,12 +39,29 @@ module pe_timed_in (
     input  wire [7:0]  uio_in,  // uio pad values: inputs 0 to 7
     input  wire [7:0]  pin_v,   // V of output pins 0 to 7 (uio)
     input  wire [7:0]  pin_oe,  // OE of output pins 0 to 7 (uio)
-    output wire [12:0] s_now,   // s(c)
-    output wire [64:0] s_hist   // s(c-1-i) at [13*i +: 13], i = 0 to 4
+    input  wire [1:0]  ev_in,   // events of the line helpers (virtual inputs 13, 14)
+    output wire [12:0] level,   // pin levels before the synchronizers (helper DIN capture)
+    output wire [14:0] s_now,   // s(c); inputs 13, 14: the helper events of cycle c - 2
+    output wire [74:0] s_hist   // s(c-1-i) at [15*i +: 15], i = 0 to 4
 );
 
-  wire [12:0] level = {ui_in, (uio_in & ~pin_oe) | (pin_v & pin_oe)};
+  assign level = {ui_in, (uio_in & ~pin_oe) | (pin_v & pin_oe)};
   wire [12:0] y;  // synchronizer outputs
+
+  // Virtual inputs 13 and 14: the event outputs of the USB and 10BASE-Te helpers. They are
+  // synchronous, so two plain flip-flop stages give them the same delay as a pin (s(c) = the
+  // event of cycle c - 2), and SAMPLE, WAIT and port PINS treat them as pins (docs/isa.md 5.1).
+  reg [1:0] ev_d1, ev_d2;
+  always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+      ev_d1 <= 2'b00;
+      ev_d2 <= 2'b00;
+    end else begin
+      ev_d1 <= ev_in;
+      ev_d2 <= ev_d1;
+    end
+  end
+  assign s_now[14:13] = ev_d2;
 
   genvar i;
   generate

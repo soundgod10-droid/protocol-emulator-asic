@@ -305,7 +305,7 @@ def draw(f, top, clock, tiles, pins, commit, out):
     s.path([(980, 422), (960, 422), (960, 545), (930, 545)], end=True)
     s.line(980, 562, 930, 562, end=True)
 
-    s.text(20, 690, f"Counts and sizes from the Yosys hierarchy of the RTL (info.yaml source files) at commit {commit}: "
+    s.text(20, 820, f"Counts and sizes from the Yosys hierarchy of the RTL (info.yaml source files) at commit {commit}: "
            f"{f['lat_total']:,} latches, {f['cg_total']} clock gates, {f['sync_total']} two-stage synchronizers.",
            size=11, colour="muted")
     s.text(20, 708, "Pin names from info.yaml. The host port, the threads and the pins share the one clock; "

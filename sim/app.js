@@ -127,6 +127,10 @@ function onPy(msg) {
       run.seeked = true;
       ui.playing = false;
       setCursor(Math.min(+at, run.frontier));
+    } else if (!ui.touched) {
+      // Not watched yet: show the end of the run, as a simulator or logic analyzer shows its state after a fast run;
+      // Run then plays it from cycle 0.
+      ui.cursor = run.frontier;
     }
   }
   ui.dirty = true;

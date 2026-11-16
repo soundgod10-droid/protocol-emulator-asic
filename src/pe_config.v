@@ -10,10 +10,13 @@
 // What it does:
 //   The host writes these registers with (we, addr, data) while the
 //   threads stop (docs/isa.md 2.2):
-//     addr 0 to 3   start address of thread addr (data[6:0])
+//     addr 0 to 3   start address of thread addr (data[8:0])
 //     addr 4        RUN of the 4 threads at start (data[3:0], bit n = thread n)
 //     addr 16 to 30 output pin p = addr - 16: data[1:0] owner thread,
-//                   data[2] owner enable, data[3] open-drain mode
+//                   data[2] owner enable, data[3] open-drain mode,
+//                   data[4] a line helper drives the pin (then no thread owns it),
+//                   data[5] which helper (0 USB, 1 10BASE-Te), data[8:6] its signal
+//                   (0 TXA, 1 TXB, 2 TXC, 3 TXD, 4 OE, 5 not OE)
 //   Other addresses and pin 15 (addr 31) have no register.
 //
 // Why:

@@ -43,10 +43,10 @@ Documentation site: **<https://soundgod10-droid.github.io/protocol-emulator-asic
 
 Conditions: static timing of the routed layout at the three corners of the flow (slow 1.08 V 125 °C, typical 1.20 V 25 °C, fast 1.32 V -40 °C). The tests are logic simulations. The gate-level tests use the netlist of the layout with functional cell models and no delays. There is no silicon result yet. The [Results](https://soundgod10-droid.github.io/protocol-emulator-asic/results/) page is made again from the newest runs on every push, with every value and its run.
 
-[gds]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43789433266
-[test]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43795007970
-[cov]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43795007944
-[formal]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43795007954
+[gds]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43804950941
+[test]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43804950902
+[cov]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43804951001
+[formal]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43804950938
 
 ## See it run
 

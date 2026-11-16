@@ -224,30 +224,69 @@ module pe_slu_loop (
   reg        [1:0]  nedge;
   reg               init, decided, xprev;
 
-  wire signed [19:0] th_a, th_b;
-  wire signed [11:0] ii_a, ii_b;
-  wire        [5:0]  nacc_a, nacc_b;
-  wire        [1:0]  nedge_a, nedge_b;
-  wire               init_a, init_b, dec_a, dec_b, bv_a, bv_b, bd_a, bd_b;
+  // Both clock edges: at most one edge is used in a cycle. If x0 has an edge (sub-step A uses it),
+  // an edge at x1 (a pulse of half a cycle, 8.3 ns at 60 MHz, shorter than any 10BASE-T pulse) is
+  // not used. Then sub-step B never needs the result of A's edge logic for its own edge logic:
+  // B with edge logic starts from A without an edge (u_a0, a few adders), and B after an edge in A
+  // (u_b1) has no edge logic. The longest path is one full step and one step without an edge,
+  // not two full steps (the slow-corner path of the 10BASE-Te loop at 60 MHz).
+  wire               e0 = (x0 != xprev);
+  wire signed [19:0] th_a, th_a0, th_b0, th_b1, th_b;
+  wire signed [11:0] ii_a, ii_a0, ii_b0, ii_b1, ii_b;
+  wire        [5:0]  nacc_a, nacc_a0, nacc_b0, nacc_b1, nacc_b;
+  wire        [1:0]  nedge_a, nedge_a0, nedge_b0, nedge_b1, nedge_b;
+  wire               init_a, init_a0, init_b0, init_b1, init_b;
+  wire               dec_a, dec_a0, dec_b0, dec_b1, dec_b;
+  wire               bv_a, bv_a0, bv_b0, bv_b1, bv_b, bd_a, bd_a0, bd_b0, bd_b1, bd_b;
 
-  // Sub-step A: sample x0 (ddr only).
+  // Sub-step A: sample x0 (ddr only), with its edge.
   pe_slu_loop_step u_a (
-      .x(x0), .xprev(xprev), .th(th), .ii(ii), .nacc(nacc_q), .nedge(nedge), .init(init),
-      .decided(decided), .n(n), .manch(manch), .kp0(kp0), .kp1(kp1), .kp2(kp2), .gn0(gn0),
-      .gn1(gn1), .ki_en(ki_en), .ki_sh(ki_sh), .win(win), .wina(wina), .acq_n(acq_n),
+      .x(x0), .xprev(xprev), .allow(1'b1), .th(th), .ii(ii), .nacc(nacc_q), .nedge(nedge),
+      .init(init), .decided(decided), .n(n), .manch(manch), .kp0(kp0), .kp1(kp1), .kp2(kp2),
+      .gn0(gn0), .gn1(gn1), .ki_en(ki_en), .ki_sh(ki_sh), .win(win), .wina(wina), .acq_n(acq_n),
       .init_edge(init_edge), .th_o(th_a), .ii_o(ii_a), .nacc_o(nacc_a), .nedge_o(nedge_a),
       .init_o(init_a), .decided_o(dec_a), .bit_v(bv_a), .bit_d(bd_a)
   );
 
-  // Sub-step B: sample x1, from the state after A (ddr) or from the registers (one sample).
-  pe_slu_loop_step u_b (
-      .x(x1), .xprev(ddr ? x0 : xprev), .th(ddr ? th_a : th), .ii(ddr ? ii_a : ii),
-      .nacc(ddr ? nacc_a : nacc_q), .nedge(ddr ? nedge_a : nedge), .init(ddr ? init_a : init),
-      .decided(ddr ? dec_a : decided), .n(n), .manch(manch), .kp0(kp0), .kp1(kp1), .kp2(kp2),
-      .gn0(gn0), .gn1(gn1), .ki_en(ki_en), .ki_sh(ki_sh), .win(win), .wina(wina),
-      .acq_n(acq_n), .init_edge(init_edge), .th_o(th_b), .ii_o(ii_b), .nacc_o(nacc_b),
-      .nedge_o(nedge_b), .init_o(init_b), .decided_o(dec_b), .bit_v(bv_b), .bit_d(bd_b)
+  // Sub-step A without an edge (the state that B starts from when x0 has no edge).
+  pe_slu_loop_step u_a0 (
+      .x(x0), .xprev(xprev), .allow(1'b0), .th(th), .ii(ii), .nacc(nacc_q), .nedge(nedge),
+      .init(init), .decided(decided), .n(n), .manch(manch), .kp0(kp0), .kp1(kp1), .kp2(kp2),
+      .gn0(gn0), .gn1(gn1), .ki_en(ki_en), .ki_sh(ki_sh), .win(win), .wina(wina), .acq_n(acq_n),
+      .init_edge(init_edge), .th_o(th_a0), .ii_o(ii_a0), .nacc_o(nacc_a0), .nedge_o(nedge_a0),
+      .init_o(init_a0), .decided_o(dec_a0), .bit_v(bv_a0), .bit_d(bd_a0)
   );
+
+  // Sub-step B with its edge: from A without an edge (ddr) or from the registers (one sample).
+  pe_slu_loop_step u_b0 (
+      .x(x1), .xprev(ddr ? x0 : xprev), .allow(1'b1), .th(ddr ? th_a0 : th),
+      .ii(ddr ? ii_a0 : ii), .nacc(ddr ? nacc_a0 : nacc_q), .nedge(ddr ? nedge_a0 : nedge),
+      .init(ddr ? init_a0 : init), .decided(ddr ? dec_a0 : decided), .n(n), .manch(manch),
+      .kp0(kp0), .kp1(kp1), .kp2(kp2), .gn0(gn0), .gn1(gn1), .ki_en(ki_en), .ki_sh(ki_sh),
+      .win(win), .wina(wina), .acq_n(acq_n), .init_edge(init_edge), .th_o(th_b0), .ii_o(ii_b0),
+      .nacc_o(nacc_b0), .nedge_o(nedge_b0), .init_o(init_b0), .decided_o(dec_b0), .bit_v(bv_b0),
+      .bit_d(bd_b0)
+  );
+
+  // Sub-step B after an edge in A: no edge logic.
+  pe_slu_loop_step u_b1 (
+      .x(x1), .xprev(x0), .allow(1'b0), .th(th_a), .ii(ii_a), .nacc(nacc_a), .nedge(nedge_a),
+      .init(init_a), .decided(dec_a), .n(n), .manch(manch), .kp0(kp0), .kp1(kp1), .kp2(kp2),
+      .gn0(gn0), .gn1(gn1), .ki_en(ki_en), .ki_sh(ki_sh), .win(win), .wina(wina), .acq_n(acq_n),
+      .init_edge(init_edge), .th_o(th_b1), .ii_o(ii_b1), .nacc_o(nacc_b1), .nedge_o(nedge_b1),
+      .init_o(init_b1), .decided_o(dec_b1), .bit_v(bv_b1), .bit_d(bd_b1)
+  );
+
+  wire sel1 = ddr && e0;
+  assign th_b    = sel1 ? th_b1    : th_b0;
+  assign ii_b    = sel1 ? ii_b1    : ii_b0;
+  assign nacc_b  = sel1 ? nacc_b1  : nacc_b0;
+  assign nedge_b = sel1 ? nedge_b1 : nedge_b0;
+  assign init_b  = sel1 ? init_b1  : init_b0;
+  assign dec_b   = sel1 ? dec_b1   : dec_b0;
+  assign bv_b    = sel1 ? bv_b1    : bv_b0;
+  assign bd_b    = sel1 ? bd_b1    : bd_b0;
+  wire _unused_a0 = &{1'b0, bv_a0, bd_a0};
 
   always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin

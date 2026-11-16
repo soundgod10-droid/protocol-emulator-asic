@@ -1,20 +1,31 @@
-![](../../workflows/gds/badge.svg) ![](../../workflows/docs/badge.svg) ![](../../workflows/test/badge.svg)
+[![gds](https://github.com/soundgod10-droid/protocol-emulator-asic/actions/workflows/gds.yaml/badge.svg?branch=cmos5l)](https://github.com/soundgod10-droid/protocol-emulator-asic/actions/workflows/gds.yaml?query=branch%3Acmos5l)
+[![test](https://github.com/soundgod10-droid/protocol-emulator-asic/actions/workflows/test.yaml/badge.svg?branch=cmos5l)](https://github.com/soundgod10-droid/protocol-emulator-asic/actions/workflows/test.yaml?query=branch%3Acmos5l)
+[![formal](https://github.com/soundgod10-droid/protocol-emulator-asic/actions/workflows/formal.yaml/badge.svg?branch=cmos5l)](https://github.com/soundgod10-droid/protocol-emulator-asic/actions/workflows/formal.yaml?query=branch%3Acmos5l)
+[![docs](https://github.com/soundgod10-droid/protocol-emulator-asic/actions/workflows/docs.yaml/badge.svg?branch=cmos5l)](https://github.com/soundgod10-droid/protocol-emulator-asic/actions/workflows/docs.yaml?query=branch%3Acmos5l)
 
 # Programmable protocol emulator
 
-A protocol emulator is a small processor with an instruction set made for reading pins, writing pins, counting cycles and exact timing, so that a protocol is firmware and not fixed logic ([competition definition](https://blog.janestreet.com/protocol-emulator-asic-competition/)). This chip has no UART, SPI or I2C block. A host loads the firmware through an SPI port, and the firmware makes every pin waveform. A new protocol needs new firmware, not new silicon.
+This chip is a small 4-thread processor that makes serial protocols (UART, SPI, I2C, CAN, JTAG and more) in firmware, with each pin change at an exact clock cycle. It is a Tiny Tapeout design for the IHP SG13CMOS5L 130 nm process: 8x4 tiles, 60 MHz.
 
-Process IHP SG13CMOS5L (130 nm), 8x4 tiles, 60 MHz. Architecture: [docs/architecture.md](docs/architecture.md); signoff at all corners: [docs/signoff.md](docs/signoff.md).
+Documentation site: **<https://soundgod10-droid.github.io/protocol-emulator-asic/>**
 
-## How it works
+![Final layout of the chip](https://soundgod10-droid.github.io/protocol-emulator-asic/figures/layout.png)
 
-- **Four threads, fixed slots.** Thread n executes one 16-bit instruction in each clock cycle c with c mod 4 = n. A stopped or waiting thread keeps its slot, so the timing of one thread does not depend on the other three. ([docs/isa.md](docs/isa.md) sections 1, 3)
-- **Pin changes are timed events.** `OUT pin, value, offset` does not change the pin at once. It writes an event for cycle T + offset into the slot of that pin, and the pin flip-flop changes in exactly that cycle. T is a 16-bit time register of the thread. The event must be written 4 to 32,767 cycles ahead. A late event still happens, 4 cycles after the instruction, and sets a LATE flag that the host can read. `SAMPLE` and `WAIT` read inputs at a given cycle, and `WAIT` gives the cycle of an input edge. (sections 4, 6)
-- **One owner per pin.** The host gives each output pin to one thread. `OUT` from another thread changes nothing and sets ERR. Pins can be push-pull or open-drain. (section 5)
-- **Memory.** 128 words of 16 bits hold the programs and data of all threads (a latch array, no macro).
-- **Host port.** SPI mode 0, up to 10 MHz: STOP, START, write and read the memory and the configuration, read the ID and status, and 4-word FIFOs in each direction for each thread. ([docs/host_port.md](docs/host_port.md))
+*The final layout of the 8x4 tile (1724 x 711 µm), from the GDS of the newest gds run. The white line is the tile outline. Made in CI by [figures/layout.py](figures/layout.py) (KLayout, PDK layer colours).*
 
-Example, `fw/uart_tx.s` (12 words): the bit time is `TADD 434` between two `OUT` events, so it is exactly 434 cycles whatever the instructions in between take.
+![Block diagram of the chip](https://soundgod10-droid.github.io/protocol-emulator-asic/figures/block_diagram.svg)
+
+*Block diagram. Made in CI by [figures/blocks.py](figures/blocks.py) from the module hierarchy of the RTL; the counts come from the RTL.*
+
+## What it does
+
+- **Protocols are firmware.** The chip has no UART, SPI or I2C block. A host loads a program through an SPI port, and the program makes every pin waveform. A new protocol needs new firmware, not new silicon. `fw/` has 13 protocol programs.
+- **Four threads in fixed slots.** Thread n executes one 16-bit instruction in each clock cycle c with c mod 4 = n. A waiting thread keeps its slot. Thus the timing of one thread does not change with the other three.
+- **Timed output events.** `OUT` does not change the pin at once. It writes an event for a set cycle into the slot of that pin, and the pin changes in exactly that cycle. A late event still occurs and sets a LATE flag for the host.
+- **Timed inputs.** `SAMPLE` reads a pin at a set cycle. `WAIT` stops the thread until an edge and gives the cycle of the edge.
+- **Pins for real buses.** The host gives each output pin to one thread. Pins can be push-pull or open-drain. Two inputs have a spike filter for I2C.
+- **Memory and host port.** 128 words of 16 bits hold the programs and data of all threads. The host SPI port (mode 0, up to 10 MHz) loads the memory, starts and stops the threads, and moves data through a 4-word FIFO in each direction for each thread.
+- **Status.** The layout passes all Tiny Tapeout checks. No chip is made yet.
 
 ## Status
 

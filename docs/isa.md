@@ -10,8 +10,9 @@
 
 Sources:
 
-- RTL: src/pe_timed_out.v (event time and pin flip-flop), src/pe_sync.v (2-stage synchronizer), src/pe_cycle_counter.v, src/project.v (pins).
-- docs/decisions.md entry 1 (processor) and entry 3 (128 x 16 latch memory for program and data, shared by the four threads).
+- RTL: src/pe_timed_out.v (event time and pin flip-flop), src/pe_sync.v (2-stage synchronizer), src/pe_cycle_counter.v, src/project.v (pins), src/pe_sram.v (memory), src/pe_slu.v (line helpers).
+- docs/decisions.md entry 1 (processor) and the memory entry (512 x 16 program memory and 1,024 x 16 data memory, two SRAM macros shared by the four threads; it replaced the 128 x 16 latch memory of entry 3).
+- docs/helpers.md: the USB low-speed and 10BASE-Te line helpers on I/O ports 16 to 47.
 - Cell areas: the sg13cmos5l_stdcell liberty file at the typical corner, as Yosys reports them in synthesis. The library has no flip-flop with enable, so each loadable register bit costs dfrbpq_1 (48.99 um2) + mux2_1 (18.14 um2) = 67.13 um2.
 
 ## 1 Summary

@@ -82,7 +82,6 @@ Run [43779858026] (commit a668e4d, with the protocol tests on the RTL): line 173
 [43672052931]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43672052931
 [43705472044]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43705472044
 [43712217710]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43712217710
-[43779856956]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43779857956
 [43779857956]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43779857956
 [43779858026]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43779858026
 [43731920994]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43731920994

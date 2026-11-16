@@ -1495,7 +1495,7 @@ async def test_flex_word_count(dut):
              f"{min(size[n] for n in NEW)} words")
     for n in NEW:  # the four example programs already use all 4 threads; the words alone are shown here
         log.info(f"four example programs + {n}: {four + size[n]} words, {4 + PROGRAMS[n][0]} threads")
-    assert all(f[1] <= pe_model.MEM_WORDS for f in fits)
+    assert all(f[1] <= pe_model.PROG_WORDS for f in fits)
 
 
 @cocotb.test(skip=GL)

@@ -464,13 +464,16 @@ function render() {
   const us = (ui.cursor * ns) / 1000;
   $("time").textContent = us < 1000 ? `${us.toFixed(2)} us` : `${(us / 1000).toFixed(3)} ms`;
   $("slot").textContent = "T" + (ui.cursor % 4);
-  const pct = run.frontier ? (100 * ui.cursor) / run.frontier : 0;
-  $("bar").style.width = `${pct}%`;
+  // Two bars, as in a media player: computed cycles (light) and the cursor (dark), against the run's length.
+  const total = run.done ? run.frontier : Math.max(run.frontier, expectedTotal());
+  $("bar").style.width = `${total ? (100 * ui.cursor) / total : 0}%`;
+  $("bar-done").style.width = `${total ? (100 * run.frontier) / total : 0}%`;
   if (run.done) {
     const r = run.result || {};
     $("progress").textContent = `${fmt(run.frontier)} cycles computed in ${(r.wall_s || 0).toFixed(1)} s (${fmt(Math.round((r.cycles_main || 0) / (r.wall_s || 1)))} cycles/s)`;
   } else {
-    $("progress").textContent = `computing: ${fmt(run.frontier)} cycles`;
+    const exp = expectedTotal();
+    $("progress").textContent = `computing: ${fmt(run.frontier)}${exp ? ` of about ${fmt(exp)}` : ""} cycles`;
   }
   feedWave(ui.cursor);
   const { st, exact } = stateFor(ui.cursor);

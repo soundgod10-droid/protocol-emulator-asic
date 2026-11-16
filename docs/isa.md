@@ -402,7 +402,7 @@ Bits 15 to 12 are the opcode. In the bit patterns, the bits are in the sequence 
 | i | immediate |
 | f | function |
 | c | condition |
-| m | memory address (7 bits) |
+| m | program memory address (9 bits) |
 | p | pin number (4 bits) |
 | k | kind (3 bits) |
 | o | offset (3 bits) |

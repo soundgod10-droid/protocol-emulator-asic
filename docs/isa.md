@@ -501,4 +501,5 @@ Bits with "-" have no effect. Thus, two words that differ only in "-" bits have 
 9. The firmware keeps T near now with TSYNC while it waits for the host (section 7). The alternative is an "expired" bit for each thread, which makes T safe after a long wait.
 10. Pin numbers and the default pins of the SPI and I2C outline firmware (fw/spi_mode0.s, fw/i2c_write.s).
 11. The word formats from the host for SPI and I2C (bits 8 and 9 as control bits, see the firmware headers).
-12. The store-and-read rule of section 3.3 (not defined for 1 to 3 cycles).
+12. The store-and-read rule of section 3.3 (not defined for 1 to 4 cycles).
+13. Two line helpers (USB low speed, 10BASE-Te) on I/O ports 16 to 47 with pins from the host configuration (section 5.2, docs/helpers.md).

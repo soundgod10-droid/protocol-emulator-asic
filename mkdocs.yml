@@ -2,7 +2,7 @@
 # figures/site.py assembles build/site_src from README.md, docs/ and flex/PREREG.md, with the figures and the results
 # page that the workflow generates; --strict makes a broken link fail the build.
 site_name: Programmable protocol emulator
-site_description: A 4-thread processor with timed pin I/O that runs serial protocols as firmware (IHP SG13CMOS5L, Tiny Tapeout)
+site_description: A 4-thread processor with timed pin I/O that runs serial protocols as firmware, with USB low-speed and 10BASE-T line helpers (IHP SG13CMOS5L, shuttle TTIHP27a)
 site_url: https://soundgod10-droid.github.io/protocol-emulator-asic/
 repo_url: https://github.com/soundgod10-droid/protocol-emulator-asic
 repo_name: protocol-emulator-asic

@@ -469,18 +469,13 @@ async def test_slu_eth_tx(dut):
     await s.wr(P_TXCTRL, (1 << 5))
     for w in words[:2]:
         await s.wr(P_TXDATA, w)
-    await s.wr(P_TXTIME, (await s.now() + 100) & 0xFFFF)
-    feed = words[2:]
     caps = []
-    while feed:
+    ncap = 6 * 700
+    cocotb.start_soon(capture(dut, ncap, caps))
+    await s.wr(P_TXTIME, (await s.now() + 100) & 0xFFFF)
+    await feed_words(s, words[2:])
+    while len(caps) < ncap:
         await RisingEdge(dut.clk)
-        await ReadOnly()
-        caps.append((int(dut.slu_txv.value), int(dut.slu_txoe.value), int(dut.slu_now.value)))
-        if int(dut.u_slu_ut.tx_cnt.value) < 2:
-            w = feed.pop(0)
-            await s.wr(P_TXLAST if not feed else P_TXDATA, w)
-            caps += [caps[-1], caps[-1]]   # 2 cycles not captured during the write (not inside the frame data)
-    caps += await capture(dut, 6 * 600)
     td = [c[0] & 1 for c in caps]
     oe = [c[1] for c in caps]
     first = oe.index(1)

@@ -226,19 +226,29 @@ class PeModel:
                 self.fcnt[p] += 1
 
     def _input_level(self):
-        """Pin level of the input pins in this cycle (isa 5.1): uio pins with OE = 1 read V."""
+        """Pin level of the input pins in this cycle (isa 5.1): uio pins with OE = 1 read V; inputs 13
+        and 14 are the helper events of this cycle (they pass the same 2 stages as a pin)."""
         oe = self.pin_oe & 0xFF
         uio = ((self.uio_in & ~oe) | (self.pin_v & oe)) & 0xFF
-        return uio | ((self.ui_in & 0x1F) << 8)
+        ev = (self.io.events() & 3) if self.io is not None else 0
+        return uio | ((self.ui_in & 0x1F) << 8) | (ev << 13)
+
+    @staticmethod
+    def _maddr(addr):
+        """Memory word of an 11-bit address: 1,536 to 2,047 are the words of 512 to 1,023 (isa 2.2)."""
+        addr &= MEM_WORDS - 1
+        return addr - 1024 if addr >= PROG_WORDS + 1024 else addr
 
     def _read(self, addr, c, what):
         """Memory read at cycle c, with the store rule of isa 3.3."""
+        addr = self._maddr(addr)
         cs = self.store_cycle.get(addr)
-        if cs is not None and cs < c < cs + 4:
+        if cs is not None and cs < c < cs + STORE_GAP:
             raise ModelError(f"cycle {c}: {what} of address {addr} only {c - cs} cycles after a store (isa 3.3)")
         return self.mem[addr]
 
     def _store(self, addr, word, c):
+        addr = self._maddr(addr)
         self.mem[addr] = word & 0xFFFF
         self.store_cycle[addr] = c
 

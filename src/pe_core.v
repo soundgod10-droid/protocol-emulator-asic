@@ -526,16 +526,17 @@ module pe_core (
               case (ir[11:8])
                 4'h0: n_run = 1'b0;  // HALT: PC stays at the HALT
                 4'h1: n_pc = pc1;    // NOP
-                4'h2: n_pc = ra[6:0];  // JR
-                4'h3: begin  // LDX: read in the next slot
+                4'h2: n_pc = ra[8:0];  // JR
+                4'h3: begin  // LDX: read in the next slot, address ra mod 2,048
                   n_ps     = PS_LD;
                   n_ldrd   = ir[7:6];
-                  n_ldaddr = rb[6:0];
+                  n_ldaddr = rb[10:0];
                 end
-                4'h4: begin  // STX
-                  mem_we    = 1'b1;
-                  mem_waddr = rb[6:0];
-                  n_pc      = pc1;
+                4'h4: begin  // STX: 2 slots
+                  s_we    = 1'b1;
+                  s_waddr = rb[10:0];
+                  n_pc    = pc1;
+                  n_ps    = PS_ST;
                 end
                 default: begin  // illegal (isa 12)
                   n_run = 1'b0;

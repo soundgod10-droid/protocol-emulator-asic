@@ -36,13 +36,13 @@ At gate level this runs every module except the protocol tests `test_rtl_fw.py`,
 GL_PART=1 make -B GATES=yes COCOTB_TEST_MODULES=test_rtl_fw
 ```
 
-If you wish to save the waveform in VCD format instead of FST format, edit tb.v to use `$dumpfile("tb.vcd");` and then run:
+The RTL run writes the waveform of every signal to `tb.fst` (the long protocol tests stop the dump while they run). For a VCD of the chip pins only, during the whole test, as the waveform figures of the documentation use:
 
 ```sh
-make -B FST=
+make -B PIN_VCD=1 FST= COCOTB_TEST_MODULES=test_rtl_fw COCOTB_TEST_FILTER=test_rtl_uart_tx
 ```
 
-This will generate `tb.vcd` instead of `tb.fst`.
+This writes `pins.vcd` (`rst_n`, `ui_in`, `uo_out`, `uio_in`, `uio_out`, `uio_oe`).
 
 ## How to view the waveform file
 

@@ -100,7 +100,7 @@ module pe_slu_loop_step (
     hk        = 1'b0;
     ne        = nedge;
 
-    if (edge && !init) begin
+    if (xe && !init) begin
       ne      = (nedge == 2'd3) ? 2'd3 : nedge + 2'd1;
       nedge_o = ne;
       if (ne >= init_edge) begin

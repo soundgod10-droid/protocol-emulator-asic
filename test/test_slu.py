@@ -656,7 +656,7 @@ async def test_slu_eth_collision(dut):
     st = await s.rd(P_STATUS)
     dut._log.info("collision: %d jam bits in %d cycles of the jam state; status %04x" % (jam["bits"], jam["cycles"], st))
     assert st & (1 << 14), "COLLISION, status %04x" % st
-    assert jam["bits"] == 32, "jam of %d bits, IEEE 802.3 jamSize is 32 bits" % jam["bits"]
+    assert jam["bits"] == 32, "jam of %d bits, specified 32" % jam["bits"]
     assert st & 0x1, "TXDONE after the jam and the tail, status %04x" % st
     task.kill()
 

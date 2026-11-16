@@ -546,6 +546,8 @@ async def test_slu_eth_rx(dut):
         ppm = rng.uniform(-100.0, 100.0)
         bits = ref.eth_frame_bits(payload)
         sch, t_end = eth_rx_schedule(bits, jit, ppm, rng, 1000.0)
+        while (await s.rd(P_RXINFO) >> 5) & 3:        # the last frame's dribble-bit word
+            await s.rd(P_RXDATA, pop=True)
         await s.wr(P_STATUS, 0xFFFF)
         cocotb.start_soon(drive_levels(dut, sch))
         words = []

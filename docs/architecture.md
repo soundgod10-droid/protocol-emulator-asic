@@ -69,9 +69,10 @@ The structure follows the RTL hierarchy (`src/`). One clock domain (`clk`, decla
 
 ## 3 Memory
 
-- 128 words x 16 bits, one array for the programs and data of all threads (`pe_latch_ram`). Latches (`sg13cmos5l_dlhq_1`) instead of flip-flops, with one integrated clock gate (`sg13cmos5l_lgcp_1`) per word, so a write opens only the latches of one word and an address change near the clock edge cannot make a glitch. A word is written in the first half of the cycle after the request.
-- Area by synthesis: 97,044 um2 for the 128 x 16 array alone (local synthesis, typical corner); the whole chip 228,405 um2 in the synthesis step of the layout flow (gds run 43779857970, `stats/synthesis-stats.txt` of the `tt_submission` artifact). A 256 x 16 array was measured and not chosen for this version ([decisions.md](decisions.md), memory size): it fails the layout flow today and no measured program needs more than 128 words. The IHP 256 x 16 SRAM macro (`RM_IHPSG13_1P_256x16_c2_bm_bist`, IHP-Open-PDK) is 236.8 x 118.78 um (28,127 um2) with power on Metal4; it is the option for a larger memory.
-- The memory has no reset (latches); the host loads it after every power-up and select ([host_port.md](host_port.md) section 8).
+- Two IHP SRAM macros (`pe_sram`): `RM_IHPSG13_1P_512x16_c2_bm_bist` holds the programs of all threads and the LD/ST data (addresses 0 to 511), `RM_IHPSG13_1P_1024x16_c2_bm_bist` the frames and tables (LDX/STX addresses 512 to 1,535; 1,536 to 2,047 are 512 to 1,023 again). One access per cycle. The core sends the request for a slot 3 cycles before that slot, from flip-flops, so the macro read (about 7.4 ns after the clock edge at the slow corner, macro liberty) and the decode fit before the slot ([isa.md](isa.md) 3.3).
+- Why: the 128 x 16 latch array of the first version (97,044 um2 in synthesis) held neither a USB device program with its descriptors nor one 1,518-byte Ethernet frame. The two macros give 1,536 words in 124,983 um2 of macro area (LEF) ([decisions.md](decisions.md) entry 3).
+- Layout: both macros sit 40 um above the bottom edge of the tile. The vertical power stripes have a pitch of 67.44 um, a multiple of the macro's power column pitch, so that each stripe over a macro lands on a column of its own net ([decisions.md](decisions.md) entry 19). A data macro at x = 280.80 um left a short stripe in the 14 um channel between the macros, which the layout precheck rejects (each supply port must reach both tile edges); at x = 348.24 um the channel is one stripe pitch wide and the grid stripes pass through it.
+- The memory has no reset; the host loads it after every power-up and select ([host_port.md](host_port.md) section 8).
 
 ## 4 Host port
 

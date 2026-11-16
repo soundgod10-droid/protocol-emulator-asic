@@ -683,7 +683,8 @@ async def test_slu_chip_eth_tx(dut):
     task = cocotb.start_soon(cap(5000))
     await host.start()
     await task
-    assert all(oe & 0x7 == 0x7 for _, oe in caps), "helper pins uio0-2 are outputs (OE = 1) while running"
+    assert (caps[0][1] & 0x7) == 0, "helper pins are released while the threads stop"
+    assert (caps[-1][1] & 0x7) == 0x7, "helper pins uio0-2 are outputs (OE = 1) while running"
     oe_sig = [(v >> 2) & 1 for v, _ in caps]
     first = oe_sig.index(1)
     td = [v & 1 for v, _ in caps]

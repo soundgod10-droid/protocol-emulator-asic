@@ -269,13 +269,11 @@ module pe_host_port #(
               if (idx != 3'd7) idx <= idx + 3'd1;
             end
             S_ARG: begin
-              addr <= bin[6:0];
+              addr <= {4'd0, bin[6:0]};
               tid  <= bin[1:0];
-              if (cmd == K_READ_MEM) begin
-                tx   <= mem_rdata[15:8];
-                hold <= mem_rdata[7:0];
-                addr <= bin[6:0] + 7'd1;
-                st   <= S_RDA;
+              if ((cmd == K_WRITE_MEM) || (cmd == K_READ_MEM)) begin
+                addr <= {bin[2:0], 8'd0};   // address bits 10:8; bits 7:0 follow
+                st   <= S_ARG2;
               end else if (cmd == K_PULL) begin
                 tx     <= {5'd0, cnt_sel};
                 remain <= cnt_sel;
@@ -283,6 +281,26 @@ module pe_host_port #(
               end else begin
                 st <= S_WHI;
               end
+            end
+            S_ARG2: begin
+              addr <= {addr[10:8], bin};
+              if (cmd == K_READ_MEM) begin
+                // Read the first word during the dummy byte.
+                mem_req  <= 1'b1;
+                mem_addr <= {addr[10:8], bin};
+                st       <= S_RDD;
+              end else begin
+                st <= S_WHI;
+              end
+            end
+            S_RDD: begin
+              tx   <= mem_rdata[15:8];
+              hold <= mem_rdata[7:0];
+              // Read the next word while this one goes out.
+              mem_req  <= 1'b1;
+              mem_addr <= addr + 11'd1;
+              addr     <= addr + 11'd1;
+              st       <= S_RDA;
             end
             S_WHI: begin
               hold <= bin;

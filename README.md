@@ -11,7 +11,7 @@ Documentation site: **<https://soundgod10-droid.github.io/protocol-emulator-asic
 
 ![Final layout of the chip](https://soundgod10-droid.github.io/protocol-emulator-asic/figures/layout.png)
 
-*The final layout of the 8x4 tile (1724 x 711 µm), from the GDS of the newest gds run. The white line is the tile outline. The logic is in the left part (the cells use 24.6 % of the tile); the rest holds filler cells under the power grid. Made in CI by [figures/layout.py](figures/layout.py) (KLayout, PDK layer colours).*
+*The final layout of the 8x4 tile (1724 x 711 um), from the GDS of the newest gds run. The white line is the tile outline. The logic is in the left part (the cells use 24.6 % of the tile); the rest holds filler cells under the power grid. Made in CI by [figures/layout.py](figures/layout.py) (KLayout, PDK layer colours).*
 
 ![Block diagram of the chip](https://soundgod10-droid.github.io/protocol-emulator-asic/figures/block_diagram.svg)
 

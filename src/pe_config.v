@@ -85,7 +85,7 @@ module pe_config (
     end
   end
 
-  // The registers use data[6:0] only (else the linter reports UNUSEDSIGNAL).
-  wire _unused = &{data[15:7], 1'b0};
+  // The registers use data[8:0] only (else the linter reports UNUSEDSIGNAL).
+  wire _unused = &{data[15:9], 1'b0};
 
 endmodule

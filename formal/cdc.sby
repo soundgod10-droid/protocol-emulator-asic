@@ -36,14 +36,17 @@ select -set ain i:* w:clk w:rst_n w:ena %u %u %d
 select -assert-count 16 @ain
 select -set cone1 @ain %co*:-[Q]
 select -set st1 @cone1 t:$_DFF* t:$_DLATCH* %u %i
-select -assert-count 16 @st1
-select -assert-count 16 @st1 t:$_DFF_PN0_ %i
+select -assert-count 20 @st1
+select -assert-count 18 @st1 t:$_DFF_PN0_ %i
+select -assert-count 2 @st1 t:$_DFF_NN0_ %i
 select -set q1 @st1 %co1:+[Q] w:* %i
 select -assert-count 16 @q1 w:*_sync.stage?0? %i
-select -assert-count 17 @cone1 c:* %i @st1 %d
+select -assert-count 4 @q1 w:*.din_f1 w:*.din_r1 %u %i
+select -assert-count 47 @cone1 c:* %i @st1 %d
 select -set cone2 @q1 %co*:-[Q]
-select -assert-count 16 @cone2 c:* %i
+select -assert-count 20 @cone2 c:* %i
 select -assert-count 16 @cone2 c:* %i %co1:+[Q] w:*_sync.stage?1? %i
+select -assert-count 4 @cone2 c:* %i %co1:+[Q] w:*.din_f2 w:*.din_r2 %u %i
 select -assert-count 2 w:rst_n %co*:-[Q] c:* %i
 select -assert-count 2 w:rst_n %co*:-[Q] c:* %i %co1:+[Q] w:u_reset_sync.stage?*? %i
 select -assert-count 3 t:$_DFF_PN* t:$_DFF_PP* t:$_DFFE_PN* t:$_DFFE_PP* %u %u %u %ci1:+[R] w:* %i

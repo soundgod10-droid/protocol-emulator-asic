@@ -932,6 +932,11 @@ module pe_core (
     // B6: a store request replaces only the fetch of the thread that stored: that thread (now in
     //     st3, after its slot of the last cycle) has the second store slot pending.
     if (rst_n && st_pend) assert (st3[F_PS+:4] == PS_ST);
+    // B7: each ring entry holds a defined pending state (PS_NONE to PS_ST).
+    assert (st0[F_PS+:4] <= PS_ST);
+    assert (st1[F_PS+:4] <= PS_ST);
+    assert (st2[F_PS+:4] <= PS_ST);
+    assert (st3[F_PS+:4] <= PS_ST);
   end
 
   // B5: The register selects (flip-flops loaded in the prefetch cycle)

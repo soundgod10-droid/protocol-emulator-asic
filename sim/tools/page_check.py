@@ -125,17 +125,21 @@ def main(argv):
         print(f"L5b {'PASS' if ok['L5b'] else 'FAIL'}: {msg!r}, marker {marker}")
 
         # L5c (320 px: the narrowest phone screens in use; 390 px: a common one)
-        widths, checks = {}, []
+        widths, checks, wide = {}, [], {}
         for w in (320, 390):
             b.viewport(w, 844, scale=2, mobile=True)
             b.open(f"{base}/index.html?ex=E1&w={w}")
             b.wait(DONE, timeout=600)
             checks.append(b.eval("document.getElementById('ex-check').textContent"))
             widths[w] = b.eval("document.documentElement.scrollWidth")
+            wide[w] = b.eval(OVERFLOW)
             b.shot(os.path.join(out, f"e1_{w}.png"), full=True)
         ok["L5c"] = all(c.startswith("pass") for c in checks) and all(widths[w] <= w for w in widths)
-        res["checks"]["L5c"] = {"pass": ok["L5c"], "test_check": checks, "scroll_width": widths}
+        res["checks"]["L5c"] = {"pass": ok["L5c"], "test_check": checks, "scroll_width": widths, "past_the_edge": wide}
         print(f"L5c {'PASS' if ok['L5c'] else 'FAIL'}: E1 page width {widths} at screen widths 320 and 390 px, {checks[0][:60]}")
+        for w in wide:
+            for x in wide[w]:
+                print(f"L5c   past the edge of the {w} px screen: {x}")
 
         # L5d
         rows = []

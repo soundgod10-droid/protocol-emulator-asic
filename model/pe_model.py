@@ -21,7 +21,10 @@ Why:
 from collections import deque
 
 N_THREADS = 4
-MEM_WORDS = 128
+MEM_WORDS = 2048  # address space: 0-511 program memory, 512-1535 data memory, 1536-2047 = 512-1023 (isa 2.2)
+PROG_WORDS = 512  # PC and the 9-bit address field reach 0 to 511
+PC_MASK = PROG_WORDS - 1
+STORE_GAP = 5  # a read 1 to 4 cycles after a store to the same address is not defined (isa 3.3)
 N_OUT = 15  # output pins 0 to 14 (isa 5.1)
 LEAD = 4  # minimum lead of a pin event in cycles (isa 4.2)
 HORIZON = 0x8000  # a lead of 32,768 or more is a time in the past (isa 4.2)

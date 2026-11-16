@@ -10,7 +10,8 @@ What it does:
     A  choose, wait, tap Run: choose E3 (four threads), wait until its run is computed, tap the main button;
     B  tap during the computation: choose E15 and tap the main button at once, while the engine still computes;
     C  change example: tap the main button on E1, choose E9b (two threads) while E1 plays; when E9b is computed, tap
-       the main button again.
+       the main button again;
+    D  E2b (threads 1 and 2 end with ERR, the result the test expects): read the thread cards and the example card.
   The page is read every 0.25 s as a visitor sees it (cycle counter, main button, status line, panels). Checks:
     moves         after each tap the cycle counter shows at least 8 increasing values before the run ends (2 s or more
                   of visible movement) and starts in the first tenth of the run;

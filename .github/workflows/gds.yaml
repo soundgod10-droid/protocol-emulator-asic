@@ -26,8 +26,8 @@ jobs:
         shell: bash
         run: python .github/signoff_facts.py . "gds"
 
-      # Research branch: start and end points of the slow-corner flip-flop paths, the first full path, and the
-      # disconnected-pin report, as annotations (the run artifacts are too large to fetch here).
+      # Start and end points of the slow-corner paths with their slack, the first full path, and the
+      # disconnected-pin report, as annotations, so that the timing review needs no log artifact (docs/signoff.md).
       - name: Path facts
         if: always()
         continue-on-error: true

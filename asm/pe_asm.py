@@ -3,7 +3,8 @@
 
 What it does:
   The assembler reads firmware text (fw/*.s) and makes the 16-bit words
-  for the 128-word shared memory. It accepts labels, the directives .equ,
+  for the 512-word program memory (the data memory, 512 to 1,535, is
+  reached by LDX and STX). It accepts labels, the directives .equ,
   .org and .word, and the instructions of docs/isa.md section 8. For each
   error it gives the file name and the line number. Use it as
   "python asm/pe_asm.py file.s [base address]" to get a listing.

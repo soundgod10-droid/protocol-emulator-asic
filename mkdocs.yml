@@ -1,0 +1,54 @@
+# Documentation site (GitHub Pages), built by .github/workflows/docs.yaml on every push.
+# figures/site.py assembles build/site_src from README.md, docs/ and flex/PREREG.md, with the figures and the results
+# page that the workflow generates; --strict makes a broken link fail the build.
+site_name: Programmable protocol emulator
+site_description: A 4-thread processor with timed pin I/O that runs serial protocols as firmware (IHP SG13CMOS5L, Tiny Tapeout)
+site_url: https://soundgod10-droid.github.io/protocol-emulator-asic/
+repo_url: https://github.com/soundgod10-droid/protocol-emulator-asic
+repo_name: protocol-emulator-asic
+edit_uri: ""
+docs_dir: build/site_src
+site_dir: build/site
+strict: true
+
+theme:
+  name: material
+  palette:
+    primary: indigo
+    accent: indigo
+  features:
+    - navigation.top
+    - navigation.footer
+    - content.code.copy
+    - search.highlight
+
+markdown_extensions:
+  - tables
+  - admonition
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+
+validation:
+  nav:
+    omitted_files: info
+    not_found: warn
+    absolute_links: info
+  links:
+    not_found: warn
+    anchors: info
+    absolute_links: info
+    unrecognized_links: info
+
+nav:
+  - Overview: index.md
+  - Architecture: architecture.md
+  - Instruction set: isa.md
+  - Host port: host_port.md
+  - Protocols: protocols.md
+  - Verification: verification.md
+  - Signoff: signoff.md
+  - Decisions: decisions.md
+  - Flexibility census: census.md
+  - Results: results.md

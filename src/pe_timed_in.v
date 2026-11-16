@@ -76,7 +76,7 @@ module pe_timed_in (
       // have a spike filter after the synchronizer (docs/isa.md 6.1).
       if ((i == 6) || (i == 7)) begin : g_filter
         pe_spike_filter #(
-            .K(4)
+            .K(5)
         ) u_filter (
             .clk  (clk),
             .rst_n(rst_n),

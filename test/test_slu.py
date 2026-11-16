@@ -138,7 +138,7 @@ def contains(bits, data):
     return "".join(map(str, data)) in s
 
 
-@cocotb.test()
+@cocotb.test(skip=GL)
 async def test_slu_loop_equiv(dut):
     cocotb.start_soon(Clock(dut.clk, 10, unit="ns").start())
     dut.slu_ut_rst_n.value = 0

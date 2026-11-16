@@ -904,11 +904,34 @@ module pe_core (
       //     cycles (isa 3.1).
       if ($past(start)) assert (f_tag0 == 2'd0);
       else assert (f_tag0 == $past(f_tag0) + 2'd1);
-      // B3: The word in ir is the word that was read for this slot thread:
-      //     its PC, or its LD address in the second slot of LD/LDX
-      //     (prefetch in the cycle before, with st1).
-      assert ($past(mem_raddr) == ((h_ps == PS_LD) ? h_ldaddr : h_pc));
     end
+  end
+
+  // B3: The word in ir is the word that was read for this slot thread: its PC, or its LD address
+  //     in the second slot of LD/LDX. The request of cycle c - 3 (from st3) is in the request
+  //     register in cycle c - 2; the second slot of a store has no word (its fetch was the store).
+  reg [2:0] f_ok3;  // cycles since reset or START, saturating at 3
+  always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) f_ok3 <= 3'd0;
+    else if (start) f_ok3 <= 3'd0;
+    else if (f_ok3 != 3'd3) f_ok3 <= f_ok3 + 3'd1;
+  end
+  reg [10:0] f_addr_q1, f_addr_q2;  // mem_addr one and two cycles ago
+  reg        f_we_q1, f_we_q2;
+  always @(posedge clk) begin
+    f_addr_q1 <= mem_addr;
+    f_addr_q2 <= f_addr_q1;
+    f_we_q1   <= mem_we;
+    f_we_q2   <= f_we_q1;
+  end
+  always @* begin
+    if (rst_n && (f_ok3 == 3'd3) && h_run && (h_ps != PS_ST)) begin
+      assert (!f_we_q1);
+      assert (f_addr_q1 == ((h_ps == PS_LD) ? h_ldaddr : {2'b00, h_pc}));
+    end
+    // B6: a store request replaces only the fetch of the thread that stored: that thread (now in
+    //     st3, after its slot of the last cycle) has the second store slot pending.
+    if (rst_n && st_pend) assert (st3[F_PS+:4] == PS_ST);
   end
 
   // B5: The register selects (flip-flops loaded in the prefetch cycle)

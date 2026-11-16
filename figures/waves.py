@@ -524,7 +524,12 @@ FIGURES = (("test_rtl_uart_tx", "wave_uart.svg", fig_uart), ("test_rtl_spi_ctl",
 
 
 def main(vcd_dir, out_dir):
+    global RUN
     os.makedirs(out_dir, exist_ok=True)
+    # The workflow keeps the VCDs while src/, test/, fw/, model/ and asm/ do not change; run.txt names the run that
+    # made them.
+    if os.path.exists(os.path.join(vcd_dir, "run.txt")):
+        RUN = open(os.path.join(vcd_dir, "run.txt"), encoding="utf-8").read().strip()
     result, failed = {}, []
     for test, name, fn in FIGURES:
         try:

@@ -428,7 +428,27 @@ EXAMPLES = [
 
 BY_ID = {e["id"]: e for e in EXAMPLES}
 
+# Why the threads that an example does not use stay stopped, and which flags are its expected result. The page puts the
+# threads that the host starts (the run's start configuration) in front of this text.
+THREADS_WHY = ("The host starts only the threads that this example's protocol needs; the others stay stopped "
+               "(RUN = 0), as they would on the chip. That is not a fault: the chip has four threads, so up to four "
+               "protocols run at once (E3).")
+THREADS = {
+    "E2a": ("LATE on thread 0 is the expected result: the program issues two events too late on purpose (lead 3, "
+            "then a time in the past), reads STATUS after each one, clears LATE after the first and leaves it set "
+            "after the second. " + THREADS_WHY),
+    "E2b": ("Three test programs run, one per thread. ERR on threads 1 and 2 is the expected result of the test: "
+            "thread 1 writes uo0, which thread 0 owns, and thread 2 writes pin 15, which does not exist; the chip "
+            "ignores both OUTs, sets ERR, and each thread reads STATUS = 2 and sends it to the host. Thread 3 is not "
+            "needed."),
+    "E3": "All four threads run, one protocol each: UART TX, UART RX, SPI controller and I2C controller.",
+    "E9": ("fw/can.s runs on two threads: thread 0 sends, thread 1 receives every frame on the bus. Threads 2 and 3 "
+           "are not needed for one CAN node."),
+    "E9b": ("fw/can.s runs on two threads: thread 0 sends, thread 1 receives every frame on the bus. Threads 2 and 3 "
+            "are not needed for one CAN node."),
+}
+
 
 def meta():
     """Example list for the page (without the procedures)."""
-    return [{k: v for k, v in e.items() if k != "proc"} for e in EXAMPLES]
+    return [{**{k: v for k, v in e.items() if k != "proc"}, "threads": THREADS.get(e["id"], THREADS_WHY)} for e in EXAMPLES]

@@ -483,12 +483,14 @@ module pe_host_port #(
   end
 
   always @* begin
-    // H1: The memory is written only by the last bit of a word of a
-    //     WRITE_MEM (0x5A) while the threads stop, and each such word is
-    //     written, at address A + n (wrap 127 to 0) with its two bytes.
-    assert (mem_we == (m_wword && (m_cmd == 8'h5A) && !m_run));
-    if (mem_we) assert (mem_addr == m_addr);
-    if (mem_we) assert (mem_wdata == m_word);
+    // H1: The memory is written only in the cycle after the last bit of a
+    //     word of a WRITE_MEM (0x5A) while the threads stop, and each such
+    //     word is written, at address A + n (wrap 2,047 to 0) with its two
+    //     bytes (the request is a register: pe_sram).
+    assert (mem_we == m_we_q);
+    if (mem_we) assert (mem_addr == m_waddr_q);
+    if (mem_we) assert (mem_wdata == m_wdata_q);
+    if (mem_we) assert (mem_req);
     // H2: The same for the configuration (WRITE_CFG 0x78).
     assert (cfg_we == (m_wword && (m_cmd == 8'h78) && !m_run));
     if (cfg_we) assert (cfg_addr == m_addr);

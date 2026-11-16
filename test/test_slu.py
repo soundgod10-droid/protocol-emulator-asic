@@ -13,7 +13,7 @@ import random
 
 import cocotb
 from cocotb.clock import Clock
-from cocotb.triggers import FallingEdge, ReadOnly, RisingEdge
+from cocotb.triggers import ClockCycles, FallingEdge, ReadOnly, RisingEdge
 
 from slu_loop_model import TENBASET, USB_LS, Loop
 

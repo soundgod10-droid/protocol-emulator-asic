@@ -703,9 +703,9 @@ module pe_slu #(
               crc_t <= crc_step(crc_t, t_bit, c_pa) & crc_mask;
           end
           if (FULL && carrier && (tx_st == T_DATA || tx_st == T_CRC)) begin
-            sticky[14] <= 1'b1;                              // collision: jam, then the tail
+            sticky[14] <= 1'b1;                              // collision: 32 jam bits, then the tail
             tx_st  <= T_JAM;
-            tx_jam <= 6'd31;
+            tx_jam <= 6'd32;
           end
           if (FULL && jabber) tx_st <= T_IDLE;
         end

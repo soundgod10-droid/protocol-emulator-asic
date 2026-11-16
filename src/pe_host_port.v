@@ -316,10 +316,12 @@ module pe_host_port #(
               st <= S_RDB;
             end
             S_RDB: begin
-              tx   <= mem_rdata[15:8];
-              hold <= mem_rdata[7:0];
-              addr <= addr + 7'd1;
-              st   <= S_RDA;
+              tx       <= mem_rdata[15:8];
+              hold     <= mem_rdata[7:0];
+              mem_req  <= 1'b1;
+              mem_addr <= addr + 11'd1;
+              addr     <= addr + 11'd1;
+              st       <= S_RDA;
             end
             S_PLA: begin
               if (remain != 3'd0) begin

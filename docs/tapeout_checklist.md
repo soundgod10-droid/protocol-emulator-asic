@@ -1,6 +1,6 @@
 # Tape-out checklist
 
-Items to do or check before the final (tape-out) gds run and the submission. Each item gives its reason. The decisions behind them are in docs/decisions.md (entries 5, 6, 12 and 13).
+Items to do or check before the final (tape-out) gds run and the submission. Each item gives its reason. The decisions behind them are in docs/decisions.md (entries 5, 6, 12, 13, 19 and 20).
 
 ## 1 Exit criteria for tape-out
 

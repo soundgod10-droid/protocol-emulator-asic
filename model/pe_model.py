@@ -78,30 +78,37 @@ class Thread:
 class PeModel:
     """Processor, timed I/O unit and host FIFOs.
 
-    image: list of up to 128 words, or a dict {address: word}.
+    image: list of up to 512 words (program memory), or a dict {address: word} (0 to 2,047).
     start_pc, run: start address and RUN bit of each thread (host configuration).
     owner: for each output pin 0 to 14, the owner thread number or None (isa 5.2).
     open_drain: for each output pin, True for open-drain mode (isa 5.3).
+    helper_pins: output pins that a line helper drives (no thread owns them, isa 5.2).
+    io: object with read(port) and write(port, value) for the helper ports 16 to 47 and
+        events() -> 2 bits for inputs 13 and 14; None: ports read 0, events are 0.
     """
 
-    def __init__(self, image, start_pc=(0, 0, 0, 0), run=(True, False, False, False), owner=None, open_drain=None):
+    def __init__(self, image, start_pc=(0, 0, 0, 0), run=(True, False, False, False), owner=None, open_drain=None,
+                 helper_pins=(), io=None):
+        self.mem = [0] * (PROG_WORDS + 1024)
         if isinstance(image, dict):
-            words = [0] * MEM_WORDS
             for addr, word in image.items():
-                words[addr] = word
+                self.mem[self._maddr(addr)] = word & 0xFFFF
         else:
             words = list(image)
-            if len(words) > MEM_WORDS:
-                raise ValueError(f"image has {len(words)} words, the memory has {MEM_WORDS}")
-            words += [0] * (MEM_WORDS - len(words))
-        self.mem = [w & 0xFFFF for w in words]
+            if len(words) > PROG_WORDS:
+                raise ValueError(f"image has {len(words)} words, the program memory has {PROG_WORDS}")
+            for addr, word in enumerate(words):
+                self.mem[addr] = word & 0xFFFF
         self.store_cycle = {}  # address -> cycle of the last store (isa 3.3)
 
         self.cycle = 0
         self.threads = [Thread(n) for n in range(N_THREADS)]
         for th, pc, go in zip(self.threads, start_pc, run):
-            th.pc = pc & 0x7F
+            th.pc = pc & PC_MASK
             th.run = bool(go)
+
+        self.helper_pins = set(helper_pins)
+        self.io = io
 
         self.owner = list(owner) if owner is not None else [None] * N_OUT
         self.od = [bool(x) for x in open_drain] if open_drain is not None else [False] * N_OUT

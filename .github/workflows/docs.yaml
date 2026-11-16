@@ -152,6 +152,12 @@ jobs:
       - name: Build the site
         run: mkdocs build --strict
 
+      - name: Browser simulator (built and checked by the sim job)
+        uses: actions/download-artifact@v7
+        with:
+          name: sim-site
+          path: build/site/sim
+
       - name: Upload the site
         uses: actions/upload-pages-artifact@v5
         with:

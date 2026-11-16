@@ -26,9 +26,12 @@ permissions:
   actions: read
   checks: read
 
+# Queue, do not cancel: one push starts four workflows, and each one that ends starts this workflow again. With
+# cancel-in-progress a build (about 13 min) was cancelled by the next one and nothing was deployed for an hour. Now
+# the running build finishes and deploys, and only the newest waiting build runs after it.
 concurrency:
   group: docs-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   datasheet:

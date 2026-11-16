@@ -130,14 +130,14 @@ A blocking instruction that waits for a cycle t completes in the first slot of t
 
 ### 3.3 Memory access
 
-The memory has one read port. In each cycle, the read port reads the instruction of the thread that has the slot. LD and LDX use the read port in the next slot of the thread. Thus, LD and LDX take 2 slots (8 cycles). The data is read in the second slot.
+The memory has one port (single-port SRAM, src/pe_sram.v): one access in each cycle. The access for the slot at cycle c is sent at cycle c - 3 and the word is in the instruction register at cycle c. Normally it reads the instruction of the thread that has the slot. LD and LDX use the port for the next slot of the thread. Thus, LD and LDX take 2 slots (8 cycles); the data is read in the second slot.
 
-ST and STX write the memory at the cycle of their slot. A store at cycle cs to address a has this effect on a read of address a (instruction fetch, LD or LDX) at cycle x:
+ST and STX use the port in place of the instruction read of the next slot of the thread. Thus, ST and STX also take 2 slots; the second slot does nothing. A store at cycle cs to address a has this effect on a read of address a (instruction fetch, LD or LDX) for the slot at cycle x:
 
-- x >= cs + 4: the read gives the new word.
-- cs < x < cs + 4: not defined. The firmware must not do this. The model stops with an error.
+- x >= cs + 5: the read gives the new word.
+- cs < x < cs + 5: not defined. The firmware must not do this. The model stops with an error.
 
-A thread can thus read a word that it wrote in its last slot. Code that changes the instructions of an other running thread must obey the same rule.
+The storing thread's own next instruction is at cs + 8, so a thread can read a word that it wrote in its last instruction. Code that changes the words of an other running thread must obey the rule.
 
 ## 4 Time and output pin events
 

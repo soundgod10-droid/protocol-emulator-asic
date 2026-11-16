@@ -68,43 +68,43 @@ These waveforms come from the pins of the RTL tests at 60 MHz (logic simulation,
 
 *CAN 2.0A node, 250 kbit/s on two threads: every bit is 240 cycles, and the other node acknowledges the frame.*
 
-## Compared with other programmable I/O engines
+## Run the tests
 
-| | Engines and memory | Timing of a pin change |
-|---|---|---|
-| RP2040 PIO | per block 4 state machines, one 32-instruction memory, 9 instructions, two 32-bit shift and two scratch registers each ([RP2040 datasheet](https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf) build 2025-02-20, pp. 311 to 313) | one instruction per clock, each with a delay of up to 31 cycles (p. 313): the pin changes when the instruction executes |
-| TI PRU-ICSS (AM335x) | two independent 32-bit RISC cores at 200 MHz, 8 KB data RAM each and 12 KB shared ([TIDUB30](https://www.ti.com/lit/ug/tidub30/tidub30.pdf), p. 4) | single-cycle instructions, deterministic execution (p. 4): the pin changes when the instruction executes |
-| XMOS XS1 | up to 8 threads per core, four instructions in flight from four threads, one memory for program and data ([XS1 background](https://media.futureelectronics.com/semiconductors/microprocessors/embedded-processors/XMOS%20Architecture%20Background.pdf), p. 1); the scheduler issues from the next thread that is not waiting (p. 1) | a port can drive a value when its 16-bit port counter reaches a given count ([AN10059](https://www.xmos.com/download/AN10059:-How-to-perform-timed-output-on-a-port(1.0.0rc3).pdf/), p. 2) |
-| This chip | 4 threads in fixed slots, 128 x 16 shared memory, 4 data registers per thread | every output pin change is an event at an absolute 16-bit cycle time, one event slot per pin; a late event still happens and is reported to the host |
+You need Python 3.11 and [Icarus Verilog](https://steveicarus.github.io/iverilog/). These commands run the UART transmitter test on the RTL:
 
-The closest of these is the XMOS timed port. The differences here are the fixed slots (a waiting thread does not give its slot away), the event slot on every output pin, and the LATE report. The cost is the instruction rate: one instruction every 4 cycles per thread limits, for example, the SPI target firmware to 1 MHz at 50 MHz ([docs/host_port.md](docs/host_port.md) section 13).
+```sh
+git clone https://github.com/soundgod10-droid/protocol-emulator-asic.git && cd protocol-emulator-asic/test
+pip install -r requirements.txt
+make -B COCOTB_TEST_MODULES=test_rtl_fw COCOTB_TEST_FILTER=test_rtl_uart_tx
+```
 
-## Pins
+`make -B` runs all the tests (about 40 minutes). [test/README.md](test/README.md) tells how to run the gate-level tests and how to get the pin waveforms. A formal job: `sby -f formal/<job>.sby`.
 
-| Pins | Use |
+## Folders
+
+| Folder | Contents |
 |---|---|
-| `ui_in[7:5]`, `uo_out[7]` | host SPI: SCK, CS_N, MOSI, MISO |
-| `ui_in[4:0]` | processor inputs 8 to 12 |
-| `uo_out[6:0]` | processor outputs 8 to 14 (high after reset) |
-| `uio[7:0]` | processor pins 0 to 7, in or out; `uio[6]`, `uio[7]` have the I2C spike filter |
-
-After reset no thread runs, `uo_out[6:0]` is high and all `uio` pins are inputs.
-
-## How to use it
-
-1. Assemble a firmware file with `asm/pe_asm.py` ([docs/isa.md](docs/isa.md) section 11).
-2. Over the host port: write the words with WRITE_MEM, give the output pins to their threads with WRITE_CFG, then START. Give host words to the threads with PUSH and read their words with PULL. The step-by-step UART example is in [docs/info.md](docs/info.md).
-3. Clock-dependent values (bit times, SPI half period, I2C times) are host words or assembler constants, so one firmware file works at other clock frequencies ([docs/host_port.md](docs/host_port.md) section 11).
-
-Run the tests: `cd test && make -B` (cocotb with Icarus Verilog). Formal proofs: `sby -f formal/<job>.sby`.
+| [src/](src/) | RTL of the chip (Verilog); [info.yaml](info.yaml) lists the files of the layout |
+| [fw/](fw/) | firmware: the programs for each protocol |
+| [asm/](asm/) | assembler for the firmware |
+| [model/](model/) | cycle-exact reference model of the chip (Python) |
+| [test/](test/) | cocotb tests on the model, the RTL and the gate-level netlist |
+| [formal/](formal/) | formal proofs and covers (SymbiYosys) |
+| [spice/](spice/) | circuit simulations of the pads and the input synchronizers (ngspice) |
+| [figures/](figures/) | scripts that make the figures and the Results page in CI |
+| [docs/](docs/) | the documents (the pages of the documentation site) |
+| [flex/](flex/) | flexibility census: the rules, set before the census, and the protocol list |
+| [.github/workflows/](.github/workflows/) | CI: tests, coverage, formal, layout (gds), timing simulation (sdf), FPGA, documentation |
 
 ## Documents
 
-- [docs/architecture.md](docs/architecture.md): block diagram, slots and pipeline, memory, host port, pins, clock and reset
-- [docs/signoff.md](docs/signoff.md): each signoff check of the field with its source, our result and the open items; CDC and reset review
-- [docs/info.md](docs/info.md): datasheet page, pins, the test procedure and the external parts for each protocol
-- [docs/isa.md](docs/isa.md): instruction set and encoding
-- [docs/host_port.md](docs/host_port.md): host SPI port, host rules, firmware limits
-- [docs/verification.md](docs/verification.md): each verification method, what it checks and what it does not, latest results
-- [docs/decisions.md](docs/decisions.md): each design decision with the options compared and the evidence
-- [docs/tapeout_checklist.md](docs/tapeout_checklist.md): checks before the final layout run
+- [Architecture](docs/architecture.md): the blocks, the thread slots and the pipeline, the memory, the pins, clock and reset, and a comparison with other programmable I/O engines
+- [Instruction set](docs/isa.md): every instruction and its encoding
+- [Host port](docs/host_port.md): the SPI commands, the host rules and the firmware limits
+- [Protocols](docs/protocols.md): every firmware program, how it is tested, and the waveforms
+- [Verification](docs/verification.md): each verification method, what it checks and what it does not
+- [Signoff](docs/signoff.md): each signoff check with its source and result, the open items, the CDC and reset review
+- [Decisions](docs/decisions.md): each design decision with the options and the evidence
+- [Flexibility census](flex/PREREG.md): the rules for the census of protocols on the frozen chip
+- [Datasheet](docs/info.md): pins, how to use the chip step by step, and the external parts for each protocol
+- [Tapeout checklist](docs/tapeout_checklist.md): the checks before the final layout run

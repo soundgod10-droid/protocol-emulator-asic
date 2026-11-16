@@ -300,7 +300,7 @@ async def feed_words(s, words, last=True):
             await s.wr(P_TXLAST if (last and not feed) else P_TXDATA, w)
 
 
-@cocotb.test()
+@cocotb.test(skip=GL)
 async def test_slu_usb_tx(dut):
     """USB low-speed transmit: SYNC, PID, 8 data bytes, CRC16 appended by the unit, bit stuffing,
     NRZI on VPO/VMO, EOP SE0 84 cycles (1.40 us; USB 2.0 7.1.13.2.1 TLEOPT 1.25-1.50 us) and J 40

@@ -169,7 +169,7 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y ./iverilog_13.0-1_amd64.deb
           pip install -r test/requirements.txt
-          cp tt_submission/*.v test/gate_level_netlist.v
+          cp build/gds/tt_submission/*.v test/gate_level_netlist.v
           cd test
           rm -f pins.vcd results.xml
           GATES=yes make PIN_VCD=1 FST= COCOTB_TEST_MODULES=test_rtl_fw COCOTB_TEST_FILTER=${{ matrix.test }}

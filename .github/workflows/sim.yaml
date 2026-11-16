@@ -79,7 +79,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: build/samples
-          key: sim-rtl-${{ matrix.test }}-${{ hashFiles('src/**', 'test/**', 'fw/**', 'model/**', 'asm/**', 'sim/tools/wave_samples.py', 'sim/tools/trim_vcd.py') }}
+          key: sim-rtl-${{ matrix.test }}-${{ hashFiles('src/**', 'test/**', 'fw/**', 'model/**', 'asm/**', 'sim/tools/wave_samples.py', 'sim/tools/trim_vcd.py', '.github/workflows/sim.yaml') }}
 
       - name: Install iverilog
         if: steps.cache.outputs.cache-hit != 'true'
@@ -103,7 +103,7 @@ jobs:
           # make returns success even if the test fails, so check results.xml
           python -m cocotb_tools.check_results results.xml
           cd ..
-          sim="Icarus Verilog $(iverilog -V 2>&1 | head -n 1 | sed 's/^Icarus Verilog version //') + cocotb $(python -c 'import cocotb; print(cocotb.__version__)')"
+          sim="Icarus Verilog $(iverilog -V 2>&1 | head -n 1 | sed -e 's/^Icarus Verilog version //' -e 's/ ()$//') + cocotb $(python -c 'import cocotb; print(cocotb.__version__)')"
           python -I sim/tools/wave_samples.py trim rtl ${{ matrix.test }} test/pins.vcd build/samples "$sim" \
             "$(git rev-parse HEAD)" "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
 
@@ -134,7 +134,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: build/samples
-          key: sim-gl-${{ matrix.test }}-${{ needs.tests.outputs.gds_id }}-${{ hashFiles('test/**', 'fw/**', 'model/**', 'asm/**', 'sim/tools/wave_samples.py', 'sim/tools/trim_vcd.py') }}
+          key: sim-gl-${{ matrix.test }}-${{ needs.tests.outputs.gds_id }}-${{ hashFiles('test/**', 'fw/**', 'model/**', 'asm/**', 'sim/tools/wave_samples.py', 'sim/tools/trim_vcd.py', '.github/workflows/sim.yaml') }}
 
       - name: Netlist of the gds run
         if: steps.cache.outputs.cache-hit != 'true'
@@ -175,7 +175,7 @@ jobs:
           GATES=yes make PIN_VCD=1 FST= COCOTB_TEST_MODULES=test_rtl_fw COCOTB_TEST_FILTER=${{ matrix.test }}
           python -m cocotb_tools.check_results results.xml
           cd ..
-          sim="Icarus Verilog $(iverilog -V 2>&1 | head -n 1 | sed 's/^Icarus Verilog version //') + cocotb $(python -c 'import cocotb; print(cocotb.__version__)'), -DGL_TEST -DFUNCTIONAL -DSIM, netlist of gds run $GDS_ID (commit ${GDS_SHA:0:10}), cell models $PDK $PDK_VERSION"
+          sim="Icarus Verilog $(iverilog -V 2>&1 | head -n 1 | sed -e 's/^Icarus Verilog version //' -e 's/ ()$//') + cocotb $(python -c 'import cocotb; print(cocotb.__version__)'), -DGL_TEST -DFUNCTIONAL -DSIM, netlist of gds run $GDS_ID (commit ${GDS_SHA:0:10}), cell models $PDK $PDK_VERSION"
           python -I sim/tools/wave_samples.py trim gl ${{ matrix.test }} test/pins.vcd build/samples "$sim" \
             "$GDS_SHA" "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
 

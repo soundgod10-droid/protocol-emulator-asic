@@ -638,37 +638,38 @@ module pe_core (
 
             4'h8: begin  // Bcc (isa 9.2)
               case (ir[11:9])
-                3'd0:    n_pc = ir[6:0];
-                3'd1:    n_pc = h_z ? ir[6:0] : pc1;
-                3'd2:    n_pc = h_z ? pc1 : ir[6:0];
-                3'd3:    n_pc = h_c ? ir[6:0] : pc1;
-                3'd4:    n_pc = h_c ? pc1 : ir[6:0];
-                3'd5:    n_pc = h_n ? ir[6:0] : pc1;
-                3'd6:    n_pc = h_e ? ir[6:0] : pc1;
-                default: n_pc = h_e ? pc1 : ir[6:0];
+                3'd0:    n_pc = baddr;
+                3'd1:    n_pc = h_z ? baddr : pc1;
+                3'd2:    n_pc = h_z ? pc1 : baddr;
+                3'd3:    n_pc = h_c ? baddr : pc1;
+                3'd4:    n_pc = h_c ? pc1 : baddr;
+                3'd5:    n_pc = h_n ? baddr : pc1;
+                3'd6:    n_pc = h_e ? baddr : pc1;
+                default: n_pc = h_e ? pc1 : baddr;
               endcase
             end
 
             4'h9: begin  // DJNZ: flags do not change
               wen  = 1'b1;
               wval = add_s[15:0];
-              n_pc = (add_s[15:0] != 16'd0) ? ir[6:0] : pc1;
+              n_pc = (add_s[15:0] != 16'd0) ? baddr : pc1;
             end
 
             4'hA: begin  // JAL
               wen  = 1'b1;
-              wval = {9'd0, pc1};
-              n_pc = ir[6:0];
+              wval = {7'd0, pc1};
+              n_pc = baddr;
             end
 
             4'hB: begin
-              if (ir[11]) begin  // ST
-                mem_we = 1'b1;
-                n_pc   = pc1;
+              if (ir[11]) begin  // ST: 2 slots
+                s_we = 1'b1;
+                n_pc = pc1;
+                n_ps = PS_ST;
               end else begin  // LD: read in the next slot
                 n_ps     = PS_LD;
                 n_ldrd   = ir[10:9];
-                n_ldaddr = ir[6:0];
+                n_ldaddr = {2'b00, baddr};
               end
             end
 

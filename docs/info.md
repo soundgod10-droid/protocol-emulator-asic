@@ -62,7 +62,7 @@ Procedure (UART transmitter). The steps are written for a 50 MHz clock and `fw/u
 1. Set HOST_CS_N high and HOST_SCK low. Set `rst_n` to 0 for at least 10 clock cycles, then set it to 1. `uo_out[4]` must stay high.
 2. Use SPI mode 0, MSB first, SCK 10 MHz or less (docs/host_port.md sections 3 and 6).
 3. READ_ID: send 0x1E and 4 more bytes. MISO gives 0x50 0x45 0x02 0x03.
-4. WRITE_MEM: send 0x5A, 0x00, then the words of fw/uart_tx.s (assembled with asm/pe_asm.py), high byte first. READ_MEM (0x69, 0x00, then 2 dummy bytes for each word) must give the same words.
+4. WRITE_MEM: send 0x5A, 0x00, 0x00 (address, 2 bytes), then the words of fw/uart_tx.s (assembled with asm/pe_asm.py), high byte first. READ_MEM (0x69, 0x00, 0x00, 1 dummy byte, then 2 dummy bytes for each word) must give the same words.
 5. WRITE_CFG: send 0x78, 0x00, then 5 words: 0, 0, 0, 0 (start addresses), 0x0001 (thread 0 runs). Then send 0x78, 0x1C (address 28 = pin 12), 0x00, 0x04 (owner thread 0, enabled).
 6. START: send 0x4B. READ_STATUS (0x2D and 7 dummy bytes): byte 0 bit 0 = 1, byte 1 = 0x01.
 7. Connect a UART receiver (115,200 bit/s, 8N1, 3.3 V) to `uo_out[4]`. For each byte: read status byte 3 (bits 2:0 = words in the FIFO of thread 0); if it is less than 4, send PUSH: 0x87, 0x00, 0x00, the byte. The receiver must show the same bytes. With 4 words in the FIFO the frames are back to back (86.8 us each).

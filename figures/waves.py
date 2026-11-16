@@ -494,7 +494,9 @@ def fig_can(vcd, out):
     for t in edges(rx, "fall"):
         if sof < t <= frame_end and value_at(txa, t) == 1 and value_at(txa, t - 20 * CLK_PS) == 1:
             ack = t
-    marks = [dict(lane=1, ta=sof, tb=sof + b * CLK_PS, text=f"1 bit = {b} cycles = {us(b):.3f} µs", pos="bottom")]
+    # A 1-bit mark is 2 px wide in a window of a whole frame; mark the first 10 bit times from SOF instead.
+    marks = [dict(lane=1, ta=sof, tb=sof + 10 * b * CLK_PS, text=f"10 bits = {10 * b:,} cycles = {us(10 * b):.1f} µs",
+                  pos="bottom")]
     topl = [(sof + b * CLK_PS / 2, "SOF")]
     if ack is not None:
         topl.append((ack + b * CLK_PS / 2, "ACK from the node"))

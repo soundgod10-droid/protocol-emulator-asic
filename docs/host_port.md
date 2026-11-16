@@ -103,7 +103,7 @@ Alternative (not used): MISO changes after the falling SCK edge (classic mode 0 
 ## 7 Timing diagram (WRITE_MEM, one word)
 
 ```
-           byte 0: 0x5A (WRITE_MEM)        byte 1: address       bytes 2, 3: word
+           byte 0: 0x5A (WRITE_MEM)   bytes 1, 2: address   bytes 3, 4: word
 CS_N  ‾‾‾\________________________________________________________ ... ______/‾‾‾‾‾
            |<-- 40 ns or more -->|
 SCK   _____________/‾‾\__/‾‾\__/‾‾\__/‾‾\ ... /‾‾\__/‾‾\ ... /‾‾\_____ ... _______

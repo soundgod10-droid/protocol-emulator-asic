@@ -61,6 +61,41 @@ module tb ();
 `endif
 `endif
 
+`ifndef GL_TEST
+  // Serial line unit: the receive loop alone, driven by test/test_slu.py (RTL runs only).
+  reg        slu_ut_rst_n = 1'b0;
+  reg        slu_ut_en = 1'b0;
+  reg        slu_ut_ddr = 1'b0;
+  reg        slu_ut_x0 = 1'b0;
+  reg        slu_ut_x1 = 1'b0;
+  reg  [5:0] slu_ut_n = 6'd12;
+  reg        slu_ut_manch = 1'b1;
+  reg  [2:0] slu_ut_kp0 = 3'd0;
+  reg  [2:0] slu_ut_kp1 = 3'd0;
+  reg  [2:0] slu_ut_kp2 = 3'd0;
+  reg  [5:0] slu_ut_gn0 = 6'd0;
+  reg  [5:0] slu_ut_gn1 = 6'd0;
+  reg        slu_ut_ki_en = 1'b0;
+  reg  [3:0] slu_ut_ki_sh = 4'd0;
+  reg  [5:0] slu_ut_win = 6'd3;
+  reg  [5:0] slu_ut_wina = 6'd3;
+  reg  [5:0] slu_ut_acq_n = 6'd0;
+  reg  [1:0] slu_ut_init_edge = 2'd2;
+  wire       slu_ut_bit_v;
+  wire       slu_ut_bit_d;
+  wire [5:0] slu_ut_nacc;
+  wire       slu_ut_init;
+
+  pe_slu_loop u_slu_loop_ut (
+      .clk(clk), .rst_n(slu_ut_rst_n), .en(slu_ut_en), .ddr(slu_ut_ddr), .x0(slu_ut_x0),
+      .x1(slu_ut_x1), .n(slu_ut_n), .manch(slu_ut_manch), .kp0(slu_ut_kp0), .kp1(slu_ut_kp1),
+      .kp2(slu_ut_kp2), .gn0(slu_ut_gn0), .gn1(slu_ut_gn1), .ki_en(slu_ut_ki_en),
+      .ki_sh(slu_ut_ki_sh), .win(slu_ut_win), .wina(slu_ut_wina), .acq_n(slu_ut_acq_n),
+      .init_edge(slu_ut_init_edge), .bit_v(slu_ut_bit_v), .bit_d(slu_ut_bit_d),
+      .nacc(slu_ut_nacc), .locked_init(slu_ut_init)
+  );
+`endif
+
   tt_um_soundgod10_droid_protocol_emulator user_project (
       .ui_in  (ui_in),    // Dedicated inputs
       .uo_out (uo_out),   // Dedicated outputs

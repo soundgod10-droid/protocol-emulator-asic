@@ -27,19 +27,46 @@ Documentation site: **<https://soundgod10-droid.github.io/protocol-emulator-asic
 - **Memory and host port.** 128 words of 16 bits hold the programs and data of all threads. The host SPI port (mode 0, up to 10 MHz) loads the memory, starts and stops the threads, and moves data through a 4-word FIFO in each direction for each thread.
 - **Status.** The layout passes all Tiny Tapeout checks. No chip is made yet.
 
-## Status
+## Key results
 
-| Item | State |
-|---|---|
-| Processor, timed pin events, 128 x 16 memory, host SPI port, I2C input spike filter | built; RTL tests, formal proofs, gate-level test pass ([docs/verification.md](docs/verification.md)) |
-| Layout at 60 MHz, 8x4 tiles, template main flow | passes (precheck 10 of 10, gate-level test); slow-corner setup margin +3.84 ns, fast-corner hold +0.10 ns, no setup, hold, max-slew or max-capacitance violation at three corners; DRC, LVS, antenna, lint 0; RTL code coverage line 100 %, branch 100 %, toggle 98.5 % ([docs/signoff.md](docs/signoff.md)) |
-| Every protocol program of `fw/`: UART TX and RX, SPI controller and target, I2C controller, CAN, JTAG, SWD, PS/2 host and device, timed trigger, 1-Wire, AM2302, PDI | runs on the RTL and on the gate-level netlist at 60 MHz against its independent protocol model, one standard rate each, with the reference model in lockstep; four protocols at once on the four threads (`test/test_rtl_fw.py`, every push; [docs/verification.md](docs/verification.md) sections 1 and 4) |
-| UART TX and RX 300 bit/s to 1 Mbit/s, SPI controller (4 modes), SPI target (4 modes, up to 1 MHz), I2C controller (Standard-mode and Fast-mode) | firmware in `fw/`, tested in the cycle-exact reference model against independent protocol models (`test/test_fw_full.py`); UART TX, UART RX, SPI controller and I2C controller fit together in 103 of 128 words (`test_fw_full_word_count`) |
-| CAN 2.0A node, JTAG controller, SWD host, PS/2 host and device, timed trigger | firmware in `fw/`, tested in the reference model against protocol models written from each specification (`test/test_flex.py`); words, rates and limits in the Flexibility section below |
-| I2C target timing characterization by the host (binary search on one firmware time constant) | tested in the model against targets with set limits (`test_flex_i2c_char`) |
-| Hold-out trials: 1-Wire controller, AM2302 sensor reader, AVR XMEGA PDI programmer, protocols not named on the competition page or in the design documents | firmware `fw/onewire.s`, `fw/am2302.s`, `fw/pdi.s` (40, 56, 52 words), each tested at 50 and 60 MHz against a device model from its public documents (`test/test_holdout.py`); see Hold-out trials below |
-| Low-speed USB device and 10BASE-T, both, each with every function of its standard done on the chip (USB 2.0 chapters 7 and 8; IEEE 802.3 clauses 3, 7 and 14) | planned, not built |
-| Silicon | none yet |
+| Check | Result | Run |
+|---|---|---|
+| Timing at 60 MHz, setup slack of the flip-flop paths, slow / typical / fast corner | +3.84 / +8.46 / +11.20 ns | [gds 43789433266][gds] |
+| Hold slack, slow / typical / fast corner | +0.59 / +0.27 / +0.10 ns | [gds 43789433266][gds] |
+| Setup, hold, max-slew and max-capacitance violations | 0 at all 3 corners | [gds 43789433266][gds] |
+| Routing DRC, LVS, antenna | 0 / 0 / 0 errors | [gds 43789433266][gds] |
+| Tiny Tapeout precheck | 10 of 10 checks pass | [gds 43789433266][gds] |
+| RTL tests (cocotb, Icarus Verilog) | 90 of 90 pass | [test 43795007970][test] |
+| Protocol programs on the RTL / on the gate-level netlist | 15 of 15 / 15 of 15 pass | [test 43795007970][test], [gds 43789433266][gds] |
+| Code coverage of the RTL tests: line / branch / toggle | 100 % / 100 % / 98.6 % | [coverage 43795007944][cov] |
+| Formal proofs and covers (SymbiYosys) | 14 of 14 jobs pass | [formal 43795007954][formal] |
+
+Conditions: static timing of the routed layout at the three corners of the flow (slow 1.08 V 125 °C, typical 1.20 V 25 °C, fast 1.32 V -40 °C). The tests are logic simulations. The gate-level tests use the netlist of the layout with functional cell models and no delays. There is no silicon result yet. The [Results](https://soundgod10-droid.github.io/protocol-emulator-asic/results/) page is made again from the newest runs on every push, with every value and its run.
+
+[gds]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43789433266
+[test]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43795007970
+[cov]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43795007944
+[formal]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43795007954
+
+## See it run
+
+These waveforms come from the pins of the RTL tests at 60 MHz (logic simulation, ideal pins). CI makes them on every push with [figures/waves.py](figures/waves.py). Red marks are the limits of the standard or the test; green marks are the measured values. Details are on the [Protocols](docs/protocols.md) page.
+
+![UART transmitter at 115,200 bit/s](https://soundgod10-droid.github.io/protocol-emulator-asic/figures/wave_uart.svg)
+
+*UART transmitter, 115,200 bit/s: every bit is 521 cycles (rate error -0.032 %).*
+
+![SPI controller in mode 0](https://soundgod10-droid.github.io/protocol-emulator-asic/figures/wave_spi.svg)
+
+*SPI controller, mode 0: SCK 1.20 MHz. MISO comes from an independent device model.*
+
+![I2C controller in Fast-mode](https://soundgod10-droid.github.io/protocol-emulator-asic/figures/wave_i2c.svg)
+
+*I2C controller, Fast-mode: fSCL 389.6 kHz. Every bus time is checked against NXP UM10204 Table 11.*
+
+![CAN node at 250 kbit/s](https://soundgod10-droid.github.io/protocol-emulator-asic/figures/wave_can.svg)
+
+*CAN 2.0A node, 250 kbit/s on two threads: every bit is 240 cycles, and the other node acknowledges the frame.*
 
 ## Flexibility: protocols the instruction set was not designed for
 

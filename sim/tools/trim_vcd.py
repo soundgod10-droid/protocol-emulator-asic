@@ -1,4 +1,5 @@
-"""Trim the raw pin dumps of tools/tb_wave.v into small VCD samples for the waveform page.
+# SPDX-License-Identifier: Apache-2.0
+"""Trim the raw pin dumps of test/tb.v (make PIN_VCD=1) into small VCD samples for the waveform page.
 
 Raw dump: vectors rst_n, ui_in, uio_in, uo_out, uio_out, uio_oe (timescale 1 ps, sim clock 16,668 ps).
 Each sample: named 1-bit lines derived from the pins, a time window, times shifted so the window starts at 0.

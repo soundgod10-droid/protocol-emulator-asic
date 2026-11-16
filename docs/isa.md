@@ -148,7 +148,7 @@ The instruction executes at cycle c. The lead is d = (t - c) mod 65,536.
 - If 4 <= d <= 32,767, the event is on time. The event occurs at cycle c + d. LEAD = 4 (docs/decisions.md entry 1).
 - If d < 4 or d >= 32,768, the event is late (section 4.3).
 
-Thus, the firmware must issue each event 4 to 32,767 cycles before its time. 32,767 cycles are 655 us at 50 MHz.
+Thus, the firmware must issue each event 4 to 32,767 cycles before its time. 32,767 cycles are 546 us at the declared 60 MHz (655 us at 50 MHz).
 
 ### 4.3 Late events
 

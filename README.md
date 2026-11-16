@@ -9,6 +9,8 @@ This chip is a small 4-thread processor that makes serial protocols (UART, SPI, 
 
 Documentation site: **<https://soundgod10-droid.github.io/protocol-emulator-asic/>**
 
+Simulator in the browser: **<https://soundgod10-droid.github.io/protocol-emulator-asic/sim/>**. It runs 23 example setups (UART, SPI, I2C, CAN, JTAG, SWD, PS/2, 1-Wire, AM2302, PDI, four protocols at once) on the chip's reference model, the Python model that the RTL is checked against in every clock cycle, with the device models of the tests. Edit the firmware, step through the four threads, and see the pins and the decoded waveforms. CI checks that every example gives the same trace in the browser as in the test environment. The recorded pins of the RTL and gate-level tests are on the [waveforms page](https://soundgod10-droid.github.io/protocol-emulator-asic/sim/wave/demo.html).
+
 ![Final layout of the chip](https://soundgod10-droid.github.io/protocol-emulator-asic/figures/layout.png)
 
 *The final layout of the 8x4 tile (1724 x 711 um), from the GDS of the newest gds run. The white line is the tile outline. The logic is in the left part (the cells use 24.6 % of the tile); the rest holds filler cells under the power grid. Made in CI by [figures/layout.py](figures/layout.py) (KLayout, PDK layer colours). The same layout in 3D: [layout viewer](https://soundgod10-droid.github.io/protocol-emulator-asic/viewer/).*

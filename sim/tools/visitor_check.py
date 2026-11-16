@@ -206,7 +206,7 @@ def path_b(v):
     v.page.select_option("#example", "E15")
     v.page.tap("#run")
     at_tap = v.sample()
-    after = v.watch(REPLAY_MAX_S + 60, stop=finished, shot_at=5, shot_name="B1_one_s_after_tap")
+    after = v.watch(REPLAY_MAX_S + 60, stop_all=ended_or_stalled, shot_at=5, shot_name="B1_one_s_after_tap")
     v.shot("B2_end")
     r = replay_checks(after)
     threads = v.page.evaluate(THREADS)

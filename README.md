@@ -37,7 +37,7 @@ Simulator in the browser: **<https://soundgod10-droid.github.io/protocol-emulato
 | Hold slack, slow / typical / fast corner | +0.59 / +0.27 / +0.10 ns | [gds 43804950941][gds] |
 | Setup, hold, max-slew and max-capacitance violations | 0 at all 3 corners | [gds 43804950941][gds] |
 | Routing DRC, LVS, antenna | 0 / 0 / 0 errors | [gds 43804950941][gds] |
-| Tiny Tapeout precheck | 10 of 10 checks pass | [gds 43804950941][gds] |
+| Layout precheck of the shuttle | 10 of 10 checks pass | [gds 43804950941][gds] |
 | RTL tests (cocotb, Icarus Verilog) | 90 of 90 pass | [test 43804950902][test] |
 | Protocol programs on the RTL / on the gate-level netlist | 15 of 15 / 15 of 15 pass | [test 43804950902][test], [gds 43804950941][gds] |
 | Code coverage of the RTL tests: line / branch / toggle | 100 % / 100 % / 98.6 % | [coverage 43804951001][cov] |

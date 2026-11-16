@@ -267,7 +267,7 @@ async def test_asm_labels_and_directives(dut):
     prog = pe_asm.assemble("NOP\nx: JMP x", base=20)
     assert prog.words == {20: 0x0100, 21: 0x8015}, prog.listing()
     image = pe_asm.assemble("NOP").image()
-    assert len(image) == 128 and image[0] == 0x0100 and image[1] == 0x0000
+    assert len(image) == 512 and image[0] == 0x0100 and image[1] == 0x0000
 
 
 @cocotb.test()

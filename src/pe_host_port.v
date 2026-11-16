@@ -441,6 +441,22 @@ module pe_host_port #(
     end
   end
 
+  // Memory word that the monitor expects to be written in the next cycle (H1).
+  reg        m_we_q;
+  reg [10:0] m_waddr_q;
+  reg [15:0] m_wdata_q;
+  always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+      m_we_q    <= 1'b0;
+      m_waddr_q <= 11'd0;
+      m_wdata_q <= 16'h0000;
+    end else begin
+      m_we_q    <= m_wword && (m_cmd == 8'h5A) && !m_run;
+      m_waddr_q <= m_addr;
+      m_wdata_q <= m_word;
+    end
+  end
+
   // ID byte of response byte m_nb (docs/host_port.md section 4).
   reg [7:0] m_idb;
   always @* begin

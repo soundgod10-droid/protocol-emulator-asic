@@ -434,8 +434,9 @@ module pe_slu #(
     end else begin
       // ---------------- configuration and control ----------------
       if (p_we && p_addr == 4'd12) cfg_adr <= p_wdata[4:0];
-      if (p_we && p_addr == 4'd13) begin
-        cfg_adr <= cfg_adr + 5'd1;
+      if (p_we && p_addr == 4'd13 && SPEC != 0 && cfg_adr == 5'd8) c_sel <= p_wdata;
+      if (p_we && p_addr == 4'd13) cfg_adr <= cfg_adr + 5'd1;
+      if (p_we && p_addr == 4'd13 && SPEC == 0) begin
         case (cfg_adr)
           5'd0:  c_mode  <= p_wdata;
           5'd1:  c_txper <= p_wdata;

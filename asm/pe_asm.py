@@ -26,7 +26,7 @@ Syntax:
 import re
 import sys
 
-MEM_WORDS = 128
+MEM_WORDS = 512  # program memory: PC and the 9-bit address field of Bcc, DJNZ, JAL, LD, ST (isa 11.2)
 
 # Predefined names (isa 5.1, 10). Kind "io": OUT and SAMPLE/WAIT,
 # "out": OUT only, "in": SAMPLE/WAIT only, "port": IOR/IOW.

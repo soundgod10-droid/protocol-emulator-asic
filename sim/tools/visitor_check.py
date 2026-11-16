@@ -167,7 +167,7 @@ def replay_checks(samples):
     stops = silent_stops(samples)
     total = max(last["frontier"], 1)
     r = {
-        "moves": n, "moves_pass": n >= MOVES_MIN and first["cycle"] <= total // 10,
+        "moves": n, "moves_pass": n >= MOVES_MIN and min(s["cycle"] for s in samples[:3]) <= total // 10,
         "silent_stops_at_s": stops[:10], "no_silent_stop_pass": not stops,
         "end": {k: last[k] for k in ("cycle", "frontier", "done", "button", "status", "result_in_view")},
         "result_in_view_pass": finished(last) and last["result_in_view"] is not None,

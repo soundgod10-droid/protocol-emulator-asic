@@ -273,14 +273,25 @@ USB_CFG_TX = {
 }
 
 
-async def capture(dut, ncyc):
-    """tx_v and tx_oe in each cycle after the next rising edge."""
-    out = []
+async def capture(dut, ncyc, out=None):
+    """tx_v, tx_oe and now in each cycle (after each rising edge), ncyc cycles; runs as a background
+    task when out is given."""
+    out = [] if out is None else out
     for _ in range(ncyc):
         await RisingEdge(dut.clk)
         await ReadOnly()
         out.append((int(dut.slu_txv.value), int(dut.slu_txoe.value), int(dut.slu_now.value)))
     return out
+
+
+async def feed_words(s, words, last=True):
+    """Push words as the TX buffer frees; the final one through TXLAST."""
+    feed = list(words)
+    while feed:
+        free = await s.rd(P_TXDATA)
+        if free:
+            w = feed.pop(0)
+            await s.wr(P_TXLAST if (last and not feed) else P_TXDATA, w)
 
 
 @cocotb.test()

@@ -272,14 +272,17 @@ class PeModel:
     def _slot(self, th, c, s):
         """The slot of thread th at cycle c (isa 3.1, 3.2)."""
         if th.pend is not None:
+            if th.pend["op"] == "st":
+                th.pend = None  # second slot of ST/STX: PC already moved (isa 3.3)
+                return
             if self._finish(th, c):
                 th.pend = None
-                th.pc = (th.pc + 1) & 0x7F
+                th.pc = (th.pc + 1) & PC_MASK
             return
         word = self._read(th.pc, c, "instruction fetch")
         nxt = self._execute(th, word, c, s)
         if nxt is not None:
-            th.pc = nxt & 0x7F
+            th.pc = nxt & PC_MASK
 
     def _finish(self, th, c):
         """Completes a blocking operation if its time is past. Returns True when complete."""

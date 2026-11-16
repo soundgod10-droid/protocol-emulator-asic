@@ -674,7 +674,7 @@ module pe_slu #(
           end
         end
         T_TAIL2, T_PULSE: begin
-          if (tx_tail == 8'd0) begin
+          if (tx_tail <= 8'd1) begin
             tx_st     <= T_IDLE;
             sticky[0] <= 1'b1;
           end else begin

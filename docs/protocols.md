@@ -1,6 +1,6 @@
 # Protocols
 
-The chip has no UART, SPI or I2C block. Each protocol is a firmware program in `fw/`, written with the instruction set of [isa.md](isa.md) and loaded by the host through the SPI port ([host_port.md](host_port.md)). This page lists every program, how it is tested, and the waveforms of four of them on the chip pins.
+The chip has no UART, SPI or I2C block. Each protocol is a firmware program in `fw/`, written with the instruction set of [isa.md](isa.md) and loaded by the host through the SPI port ([host_port.md](host_port.md)). For USB low speed and 10BASE-T, two line helpers do the bit-level work at line rate and a thread does the packet and frame work ([helpers.md](helpers.md); section Line helpers below). This page lists every program, how it is tested, and the waveforms of four of them on the chip pins.
 
 ## How each protocol is tested
 

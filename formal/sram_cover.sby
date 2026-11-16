@@ -1,0 +1,15 @@
+[options]
+mode cover
+depth 12
+
+[engines]
+smtbmc z3
+
+[script]
+read -formal sram_sim.v pe_sram.v sram_fv.v
+prep -top sram_fv
+
+[files]
+../src/sram_sim.v
+../src/pe_sram.v
+sram_fv.v

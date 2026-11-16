@@ -93,7 +93,7 @@ button:hover:not(:disabled) { border-color: var(--accent); }
 button:disabled { opacity: 0.45; cursor: default; }
 button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); min-width: 72px; font-weight: 600; }
 button.small { padding: 3px 9px; font-size: 12px; }
-.prog { flex: 1 1 200px; min-width: 160px; justify-content: flex-end; }
+.prog { flex: 1 1 260px; min-width: 0; justify-content: flex-end; }
 .bar { flex: 1; max-width: 260px; height: 6px; background: var(--line-soft); border-radius: 3px; overflow: hidden; }
 #bar { height: 100%; width: 0; background: var(--accent); transition: width 0.15s; }
 #progress { font-size: 12px; color: var(--fg-2); white-space: nowrap; }

@@ -149,12 +149,9 @@ def ended_or_stalled(samples):
 
 
 def moves(samples):
-    n, top = 0, None
-    for s in samples:
-        if top is not None and s["cycle"] > top:
-            n += 1
-        top = s["cycle"] if top is None else max(top, s["cycle"])
-    return n
+    """Samples in which the counter is higher than in the sample before. The first sample after a tap can still show the
+    cycle before the tap (the page draws on its next frame), so the count is from one sample to the next."""
+    return sum(1 for a, b in zip(samples, samples[1:]) if b["cycle"] > a["cycle"])
 
 
 def silent_stops(samples):

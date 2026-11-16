@@ -585,7 +585,7 @@ class PeModel:
             self.samples.setdefault(at, []).append(th.number)
             return False
 
-        owned = pin < N_OUT and self.owner[pin] == th.number
+        owned = pin < N_OUT and self.owner[pin] == th.number and pin not in self.helper_pins
         if owned and self.slot[pin] is not None:
             return False  # slot full: wait (isa 4.4)
 

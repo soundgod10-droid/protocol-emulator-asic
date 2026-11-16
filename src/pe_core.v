@@ -88,8 +88,8 @@ module pe_core (
     output wire        ev_value,
     output wire        ev_oe,
     // Timed input unit (pe_timed_in)
-    input  wire [12:0] s_now,          // s(c)
-    input  wire [64:0] s_hist,         // s(c-1-i) at [13*i +: 13]
+    input  wire [14:0] s_now,          // s(c), inputs 0 to 14
+    input  wire [74:0] s_hist,         // s(c-1-i) at [15*i +: 15]
     // Host FIFOs of the slot thread (pe_host_fifo)
     output reg         fifo_pull,
     output reg         fifo_push,

@@ -40,6 +40,8 @@ VERILOG_SOURCES += $(PDK_LIBS_REF)/$(PDK_CELL_PREFIX)_stdcell/verilog/$(PDK_CELL
 
 # this gets copied in by the GDS action workflow
 VERILOG_SOURCES += $(PWD)/gate_level_netlist.v
+# the netlist keeps the SRAM macros as instances: their functional models
+VERILOG_SOURCES += $(SRC_DIR)/sram_sim.v
 
 endif
 

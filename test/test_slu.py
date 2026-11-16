@@ -536,7 +536,7 @@ def eth_rx_schedule(bits, jit, ppm, rng, t0):
     return sch, tend + 300.0
 
 
-@cocotb.test()
+@cocotb.test(skip=GL)
 async def test_slu_eth_rx(dut):
     """10BASE-Te receive through the pins: 20 frames of 64-200 bytes, uniform zero-crossing jitter up to
     +/-13.5 ns (IEEE 802.3 14.3.1.3.1) and +/-100 ppm; carrier by the squelch qualifier, SFD after the

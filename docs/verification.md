@@ -125,7 +125,7 @@ The I/O cells of the CMOS5L shuttle chip are `sg13cmos5l_IOPadInOut30mA` on `uio
 
 Results: I2C Standard-mode and Fast-mode output levels are met at every corner (0.142 V at 3 mA, slow); Fast-mode Plus is not (7.6 mA at 0.4 V slow, 18.4 mA fast, against 20 mA), so the chip claims Standard-mode and Fast-mode only.
 
-Does not check: layout parasitics of the pad ring and package; the Tiny Tapeout multiplexer between the pads and the tile (inside the host port allowance, [host_port.md](host_port.md) section 6); the diodes stay at their typical model (`cornerDIO.lib` has only `dio_tt`); one sample per corner, no Monte Carlo; silicon.
+Does not check: layout parasitics of the pad ring and package; the shuttle's multiplexer between the pads and the tile (inside the host port allowance, [host_port.md](host_port.md) section 6); the diodes stay at their typical model (`cornerDIO.lib` has only `dio_tt`); one sample per corner, no Monte Carlo; silicon.
 
 ## What is not verified
 

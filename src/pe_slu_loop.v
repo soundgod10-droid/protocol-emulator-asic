@@ -17,9 +17,10 @@
 //
 // Both clock edges (ddr = 1): two samples per clock cycle, x0 first in time, then x1 (the
 // falling-edge sample is x0, the rising-edge sample x1). The two sub-steps run in one cycle
-// through two copies of pe_slu_loop_step, so the register values at the end of each cycle
-// equal those of one step per sample. At most one bit is decided per cycle (a bit is at least
-// 6 samples long).
+// through copies of pe_slu_loop_step, so the register values at the end of each cycle equal
+// those of one step per sample, with one rule: at most one edge is used in a cycle (an edge at x1
+// right after an edge at x0 is a pulse of half a cycle and is not used). At most one bit is
+// decided per cycle (a bit is at least 6 samples long).
 //
 // Every operation and its order follow the bit-exact loop model in test/slu_loop_model.py; the
 // test test_slu.test_slu_loop_equiv compares the decided bits, theta, I and the edge count with

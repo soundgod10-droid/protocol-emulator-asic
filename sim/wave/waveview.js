@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // Waveform view: signals, protocol decoder rows, cursors and timing limits on one canvas.
-// Interface: web/wave/README-interface.md. No libraries.
+// Interface: sim/wave/README-interface.md. No libraries.
 
 import { parseVCD } from './vcd.js';
 import { PROTOCOLS, runDecoder, Line } from './decoders/index.js';

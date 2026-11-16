@@ -797,7 +797,7 @@ async def test_core_spike_filter(dut):
     scn = Scenario("spike_filter", asm(*parts), start_pc=(0, 8, 16, 24), run=(True, True, True, True),
                    cycles=cycles, host=pop_round_robin([0, 1, 2, 3]), stimulus=filter_stimulus(cycles))
     m, popped, _ = await run_lockstep(dut, scn)
-    want = [[], [], [], [6]]  # uio[7] is 1 from model cycle 0 and 0 before: one rise at 0 + 6
+    want = [[], [], [], [2 + k]]  # uio[7] is 1 from model cycle 0 and 0 before: one rise at 0 + 2 + K
     for pin, (first, widths) in FILTER_PULSES.items():
         for i, w in enumerate(widths):
             if w < k:

@@ -31,7 +31,7 @@ The RTL and gate-level column gives what `test/test_rtl_fw.py` runs at 60 MHz. T
 | 1-Wire controller (hold-out) | `onewire.s`, 40 | Analog Devices AN126; DS18B20 data sheet | Read ROM, Write and Read Scratchpad against the slowest device times; no device | five device-timing corners |
 | AM2302 sensor reader (hold-out) | `am2302.s`, 56 | AM2302 data sheet | sensor times x 1.2, a negative temperature, no sensor, a sensor that stops | sensor times 0.8 to 1.2 x |
 | AVR XMEGA PDI programmer (hold-out) | `pdi.s`, 52 | Atmel XMEGA AU manual 8331F, section 32 | PDI_CLK 1 MHz: KEY, control and data access, REPEAT, a parity error, BREAK | PDI_CLK 1.25 MHz (at 60 MHz) |
-| Four protocols at once | 103 words in one image | as above | UART TX 460,800 bit/s, SPI controller, I2C Fast-mode with clock stretching and JTAG on the four threads at the same time, each against its own model | - |
+| Four protocols at once | 121 words in one image (15 + 26 + 49 + 31) | as above | UART TX 460,800 bit/s, SPI controller, I2C Fast-mode with clock stretching and JTAG on the four threads at the same time, each against its own model | - |
 
 Which programs fit together in the 128 words, and the host words of each program: [host_port.md](host_port.md) section 14 (for example UART TX + UART RX + JTAG + SWD: 121 words).
 

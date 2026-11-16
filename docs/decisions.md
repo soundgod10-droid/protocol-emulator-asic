@@ -87,13 +87,13 @@ The record below is the earlier decision (6x4, before the rule change).
 - **Decision:** keep the port hardware. The documented limit is any three protocols at full rate. Two-byte firmware formats are optional loads.
 - **Would change it:** a requirement for all four protocols at full rate together.
 
-## 10. I2C input spike filter: 4 samples, on the I2C pins only
+## 10. I2C input spike filter: 5 samples, on the I2C pins only
 
 - **Question:** I2C Fast-mode inputs must suppress spikes shorter than 50 ns (NXP UM10204 Rev. 7.0, Table 10, tSP, page 43, and its note [8], page 44). How many equal samples, and on which pins?
-- **Options:** 3 or 4 equal samples; a filter on `uio[6]`, `uio[7]` only, or on all 13 inputs.
-- **Evidence:** at 50 MHz a spike of 41 to 49 ns can give 3 samples, so 3 equal samples are not enough; 4 samples remove every spike shorter than 60 ns ([docs/isa.md](isa.md) section 6.1). `test_m3_i2c_filter_k` compares 1, 3 and 4 samples in the model. `test_core_spike_filter` shows in RTL that pulses of 1 to 3 cycles have no effect. `test_fw_full_i2c_spikes` checks correct transfers with spikes. Area: 215.9 µm² per filtered pin (3 flip-flops, synthesis, typical corner). A filter on every input would add 4 cycles of delay to the UART and SPI inputs, which do not need it.
-- **Decision:** 4 samples, on `uio[6]` and `uio[7]` only.
-- **Would change it:** a protocol on `uio[6]` or `uio[7]` with pulses shorter than 4 clock cycles.
+- **Options:** 3, 4 or 5 equal samples; a filter on `uio[6]`, `uio[7]` only, or on all 13 inputs.
+- **Evidence:** a filter of K equal samples removes every spike shorter than (K - 1) clock periods. At the declared 60 MHz: K = 4 removes spikes shorter than 50.0 ns, exactly tSP with no margin; K = 5 removes spikes shorter than 66.7 ns, 16.7 ns of margin (at 50 MHz: 80 ns; [docs/isa.md](isa.md) section 6.1). `test_core_spike_filter` shows in RTL, cycle by cycle against the model, that pulses of 1 to 4 cycles have no effect and that longer pulses reach the input 7 cycles after the pin edge. `test_fw_full_i2c_spikes` checks correct Fast-mode transfers with spikes of 1 to 4 samples on SCL and on SDA at 50 and 40 MHz; `test_rtl_i2c` runs `fw/i2c_ctl.s` on the RTL at 60 MHz with 3-sample spikes on SCL and SDA. `test_m3_i2c_filter_k` compares 1, 3 and 4 samples in the model (3 samples let a 3-sample spike through). The earlier 4-sample decision was made at 50 MHz, where it gave 60 ns; the move to 60 MHz (entry 4) removed its margin. A filter on every input would add 5 cycles of delay to the UART and SPI inputs, which do not need it.
+- **Decision:** 5 samples, on `uio[6]` and `uio[7]` only.
+- **Would change it:** a protocol on `uio[6]` or `uio[7]` with pulses shorter than 5 clock cycles.
 
 ## 11. SPI target firmware: one wait per bit
 

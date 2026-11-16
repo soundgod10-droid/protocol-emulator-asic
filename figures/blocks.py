@@ -168,7 +168,8 @@ def facts(h):
     counter = h.child_variant(h.top, "pe_cycle_counter")
     f = dict(
         threads=threads,
-        mem_words=mp["WORDS"], mem_width=mp["WIDTH"],
+        pmem_words=macros[0][0], dmem_words=macros[1][0], mem_width=macros[0][1],
+        helpers=len(specs), loop_steps=h.count_in("pe_slu_loop", "pe_slu_loop_step"),
         fifo_rams=h.count_in("pe_host_fifo", "pe_latch_ram"),
         fifo_words=fp["WORDS"], fifo_width=fp["WIDTH"],
         slots=h.count_in("pe_proc", "pe_timed_out"),

@@ -118,6 +118,7 @@ module tt_um_soundgod10_droid_protocol_emulator (
       .miso         (host_miso),
       .running      (running),
       .start        (h_start),
+      .mem_req      (h_mem_req),
       .mem_we       (h_mem_we),
       .mem_addr     (h_mem_addr),
       .mem_wdata    (h_mem_wdata),

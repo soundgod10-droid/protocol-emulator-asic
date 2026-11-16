@@ -48,6 +48,19 @@ module tb ();
   // (test/test_rtl_fw.py).
   wire [23:0] out_pins = {uo_out, uio_out, uio_oe};
 
+`ifndef VERILATOR
+`ifdef PIN_VCD
+  // Waveform figures and the simulator's waveform samples (make PIN_VCD=1 FST=, .github/workflows/docs.yaml and
+  // sim.yaml): only the chip pins, as VCD, for the whole test. dump_off has no effect in this mode. The block comes after
+  // the declarations of the pins: Icarus Verilog 13 (gate-level runs) does not bind names declared later in the module.
+  initial begin
+    $dumpfile("pins.vcd");
+    $dumpvars(0, rst_n, ui_in, uo_out, uio_in, uio_out, uio_oe);
+  end
+  reg dump_off = 1'b0;
+`endif
+`endif
+
   tt_um_soundgod10_droid_protocol_emulator user_project (
       .ui_in  (ui_in),    // Dedicated inputs
       .uo_out (uo_out),   // Dedicated outputs

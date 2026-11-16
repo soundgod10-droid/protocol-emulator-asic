@@ -474,7 +474,7 @@ ETH_CFG = {
 }
 
 
-@cocotb.test()
+@cocotb.test(skip=GL)
 async def test_slu_eth_tx(dut):
     """10BASE-Te transmit: preamble and SFD from the thread, 46-byte payload, CRC-32 appended by the
     unit, Manchester at 3 cycles per half bit on TD+ (TXA) and TD- (TXB), tap B one cycle later,

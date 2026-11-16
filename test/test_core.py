@@ -84,12 +84,14 @@ class Scenario:
 
     def __init__(self, label, image, start_pc=(0, 0, 0, 0), run=(True, False, False, False),
                  owner=None, od=None, cycles=1000, host=None, stimulus=None):
+        # The host loads the first LOAD_WORDS words (the scenarios use addresses below 128); the
+        # rest of the memory is not loaded (X in the RTL simulation), so no scenario may reach it.
         if isinstance(image, dict):
-            words = [0] * pe_model.MEM_WORDS
+            words = [0] * max(LOAD_WORDS, max(image) + 1 if image else 0)
             for a, w in image.items():
                 words[a] = w
         else:
-            words = list(image) + [0] * (pe_model.MEM_WORDS - len(image))
+            words = list(image) + [0] * max(0, LOAD_WORDS - len(image))
         self.label = label
         self.image = words
         self.start_pc = tuple(start_pc)

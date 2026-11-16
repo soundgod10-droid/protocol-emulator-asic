@@ -27,7 +27,7 @@ Simulator in the browser: **<https://soundgod10-droid.github.io/protocol-emulato
 - **Timed inputs.** `SAMPLE` reads a pin at a set cycle. `WAIT` stops the thread until an edge and gives the cycle of the edge.
 - **Pins for real buses.** The host gives each output pin to one thread. Pins can be push-pull or open-drain. Two inputs have a spike filter for I2C.
 - **Memory and host port.** 128 words of 16 bits hold the programs and data of all threads. The host SPI port (mode 0, up to 10 MHz) loads the memory, starts and stops the threads, and moves data through a 4-word FIFO in each direction for each thread.
-- **Status.** The layout passes all Tiny Tapeout checks. No chip is made yet.
+- **Status.** The layout passes all checks of the shuttle's layout precheck. No chip is made yet.
 
 ## Key results
 

@@ -49,7 +49,8 @@ Sources:
 | Output event slots | 15 | One slot for each output pin: event time (16 bits), value, output enable, valid (src/pe_timed_out.v). |
 | Pin registers | 15 x 2 | Value V and output enable OE of each output pin. The pin is the output of these flip-flops (src/pe_timed_out.v). |
 | Input synchronizer | 13 x 2 | 2 flip-flop stages for each input pin (src/pe_sync.v, pe_sync2). |
-| Input spike filter | 2 x 3 | Inputs 6 and 7 (I2C SCL, SDA): output bit and a 2-bit sample count after the synchronizer (section 6.1, pe_spike_filter). |
+| Input spike filter | 2 x 4 | Inputs 6 and 7 (I2C SCL, SDA): output bit and a 3-bit sample count after the synchronizer (section 6.1, pe_spike_filter). |
+| Line helpers | 2 | USB low-speed helper (ports 16 to 31, event input 13) and 10BASE-Te helper (ports 32 to 47, event input 14), docs/helpers.md. |
 | Sample and wait units | 4 | One for each thread: sample time, pin, captured bit, edge capture time. The RTL gives the same results with one 5-cycle input history shared by the four threads (src/pe_timed_in.v, docs/architecture.md section 2). |
 | Host FIFOs | 4 x 2 | For each thread: host-to-thread FIFO and thread-to-host FIFO, 4 words of 16 bits each (src/pe_host_fifo.v). |
 | Pin configuration | 15 | For each output pin: owner thread (2 bits), owner enable, open-drain mode. The host writes it (section 5). |

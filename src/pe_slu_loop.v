@@ -112,7 +112,7 @@ module pe_slu_loop_step (
       end
     end
 
-    if (edge && init) begin
+    if (xe && init) begin
       // eps = ((theta - 1/2 sample - MID + HALF) mod NONE) - HALF
       a = t - 21'sd2048 - mid_s + half_s;
       if (a < 0) a = a + none_s;

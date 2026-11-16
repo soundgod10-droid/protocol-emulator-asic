@@ -5,7 +5,7 @@
 
 # Programmable protocol emulator
 
-This chip is a small 4-thread processor that makes serial protocols (UART, SPI, I2C, CAN, JTAG and more) in firmware, with each pin change at an exact clock cycle. It is a Tiny Tapeout design for the IHP SG13CMOS5L 130 nm process: 8x4 tiles, 60 MHz.
+This chip is a small 4-thread processor that makes serial protocols (UART, SPI, I2C, CAN, JTAG and more) in firmware, with each pin change at an exact clock cycle. It is a design for the TTIHP27a shuttle on the IHP SG13CMOS5L 130 nm process: 8x4 tiles, 60 MHz.
 
 Documentation site: **<https://soundgod10-droid.github.io/protocol-emulator-asic/>**
 

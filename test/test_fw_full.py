@@ -856,7 +856,8 @@ async def test_fw_full_i2c_spikes(dut):
 
     A spike of width w is sampled floor(w / T) or ceil(w / T) times. UM10204 Rev. 7.0, Table 10 tSP and note [8]
     (PDF pages 43, 44): a Fast-mode input filter suppresses spikes of less than 50 ns. At 50 MHz those give up to
-    3 samples, at 40 MHz up to 2; so FILTER_K - 1 = 3 samples covers both clocks.
+    3 samples, at 40 MHz up to 2, at 60 MHz up to 3 (50.0 ns = 3 T exactly); FILTER_K = 5 removes spikes of up to
+    4 samples, so every clock has one sample of margin.
     """
     k = pe_model.FILTER_K
     for f_mhz in (50, 40):

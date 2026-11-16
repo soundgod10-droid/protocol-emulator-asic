@@ -235,6 +235,13 @@ module pe_proc (
   // inputs. A helper pin drives its signal (OE = 1) from a flip-flop.
   wire [14:0] slot_v, slot_oe;
   reg  [14:0] hv;
+  // A helper pin is an output only while the threads run: STOP and the chip reset release it as
+  // they release every other output (docs/isa.md 2.4, host STOP rules).
+  reg         hrun;
+  always @(posedge clk or negedge run_rst_n) begin
+    if (!run_rst_n) hrun <= 1'b0;
+    else hrun <= 1'b1;
+  end
   genvar p;
   generate
     for (p = 0; p < 15; p = p + 1) begin : g_out

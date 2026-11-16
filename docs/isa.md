@@ -66,10 +66,10 @@ Each register of a thread is written only in the slot of that thread. Thus, each
 |---|---|---|---|
 | r0 to r3 | 64 | 256 | 17,185.3 um2 |
 | T | 16 | 64 | 4,296.3 um2 |
-| PC | 7 | 28 | 1,879.6 um2 |
+| PC | 9 | 36 | 2,416.7 um2 |
 | Z, C, N, E | 4 | 16 | 1,074.1 um2 |
 | LATE, ERR, RUN | 3 | 12 | 805.6 um2 |
-| Total | 94 | 376 | 25,240.9 um2 |
+| Total | 96 | 384 | 25,777.9 um2 |
 
 Comparison with a larger state for each thread (8 registers of 16 bits, PC 10, flags 4, loop counter 16, base time 16 = 174 bits for each thread, 696 bits in total):
 

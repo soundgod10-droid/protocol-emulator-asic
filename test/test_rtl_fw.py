@@ -1130,3 +1130,22 @@ async def test_rtl_pdi(dut):
     assert dev.setup_min >= half - 2 and dev.hold_min >= half - 2, (dev.setup_min, dev.hold_min)
     log.info(f"{label}: {len(got)} replies correct; DATA set-up {dev.setup_min} and hold {dev.hold_min} cycles")
     await bench.finish(log)
+
+
+# ----- gate-level parts -----
+
+# At gate level these tests run in two parts in parallel (.github/workflows/gds.yaml gl_protocols, GL_PART 1 or 2). In
+# the gl_test job with the other gate-level tests they took 3,822 s, and the job (1 h 43 min) ended 36 min after the
+# precheck job (gds run 43765915091). The parts are balanced by the gate-level time of each test in that run: part 1
+# 1,919 s, part 2 1,903 s. Each test must be in exactly one part.
+GL_PARTS = {
+    "1": ("test_rtl_onewire", "test_rtl_uart_rx", "test_rtl_can", "test_rtl_trigger", "test_rtl_pdi", "test_rtl_spi_tgt",
+          "test_rtl_jtag"),
+    "2": ("test_rtl_am2302", "test_rtl_ps2", "test_rtl_i2c", "test_rtl_uart_tx", "test_rtl_four_protocols",
+          "test_rtl_spi_ctl", "test_rtl_swd", "test_rtl_pull_rule"),
+}
+_tests = {name for name, obj in globals().items() if name.startswith("test_rtl_") and hasattr(obj, "skip")}
+assert sorted(_tests) == sorted(GL_PARTS["1"] + GL_PARTS["2"]), f"each test in exactly one gate-level part: {sorted(_tests)}"
+if os.environ.get("GL_PART"):
+    for _name in _tests:
+        globals()[_name].skip = _name not in GL_PARTS[os.environ["GL_PART"]]

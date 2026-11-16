@@ -295,7 +295,9 @@ module pe_slu #(
   wire        sym_end   = (tx_tmr == 16'd0);
   wire        bit_start = tx_busy && sym_end && !(m_half && tx_half);
   wire        half_mid  = tx_busy && sym_end && m_half && tx_half;
-  wire        tx_go     = (tx_st == T_ARM) && (now == tx_time);
+  // Start 3 cycles before TXTIME: the first symbol is on tx_v in cycle TXTIME and, after the pin
+  // flip-flop, on the pad from TXTIME + 1, as an OUT event at time TXTIME (docs/isa.md 4.4).
+  wire        tx_go     = (tx_st == T_ARM) && (now == tx_time - 16'd3);
   wire        need_stuff = m_stuff && (tx_run == m_k);
   wire        stuff_bit = m_ones ? 1'b0 : ~tx_runbit;
   wire [4:0]  len0      = (tx_lst0 && tx_lastbits != 5'd0) ? tx_lastbits : 5'd16;

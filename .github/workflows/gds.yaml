@@ -116,11 +116,6 @@ jobs:
         with:
           paths: test/results.xml
 
-  viewer:
-    needs: gds
-    runs-on: ubuntu-24.04
-    permissions:
-      pages: write # to deploy to Pages
-      id-token: write # to verify the deployment originates from an appropriate source
-    steps:
-      - uses: TinyTapeout/tt-gds-action/viewer@ttihp27a
+  # No viewer job here: the template's viewer job deploys GitHub Pages with only the 3D-viewer page, and a repository
+  # has one Pages site, so it would replace the documentation site. The docs workflow deploys the site and puts the
+  # layout file of the newest gds run under viewer/ for the same 3D viewer (.github/workflows/docs.yaml).

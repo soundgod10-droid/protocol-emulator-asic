@@ -156,7 +156,7 @@ The record below is the earlier decision (6x4, before the rule change).
 
 ## Claims with no public evidence yet
 
-- Pad electrical limits (I2C low-level output voltage, 5 V tolerance, Fast-mode Plus): transistor-level simulations of the pads exist, but their netlists are not in this repository. Until they are, the chip claims I2C Standard-mode and Fast-mode only, and makes no 5 V claim.
+- Pad electrical limits (I2C low-level output voltage, 5 V tolerance, Fast-mode Plus): the evidence is now public. The pad SPICE netlists are in `spice/` and the results in [verification.md](verification.md) section 9: Standard-mode and Fast-mode output low level met at every corner, Fast-mode Plus not met, not 5 V tolerant. The chip claims I2C Standard-mode and Fast-mode only and makes no 5 V claim.
 - The rejected options of entry 7 and a 2-cycle event lead were measured with formal jobs and synthesis that are not in this repository. The entries name these options without their numbers.
 
 [40793488418]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/40793488418

@@ -220,6 +220,8 @@ If a thread executes OUT for a pin that it does not own, or for pin 15:
 
 Thus, two threads can never drive the same pin. The first thread that the host gives the pin to is the only one that changes it. Each thread can read each input pin.
 
+The host can also give an output pin to a line helper (pin configuration: helper drive, helper select, helper signal; docs/host_port.md). Such a pin has no owner thread: an OUT to it sets ERR as above. While the threads run, the pin is an output (OE = 1) and shows the chosen helper signal through one more flip-flop; while they stop it is released like every other pin.
+
 ### 5.3 Open-drain mode
 
 The pin configuration has an open-drain bit for each output pin (section 4.5). In open-drain mode the pin drives 0 or it is released. An external pull-up makes the line high. Use it for I2C.

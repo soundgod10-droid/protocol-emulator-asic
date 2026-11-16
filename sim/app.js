@@ -151,23 +151,34 @@ async function restartEngine() {
   setEngine("ready", `Engine restarted in ${((performance.now() - t) / 1000).toFixed(1)} s`);
 }
 
-async function startExample(id, keepCursor = false) {
+async function startExample(id) {
   const ex = exById(id);
-  if (run && !run.done) await restartEngine();
+  const busy = run && !run.done;
+  if (busy) engine.terminate(); // the replaced run sends nothing more; the engine starts again below
+  // Every panel is cleared at once: nothing of the previous example stays on the page while this one computes.
   run = newRun(ex);
+  const r = run;
   ui.exact = null;
   ui.pending = false;
-  if (!keepCursor) ui.cursor = 0;
-  ui.playing = params.get("at") === null;
+  ui.cursor = 0;
+  ui.acc = 0;
+  ui.playing = false;
+  ui.touched = false;
+  ui.played = false;
   setupWave(ex);
   showExample(ex);
+  showFiles();
+  ui.dirty = true;
   setEngine("busy", `Running ${ex.id}`);
   updateButtons();
   try {
+    if (busy) await restartEngine();
+    if (r !== run) return;
     await engine.call("start", { id, edits: edits[id] || {} });
+    if (r !== run) return;
     setEngine("ready", `Engine ready (Pyodide ${bootInfo.pyodide}, Python ${bootInfo.python.split(" ")[0]})`);
   } catch (err) {
-    setEngine("error", "Engine error: " + err.message);
+    if (r === run) setEngine("error", "Engine error: " + err.message);
   }
   updateButtons();
 }

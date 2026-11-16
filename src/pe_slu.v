@@ -750,7 +750,8 @@ module pe_slu #(
 
       // ---------------- outputs (registered) ----------------
       tx_line_q <= tx_line;
-      case (tx_st)
+      tx_lead   <= tx_go;
+      case ((tx_lead && tx_st == T_DATA) ? T_IDLE : tx_st)  // first T_DATA cycle: no bit on tx_line yet
         T_DATA, T_CRC, T_JAM: begin
           // (the first cycle of T_DATA loads the first bit; tx_line holds it from the next cycle)
           if (m_usb)                tx_v[1:0] <= {tx_line, ~tx_line};  // VMO = J, VPO = K

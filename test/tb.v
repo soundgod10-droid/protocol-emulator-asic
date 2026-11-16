@@ -9,15 +9,7 @@ module tb ();
   // Dump the signals to a FST file. You can view it with gtkwave or surfer.
   // Not in the Verilator coverage simulation (no trace support built in).
 `ifndef VERILATOR
-`ifdef PIN_VCD
-  // Waveform figures (make PIN_VCD=1 FST=, .github/workflows/docs.yaml): only the chip pins, as VCD, for the whole
-  // test. dump_off has no effect in this mode.
-  initial begin
-    $dumpfile("pins.vcd");
-    $dumpvars(0, rst_n, ui_in, uo_out, uio_in, uio_out, uio_oe);
-  end
-  reg dump_off = 1'b0;
-`else
+`ifndef PIN_VCD
   initial begin
     $dumpfile("tb.fst");
     $dumpvars(0, tb);

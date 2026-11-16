@@ -119,7 +119,7 @@ def write_sample(raw, end, spec, out_path):
         for name, src in group["lines"]:
             L = line(raw, src)
             lines.append((group["name"], name, src, L))
-    out = ["$date", "\t(trimmed sample)", "$end", "$version", "\tIcarus Verilog pin dump, trimmed by tools/trim_vcd.py", "$end"]
+    out = ["$date", "\t(trimmed sample)", "$end", "$version", "\tIcarus Verilog pin dump, trimmed by sim/tools/trim_vcd.py", "$end"]
     for c in spec["comments"]:
         out.append(f"$comment {c} $end")
     out += ["$timescale", "\t1ps", "$end", "$scope module chip $end"]

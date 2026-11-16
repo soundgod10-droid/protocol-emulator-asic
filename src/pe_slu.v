@@ -782,6 +782,6 @@ module pe_slu #(
     end
   end
 
-  wire _unused = &{1'b0, m_oe_low, lt_a_hit, lt_b_hit, tx_skipw};
+  wire _unused = &{1'b0, m_oe_low, t_dbit};
 
 endmodule

@@ -556,6 +556,7 @@ function showExample(ex) {
   $("ex-text").textContent = ex.text;
   $("ex-source").textContent = ex.source;
   $("ex-clock").textContent = `${ex.clock_hz / 1e6} MHz (${(1e9 / ex.clock_hz).toFixed(3)} ns per cycle)`;
+  $("ex-threads").textContent = threadsText();
   $("ex-check").textContent = "running";
   $("ex-check").className = "";
   $("ex-run").textContent = "";

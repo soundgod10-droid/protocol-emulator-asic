@@ -310,12 +310,8 @@ def main(argv):
                     view["paths"][name] = r
                     ok = ok and r["pass"]
                     ctx.close()
-                    print(f"L5e {tag:15} {name} {'PASS' if r['pass'] else 'FAIL'}: "
-                          + (r["error"] if "error" in r else
-                             f"moves {r['moves']}, silent stops {len(r['silent_stops_at_s'])}, "
-                             f"result in view {r['result_in_view_pass']}, own example {r.get('own_example_pass', '-')}, "
-                             f"threads {r['threads']['ok']} {r['threads']['used']}; end: {r['end']['status']!r} "
-                             f"button {r['end']['button']!r}") + (f"; page errors {errors[:2]}" if errors else ""))
+                    print(f"L5e {tag:15} {name} {'PASS' if r['pass'] else 'FAIL'}: {summary(r)}"
+                          + (f"; page errors {errors[:2]}" if errors else ""))
                 res["views"].append(view)
             browser.close()
     httpd.shutdown()

@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chip Waveforms</title>
+<meta name="description" content="Chip pins recorded from the RTL and gate-level protocol tests of the protocol emulator chip, with protocol decoders and timing limits.">
+<link rel="stylesheet" href="wave.css">
+<style>
+  :root {
+    --bg: #f3f5f7; --fg: #1d2733; --dim: #5f6b78; --card: #ffffff; --line: #d3d9df; --accent: #1f6fb2;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #0c1014; --fg: #dfe6ed; --dim: #8a97a5; --card: #12171d; --line: #2e3741; --accent: #5aa9f0; color-scheme: dark; }
+  }
+  :root[data-theme="dark"] { --bg: #0c1014; --fg: #dfe6ed; --dim: #8a97a5; --card: #12171d; --line: #2e3741; --accent: #5aa9f0; color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 1400px; margin: 0 auto; padding: 16px; }
+  header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; margin-bottom: 10px; }
+  h1 { font-size: 20px; margin: 0; letter-spacing: -0.01em; }
+  header p { margin: 0; color: var(--dim); flex: 1 1 420px; }
+  .pick { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0 10px; }
+  .pick label { color: var(--dim); font-size: 13px; }
+  .pick select, .pick button { font: inherit; font-size: 13px; color: var(--fg); background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; min-height: 32px; max-width: 100%; }
+  .pick select { flex: 1 1 260px; min-width: 0; width: 100%; }
+  .pick > * { min-width: 0; }
+  .info { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2px 18px; background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; margin-bottom: 10px; font-size: 12.5px; }
+  .info div { min-width: 0; overflow-wrap: anywhere; }
+  .info .wide { grid-column: 1 / -1; }
+  .info b { color: var(--dim); font-weight: 600; margin-right: 4px; }
+  footer { color: var(--dim); font-size: 12px; margin-top: 12px; }
+  footer a { color: var(--accent); }
+  @media (max-width: 600px) { main { padding: 10px; } h1 { font-size: 17px; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Chip waveforms</h1>
+    <p>Pins of the chip recorded from its own protocol tests, on the RTL and on the gate-level netlist. Each test runs the
+      firmware against an independent protocol model, with the reference model in lockstep in every clock cycle.</p>
+  </header>
+  <div class="pick">
+    <label for="sample">Recording</label>
+    <select id="sample"></select>
+    <button type="button" id="theme">Light / dark</button>
+  </div>
+  <div class="info" id="info"></div>
+  <div id="wave"></div>
+  <footer id="foot"></footer>
+</main>
+<script type="module" src="demo.js"></script>
+</body>
+</html>

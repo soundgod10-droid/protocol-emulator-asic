@@ -311,8 +311,9 @@ def draw(f, top, clock, tiles, pins, commit, out):
     s.text(20, 838, "Pin names from info.yaml. The host port, the threads and the pins share the one clock; "
            "every output comes from a flip-flop.", size=11, colour="muted")
     s.save(out, "Block diagram of the protocol emulator chip",
-           f"{f['threads']}-thread barrel core with {f['mem_words']} x {f['mem_width']} latch memory, "
-           f"{f['slots']} timed output event slots, {f['inputs']} synchronized inputs and a host SPI port.")
+           f"{f['threads']}-thread barrel core with {f['pmem_words']} + {f['dmem_words']} x {f['mem_width']} SRAM "
+           f"memory, {f['slots']} timed output event slots, {f['inputs']} synchronized inputs, USB low-speed and "
+           f"10BASE-Te line helpers and a host SPI port.")
 
 
 def main(out, hier_json=None):

@@ -61,6 +61,7 @@ import pe_model  # noqa: E402
 CLK_NS = 20  # 50 MHz (info.yaml clock_hz)
 CMD_NOP, CMD_PUSH, CMD_POP = 0, 4, 5  # host operations of a scenario after START
 SCK_PERIOD = 4  # clock cycles for each SCK period in the lockstep tests (2 low, 2 high)
+LOAD_WORDS = 128  # memory words that the host loads for a scenario (addresses 0 to 127)
 PULL_WORDS = 4  # each host POP is a PULL of this many words (fixed length: the schedule does not depend on data)
 NOP_CYCLES = 20  # idle cycles of a host NOP (data 0)
 RESET_PINS = (0x7F, 0xFF, 0x00)  # isa 2.4: V = 1, OE = 0 on all output pins

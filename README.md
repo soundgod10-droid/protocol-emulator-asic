@@ -68,30 +68,6 @@ These waveforms come from the pins of the RTL tests at 60 MHz (logic simulation,
 
 *CAN 2.0A node, 250 kbit/s on two threads: every bit is 240 cycles, and the other node acknowledges the frame.*
 
-## Flexibility: protocols the instruction set was not designed for
-
-The instruction set ([docs/isa.md](docs/isa.md) section 13) was designed from UART, SPI and I2C firmware. The protocols below were written later, each from its public specification, with the same instruction set, assembler and host port, and no hardware change. Each test runs the firmware in the cycle-exact reference model against a protocol model written from the specification (not from the firmware). All four protocols are named on the competition page, so they were known when the instruction set was made. The rates in this table were measured in the reference model at 50 MHz, the clock declared when these tests were written; the chip is now declared at 60 MHz, and the 60 MHz values of this table are not measured yet.
-
-| Protocol | Specification | Firmware, words | Highest rate measured | Test | What the instruction set lacked (workaround) |
-|---|---|---|---|---|---|
-| CAN 2.0A node: send with arbitration, receive with CRC-15 check, ACK | Bosch CAN Specification 2.0 (1991), Part A | `fw/can.s`, 123 words, 2 threads | 250 kbit/s (sample point 50 to 55 %, other node +/-0.5 %); 500 kbit/s and 1 Mbit/s do not fit | `test_flex_can` | instruction rate (about 31 instructions of receive work per bit); one owner per pin (two open-drain pins joined on the board); the host makes stuffing and CRC for sending; one thread would need 171 words |
-| JTAG (IEEE 1149.1) controller: any TAP path, chains | TI SSYA002C JTAG primer | `fw/jtag.s`, 31 words | TCK 1.25 MHz (1.157 MHz mean over a 64-bit scan) | `test_flex_jtag` | `SAMPLE` takes 2 thread slots, so the loop is 40 cycles, not 32 |
-| SWD host: line reset, JTAG-to-SWD, DP and AP reads and writes, WAIT | Arm IHI0031H (ADIv5.2), B4, B5 | `fw/swd.s`, 62 words | SWCLK 1.5625 MHz; DPIDR read in 1,596 cycles | `test_flex_swd` | no parity instruction (the host makes the parity); a write fills the 4-word host FIFO |
-| PS/2 host and device: device clock, odd parity, request to send, acknowledge, line contention | IBM PS/2 Hardware Interface Technical Reference (1988), Keyboards | `fw/ps2_host.s` 62 words, `fw/ps2_dev.s` 60 words | 10 to 16.7 kHz both sides; the host decodes device clocks up to 556 kHz | `test_flex_ps2` | a thread cannot wait for an edge and a host word at the same time (the host polls in 4 us windows) |
-| Timed trigger: a pulse D cycles after a matching UART byte | - | `fw/trigger.s`, 30 words | delay from the start edge the same at all 16 start phases (0 cycles jitter in the firmware); D from 44 cycles | `test_flex_trigger` | - |
-
-### Hold-out trials
-
-The protocols above were named on the competition page. A hold-out trial is a protocol that nobody had in view when the instruction set was made, written afterwards from its public documents on the unchanged chip. 1-Wire was the first. The next two were chosen by a rule that a reader can repeat: the first two entries of the sigrok [libsigrokdecode](https://github.com/sigrokproject/libsigrokdecode/tree/master/decoders) decoder list (alphabetical) that decode a logic-level link between two devices, are not in `fw/` and not named on the competition page, can be driven from 3.3 V pins with external parts, allow a bit time of 1 us or more, and have a public specification. They are `am230x` and `avr_pdi` (`ac97` and `aud` need clocks of 12.288 and about 20 MHz; the other entries before them decode SPI, UART or I2C traffic). Each is tested against a device model written from the same documents, at 50 and 60 MHz.
-
-| Protocol | Documents | Firmware, words | Result | What the instruction set lacked (workaround) |
-|---|---|---|---|---|
-| 1-Wire controller (reset, presence, read and write slots) | Analog Devices AN126; DS18B20 data sheet (device model) | `fw/onewire.s`, 40 | correct at five device-timing corners; found that the AN126 60 us write-0 time has no margin, so 65 us | TADD adds at most 4,095 cycles (two TADD for the 70 us presence wait at 60 MHz) |
-| AM2302 / DHT22 sensor reader (start signal, 40 bits, timeouts) | AM2302 data sheet | `fw/am2302.s`, 56 | correct with all sensor times 0.8 to 1.2 times the data sheet; timeout status for no sensor and for a sensor that stops | TADD limit (two TADD for each 136 us time limit) |
-| AVR XMEGA PDI programmer (enable sequence, continuous clock, characters, guard time, BREAK) | Atmel XMEGA AU manual 8331F, section 32 | `fw/pdi.s`, 52 | KEY, control registers, data read and write, REPEAT with LD, parity error and BREAK recovery correct at 6 device corners; PDI_CLK up to 1.25 MHz at 60 MHz | no parity instruction (the host makes the parity bit) |
-
-Which programs fit together in 128 words: `test_flex_word_count` and [docs/host_port.md](docs/host_port.md) section 14 (for example UART TX + UART RX + JTAG + SWD: 121 words). Host words of each program: the same section.
-
 ## Compared with other programmable I/O engines
 
 | | Engines and memory | Timing of a pin change |

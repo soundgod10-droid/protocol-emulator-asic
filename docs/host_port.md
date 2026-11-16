@@ -13,8 +13,8 @@
 The host (the RP2350 of the demo board) uses this port to:
 
 - stop and start the threads,
-- write and read the 128 x 16 program memory,
-- write the configuration (start address of each thread, RUN mask, owner and open-drain mode of each output pin, docs/isa.md 2.2, 5.2, 5.3),
+- write and read the memory (512 x 16 program memory at addresses 0 to 511, 1,024 x 16 data memory at 512 to 1,535; docs/isa.md 2.2),
+- write the configuration (start address of each thread, RUN mask, owner and open-drain mode of each output pin, and the line-helper fields of each pin, docs/isa.md 2.2, 5.2, 5.3, docs/helpers.md),
 - read the chip ID and the status,
 - write words into the host-to-thread FIFOs (PUSH) and read words from the thread-to-host FIFOs (PULL), docs/isa.md 8.5.
 

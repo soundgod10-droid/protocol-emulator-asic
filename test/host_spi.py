@@ -76,12 +76,18 @@ def parse_status(b):
 # Transactions as lists of host bytes (MOSI). Response bytes come back in the
 # same positions (MISO).
 
+MEM_WORDS = 2048     # address space of WRITE_MEM and READ_MEM: 0-511 program, 512-1535 data
+READ_MEM_SKIP = 4    # READ_MEM: code, 2 address bytes, 1 dummy byte before the first word
+
+
 def t_write_mem(addr, words):
-    return [WRITE_MEM, addr & 0x7F] + words_to_bytes(words)
+    """WRITE_MEM: code, address bits 10:8, address bits 7:0, then words (docs/host_port.md 4)."""
+    return [WRITE_MEM, (addr >> 8) & 0x07, addr & 0xFF] + words_to_bytes(words)
 
 
 def t_read_mem(addr, n):
-    return [READ_MEM, addr & 0x7F] + [0] * (2 * n)
+    """READ_MEM: code, 2 address bytes, a dummy byte (the first word is read meanwhile), then words."""
+    return [READ_MEM, (addr >> 8) & 0x07, addr & 0xFF, 0] + [0] * (2 * n)
 
 
 def t_write_cfg(addr, words):

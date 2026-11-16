@@ -36,6 +36,20 @@ from cdp import Browser  # noqa: E402
 DONE = ("(() => { const e = document.getElementById('ex-check'); "
         "return !!e && (e.className === 'pass' || e.className === 'fail'); })()")
 
+# Innermost elements that pass the right edge of the screen and are not inside a box that scrolls or clips them.
+OVERFLOW = """(() => { const W = document.documentElement.clientWidth, out = [];
+  const name = (e) => e.tagName.toLowerCase() + (e.id ? '#' + e.id : '') +
+    (typeof e.className === 'string' && e.className.trim() ? '.' + e.className.trim().split(/\\s+/).join('.') : '');
+  const over = (e) => e.getBoundingClientRect().right > W + 0.5;
+  for (const e of document.querySelectorAll('body *')) {
+    if (!e.getBoundingClientRect().width || !over(e) || [...e.children].some(over)) continue;
+    let p = e.parentElement, clipped = false;
+    for (; p && p !== document.body; p = p.parentElement) if (getComputedStyle(p).overflowX !== 'visible') clipped = true;
+    if (clipped) continue;
+    const path = []; for (let q = e; q && q !== document.body && path.length < 4; q = q.parentElement) path.unshift(name(q));
+    out.push(`${path.join(' > ')} (right edge ${Math.round(e.getBoundingClientRect().right)} px)`); }
+  return out.slice(0, 10); })()"""
+
 
 class Handler(http.server.SimpleHTTPRequestHandler):
     extensions_map = {**http.server.SimpleHTTPRequestHandler.extensions_map, ".js": "text/javascript",

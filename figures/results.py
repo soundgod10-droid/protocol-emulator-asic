@@ -175,7 +175,7 @@ def main(runs_dir, fig_dir, out_md):
              + (f", job {pre_job['conclusion']}" if pre_job else "") + f" | {link(gds)} job `precheck` |")
     if m:
         L.append(f"| Standard cells, area, utilisation, power | {int(m['design__instance__count__stdcell']):,} cells, "
-                 f"{float(m['design__instance__area__stdcell']):,.0f} µm², "
+                 f"{float(m['design__instance__area__stdcell']):,.0f} um2, "
                  f"{100 * float(m['design__instance__utilization']):.1f} %, "
                  f"{1000 * float(m['power__total']):.2f} mW (flow estimate) | {link(gds)} |")
     if layout:

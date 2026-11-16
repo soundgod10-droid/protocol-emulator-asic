@@ -33,7 +33,16 @@ The RTL and gate-level column gives what `test/test_rtl_fw.py` runs at 60 MHz. T
 | AVR XMEGA PDI programmer (hold-out) | `pdi.s`, 52 | Atmel XMEGA AU manual 8331F, section 32 | PDI_CLK 1 MHz: KEY, control and data access, REPEAT, a parity error, BREAK | PDI_CLK 1.25 MHz (at 60 MHz) |
 | Four protocols at once | 121 words in one image (15 + 26 + 49 + 31) | as above | UART TX 460,800 bit/s, SPI controller, I2C Fast-mode with clock stretching and JTAG on the four threads at the same time, each against its own model | - |
 
-Which programs fit together in the 128 words, and the host words of each program: [host_port.md](host_port.md) section 14 (for example UART TX + UART RX + JTAG + SWD: 121 words).
+Which programs fit together in the 512-word program memory, and the host words of each program: [host_port.md](host_port.md) section 14.
+
+## Line helpers: USB low speed and 10BASE-Te
+
+| Protocol layer | Helper | Chip test on the RTL at 60 MHz (`test/test_slu.py`) |
+|---|---|---|
+| USB low speed, packets | USB helper, I/O ports 16 to 31 | `test_slu_chip_usb_tx`: a thread sends DATA0 with 8 bytes from the data memory; the helper adds the CRC16 and the stuff bits; the pins carry NRZI(stuff(SYNC, PID, data, CRC16)) of USB 2.0 7.1.8 to 7.1.10, then SE0 84 cycles (1.40 us) and J 40 cycles. `test_slu_chip_usb_rx`: a host packet at -1.5 % on three input pins; the thread copies the words into the data memory; bytes and the CRC16 check correct |
+| 10BASE-Te, frames | 10BASE-Te helper, I/O ports 32 to 47 | `test_slu_chip_eth_tx`: a thread sends a 46-byte frame; the helper adds the FCS; the pins carry the IEEE 802.3 Manchester half bits and the TP_IDL hold. `test_slu_chip_eth_rx`: a 64-byte frame at +80 ppm with 13.5 ns zero-crossing jitter; the thread copies the words into the data memory; bytes and the CRC-32 check correct |
+
+These tests show the line and frame layers with a thread through the I/O ports, the pins and the data memory. A USB device program (enumeration with its descriptors) and an Ethernet driver are firmware that the memory now has room for; they are not written yet. The receive margin of the 10BASE-Te loop against jitter and frequency offset is in [helpers.md](helpers.md) section 4.
 
 ## See it run
 

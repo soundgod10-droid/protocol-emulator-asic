@@ -26,6 +26,28 @@ jobs:
         shell: bash
         run: python .github/signoff_facts.py . "gds"
 
+      # SRAM smoke runs: the max-slew, max-cap and fanout violators and the Magic DRC count as
+      # annotations (the run artifacts are too large to fetch for this check).
+      - name: Smoke facts
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          r=$(ls -d runs/*/ | head -n 1)
+          f=$(ls ${r}*-openroad-stapostpnr/nom_slow_1p08V_125C/checks.rpt 2>/dev/null | head -n 1)
+          if [ -n "$f" ]; then
+            body=$(sed -n '/report_check_types/,$p' "$f" | grep -v '^$' | head -n 70 | sed ':a;N;$!ba;s/\n/%0A/g')
+            echo "::notice title=slow corner violators::${body}"
+          fi
+          m=$(ls ${r}*-magic-drc/reports/drc.magic.rpt 2>/dev/null | head -n 1)
+          if [ -n "$m" ]; then
+            body=$(head -n 40 "$m" | sed ':a;N;$!ba;s/\n/%0A/g')
+            echo "::notice title=magic drc::${body}"
+          fi
+          d=$(ls ${r}*-magic-drc/*.log 2>/dev/null | head -n 1)
+          [ -n "$d" ] && echo "::notice title=magic drc log::$(grep -iE 'error|COUNT' "$d" | tail -n 10 | sed ':a;N;$!ba;s/\n/%0A/g')"
+          true
+
   precheck:
     needs: gds
     runs-on: ubuntu-24.04

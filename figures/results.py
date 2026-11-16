@@ -179,7 +179,7 @@ def main(runs_dir, fig_dir, out_md):
                  f"{100 * float(m['design__instance__utilization']):.1f} %, "
                  f"{1000 * float(m['power__total']):.2f} mW (flow estimate) | {link(gds)} |")
     if layout:
-        L.append(f"| Tile | {layout['width_um']:.2f} × {layout['height_um']:.2f} µm | {link(gds)} |")
+        L.append(f"| Tile | {layout['width_um']:.2f} × {layout['height_um']:.2f} um | {link(gds)} |")
     L.append(f"| RTL tests (cocotb, Icarus Verilog) | {c_rtl['passed']} pass, {c_rtl['failed']} fail, "
              f"{c_rtl['skipped']} skipped, of {c_rtl['total']} | {link(test)} |")
     np_ = sum(1 for v in proto_rtl.values() if v[1] == "pass")

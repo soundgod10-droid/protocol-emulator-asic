@@ -244,7 +244,7 @@ class Slu:
 
 
 async def slu_reset(dut):
-    cocotb.start_soon(Clock(dut.clk, 16667, unit="ps").start())
+    cocotb.start_soon(Clock(dut.clk, 16666, unit="ps").start())   # 60 MHz (even ps period)
     dut.slu_ut_rst_n.value = 0
     dut.slu_we.value = 0
     dut.slu_re.value = 0

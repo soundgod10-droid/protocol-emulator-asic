@@ -658,7 +658,7 @@ async def test_slu_eth_collision(dut):
     assert st & (1 << 14), "COLLISION, status %04x" % st
     assert jam["bits"] == 32, "jam of %d bits, specified 32" % jam["bits"]
     assert st & 0x1, "TXDONE after the jam and the tail, status %04x" % st
-    task.kill()
+    task.cancel()
 
 
 @cocotb.test(skip=GL)

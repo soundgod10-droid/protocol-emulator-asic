@@ -115,7 +115,7 @@ The record below is the earlier decision (6x4, before the rule change).
 
 - **Question:** does the netlist work with the cell delays of the layout, and should this replace static timing?
 - **Options:** none; cell delays from the SDF files; cell and wire delays.
-- **Evidence:** 22 tests pass at the slow, typical and fast corners with cell delays from the netlist of gds run 41404293323 (runs [41871325339] and [41924796459]). `test_r3_sdf_delay` fails if no delay is applied. Icarus Verilog applies the delays but runs no timing checks, and it stops on the wire-delay lines, so those are not loaded. `test_counter_sequence` alone takes 17,275 s at the slow corner.
+- **Evidence:** 22 tests pass at the slow, typical and fast corners with cell delays from the netlist of gds run 41404293323 (runs [41871325339] and [41924796459]). That netlist is the 6x4 design of October 2026 timed at 50 MHz; the SDF job has not been run on an 8x4 netlist at 60 MHz, so this entry is evidence for that earlier design only. `test_r3_sdf_delay` fails if no delay is applied. Icarus Verilog applies the delays but runs no timing checks, and it stops on the wire-delay lines, so those are not loaded. `test_counter_sequence` alone takes 17,275 s at the slow corner.
 - **Decision:** the SDF job ([.github/workflows/sdf.yaml](../.github/workflows/sdf.yaml)) runs on the final gds run, by hand or after a tape-out tag, not on every push. Static timing stays the setup and hold check.
 - **Would change it:** a simulator that runs the timing checks of the cell models.
 

@@ -489,7 +489,7 @@ module pe_slu #(
         rx_words   <= 9'd0;
         rx_bits    <= 10'd0;
         crc_a      <= crc_init;
-        crc_b      <= 8'hFF;
+        crc_b      <= crcb_mask;
         crc_a_byte <= 1'b0;
         crc_b_byte <= 1'b0;
       end

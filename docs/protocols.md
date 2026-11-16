@@ -41,7 +41,7 @@ The figures below are made on every push by the docs workflow ([figures/waves.py
 
 ![UART transmitter at 115,200 bit/s on the RTL](https://soundgod10-droid.github.io/protocol-emulator-asic/figures/wave_uart.svg)
 
-*UART transmitter, `test_rtl_uart_tx`: each bit edge is a timed `OUT` event, so every edge is on the bit grid of 520 cycles whatever the instructions in between take. `HOST_CS_N` shows the host polling the status and refilling the FIFO.*
+*UART transmitter, `test_rtl_uart_tx`: each bit edge is a timed `OUT` event, so every edge is on the bit grid of 521 cycles whatever the instructions in between take. `HOST_CS_N` shows the host polling the status and refilling the FIFO.*
 
 ![SPI controller in mode 0 on the RTL](https://soundgod10-droid.github.io/protocol-emulator-asic/figures/wave_spi.svg)
 

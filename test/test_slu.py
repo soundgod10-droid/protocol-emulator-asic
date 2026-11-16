@@ -307,16 +307,13 @@ async def test_slu_usb_tx(dut):
     await s.wr(P_TXCTRL, (1 << 5))                  # append CRC, last word 16 bits
     for w in words[:2]:
         await s.wr(P_TXDATA, w)
+    caps = []
+    cocotb.start_soon(capture(dut, 40 * 130, caps))
     t0 = (await s.now() + 200) & 0xFFFF
     await s.wr(P_TXTIME, t0)
-    feed = words[2:]
-    caps = []
-    while feed:
-        free = await s.rd(P_TXDATA)
-        if free:
-            w = feed.pop(0)
-            await s.wr(P_TXLAST if not feed else P_TXDATA, w)
-    caps = await capture(dut, 40 * 120)
+    await feed_words(s, words[2:])
+    while len(caps) < 40 * 130:
+        await RisingEdge(dut.clk)
     # the frame on the pins
     oe = [c[1] for c in caps]
     first = oe.index(1)

@@ -199,6 +199,7 @@ async def test_slu_loop_equiv(dut):
 # --------------------------------------------------------------------------------------------------
 
 from cocotb.triggers import Timer  # noqa: E402
+from cocotb.utils import get_sim_time  # noqa: E402
 
 import slu_ref as ref  # noqa: E402
 

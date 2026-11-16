@@ -9,11 +9,16 @@
 //
 // What it does:
 //   It connects the core to the cycle counter (pe_cycle_counter, clear =
-//   START, as in project.v) and gives all other inputs of the core freely
-//   in each cycle: START at any cycle, each configuration, each memory
-//   word (instruction or data), each state of the event slots, the input
-//   history and the FIFOs. The properties are in pe_core (`ifdef FORMAL:
-//   B1 to B4 barrel order, E1 to E8 pin events, W1 to W3 memory write).
+//   START, as in project.v) and makes the start sequence of project.v:
+//   the first cycle after the processor reset ends is pre-start cycle 1,
+//   then pre-start cycle 2, then START (pe_host_port starts the threads
+//   only from STOP, which holds the processor in reset: property H4).
+//   All other inputs of the core are free in each cycle: each
+//   configuration, each memory word (instruction or data), each line
+//   helper word, each state of the event slots, the input history and the
+//   FIFOs. Reset can occur at any cycle. The properties are in pe_core
+//   (`ifdef FORMAL: B1 to B6 barrel order and fetch, E1 to E8 pin events,
+//   W1 to W3 memory write, I1 line helper ports).
 //
 // Why:
 //   With free inputs, a proof holds for each program and each input, not

@@ -309,7 +309,7 @@ function renderThreads(st, exact) {
   const slot = ui.cursor % 4;
   const el = $("threads");
   if (!st) {
-    const what = run.done ? "no state" : `waiting for the run of ${escapeHtml(run.ex.id)}`;
+    const what = run.done ? `loading the state of cycle ${fmt(ui.cursor)}` : `waiting for the run of ${escapeHtml(run.ex.id)}`;
     el.innerHTML = [0, 1, 2, 3]
       .map((n) => `<div class="th idle" style="--tc:var(--t${n})"><div class="th-head"><b>Thread ${n}</b></div><div class="waits">${what}</div></div>`)
       .join("");

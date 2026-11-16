@@ -61,7 +61,7 @@ module pe_core (
     input  wire [15:0] now,            // low 16 bits of the cycle counter
     // Host configuration (pe_config) and start
     input  wire        start,          // 1 = threads start; the counter is 0 in the next cycle
-    input  wire [1:0]  prestart,       // 1 to 3 in the 3 cycles before start (fetch of threads 0 to 2)
+    input  wire [1:0]  prestart,       // 1, 2 in the 2 cycles before start (fetch of threads 0, 1)
     input  wire [35:0] start_pc,       // start address of thread n at [9n+8:9n]
     input  wire [3:0]  run_mask,       // RUN of thread n at start
     input  wire [29:0] pin_owner,      // owner thread of output pin p at [2p+1:2p]

@@ -53,7 +53,10 @@
   "//": "the columns under the stripes (src/pdn_cfg.tcl). Instance keys are the flattened paths.",
   "MACROS": {
     "RM_IHPSG13_1P_512x16_c2_bm_bist": {
-      "instances": { "u_pmem": { "location": [11.04, 40], "orientation": "FS" } },
+      "instances": {
+        "u_pmem": { "location": [11.04, 40], "orientation": "FS" },
+        "u_dmem": { "location": [280.80, 40], "orientation": "FS" }
+      },
       "gds": ["pdk_dir::libs.ref/sg13cmos5l_sram/gds/RM_IHPSG13_1P_512x16_c2_bm_bist.gds"],
       "lef": ["pdk_dir::libs.ref/sg13cmos5l_sram/lef/RM_IHPSG13_1P_512x16_c2_bm_bist.lef"],
       "lib": {

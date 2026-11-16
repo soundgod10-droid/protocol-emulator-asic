@@ -552,10 +552,14 @@ class PeModel:
                     th.r[r] = s
                 elif port == PORT_THREAD:
                     th.r[r] = n
+                elif port in HELPER_PORTS and self.io is not None:
+                    th.r[r] = self.io.read(port) & 0xFFFF
                 else:
                     th.r[r] = 0
                 return nxt
             value = th.r[r]  # IOW
+            if port in HELPER_PORTS and self.io is not None:
+                self.io.write(port, value)
             if port == PORT_STATUS:
                 th.status &= ~value
             elif port == PORT_FLAGS:

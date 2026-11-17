@@ -245,9 +245,28 @@ def ev(code, value=0):
     return code | (value << 8)
 
 
+def dump(dut, s, bus, glue, prog):
+    """Diagnosis after a failure: the last host checks, the last device edges, firmware variables."""
+    for e in s.log[-6:]:
+        dut._log.info("host log: %s %s %s" % (e.what, e.violations, {k: round(v, 3) if isinstance(v, float)
+                                                                       else v for k, v in e.measures.items()}))
+    t_end = glue.now()
+    dut._log.info("device edges (us before now): %s" % ", ".join(
+        "%.2f %s" % ((t_end - (t - glue.t0)) / 1e6, lv) for t, lv in bus.dev[-24:]))
+    try:
+        mem = dut.u_proc.u_mem
+        dut._log.info("program memory probe not available; see the waveform (%s)" % mem._name)
+    except AttributeError:
+        pass
+
+
 async def enumerate_once(dut, host, bus, glue, ppm, seed, label):
     s = H.UsbHostSession(ppm=ppm, stress_seed=seed)
-    rep = await glue.run(s.enumerate(addr=5, reset_ps=RESET_PS, recovery_ps=RECOVERY_PS))
+    try:
+        rep = await glue.run(s.enumerate(addr=5, reset_ps=RESET_PS, recovery_ps=RECOVERY_PS))
+    except Exception:
+        dump(dut, s, bus, glue, None)
+        raise
     check_clean(s, bus)
     assert rep["strings"] == {1: usb_dev_data.MANUFACTURER, 2: usb_dev_data.PRODUCT}, rep["strings"]
     assert rep["device"]["idVendor"] == usb_dev_data.VID and rep["config"]["endpoints"] == [(0x81, 3, 8, 10)]

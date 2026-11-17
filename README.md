@@ -13,7 +13,7 @@ Simulator in the browser: **<https://soundgod10-droid.github.io/protocol-emulato
 
 ![Final layout of the chip](https://soundgod10-droid.github.io/protocol-emulator-asic/figures/layout.png)
 
-*The final layout of the 8x4 tile (1724 x 711 um), from the GDS of the newest gds run. The white line is the tile outline. The two SRAM macros (program and data memory) are near the bottom edge; the standard cells use 39.0 % of the tile, and filler cells under the power grid fill the rest. Made in CI by [figures/layout.py](figures/layout.py) (KLayout, PDK layer colours). The same layout in 3D: [layout viewer](https://soundgod10-droid.github.io/protocol-emulator-asic/viewer/).*
+*The final layout of the 8x4 tile (1724 x 711 um), from the GDS of the newest gds run. The white line is the tile outline. The two SRAM macros (program and data memory) are near the bottom edge; the standard cells use 38.8 % of the tile, and filler cells under the power grid fill the rest. Made in CI by [figures/layout.py](figures/layout.py) (KLayout, PDK layer colours). The same layout in 3D: [layout viewer](https://soundgod10-droid.github.io/protocol-emulator-asic/viewer/).*
 
 ![Block diagram of the chip](https://soundgod10-droid.github.io/protocol-emulator-asic/figures/block_diagram.svg)
 

@@ -5,3 +5,7 @@
 source $::env(FALLBACK_SDC)
 
 set_max_transition 1.2 [current_design]
+
+# Research: the FIFO latch D pins out of the place-and-route setup checks (they borrow and report 0.000, which a
+# setup margin above 0 would treat as violators); the signoff constraints (signoff.sdc) still check them.
+set_false_path -to [get_cells -hierarchical -filter "ref_name == sg13cmos5l_dlhq_1" *]

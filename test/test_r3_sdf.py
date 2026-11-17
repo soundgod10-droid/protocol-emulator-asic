@@ -55,5 +55,10 @@ async def test_r3_sdf_delay(dut):
     words = [(0x5A5A ^ (a * 0x0101)) & 0xFFFF for a in range(128)]
     await host.write_mem(0, words)
     back = await host.read_mem(0, 128)
-    assert back == words, "memory read back differs"
-    dut._log.info("128 words written and read back through the host port with the delays of the layout")
+    assert back == words, "program memory read back differs"
+    data = [(0xA5C3 ^ (a * 0x0313)) & 0xFFFF for a in range(64)]
+    await host.write_mem(1000, data)                            # data memory macro
+    back = await host.read_mem(1000, 64)
+    assert back == data, "data memory read back differs"
+    dut._log.info("128 program-memory words and 64 data-memory words written and read back through the host port "
+                  "with the delays of the layout, at 60 MHz")

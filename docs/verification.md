@@ -12,7 +12,7 @@ Each method below gives what it checks, what it does not check, and its latest r
 | SDF gate-level simulation (present layout) | the netlist with layout cell delays at 3 corners | `test_r3_sdf`, `test.py`, `test_core.py` pass at slow, typical and fast (run [43716786712]); see [signoff.md](signoff.md) section 3 for the long counter test |
 | Static timing and layout checks (present layout) | setup, hold, slew, capacitance, fanout, DRC, LVS, antenna, lint, precheck | 60 MHz: slow-corner setup margin +3.841 ns, no setup, hold, slew or capacitance violation at 3 corners; 8 max-fanout pins explained in [signoff.md](signoff.md); DRC, LVS, antenna, lint 0; precheck 10 of 10 |
 | Lockstep with the reference model | every pin and every host word, in every clock cycle | part of the RTL and gate-level tests |
-| Formal proofs (SymbiYosys, Z3) | barrel order, pin events, event slot, host port, latch memory; synchronizer and reset structure | 13 proof jobs and the structural CDC job pass (table below) |
+| Formal proofs (SymbiYosys, Z3) | barrel order and SRAM fetch timing, pin events, event slot, host port, SRAM memory, FIFO latch memory; synchronizer and reset structure | 15 proof and cover jobs and the structural CDC job pass (section 3) |
 | Synchronizer SPICE | metastability time constant of the input flip-flop | tau about 54 ps (typical), 101 ps (slow) (section 7) |
 | Pad SPICE | the I/O pad cells: I2C output low voltage, output and input delay, load, 5 V tolerance, at 3 corners | Standard-mode and Fast-mode output low level met at every corner; Fast-mode Plus not met; not 5 V tolerant; output delay 1.13 to 3.32 ns, input 0.26 to 0.45 ns (section 9) |
 

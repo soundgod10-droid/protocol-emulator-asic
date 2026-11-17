@@ -116,7 +116,52 @@ rxany:  ANDI r0, 0x20
         ADD  r2, r3
         STX  r0, [r2]
         ADDI r3, 1
+        CMPI r3, 2
+        BEQ  rxw2
         JMP  idle
+
+; Second word: the helper gives the last (8-bit) word of a token at the qualified SE0, about 60
+; cycles before the end of packet. An IN token to us is matched here, so that after the end of packet
+; only the start time and the first reply word remain (7.1.18.1 reply time).
+rxw2:   LD   r1, V_IN0B
+        CMP  r0, r1
+        BEQ  rxw0
+        LD   r1, V_IN1B
+        CMP  r0, r1
+        BNE  idle
+        LDI  r2, V_ST1P
+        LDI  r1, V_IN1A
+        JMP  rxw3
+rxw0:   LDI  r2, V_ST0P
+        LDI  r1, V_IN0A
+rxw3:   LDX  r1, [r1]
+        LDI  r0, RXBUF
+        LDX  r0, [r0]
+        CMP  r0, r1
+        BNE  idle
+        ST   r2, V_FPTR
+fw:     IOR  r1, USTAT           ; IN token to us: wait for its end of packet
+        MOV  r0, r1
+        ANDI r0, 0x28
+        BEQ  fw
+        ANDI r0, 0x20
+        BEQ  idle                ; one more word: not a token
+        IOR  r0, TSTAMP
+        ADDI r0, REPLY
+        IOW  r0, TXTIME
+        MOV  r0, r1
+        SHR  r0, 8
+        ANDI r0, 3               ; STUFFERR, RXOVER: no reply
+        BNE  drop
+        LDI  r0, 0x330
+        IOW  r0, USTAT
+        LDX  r1, [r2]            ; data, zero-length packet, NAK or STALL (8.4.6.1)
+        JAL  r3, reply
+        LD   r2, V_FPTR
+        LDX  r1, [r2]
+        LDI  r0, V_ST0P
+        SUB  r2, r0              ; endpoint 0 or 1
+        JMP  sent
 
 ; ---- end of a packet ----------------------------------------------------------------------------
 pkend:  IOR  r0, TSTAMP

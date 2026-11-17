@@ -2,8 +2,8 @@
 
 USB: the adapter runs a SETUP transaction; a scripted device on the uio pins answers ACK 4.0 bit times
 after the host EOP. The host model must see the ACK with no violation, the reply delay it measures must
-be 4.0 bit times within the clock quantization, and the host's line levels on the ui pins must decode
-to the packets it sent.
+be 4.0 bit times within two clock periods (the host edge and the reply each move to the next clock), and
+the host's line levels on the ui pins must decode to the packets it sent.
 10BASE-T: a partner frame driven on the ui pins and read back per cycle must decode to the same frame
 with a good FCS; a chip transmit wave given on the uio pins must come back from tx_wave() unchanged.
 """

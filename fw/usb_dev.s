@@ -45,6 +45,7 @@
         .equ VARBUF, 1006
 
         ; variables (program memory)
+        .equ V_FPTR, 479         ; stage pointer variable of a matched IN token
         .equ V_ADDR, 480         ; device address
         .equ V_PEND, 481         ; address of a SET_ADDRESS, used after its status stage (-1: none)
         .equ V_CONF, 482

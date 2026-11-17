@@ -88,8 +88,24 @@ class Bus:
 
     def drive(self, lvl):
         if lvl != self.h:
+            if self.h == "SE0" and lvl in ("J", "IDLE"):
+                self.host_eops.append(get_sim_time("ps"))   # host EOP end (SE0 -> J)
             self.h = lvl
             self._apply()
+
+    def first_reply_marks(self, n=1):
+        """(host EOP end, device SOP) in absolute ps for the first n device packets, for the waveform check."""
+        out = []
+        prev = "IDLE"
+        for t, lv in self.dev:
+            if lv == "K" and prev in ("IDLE", "J"):
+                eops = [e for e in self.host_eops if e < t]
+                if eops:
+                    out.append((eops[-1], t))
+                if len(out) >= n:
+                    break
+            prev = lv
+        return out
 
     def _dev_level(self):
         v, oe = self.dut.uio_out.value, self.dut.uio_oe.value

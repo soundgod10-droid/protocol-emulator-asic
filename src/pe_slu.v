@@ -187,7 +187,6 @@ module pe_slu #(
   wire       se0      = ~aux0 & ~aux1;
   wire [1:0] lstate   = {aux0, aux1};               // 00 SE0, 01 J, 10 K, 11 SE1 (USB VP, VM)
   reg        din_prev;
-  wire       din_rise = m_ddr ? ((x0 & ~din_prev) | (x1 & ~x0)) : (x1 & ~din_prev);
   wire       din_edge = m_ddr ? ((x0 ^ din_prev) | (x1 ^ x0)) : (x1 ^ din_prev);
   reg  [5:0] q_cnt;                                 // SE0 samples (USB) / cycles since a rising edge
   wire       eop_q    = (q_cnt >= c_pat2[15:10]);

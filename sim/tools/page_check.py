@@ -36,6 +36,12 @@ from cdp import Browser  # noqa: E402
 DONE = ("(() => { const e = document.getElementById('ex-check'); "
         "return !!e && (e.className === 'pass' || e.className === 'fail'); })()")
 
+# Line 5 of the firmware editor inside the editor's visible box, and the first line in view.
+LINE5_VIEW = ("(() => { const v = window.__v1.editor.view; const r = v.coordsAtPos(v.state.doc.line(5).from);"
+              " const b = v.scrollDOM.getBoundingClientRect();"
+              " return {in_view: !!r && r.top >= b.top - 1 && r.bottom <= b.bottom + 1,"
+              " first: v.state.doc.lineAt(v.lineBlockAtHeight(v.scrollDOM.scrollTop).from).number}; })()")
+
 # Innermost elements that pass the right edge of the screen and are not inside a box that scrolls or clips them.
 OVERFLOW = """(() => { const W = document.documentElement.clientWidth, out = [];
   const name = (e) => e.tagName.toLowerCase() + (e.id ? '#' + e.id : '') +

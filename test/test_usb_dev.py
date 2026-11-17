@@ -20,7 +20,7 @@ import sys
 
 import cocotb
 from cocotb.clock import Clock
-from cocotb.triggers import ClockCycles, Event, First, Timer
+from cocotb.triggers import ClockCycles, Event, First, ReadOnly, RisingEdge, Timer
 from cocotb.utils import get_sim_time
 
 try:

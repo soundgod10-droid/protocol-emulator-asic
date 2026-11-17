@@ -8,7 +8,7 @@ name: sim
 #   samples_rtl: each of those protocol tests of test/test_rtl_fw.py on the RTL with the pin VCD (test/tb.v PIN_VCD),
 #                one job per test, kept in the cache while src, test, fw, model and asm do not change;
 #   samples_gl:  the same tests on the netlist of that gds run, set up as the gl_protocols job of gds.yaml, kept in the
-#                cache per gds run;
+#                cache per gds run; skipped when that run has other src than this commit;
 #   build:       samples manifest (gate-level dump against RTL dump), page, chip files and pinned third-party files with
 #                the size budget L7 (sim/tools/build_site.py), CPython reference hashes of every example (L1, CPython
 #                side, sim/tools/fidelity_cpython.py);

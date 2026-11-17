@@ -177,9 +177,14 @@ class HostPort:
     async def wait(self, cond, timeout_us, step_us=20):
         t_end = get_sim_time("us") + timeout_us
         while not cond():
-            assert get_sim_time("us") < t_end, "timeout waiting for the chip (events %s, frames %d)" % (
-                [hex(w) for _, w in self.events], len(self.frames))
+            if get_sim_time("us") >= t_end:
+                if self.diag is not None:
+                    await self.diag()
+                raise AssertionError("timeout waiting for the chip (events %s, frames %d)" % (
+                    [hex(w) for _, w in self.events], len(self.frames)))
             await Timer(step_us, unit="us")
+
+    diag = None
 
     def codes(self):
         return [w for _, w in self.events]

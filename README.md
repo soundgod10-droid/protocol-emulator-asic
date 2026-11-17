@@ -34,13 +34,14 @@ Simulator in the browser: **<https://soundgod10-droid.github.io/protocol-emulato
 
 | Check | Result | Run |
 |---|---|---|
-| Timing at 60 MHz, setup slack of the flip-flop paths, slow / typical / fast corner | +1.68 / +4.31 / +4.49 ns | [gds 44005215480][gds] |
-| Hold slack, slow / typical / fast corner | +0.58 / +0.27 / +0.10 ns | [gds 44005215480][gds] |
-| Setup, hold, max-slew, max-capacitance and max-fanout violations | 0 at all 3 corners | [gds 44005215480][gds] |
-| Routing DRC, LVS, antenna, power grid | 0 / 0 / 0 / 0 errors | [gds 44005215480][gds] |
-| Layout precheck of the shuttle (KLayout DRC with the SRAM macros) | 10 of 10 checks pass | [gds 44005215480][gds] |
-| RTL tests (cocotb, Icarus Verilog) | 105 tests, job success | [test 44005215479][test] |
-| Line helpers: USB low speed and 10BASE-Te on the RTL / on the gate-level netlist | 15 tests (9 unit, 6 chip) / the 6 chip tests pass | [test 44005215479][test], [gds 44005215480][gds] |
+| Timing at 60 MHz, setup slack of the flip-flop paths, slow / typical / fast corner | +1.68 / +4.31 / +4.49 ns | [gds 44116299456][gds] |
+| Hold slack, slow / typical / fast corner | +0.58 / +0.27 / +0.10 ns | [gds 44116299456][gds] |
+| Setup, hold, max-slew, max-capacitance and max-fanout violations | 0 at all 3 corners | [gds 44116299456][gds] |
+| Routing DRC, LVS, antenna, power grid | 0 / 0 / 0 / 0 errors | [gds 44116299456][gds] |
+| Layout precheck of the shuttle (KLayout DRC with the SRAM macros) | 10 of 10 checks pass | [gds 44116299456][gds] |
+| RTL tests (cocotb, Icarus Verilog) | 116 tests, job success | [test 44116299449][test] |
+| Line helpers: USB low speed and 10BASE-Te on the RTL / on the gate-level netlist | 15 tests (9 unit, 6 chip) / the 6 chip tests pass | [test 44116299449][test], [gds 44116299456][gds] |
+| USB low-speed device (HID keyboard) and 10BASE-T station firmware with standard-based host and partner models, on the RTL / on the gate-level netlist | 5 + 5 tests / the same 10 tests pass. USB: enumeration with the host at -500, 0 and +500 ppm, reply 5.65 to 5.68 bit times after the host's end of packet (limit 6.5), no reply to 6 damaged packets. 10BASE-T: frames received at -100 and +100 ppm, link test pulses every 16.01 ms (8 to 24 ms), link integrity test, collision backoff | [test 44116299449][test], [gds 44116299456][gds] |
 | 10BASE-T receive margin of the helper's loop (1,000 frames of 1,518 bytes per case, model) | 1,000 of 1,000 at the 13.5 ns jitter limit, +1.34 ns margin with up to 3 ns pattern-dependent jitter | [helpers](docs/helpers.md) |
 | Code coverage of the RTL tests: line / branch / toggle | 75.6 % / 81.3 % / 77.1 % (every file 100 % line except the helpers, [signoff](docs/signoff.md)) | [coverage 44005215379][cov] |
 | Formal proofs and covers (SymbiYosys) | 16 of 16 jobs pass | [formal 44005215486][formal] |

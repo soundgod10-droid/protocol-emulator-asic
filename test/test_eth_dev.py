@@ -289,6 +289,8 @@ async def test_eth_dev_rx(dut):
             results.append("%s: discarded, reason %d (%s, %s)" % (label, reason, why, ref))
     port.running = False
     dut._log.info("RX: " + "; ".join(results))
+    dut._log.info("waveform marks: partner frames (start, end) ps %s; host received frames at ps %s" % (
+        line.rx_log, [t for t, _ in port.frames]))
 
 
 @cocotb.test()

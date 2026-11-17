@@ -83,7 +83,7 @@ pip install -r requirements.txt
 make -B COCOTB_TEST_MODULES=test_rtl_fw COCOTB_TEST_FILTER=test_rtl_uart_tx
 ```
 
-`make -B` runs all the tests (about 1 hour; the CI test job took 64 min). [test/README.md](test/README.md) tells how to run the gate-level tests and how to get the pin waveforms. A formal job: `sby -f formal/<job>.sby`.
+`make -B` runs all the tests (about 1 h 15 min; the CI test job took 72 min). [test/README.md](test/README.md) tells how to run the gate-level tests and how to get the pin waveforms. A formal job: `sby -f formal/<job>.sby`.
 
 ## Folders
 

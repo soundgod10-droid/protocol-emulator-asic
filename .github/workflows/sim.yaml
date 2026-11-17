@@ -61,6 +61,14 @@ jobs:
             git fetch -q --depth=1 origin "$sha"
             if git diff --quiet "$sha" HEAD -- src; then same=true; fi
           fi
+          # A netlist of other RTL does not fit the tests of this commit (after an RTL push the gds run of the new
+          # commit counts as successful only when its gate-level jobs end, about 2 h later). Then no gate-level
+          # samples: the page has the RTL samples, and the docs run that the end of the gds run starts adds them.
+          if [ "$same" != true ] && [ -n "$id" ]; then
+            echo "::notice title=gate-level samples::newest successful gds run $id (commit $sha) has other src; no gate-level samples in this run"
+            id=""
+            sha=""
+          fi
           echo "id=$id" >> "$GITHUB_OUTPUT"
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
           echo "same_src=$same" >> "$GITHUB_OUTPUT"

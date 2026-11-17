@@ -91,12 +91,13 @@ Does not check: wire delays (Icarus Verilog stops on the interconnect lines, so 
 
 The layout flow reports timing at `nom_slow_1p08V_125C`, `nom_typ_1p20V_25C` and `nom_fast_1p32V_m40C`. The flow fails only on violations at the typical corner, so every run is read in `55-openroad-stapostpnr/summary.rpt` and in `checks.rpt` of each corner (artifact `GDS_logs`), not from the job status. [src/signoff.sdc](../src/signoff.sdc) puts flip-flop paths and latch paths in separate groups: latch paths borrow time and report a slack of 0.000, which would hide the flip-flop margin.
 
-Result, present layout, run [43712217729], 60 MHz (16.667 ns):
+Result, present layout, run [43989356298], 60 MHz (16.667 ns):
 
-- setup: no violation at the three corners; flip-flop margin +3.841 ns (slow), +8.458 ns (typical), +11.202 ns (fast) (first path of group `flops` in each corner's `checks.rpt`);
-- hold: no violation; worst hold slack 0.0987 ns (fast), 0.2732 ns (typical), 0.5862 ns (slow) (`summary.rpt`);
-- max slew and max capacitance: 0 violations at each corner;
-- max fanout: 8 at each corner (`final/metrics.csv`), the same 8 buffer outputs with 9 to 12 loads against the library limit 8; explained in [signoff.md](signoff.md).
+- setup: no violation at the three corners; flip-flop margin +0.487 ns (slow), +4.260 ns (typical), +4.462 ns (fast) (first path of group `flops` in each corner's `checks.rpt`); the slow-corner margin moves between layout runs of nearly the same netlist (+1.308, +0.740, +0.487 ns), see [signoff.md](signoff.md) section 5;
+- hold: no violation; worst hold slack 0.057 ns (fast), 0.214 ns (typical), 0.492 ns (slow) (`summary.rpt`);
+- max slew, max capacitance and max fanout: 0 violations at each corner (with the macros, a slew or capacitance violation at any corner stops the run).
+
+Before the SRAM memory and the helpers (run [43712217729]): +3.841 / +8.458 / +11.202 ns setup, 8 max-fanout pins with antenna-diode loads.
 
 Does not check: on-chip variation beyond the corner models; silicon.
 

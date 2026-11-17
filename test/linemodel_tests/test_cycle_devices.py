@@ -26,7 +26,7 @@ def _bus_wave_from_ui(samples):
         if x != prev:
             edges.append((t, x))
             prev = x
-    return Wave(edges[0][1], edges[1:], end=samples[-1][0])
+    return Wave("J", edges, end=samples[-1][0])              # idle bus before the first sample
 
 
 def test_usb_host_port_setup_ack():

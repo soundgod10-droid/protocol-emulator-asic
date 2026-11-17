@@ -99,7 +99,7 @@ class Bus:
         out = []
         prev = "IDLE"
         for t, lv in self.dev:
-            if lv == "K" and prev in ("IDLE", "J"):
+            if lv == "K" and prev == "IDLE":
                 eops = [e for e in self.host_eops if e < t]
                 if eops:
                     out.append((eops[-1], t))

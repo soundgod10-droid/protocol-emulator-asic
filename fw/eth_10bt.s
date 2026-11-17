@@ -182,8 +182,8 @@ rxe:    ANDI r1, 0x20            ; RXEOP: end of carrier; every word is taken
         BNE  rxd                 ; reason 5: buffer busy
         LDI  r0, 3
         LD   r2, C_RXEND
-        CMP  r3, r2
-        BCS  rxd                 ; reason 3: longer than the buffer
+        CMP  r2, r3
+        BCC  rxd                 ; reason 3: longer than the buffer (a word was lost)
         LDI  r0, 2
         LD   r1, V_TMP
         ANDI r1, 0x40

@@ -177,8 +177,17 @@ def edge_offsets(frames, changes):
 
 
 def measure_bit_time(log, frames, changes, label):
-    """Measures the bit time from the edges. Returns it in ps."""
-    offsets = [(off, k) for off, k in edge_offsets(frames, changes) if k >= 1]
+    """Measures the bit time from the edges. Returns it in ps.
+
+    It uses the edges of the same polarity as the start edge (falling): with the SDF delays a rise and a
+    fall at the pin have different delays, which would add to the offsets of the rising edges and is not
+    a bit-time error (check_frame bounds each edge). A stream with no falling edge after the start edges
+    is measured from all edges.
+    """
+    falls = [(t, v) for t, v in changes if v == "0"]
+    offsets = [(off, k) for off, k in edge_offsets(frames, falls) if k >= 1]
+    if not offsets:
+        offsets = [(off, k) for off, k in edge_offsets(frames, changes) if k >= 1]
     assert offsets, f"{label}: no edges to measure the bit time"
     estimates = [off / k for off, k in offsets]
     t_bit = sum(off for off, _ in offsets) / sum(k for _, k in offsets)

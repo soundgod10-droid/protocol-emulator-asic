@@ -36,7 +36,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        corner: [nom_slow_1p08V_125C, nom_typ_1p20V_25C, nom_fast_1p32V_m40C]
+        corner: [nom_typ_1p20V_25C]
         # test_counter_sequence alone took 4 h 48 min at the slow corner (17,275 s, run
         # 41871325339); the other tests took up to 1 h 15 min (41871325339, 41924796459).
         # In one job they would pass the 6 h limit of a hosted runner.

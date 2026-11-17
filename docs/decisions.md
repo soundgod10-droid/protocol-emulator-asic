@@ -4,6 +4,8 @@ Each entry gives the question, the options that were compared, the evidence, the
 
 How to check a run value: open the run link. The layout and timing reports are in the `GDS_logs` artifact. The flip-flop setup margin is the first path (group `flops`) of `runs/wokwi/55-openroad-stapostpnr/<corner>/checks.rpt`. Counts and areas are in `runs/wokwi/final/metrics.csv`. The slow corner is `nom_slow_1p08V_125C` (1.08 V, 125 °C). Runs on research branches measured one option each. The present design is branch `cmos5l`.
 
+The reason for each smaller choice (every module, parameter, flow setting and instruction form, with the alternative compared and its numbers) is in [rationale.md](rationale.md).
+
 ## 1. Processor: four threads and timed pin events
 
 - **Question:** how does firmware get cycle-exact pin timing while several protocols run at the same time?

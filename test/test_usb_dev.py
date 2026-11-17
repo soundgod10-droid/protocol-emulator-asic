@@ -245,7 +245,7 @@ def ev(code, value=0):
     return code | (value << 8)
 
 
-def dump(dut, s, bus, glue, prog):
+async def dump(dut, s, bus, glue, prog):
     """Diagnosis after a failure: the last host checks, the last device edges, firmware variables."""
     for e in s.log[-6:]:
         dut._log.info("host log: %s %s %s" % (e.what, e.violations, {k: round(v, 3) if isinstance(v, float)

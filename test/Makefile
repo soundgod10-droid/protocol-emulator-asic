@@ -69,7 +69,7 @@ TOPLEVEL = tb
 # List test modules to run, separated by commas and without the .py suffix. At gate level the protocol tests
 # (test_rtl_fw) run in their own parallel jobs (.github/workflows/gds.yaml gl_protocols), not in gl_test:
 ifneq ($(GATES),yes)
-COCOTB_TEST_MODULES = test,test_isa,test_core,test_fw_full,test_flex,test_holdout,test_rtl_fw,test_slu,test_linemodel,test_usb_dev
+COCOTB_TEST_MODULES = test,test_isa,test_core,test_fw_full,test_flex,test_holdout,test_rtl_fw,test_slu,test_linemodel,test_usb_dev,test_eth_dev
 else
 COCOTB_TEST_MODULES = test,test_isa,test_core,test_fw_full,test_flex,test_holdout
 endif

@@ -253,11 +253,23 @@ def dump(dut, s, bus, glue, prog):
     t_end = glue.now()
     dut._log.info("device edges (us before now): %s" % ", ".join(
         "%.2f %s" % ((t_end - (t - glue.t0)) / 1e6, lv) for t, lv in bus.dev[-24:]))
-    try:
-        mem = dut.u_proc.u_mem
-        dut._log.info("program memory probe not available; see the waveform (%s)" % mem._name)
-    except AttributeError:
-        pass
+    if prog is None:
+        return
+    core, usb = dut.user_project.u_proc.u_core, dut.user_project.u_proc.u_usb
+    pcs = []
+    for _ in range(64):                       # thread 0 state is st0 in the cycles with now mod 4 = 0
+        await RisingEdge(dut.clk)
+        await ReadOnly()
+        if int(core.now.value) & 3 == 0:
+            st = core.st0.value.to_unsigned()
+            pcs.append((st >> 80) & 0x1FF)
+    regs = [(st >> (16 * i)) & 0xFFFF for i in range(4)]
+    line = prog.source.get(pcs[-1], (0, ""))
+    dut._log.info("thread 0: PCs %s; last PC %d (line %d: %s); r0-r3 %s" % (
+        sorted(set(pcs)), pcs[-1], line[0], line[1].strip(), ["%04x" % r for r in regs]))
+    dut._log.info("USB helper: tx_st %d rx_st %d sticky %04x tx_cnt %d rx_cnt %d tx_time %d now %d" % (
+        int(usb.tx_st.value), int(usb.rx_st.value), int(usb.sticky.value), int(usb.tx_cnt.value),
+        int(usb.rx_cnt.value), int(usb.tx_time.value), int(core.now.value)))
 
 
 async def enumerate_once(dut, host, bus, glue, ppm, seed, label):
@@ -265,7 +277,7 @@ async def enumerate_once(dut, host, bus, glue, ppm, seed, label):
     try:
         rep = await glue.run(s.enumerate(addr=5, reset_ps=RESET_PS, recovery_ps=RECOVERY_PS))
     except Exception:
-        dump(dut, s, bus, glue, None)
+        await dump(dut, s, bus, glue, bus.prog)
         raise
     check_clean(s, bus)
     assert rep["strings"] == {1: usb_dev_data.MANUFACTURER, 2: usb_dev_data.PRODUCT}, rep["strings"]

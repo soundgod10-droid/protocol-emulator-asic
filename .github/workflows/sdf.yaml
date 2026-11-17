@@ -124,6 +124,30 @@ jobs:
           fi
           # Annotation errors: 4 is the header count of the research runs; more means cells without delays.
           grep -c "SDF ERROR" sdf_run.log | tee -a sdf_names.log || true
+          grep "SDF ERROR\|not supported" sdf_run.log > sdf_errors.log || true
+          python3 -I - <<'EOF'
+          import re
+          sdf = open("/tmp/cell_only.sdf").read().split("\n")
+          errs = [e for e in open("sdf_errors.log").read().split("\n") if e]
+          def notice(title, text):
+              text = text.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+              print(f"::notice title={title}::{text}")
+          notice("sdf messages", "\n".join(errs[:60]))
+          cells = [i for i, l in enumerate(sdf, 1) if l.strip().startswith("(CELL")]
+          types = {}
+          for i in cells:
+              m = re.search(r'CELLTYPE\s+"([^"]+)"', " ".join(sdf[i - 1:i + 2]))
+              if m:
+                  types.setdefault(m.group(1), []).append(i)
+          macro = {k: v[:4] for k, v in types.items() if "RM_" in k or "sram" in k.lower()}
+          notice("sdf size", f"{len(sdf)} lines, {len(cells)} CELL entries, {len(types)} cell types; macro cells at lines {macro}")
+          nums = sorted({int(m.group(1)) for e in errs for m in [re.search(r"\.sdf:(\d+):", e)] if m})
+          for n in nums:
+              lo, hi = max(1, n - 14), min(len(sdf), n + 6)
+              after = sum(1 for c in cells if c > n)
+              body = "\n".join(f"{i}: {sdf[i - 1][:220]}" for i in range(lo, hi + 1))
+              notice(f"sdf line {n}", f"CELL entries after this line: {after}\n{body}")
+          EOF
           test -f results.xml
           ! grep -q "<failure" results.xml
 

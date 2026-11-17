@@ -89,6 +89,9 @@ start:  LDI  r0, 8
         SHL  r0, 4
         ORI  r0, 8
         IOW  r0, CFGDAT          ; SEL: DIN = input 8 (slicer), AUX0 = input 9 (squelch), AUX1 none
+        LDI  r0, 0
+        NOT  r0, r0
+        IOW  r0, ESTAT           ; flags of the time before SEL
         LDI  r1, INIT
         LDI  r2, V_BASE
 vi1:    LDX  r0, [r1]

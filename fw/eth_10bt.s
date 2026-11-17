@@ -160,6 +160,9 @@ rxl:    IOR  r1, ESTAT
         JAL  r2, tacc            ; every 256 words: keep the time base (a frame lasts up to 73,000 cycles)
         LD   r2, C_RXEND
         JMP  rxl
+rxov:   MOV  r3, r2              ; a word was lost: pointer one past the end
+        ADDI r3, 1
+        JMP  rxl
 rxe:    ANDI r1, 0x20            ; RXEOP: end of carrier; every word is taken
         BEQ  rxl
         IOR  r0, TSTAMP

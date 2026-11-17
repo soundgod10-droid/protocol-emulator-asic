@@ -67,6 +67,24 @@ def convert(text, src, pages):
     return HTML.sub(lambda m: f'{m.group(1)}="{rewrite(m.group(2), src, pages)}"', text)
 
 
+LAYOUT_FIG = re.compile(r"^.*!\[[^\]\n]*\]\([^)\s]*figures/layout(?:_detail)?\.png\).*$", re.M)
+
+
+def layout_note(out, runs):
+    """("other" | "missing" | None, note): the label of the layout figures when they are not of this branch's run."""
+    R = json.load(open(runs, encoding="utf-8")) if runs and os.path.exists(runs) else {}
+    branch = R.get("branch", "?")
+    if not os.path.exists(os.path.join(out, "figures", "layout.png")):
+        return "missing", (f"*No layout figure in this build: no gds run of branch `{branch}` has finished, and no "
+                           f"layout of another branch was loaded.*")
+    fb = R.get("gds_fallback")
+    if fb:
+        return "other", (f"> **Not the layout of this branch.** No gds run of branch `{branch}` has finished yet; this "
+                         f"build shows the layout of the newest successful gds run of branch `{fb['branch']}`, "
+                         f"[run {fb['id']}]({fb['url']}) (commit `{fb['sha'][:7]}`).")
+    return None, None
+
+
 def viewer(out, sub):
     oas = sorted(glob.glob(os.path.join(sub, "**", "*.oas"), recursive=True))
     pdk_json = sorted(glob.glob(os.path.join(sub, "**", "pdk.json"), recursive=True))

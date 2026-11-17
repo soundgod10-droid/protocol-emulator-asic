@@ -21,7 +21,7 @@ Simulator in the browser: **<https://soundgod10-droid.github.io/protocol-emulato
 
 ## What it does
 
-- **Protocols are firmware.** The chip has no UART, SPI or I2C block. A host loads a program through an SPI port, and the program makes every pin waveform. A new protocol needs new firmware, not new silicon. `fw/` has programs for UART, SPI, I2C, CAN, JTAG, SWD, PS/2, 1-Wire, the AM2302 sensor, AVR PDI and a timed trigger.
+- **Protocols are firmware.** The chip has no UART, SPI or I2C block. A host loads a program through an SPI port, and the program makes every pin waveform. A new protocol needs new firmware, not new silicon. `fw/` has programs for UART, SPI, I2C, CAN, JTAG, SWD, PS/2, 1-Wire, the AM2302 sensor, AVR PDI, a timed trigger, a USB low-speed device (HID keyboard) and a half-duplex 10BASE-T station.
 - **Four threads in fixed slots.** Thread n executes one 16-bit instruction in each clock cycle c with c mod 4 = n. A waiting thread keeps its slot. Thus the timing of one thread does not change with the other three.
 - **Timed output events.** `OUT` does not change the pin at once. It writes an event for a set cycle into the slot of that pin, and the pin changes in exactly that cycle. A late event still occurs and sets a LATE flag for the host.
 - **Timed inputs.** `SAMPLE` reads a pin at a set cycle. `WAIT` stops the thread until an edge and gives the cycle of the edge.

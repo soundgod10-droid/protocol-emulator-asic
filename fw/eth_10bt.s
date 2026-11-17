@@ -103,9 +103,6 @@ vi1:    LDX  r0, [r1]
         BEQ  vi1
         NOW  r0
         ST   r0, V_TL
-        LDI  r0, 0
-        NOT  r0, r0
-        IOW  r0, ESTAT           ; flags of the time before SEL
 
 ; ---- main loop: carrier and link pulses in every pass, then one housekeeping step (A to F) ---------
 ; One pass takes at most about 80 slots (320 cycles), less than the preamble after the carrier starts.

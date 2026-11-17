@@ -6,10 +6,10 @@ How to read a value: open the run, artifact `GDS_logs`. Timing: `runs/wokwi/<nn>
 
 ## 1 Checks and results
 
-| Check | Source of the practice | Result (run [43989356298] unless stated) | State |
+| Check | Source of the practice | Result (run [44005215480] unless stated) | State |
 |---|---|---|---|
-| Setup timing, all corners | signoff static timing of the LibreLane flow (`OpenROAD.STAPostPNR`, `Checker.SetupViolations`) | 0 violations at the 3 corners; flip-flop slack at 16.667 ns (group `flops`, [src/signoff.sdc](../src/signoff.sdc)): +0.487 ns slow, +4.260 ns typical, +4.462 ns fast; the FIFO latch paths borrow time and report 0.000; clock-gating checks +9.448 ns | clean; margin below the +1.1 ns target, section 5 item 1 |
-| Hold timing, all corners | same flow, `Checker.HoldViolations` | 0 violations; worst slack +0.057 ns (fast), +0.214 ns (typical), +0.492 ns (slow); 2,966 hold buffers | clean |
+| Setup timing, all corners | signoff static timing of the LibreLane flow (`OpenROAD.STAPostPNR`, `Checker.SetupViolations`) | 0 violations at the 3 corners; flip-flop slack at 16.667 ns (group `flops`, [src/signoff.sdc](../src/signoff.sdc)): +1.682 ns slow, +4.311 ns typical, +4.491 ns fast; the FIFO latch paths borrow time and report 0.000; clock-gating checks +9.220 ns (slow) | clean; above the +1.1 ns target ([decisions.md](decisions.md) entries 4 and 21) |
+| Hold timing, all corners | same flow, `Checker.HoldViolations` | 0 violations; worst slack +0.099 ns (fast), +0.272 ns (typical), +0.582 ns (slow); 3,030 hold buffers | clean |
 | Max transition (slew) and max capacitance | Liberty `max_transition` and `max_capacitance` of the cells and of the SRAM macro pins (input 0.595 ns, A_DOUT 0.064 pF); with the macros a violation at any corner stops the run (`MAX_SLEW_VIOLATION_CORNERS`, `MAX_CAP_VIOLATION_CORNERS` "*") | 0 at the 3 corners; the macro-pin violations of the first SRAM layouts were removed by a 150 um wire-length limit in both design repairs ([decisions.md](decisions.md) entry 3) | clean |
 | Max fanout | `default_max_fanout` 8 of the CMOS5L library (smaller than the flow's `MAX_FANOUT_CONSTRAINT` 10) | 0 at the 3 corners (earlier layouts had 8 pins with antenna-diode loads, entry 17) | clean |
 | Lint | Verilator lint of the flow (`Verilator.Lint`) | run [43989356298]: 1 warning (UNUSEDSIGNAL, the upper bits of the CRC B step in `src/pe_slu.v`, fixed in the next commit); the run before it had 13 width and unused-signal warnings in the helper RTL, all fixed without a change of behaviour; 2 local waivers for the power pins of the two instantiated cells (entry 14) | see section 5 item 2 |

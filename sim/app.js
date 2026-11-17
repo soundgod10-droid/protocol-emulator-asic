@@ -443,7 +443,7 @@ function renderEditorPc(st, exact) {
     const src = lineOf(th.pc);
     if (!src || !(th.run || (run.config && run.config.run[n]))) return;
     inFile[src.fi].push(n);
-    if (src.file === cur) {
+    if (src.file === cur && !edited) {
       list.push({ line: src.line, thread: n });
       if (ui.follow === n || (want !== null && (want === n || follow === undefined))) follow = src.line;
     }

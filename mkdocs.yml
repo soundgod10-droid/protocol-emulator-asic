@@ -51,6 +51,7 @@ nav:
   - Verification: verification.md
   - Signoff: signoff.md
   - Decisions: decisions.md
+  - Rationale: rationale.md
   - Flexibility census: census.md
   - Results: results.md
   - Simulator: https://soundgod10-droid.github.io/protocol-emulator-asic/sim/

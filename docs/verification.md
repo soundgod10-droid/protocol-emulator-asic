@@ -48,8 +48,8 @@ The properties are in the RTL (`ifdef FORMAL`) and in the wrapper files `formal/
 
 | Job | What | Mode, depth | Result |
 |---|---|---|---|
-| `core.sby` | barrel order B1 to B4, pin events E1 to E8, memory writes W1 to W3 of `src/pe_core.v`, all core inputs free | prove, 4 | pass, k-induction |
-| `core_cover.sby` | the properties can be reached | cover, 12 | 3 covers reached |
+| `core.sby` | barrel order B1 to B4, the SRAM request 3 cycles before the slot and the fetch of the slot's thread (B3, B6, B7), pin events E1 to E8, the registered store request W1 to W3, helper ports I1 of `src/pe_core.v`, all core inputs free; 42 property cells | prove, 4 | pass, k-induction |
+| `core_cover.sby` | the properties can be reached: memory write, event load, I/O write, start | cover, 12 | 4 covers reached |
 | `timed_out.sby` | event slot T1 to T6 of `src/pe_timed_out.v`, for all leads 1 to 65,536 cycles | prove, 4 | pass, k-induction |
 | `timed_out_cover.sby` | reachability | cover, 12 | 2 covers reached |
 | `host_port.sby` | host port H1 to H7 of `src/pe_host_port.v` against a monitor that decodes the SPI pins as [docs/host_port.md](host_port.md) states; all inputs free, later resets free | prove, 4 | pass, k-induction |

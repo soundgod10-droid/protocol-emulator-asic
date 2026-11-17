@@ -19,6 +19,7 @@ import subprocess
 import sys
 
 REPO = os.environ.get("GITHUB_REPOSITORY", "soundgod10-droid/protocol-emulator-asic")
+DEFAULT = "cmos5l"  # the branch whose site is deployed (.github/workflows/docs.yaml)
 WORKFLOWS = {
     "gds": ("gds.yaml", ["tt_submission", "gatelevel_test_results", "gl_protocols_1", "gl_protocols_2",
                          "gl_protocols_3", "precheck_reports"]),

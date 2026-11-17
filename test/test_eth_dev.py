@@ -216,6 +216,25 @@ async def eth_chip(dut, scale=1, seed=0xACE1):
     await host.start()
     t_start = get_sim_time("ps")
     port = HostPort(host)
+
+    async def diag():
+        core, eth = dut.user_project.u_proc.u_core, dut.user_project.u_proc.u_eth
+        pcs = []
+        for _ in range(64):                   # thread 0 state is st0 in the cycles with now mod 4 = 0
+            await RisingEdge(dut.clk)
+            await ReadOnly()
+            if int(core.now.value) & 3 == 0:
+                st = core.st0.value.to_unsigned()
+                pcs.append((st >> 80) & 0x1FF)
+        line_src = prog.source.get(pcs[-1], (0, ""))
+        dut._log.info("thread 0: PCs %s; last PC %d (line %d: %s); r0-r3 %s" % (
+            sorted(set(pcs)), pcs[-1], line_src[0], line_src[1].strip(),
+            ["%04x" % ((st >> (16 * i)) & 0xFFFF) for i in range(4)]))
+        dut._log.info("10BASE-Te helper: tx_st %d rx_st %d sticky %04x carrier %d rx_cnt %d rx_words %d "
+                      "rx_lastn %d" % (int(eth.tx_st.value), int(eth.rx_st.value), int(eth.sticky.value),
+                                       int(eth.carrier.value), int(eth.rx_cnt.value), int(eth.rx_words.value),
+                                       int(eth.rx_lastn.value)))
+    port.diag = diag
     await ClockCycles(dut.clk, 200)
     dut._log.info("fw/eth_10bt.s: %d program words (variables from %d); timers %s units (scale %d)" %
                   (prog.size, v_first, info["timers_units"], scale))

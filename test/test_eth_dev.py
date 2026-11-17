@@ -458,5 +458,6 @@ async def test_eth_dev_nlp_period(dut):
     first_ms = evs[0].t0 / 1e9
     gap_ms = (evs[1].t0 - evs[0].t1) / 1e9
     assert 8 <= gap_ms <= 24, "silence %.4f ms" % gap_ms
+    dut._log.info("waveform marks: pulses (start, end) ps %s" % [(t0 + e.t0, t0 + e.t1) for e in evs])
     dut._log.info("NLP: first pulse %.4f ms after START, silence %.4f ms, widths %s ps" % (
         first_ms, gap_ms, [round(e.measures["width_ps"]) for e in evs]))

@@ -8,8 +8,10 @@ What it does:
   site becomes the local figure, so that mkdocs --strict checks that it exists. With a tt_submission folder it
   adds the layout file for the 3D viewer under viewer/ (the page that the template's viewer job made).
 
-Usage: python figures/site.py <site source folder> [<tt_submission folder>]
-  figures/ and results.md must already be in the site source folder (.github/workflows/docs.yaml).
+Usage: python figures/site.py <site source folder> [<tt_submission folder> [<runs.json>]]
+  figures/ and results.md must already be in the site source folder (.github/workflows/docs.yaml). With runs.json
+  (figures/runs.py) every layout figure gets a note when it comes from the default branch's gds run (gds_fallback),
+  and is replaced by a note when there is no layout figure.
 """
 
 import glob

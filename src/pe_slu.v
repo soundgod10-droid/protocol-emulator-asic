@@ -288,6 +288,7 @@ module pe_slu #(
     end
   end
 
+  wire [31:0] crcb_next    = crc_step({24'd0, crc_b}, r_data, {24'd0, c_crcb[7:0]});
   wire        rx_word_full = r_data_v && (rx_nb == 5'd15);
   wire [15:0] rx_word      = {r_data, rx_sh[15:1]};
   // rx_sh >> (16 - rx_nb), written as mux stages: a variable shift cell can stall the SHARE pass

@@ -69,8 +69,8 @@ Before the helper tests of this version, the line coverage was 73.6 % (run [4396
 
 ## 5 Open items
 
-1. **Slow-corner setup margin.** +0.487 ns at 60 MHz in run [43989356298]; three layout runs of nearly the same netlist gave +1.308 ns (run [43966684593]), +0.740 ns and +0.487 ns. In each, the worst path starts at the core's register select `sa` and the hold repair has put a 0.69 ns delay cell right after it. The planned margin is +1.1 ns ([decisions.md](decisions.md) entry 4); research runs that keep the hold delay off this path are in progress.
-2. **Lint**: the last warning (unused upper bits of the CRC B step) is fixed in the commit after run [43989356298]; the next layout run must show 0.
+1. **Slow-corner setup margin** (closed). Three layout runs of nearly the same netlist gave +1.308 ns (run [43966684593]), +0.740 ns and +0.487 ns (run [43989356298]); in each, the worst path started at the core's register select `sa` with a 0.69 ns hold-repair delay cell right after it. The post-CTS setup margin of 1.5 ns, with the FIFO latches taken out of the placement timing, gives +1.682 ns in research run [43998187307] and again in run [44005215480] ([decisions.md](decisions.md) entry 21), above the +1.1 ns target of entry 4.
+2. **Lint** (closed): run [44005215480] reports 0 warnings.
 3. **IR drop** is a tile-level estimate without voltage-source locations.
 4. **SDF simulation** on the SRAM layout: the job has not run yet on this layout; `test.py` and `test_core.py` keep their 50 MHz clock in it, because the UART receiver model of `test.py` is written for 50 MHz.
 5. **CDC by tool**: [formal/cdc.sby](../formal/cdc.sby) checks the synchronizer and reset structure; it does not judge reconvergence of synchronized bits (the three host bits, argued in section 2) and is not a commercial CDC tool with its full rule set.

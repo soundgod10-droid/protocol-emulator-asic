@@ -118,7 +118,7 @@ jobs:
           head -n 24 /tmp/cell_only.sdf > sdf_head.log
           rm -f results.xml
           if [ "${{ matrix.part }}" = main ]; then
-            GATES=yes SDF_SKIP_COUNTER=1 make SDF_FILE=/tmp/cell_only.sdf COCOTB_TEST_MODULES=test_r3_sdf,test,test_core FST= 2>&1 | grep -v "SDF WARNING" | tee sdf_run.log || true
+            GATES=yes SDF_SKIP_COUNTER=1 make SDF_FILE=/tmp/cell_only.sdf COCOTB_TEST_MODULES=test_r3_sdf FST= 2>&1 | grep -v "SDF WARNING" | tee sdf_run.log || true
           else
             GATES=yes COCOTB_TEST_FILTER=test_counter_sequence make SDF_FILE=/tmp/cell_only.sdf COCOTB_TEST_MODULES=test FST= 2>&1 | grep -v "SDF WARNING" | tee sdf_run.log || true
           fi

@@ -42,8 +42,8 @@ Simulator in the browser: **<https://soundgod10-droid.github.io/protocol-emulato
 | RTL tests (cocotb, Icarus Verilog) | 105 tests, job success | [test 44005215479][test] |
 | Line helpers: USB low speed and 10BASE-Te on the RTL / on the gate-level netlist | 15 tests (9 unit, 6 chip) / the 6 chip tests pass | [test 44005215479][test], [gds 44005215480][gds] |
 | 10BASE-T receive margin of the helper's loop (1,000 frames of 1,518 bytes per case, model) | 1,000 of 1,000 at the 13.5 ns jitter limit, +1.34 ns margin with up to 3 ns pattern-dependent jitter | [helpers](docs/helpers.md) |
-| Code coverage of the RTL tests: line / branch / toggle | 75.6 % / 81.3 % / 77.1 % (every file 100 % line except the helpers, [signoff](docs/signoff.md)) | [coverage 43989356338][cov] |
-| Formal proofs and covers (SymbiYosys) | 16 of 16 jobs pass | [formal 43989356387][formal] |
+| Code coverage of the RTL tests: line / branch / toggle | 75.6 % / 81.3 % / 77.1 % (every file 100 % line except the helpers, [signoff](docs/signoff.md)) | [coverage 44005215379][cov] |
+| Formal proofs and covers (SymbiYosys) | 16 of 16 jobs pass | [formal 44005215486][formal] |
 
 Conditions: static timing of the routed layout at the three corners of the flow (slow 1.08 V 125 °C, typical 1.20 V 25 °C, fast 1.32 V -40 °C). The tests are logic simulations. The gate-level tests use the netlist of the layout with functional cell models and no delays. There is no silicon result yet. The [Results](https://soundgod10-droid.github.io/protocol-emulator-asic/results/) page is made again from the newest runs on every push, with every value and its run.
 

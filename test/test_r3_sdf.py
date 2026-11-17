@@ -2,7 +2,8 @@
 """Is the SDF annotation in effect, and does the host port read the chip ID with the delays of the layout?
 
 What it does:
-  It reads the chip ID through the host port, writes and reads the whole memory, and
+  It reads the chip ID through the host port at 60 MHz, writes and reads words of the program and the data
+  memory (both SRAM macros), and
   measures the time from each rising clock edge to the change of MISO on uo_out[7].
 
 Why:

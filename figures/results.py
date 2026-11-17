@@ -153,6 +153,11 @@ def main(runs_dir, fig_dir, out_md):
     if nf:
         L.append(f"Note: a newer gds run, [run {nf['id']}]({nf['url']}) (commit `{nf['sha'][:7]}`), ended with failure; "
                  f"the layout values below come from the newest successful gds run.\n")
+    fb = R.get("gds_fallback")
+    if fb:
+        L.append(f"**Not the layout of this branch.** Branch `{R['branch']}` has no successful gds run yet, so the layout, "
+                 f"timing, precheck and gate-level values below come from the newest successful gds run of branch "
+                 f"`{fb['branch']}`: [run {fb['id']}]({fb['url']}) (commit `{fb['sha'][:7]}`).\n")
     L.append("## Key results\n")
     L.append("| Item | Result | Source |")
     L.append("|---|---|---|")

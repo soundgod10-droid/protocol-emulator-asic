@@ -145,7 +145,6 @@ module pe_slu_loop_step (
       if ((acq_n != 6'd0) && (nacc < acq_n)) begin
         ok = (eps <= wina_s) && (eps >= wina_n);
       end else begin
-        w  = win_s;
         ok = (eps <= win_s) && (eps >= win_n);
       end
       if (ok) begin

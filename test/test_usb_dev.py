@@ -359,6 +359,9 @@ async def test_usb_dev_errors(dut):
     check_clean(s, bus)
     silent = [e.what for e in s.log if e.what.endswith("no reply")]
     assert len(silent) == 6, "silent checks: %s" % silent
+    dut._log.info("waveform marks: host EOP ends of the bus reset and the first damaged packets %s ps; first "
+                  "device packet start %s ps" % (bus.host_eops[:5],
+                                                 next((t for t, lv in bus.dev if lv == "K"), None)))
     assert out["dev"] == usb_dev_data.DEVICE and not out["stall"]
     dut._log.info("errors: 6 damaged or foreign packets, no answer to any; then GET_DESCRIPTOR device ok; %s"
                   % summary(s))

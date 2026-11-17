@@ -87,6 +87,9 @@ start:  LDI  r0, 8
         ORI  r0, 8
         IOW  r0, CFGDAT          ; SEL: DIN = input 8 (RCV), AUX0 = input 9 (VP), AUX1 = input 10 (VM)
         LDI  r0, 0
+        NOT  r0, r0
+        IOW  r0, USTAT           ; before SEL the helper had no pins (SE0): clear its line flags
+        LDI  r0, 0
         ST   r0, V_READY
         ST   r0, V_IN0A
         ST   r0, V_IN1A

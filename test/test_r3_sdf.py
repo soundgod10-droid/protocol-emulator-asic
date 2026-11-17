@@ -22,7 +22,7 @@ from host_spi import CHIP_ID, SpiTimed
 
 @cocotb.test()
 async def test_r3_sdf_delay(dut):
-    cocotb.start_soon(Clock(dut.clk, 20, unit="ns").start())
+    cocotb.start_soon(Clock(dut.clk, 16666, unit="ps").start())   # 60 MHz, the timed clock (info.yaml)
     dut.ena.value = 1
     dut.uio_in.value = 0
     host = SpiTimed(dut)

@@ -186,7 +186,7 @@ pkdr:   IOR  r0, RXINFO
 pkgo:   MOV  r0, r1
         SHR  r0, 8
         ANDI r0, 3               ; STUFFERR (7.1.9), RXOVER
-        BNE  drop
+        BNE  tokno
         LDI  r0, 0x330
         IOW  r0, USTAT           ; clear RXSOP, RXEOP, STUFFERR, RXOVER
         JMP  slow

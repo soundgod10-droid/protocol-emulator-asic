@@ -91,6 +91,7 @@ start:  LDI  r0, 8
         ST   r0, V_IN0A
         ST   r0, V_IN1A
         ST   r0, V_HW
+        ST   r0, V_TOK
         LDI  r0, STNAK
         ST   r0, V_ST0P
         ST   r0, V_ST1P

@@ -83,7 +83,7 @@ module pe_slu_loop_step (
     begin
       rnd = 21'd0;
       for (j = 1; j < 16; j = j + 1)
-        if (s == j) rnd[j-1] = 1'b1;
+        if (s == j[3:0]) rnd[j-1] = 1'b1;
       r = v + $signed(rnd);
       r = s[0] ? {r[20], r[20:1]} : r;
       r = s[1] ? {{2{r[20]}}, r[20:2]} : r;

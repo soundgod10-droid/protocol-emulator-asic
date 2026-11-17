@@ -185,6 +185,14 @@ The record below is the earlier decision (6x4, before the rule change).
 - **Decision:** the KLayout DRC of the layout precheck is the DRC signoff; Magic DRC stays off ([docs/tapeout_checklist.md](tapeout_checklist.md)).
 - **Would change it:** a Magic rule set that reads the SRAM exception layers.
 
+## 21. Setup margin of the resizer with the SRAM layout
+
+- **Question:** three layout runs of nearly the same netlist gave a slow-corner flip-flop setup margin of +1.308, +0.740 and +0.487 ns at 60 MHz (runs [43966684593], [43983798247], [43989356298]), below the +1.1 ns of entry 4. In each run the worst path starts at the core's register select (`u_core.sa`), and the hold repair has put a 0.69 ns delay cell right after that flip-flop, on the net that also feeds the register-read multiplexers of the ALU path. How does the margin come back?
+- **Options:** keep the flow and accept the margin; change the RTL so that the short paths and the ALU path start at different select flip-flops; give the post-CTS resizer a setup margin (`PL_RESIZER_SETUP_SLACK_MARGIN`), so that its hold repair keeps that much setup slack on the paths it delays. A margin above 0 made the resizer loop for hours on the latch endpoints when the memory was a latch array (2,560 endpoints that borrow and report 0.000, run [40793488418]); the 512 FIFO latches would do the same, so their D pins leave the place-and-route setup checks ([src/pnr.sdc](../src/pnr.sdc)), while the signoff constraints check them as before.
+- **Evidence:** the same RTL (commit 9d3532d) with margin 1.5 ns and the latch D pins out of the place-and-route setup checks: +1.682 ns slow, +4.311 ns typical, +4.491 ns fast; hold +0.582 / +0.272 / +0.099 ns; no setup, hold, slew, capacitance or fanout violation at the three corners; latch paths 0.000 by borrowing as before; layout job 40 min; precheck pass (research run [43998187307]). The run without the change, the same RTL: +0.487 ns (run [43989356298]).
+- **Decision:** `PL_RESIZER_SETUP_SLACK_MARGIN` 1.5 with the latch D pins out of the place-and-route setup checks.
+- **Would change it:** a run that loops in the resizer, or a margin under +1.1 ns again; then the RTL change of the second option.
+
 ## Claims with no public evidence yet
 
 - Pad electrical limits (I2C low-level output voltage, 5 V tolerance, Fast-mode Plus): the evidence is now public. The pad SPICE netlists are in `spice/` and the results in [verification.md](verification.md) section 9: Standard-mode and Fast-mode output low level met at every corner, Fast-mode Plus not met, not 5 V tolerant. The chip claims I2C Standard-mode and Fast-mode only and makes no 5 V claim.

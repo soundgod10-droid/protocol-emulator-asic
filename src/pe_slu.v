@@ -547,7 +547,7 @@ module pe_slu #(
         rx_lastbit <= r_data;
         if (rx_bits >= {4'd0, c_crcw[15:10]}) begin
           crc_a <= crc_step(crc_a, r_data, c_pa) & crc_mask;
-          crc_b <= crc_step({24'd0, crc_b}, r_data, {24'd0, c_crcb[7:0]}) & crcb_mask;
+          crc_b <= crcb_next[7:0] & crcb_mask;
         end
         rx_bits <= (rx_bits == 10'h3FF) ? rx_bits : rx_bits + 10'd1;
         rx_bph  <= rx_bph + 3'd1;

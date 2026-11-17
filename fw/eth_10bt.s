@@ -133,7 +133,9 @@ carw:   IOR  r1, ESTAT           ; carrier: wait for the SFD
         SHR  r1, 12
         ANDI r1, 1
         BNE  carw
-        LD   r0, C_RXCLR         ; activity without a frame start
+        NOW  r0                  ; activity without a frame start (e.g. a collision fragment):
+        ST   r0, V_IDLEAT        ;   its end is the gap reference
+        LD   r0, C_RXCLR
         IOW  r0, ESTAT
         JAL  r2, rdact
         JMP  main

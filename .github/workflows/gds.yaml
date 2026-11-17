@@ -44,6 +44,21 @@ jobs:
           fi
           body=$(grep -rh -i -B2 -A8 "disconnected" ${r}*-checker-disconnectedpins/*.log ${r}*-odb-checkdisconnectedpins/*.log ${r}*disconnected*/*.rpt 2>/dev/null | head -n 40 | sed ':a;N;$!ba;s/\n/%0A/g')
           echo "::notice title=disconnected pins::${body}"
+          # Research branch: more slow-corner setup paths, fast-corner hold paths, and the cells on the core's
+          # register select sa (its hold buffer is on the worst setup path).
+          d=$(ls -d ${r}*-openroad-stapostpnr 2>/dev/null | head -n 1)
+          ls ${d}/nom_slow_1p08V_125C/ ${d}/nom_fast_1p32V_m40C/ 2>/dev/null | head -n 40 | sed ':a;N;$!ba;s/\n/%0A/g' | xargs -0 -I{} echo "::notice title=sta files::{}"
+          for f in ${d}/nom_slow_1p08V_125C/max.rpt; do
+            body=$(grep -E "^Startpoint|^Endpoint|slack \(" "$f" 2>/dev/null | head -n 150 | sed ':a;N;$!ba;s/\n/%0A/g')
+            echo "::notice title=slow max paths::${body}"
+          done
+          for f in ${d}/nom_fast_1p32V_m40C/min.rpt; do
+            body=$(grep -E "^Startpoint|^Endpoint|slack \(" "$f" 2>/dev/null | head -n 150 | sed ':a;N;$!ba;s/\n/%0A/g')
+            echo "::notice title=fast min paths::${body}"
+          done
+          nl=$(ls ${r}final/nl/*.nl.v 2>/dev/null | head -n 1)
+          body=$(grep -n -E "u_core\.sa\[|u_core\.sa |net8736|hold8737" "$nl" 2>/dev/null | head -n 60 | sed ':a;N;$!ba;s/\n/%0A/g')
+          echo "::notice title=sa nets::${body}"
           true
 
   precheck:

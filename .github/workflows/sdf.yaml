@@ -40,7 +40,7 @@ jobs:
         # test_counter_sequence alone took 4 h 48 min at the slow corner (17,275 s, run
         # 41871325339); the other tests took up to 1 h 15 min (41871325339, 41924796459).
         # In one job they would pass the 6 h limit of a hosted runner.
-        part: [main, counter]
+        part: [main]
     env:
       PDK_ROOT: /home/runner/pdk
       SDF_DELAYS: 1

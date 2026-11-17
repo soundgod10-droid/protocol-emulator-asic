@@ -6,11 +6,19 @@ u_proc.u_mem.g_word[1].u_cg.u_cell is not found ("Cannot find u_proc in scope") 
 This changes the same names in the same way in both files. The SDF lines of the wires (INTERCONNECT)
 are left out: vvp cannot load them.
 
+The CELL entries of the SRAM macros are left out too. Their paths name bus bits (IOPATH A_CLK A_DOUT[0]),
+which the SDF parser of vvp does not accept: it stops with "Too many errors" at the first macro entry, so
+the about 3,600 cells after it in the file got no delay (sdf run 44045660470, notices). The macros are
+simulated by the functional models of src/sram_sim.v, which have no specify paths, so their delays cannot
+be applied in any case; the macro read time is checked by the static timing of the layout.
+
 Usage: sdf_names.py netlist.v delays.sdf
 """
 
 import re
 import sys
+
+MACRO = re.compile(r'\(CELLTYPE\s+"RM_IHPSG13_')
 
 
 def plain(name):

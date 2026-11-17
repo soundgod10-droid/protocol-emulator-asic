@@ -112,6 +112,7 @@ make -B COCOTB_TEST_MODULES=test_rtl_fw COCOTB_TEST_FILTER=test_rtl_uart_tx
 - [Verification](docs/verification.md): each verification method, what it checks and what it does not
 - [Signoff](docs/signoff.md): each signoff check with its source and result, the open items, the CDC and reset review
 - [Decisions](docs/decisions.md): each design decision with the options and the evidence
+- [Rationale](docs/rationale.md): why each module, parameter, flow setting and instruction is as it is, with the alternative compared and its numbers
 - [Flexibility census](flex/PREREG.md): the rules for the census of protocols on the frozen chip
 - [Datasheet](docs/info.md): pins, how to use the chip step by step, and the external parts for each protocol
 - [Tapeout checklist](docs/tapeout_checklist.md): the checks before the final layout run

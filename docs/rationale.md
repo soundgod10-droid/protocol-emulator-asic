@@ -104,7 +104,7 @@ Conditions: timing values are static timing of the routed layout at the three co
 | Link test pulse sent | 6 cycles (100 ns) | Figure 14-13 template (85 to 137.5 ns for a square pulse of the drive level, calculation) | - | `test_slu_eth_tx` |
 | Link pulse received | 2 to 12 cycles | Classifies a single pulse apart from data | - | `test_slu_eth_rx` |
 | Squelch qualifier | 4 edge spacings in a row of 3 to 16 half cycles | Noise on the squelch comparator does not start a frame | - | `test_slu_eth_rx` |
-| Collision jam | 32 bits | IEEE 802.3 4.2.3.2.4 jam size | The test found a 31-bit jam (fixed) | `test_slu_eth_collision` |
+| Collision jam | 32 bits | IEEE 802.3 clause 4, jamSize = 32 bits | The test found a 31-bit jam (fixed) | `test_slu_eth_collision` |
 | Jabber | transmitting longer than 2^22 cycles (69.9 ms) stops the transmitter for 2^25 cycles (0.559 s) | IEEE 802.3 clause 14 jabber function (PICS item MF5, 14.10.4.5.1) with its time windows; powers of two need only a counter tap | - | `test_slu_jabber` |
 | Pin signals | TXA, TXB, TXC and TXD (one cycle later), OE, not OE | Each chip output stays a flip-flop output; TXC/TXD drive a second, delayed pad for the 10BASE-Te line network; not OE drives the transceiver's active-low enable | - | `test_slu_chip_*_events` |
 

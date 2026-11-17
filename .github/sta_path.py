@@ -38,6 +38,11 @@ def main(root):
         corner = os.path.basename(os.path.dirname(checks_path))
         with open(checks_path, encoding="utf-8", errors="replace") as f:
             path = first_path(f.read(), "flops")
+        if path:
+            # annotations are cut at about 4 kB: keep the start, the end, each net and the slack
+            keep = ("Startpoint", "Endpoint", "(net)", "data arrival time", "data required time", "slack",
+                    "/D (", "/Q (", "library setup time")
+            path = "\n".join(" ".join(l.split()) for l in path.splitlines() if any(k in l for k in keep))
         notice(f"{corner} worst flops setup path", path or "path group flops not found")
     return 0
 

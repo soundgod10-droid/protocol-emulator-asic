@@ -57,7 +57,9 @@ def test_usb_host_port_setup_ack():
     assert port.done and port.report == "ACK", port.report
     assert not s.violations, s.violations
     ipd = [e.measures["ipd_bits"] for e in s.log if "ipd_bits" in e.measures]
-    assert len(ipd) == 1 and abs(ipd[0] - 4.0) <= CLK / L.BIT_PS + 1e-9, ipd
+    # two quantizations: the host EOP edge reaches the pins at the next clock, the reply starts at the
+    # next clock after its time
+    assert len(ipd) == 1 and abs(ipd[0] - 4.0) <= 2 * CLK / L.BIT_PS + 1e-9, ipd
     bus = _bus_wave_from_ui(samples)
     d0 = L.decode_packet(bus)
     assert d0.ok and d0.pid_name == "SETUP" and d0.fields == {"addr": 0, "endp": 0}, (d0.errors, d0.pid_name)

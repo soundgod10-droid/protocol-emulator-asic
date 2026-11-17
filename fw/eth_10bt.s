@@ -151,7 +151,7 @@ rxl:    IOR  r1, ESTAT
         BEQ  rxe
         IOR  r0, RXDATA
         CMP  r3, r2
-        BCS  rxl                 ; buffer full
+        BCS  rxov                ; buffer full
         STX  r0, [r3]
         ADDI r3, 1
         MOV  r0, r3

@@ -23,10 +23,11 @@
   "PL_RESIZER_HOLD_SLACK_MARGIN": 0.1,
   "GRT_RESIZER_HOLD_SLACK_MARGIN": 0.05,
 
-  "//": "Setup slack margin 0 after CTS: with 0.05 ns the 2,560 latch endpoints (borrow slack 0.000)",
-  "//": "are setup 'violators' and the resizer loops for 4 h 19 min with no change (gds 40793488418);",
-  "//": "margin 0 gives identical final metrics in 2 h 47 min (gds 40955756051). All runs, tape-out included.",
-  "PL_RESIZER_SETUP_SLACK_MARGIN": 0,
+  "//": "Setup slack margin 1.5 ns after CTS, with the FIFO latch D pins out of the PnR setup checks (pnr.sdc):",
+  "//": "the latch endpoints borrow (slack 0.000) and made a margin above 0 loop for hours when they were",
+  "//": "checked (gds 40793488418). With the margin the hold repair keeps the delay off the core's register-select",
+  "//": "path: slow-corner flip-flop slack +0.487 -> +1.682 ns, same RTL (gds 43989356298, 43998187307), 40 min.",
+  "PL_RESIZER_SETUP_SLACK_MARGIN": 1.5,
 
   "//": "OpenROAD threads: unset gives '-threads None' in LibreLane 3.1.0.dev3 (steps/openroad.py,",
   "//": "get_command), so detailed routing runs on one thread; 4 = CPUs of the ubuntu-24.04 runner.",

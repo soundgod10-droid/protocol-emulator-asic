@@ -63,7 +63,7 @@ The properties are in the RTL (`ifdef FORMAL`) and in the wrapper files `formal/
 | `mem_reset.sby` | 8 x 16 with a free reset in every step | bmc, 10 | pass |
 | `mem_full.sby` | 128 x 16, the chip size | prove, 3 | pass, k-induction (555 s) |
 | `mem_full_reset.sby` | 128 x 16 with a free reset in every step | prove, 3 | pass, k-induction (590 s) |
-| `cdc.sby` | structural clock-domain-crossing and reset check of the whole chip: each asynchronous input reaches storage only at a two-stage synchronizer, no logic reads a first stage, only synchronized resets ([signoff.md](signoff.md) section 2); not a proof, a structure check by Yosys selections | structure, then bmc 1 with no property | pass (14 s, commit f1a9da1, 15 November 2026); a bypassed or one-stage synchronizer makes it fail |
+| `cdc.sby` | structural clock-domain-crossing and reset check of the whole chip: each asynchronous input reaches storage only at a two-stage synchronizer, no logic reads a first stage, only synchronized resets ([signoff.md](signoff.md) section 2); with the helpers 20 first stages (16 `pe_sync2` and 4 helper data-input stages, one of them on the falling clock edge per helper); not a proof, a structure check by Yosys selections | structure, then bmc 1 with no property | pass on every push; earlier, before the helpers: 14 s, commit f1a9da1; a bypassed or one-stage synchronizer makes it fail |
 
 Does not check: the whole chip in one proof (the jobs prove blocks: core, event slot, host port, memory); the latch timing (the solver models the clock as a signal that changes at each step, so the latch window is checked by static timing, section 6); the bounded jobs (bmc, cover) check only their stated depth.
 

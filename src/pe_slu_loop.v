@@ -128,7 +128,6 @@ module pe_slu_loop_step (
       ne      = (nedge == 2'd3) ? 2'd3 : nedge + 2'd1;
       nedge_o = ne;
       if (ne >= init_edge) begin
-        st        = 1'b1;
         t         = mid_s + 21'sd2048;
         init_o    = 1'b1;
         decided_o = 1'b0;

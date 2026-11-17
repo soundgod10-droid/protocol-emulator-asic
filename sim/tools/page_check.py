@@ -111,8 +111,11 @@ def main(argv):
         # L5b
         b.open(f"{base}/index.html?ex=E1")
         b.wait(DONE, timeout=600)
+        # The editor draws only the lines in view and follows the thread's PC line after a run, so put the cursor on
+        # the changed line and scroll it into view: the lint marker is then in the page.
         name = b.eval("(() => { const v = window.__v1.editor.view; const ln = v.state.doc.line(5);"
-                      " v.dispatch({changes: {from: ln.from, insert: 'FOO r0\\n'}}); return window.__v1.editor.current(); })()")
+                      " v.dispatch({changes: {from: ln.from, insert: 'FOO r0\\n'}, selection: {anchor: ln.from},"
+                      " scrollIntoView: true}); return window.__v1.editor.current(); })()")
         # The editor draws the lint marker after the message text is set (a later frame), so wait for both.
         has_marker = "!!document.querySelector('.cm-lint-marker-error, .cm-lintRange-error')"
         try:

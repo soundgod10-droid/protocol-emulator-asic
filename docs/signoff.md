@@ -59,7 +59,7 @@ Reset tree:
 
 ## 4 Code coverage
 
-The coverage job builds the cocotb test bench with Verilator (`SIM=verilator`, line, branch and toggle coverage; [test/coverage_summary.py](../test/coverage_summary.py)) and runs every test module. Run [43989356338] (commit 9d3532d): line 416 of 550 (75.6 %), branch 891 of 1,096 (81.3 %), toggle 14,297 of 18,540 (77.1 %); run [43983798260] (before the lint fixes) gave line 416 of 550, branch 896 of 1,102, toggle 14,291 of 18,398. Every file has 100 % line coverage except `src/pe_slu.v`, `src/pe_slu_loop.v` and `src/pe_proc.v`. The points that no test reaches are:
+The coverage job builds the cocotb test bench with Verilator (`SIM=verilator`, line, branch and toggle coverage; [test/coverage_summary.py](../test/coverage_summary.py)) and runs every test module. Run [44005215379] (commit 33e087b; the same values as run [43989356338] of commit 9d3532d): line 416 of 550 (75.6 %), branch 891 of 1,096 (81.3 %), toggle 14,297 of 18,540 (77.1 %); run [43983798260] (before the lint fixes) gave line 416 of 550, branch 896 of 1,102, toggle 14,291 of 18,398. Every file has 100 % line coverage except `src/pe_slu.v`, `src/pe_slu_loop.v` and `src/pe_proc.v`. The points that no test reaches are:
 
 - the modes of the general serial line unit that the chip's two helpers do not have: the helpers are the same RTL with the configuration fixed (parameter SPEC), and the general unit (SPEC 0) exists only as the unit-test instance in `test/tb.v`, so its clocked mode, NRZ coding, loopback, active-low OE, end of frame by bit count and the line conditions K and no-edge cannot occur in the chip;
 - default branches of case statements that no state reaches, and the BIST ports of the SRAM simulation models (tied off in the chip);

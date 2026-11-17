@@ -184,7 +184,7 @@ class Glue:
 async def usb_chip(dut, clk_ps=CHIP_CLK_PS):
     """Chip reset, firmware and data image through the host port, helper pins, START."""
     prog = pe_asm.assemble_file(FW)
-    v_first = prog.symbols["V_FPTR"][0]
+    v_first = prog.symbols["V_RET"][0]
     assert prog.size <= v_first, "firmware %d words overlaps the variables at %d" % (prog.size, v_first)
     mem, info = usb_dev_data.build(prog.symbols)
     cocotb.start_soon(Clock(dut.clk, clk_ps, unit="ps").start())

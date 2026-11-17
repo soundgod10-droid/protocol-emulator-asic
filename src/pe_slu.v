@@ -836,6 +836,7 @@ module pe_slu #(
   end
 
   // Configuration bits that no function reads (reserved), and the oldest pattern bit.
-  wire _unused = &{1'b0, m_oe_low, t_dbit, c_loop0[15], c_loop2[15], c_loop3[15:12], c_ltc[15:10], pat_sh[15]};
+  wire _unused = &{1'b0, m_oe_low, t_dbit, c_loop0[15], c_loop2[15], c_loop3[15:12], c_ltc[15:10], pat_sh[15],
+                   crcb_next[31:8]};
 
 endmodule

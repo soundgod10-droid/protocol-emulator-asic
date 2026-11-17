@@ -324,6 +324,7 @@ async def test_eth_dev_tx(dut):
         assert e.frame[:-4] == body, "frame on the line differs from the host frame"
     v = T.check_tx_timing(pk, t1 - t0, check_link=False)
     assert not [x for x in v if x[0] == "IPG"], v
+    dut._log.info("waveform marks: chip packets (start, end) ps %s" % [(t0 + e.t0, t0 + e.t1) for e in pk])
     dut._log.info("TX: %s" % "; ".join(
         "%d octets + FCS, preamble %d bits, rate %+.1f ppm, jitter %.0f ps, TP_IDL HI %.2f BT" % (
             len(e.frame) - 4, e.preamble_bits, e.measures["rate_ppm"], e.measures["jitter_ps"],

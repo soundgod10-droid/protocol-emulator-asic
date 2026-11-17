@@ -114,11 +114,9 @@ module pe_slu_loop_step (
     bit_v     = 1'b0;
     bit_d     = x;
     xe        = allow && (x != xprev);
-    st        = 1'b0;
     ok        = 1'b0;
     a         = 21'sd0;
     eps       = 21'sd0;
-    w         = 21'sd0;
     corr      = 21'sd0;
     d         = 21'sd0;
     inew      = 21'sd0;

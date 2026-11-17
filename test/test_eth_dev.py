@@ -235,7 +235,7 @@ async def eth_chip(dut, scale=1, seed=0xACE1):
                                        int(eth.carrier.value), int(eth.rx_cnt.value), int(eth.rx_words.value),
                                        int(eth.rx_lastn.value)))
     port.diag = diag
-    await ClockCycles(dut.clk, 200)
+    await ClockCycles(dut.clk, 5000)          # the firmware copies its variables (about 1,300 cycles) first
     dut._log.info("fw/eth_10bt.s: %d program words (variables from %d); timers %s units (scale %d)" %
                   (prog.size, v_first, info["timers_units"], scale))
     return host, line, port, info, t_start

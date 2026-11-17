@@ -32,7 +32,7 @@ def main(netlist, sdf):
     with open(netlist, "w") as f:
         f.write(text)
 
-    lines, n_cell, n_wire = [], 0, 0
+    lines, block, depth, n_cell, n_wire, n_macro = [], None, 0, 0, 0, 0
     with open(sdf) as f:
         for line in f:
             if "(INTERCONNECT " in line:
@@ -42,10 +42,23 @@ def main(netlist, sdf):
             if m and re.search(r"[.\[\\]", m.group(2)):
                 line = m.group(1) + plain(m.group(2)) + m.group(3)
                 n_cell += 1
-            lines.append(line)
+            if block is None and re.match(r"\s*\(CELL\s*$", line):
+                block, depth = [], 0
+            if block is None:
+                lines.append(line)
+                continue
+            block.append(line)
+            depth += line.count("(") - line.count(")")
+            if depth <= 0:
+                if any(MACRO.search(b) for b in block):
+                    n_macro += 1
+                else:
+                    lines.extend(block)
+                block = None
     with open(sdf, "w") as f:
         f.writelines(lines)
-    print(f"names changed: {n_net} in the netlist, {n_cell} SDF instances; SDF wire lines removed: {n_wire}")
+    print(f"names changed: {n_net} in the netlist, {n_cell} SDF instances; SDF wire lines removed: {n_wire}; "
+          f"SRAM macro entries removed: {n_macro}")
 
 
 if __name__ == "__main__":

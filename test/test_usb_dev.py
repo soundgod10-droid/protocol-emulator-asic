@@ -473,7 +473,10 @@ async def test_usb_dev_suspend(dut):
     assert e1 == [ev(EV_RESET), ev(EV_ADDR, 2)], [hex(w) for w in e1]
     n_dev = len(bus.dev)
     s.keepalive = False
+    t_idle0 = get_sim_time("ps")
     await glue.run(s.wait(4.3e9))                 # 4.3 ms idle, no keep-alive
+    t_idle1 = get_sim_time("ps")
+    dut._log.info("waveform marks: idle bus from %d ps to %d ps (resume K starts at the end)" % (t_idle0, t_idle1))
     e2 = await events(host)
     assert e2 == [ev(EV_SUSPEND)], [hex(w) for w in e2]
     assert len(bus.dev) == n_dev, "device drove the bus while idle or suspended"

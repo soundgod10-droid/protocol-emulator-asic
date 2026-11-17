@@ -434,6 +434,8 @@ async def test_eth_dev_link(dut):
     gaps = [(b.t0 - a.t1) * S / 1e9 for a, b in zip(pulses, pulses[1:])]
     assert all(8 <= g <= 24 for g in gaps), "pulse silences (real ms): %s" % gaps
     widths = sorted(set(round(e.measures["width_ps"]) for e in pulses))
+    dut._log.info("waveform marks: first chip pulses (start, end) ps %s; link fail event %d ps, pass event %d ps" % (
+        [(t0 + e.t0, t0 + e.t1) for e in pulses[:2]], t_fail1, t_pass))
     dut._log.info("link (timers / %d, times at the real scale): fail after %.2f ms; frame refused in FAIL; "
                   "4 pulses 1.6 ms apart: no pass; pass %.2f ms after the 4th pulse 16 ms apart (lc_max 4); "
                   "second fail %.2f ms after the last pulse; frame in FAIL: pass + discard reason 4; chip "

@@ -15,7 +15,7 @@ There is no FPGA step: the design does not fit the only FPGA of the template wor
 | E5 | The precheck's KLayout DRC (SG13CMOS5L deck) passes in the submitted run | with the SRAM macros, Magic DRC reports rule-exception shapes inside the macro layout, so the KLayout deck is the DRC signoff (docs/decisions.md entry 20) | the KLayout DRC row of precheck_reports/results.md of the submitted run |
 | E6 | The submitted layout is one named GitHub Actions run, on the tape-out commit | the shuttle takes the layout of that run (section 2) | the run id in the submission (commit_id.json workflow_url) is the tape-out run of section 4 |
 | E7 | The newest commits of the template, the tools and the GDS action are compared with the last check | the gds workflow uses moving action references (section 3) | section 3 |
-| E8 | Max slew, max capacitance and max fanout are 0 at the three corners | with the SRAM macros, a slew or capacitance violation at any corner stops the run (`MAX_SLEW_VIOLATION_CORNERS`, `MAX_CAP_VIOLATION_CORNERS` "*"); run 43966684593: 0 slew, 0 capacitance, 0 fanout at the three corners | section 5 |
+| E8 | Max slew, max capacitance and max fanout are 0 at the three corners | with the SRAM macros, a slew or capacitance violation at any corner stops the run (`MAX_SLEW_VIOLATION_CORNERS`, `MAX_CAP_VIOLATION_CORNERS` "*"); run 44005215480: 0 slew, 0 capacitance, 0 fanout at the three corners | section 5 |
 | E9 | The SDF gate-level job passes at the three corners on the final gds run | docs/decisions.md entry 13 | section 4 step 3 |
 
 ## 2 Flow configuration (src/config.json)

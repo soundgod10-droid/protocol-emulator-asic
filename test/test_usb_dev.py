@@ -66,6 +66,7 @@ class Bus:
         self.d = "IDLE"                   # device level (IDLE = OE# high)
         self.rcv = 0
         self.dev = []                     # device level changes (absolute ps, level)
+        self.host_eops = []
         self.collisions = []
         self.changed = Event()
         self._apply()

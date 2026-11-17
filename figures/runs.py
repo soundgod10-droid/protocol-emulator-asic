@@ -3,7 +3,8 @@
 What it does:
   For each workflow (gds, test, coverage, formal) it takes the newest completed run of the branch that ended
   with success or failure (a cancelled or skipped run has no results; for gds the newest successful run, because
-  a failed layout run has no layout or gate-level artifacts, and a newer failed one is named), lists its jobs with their result, reads
+  a failed layout run has no layout or gate-level artifacts, and a newer failed one is named; a branch with no
+  successful gds run takes the newest one of the default branch, recorded as gds_fallback), lists its jobs with their result, reads
   the notice annotations of each job (the signoff facts of the gds job, the coverage summary, the formal job
   status) and downloads the artifacts that the layout render and the results table read. It uses the GitHub
   CLI (gh) with the token in GH_TOKEN.

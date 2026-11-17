@@ -40,7 +40,7 @@ Does not check: the rate sweeps and timing-fault cases of `test_fw_full.py`, `te
 
 `model/pe_model.py` is a cycle-exact model of [docs/isa.md](isa.md). `test/test_core.py` loads each program into the RTL through the host SPI port and gives the same input pins to the RTL and the model in every clock cycle. It compares `uo_out[6:0]`, `uio_out`, `uio_oe` and every host word read on `HOST_MISO` in every cycle. In RTL simulation it also compares the state of the thread in its slot (r0 to r3, T, PC, flags, LATE, ERR, RUN). Programs: directed programs for each instruction group, and random instruction streams of 4,000 cycles with 24 fixed seeds (4 seeds at gate level). A random program that the model rejects (a read 1 to 3 cycles after a store, [docs/isa.md](isa.md) section 3.3) is replaced by the next program of the same generator.
 
-Does not check: programs that break the store-and-read rule of isa section 3.3, because their result is not defined; the internal state at gate level (the netlist has other names), where only pins and host words are compared.
+Does not check: the line helpers, which are not in the reference model (the random programs avoid I/O ports 16 to 47; inputs 13 and 14 are 0 while no helper event is enabled); `test/test_slu.py` checks the helpers against references written from USB 2.0 and IEEE 802.3 (section 1); programs that break the store-and-read rule of isa section 3.3, because their result is not defined; the internal state at gate level (the netlist has other names), where only pins and host words are compared.
 
 ## 3. Formal proofs
 

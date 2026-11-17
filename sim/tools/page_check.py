@@ -11,7 +11,8 @@ What it does:
     L5a index.html?ex=E3 (four threads at once): the engine loads and the example runs to its end with its test check
         passing.
     L5b an unknown instruction put into the firmware editor gives the assembler's "file:line: message" text and an
-        error marker in the editor.
+        error marker in the editor, and the edited line stays in view when the page's scroll to the PC line comes
+        after the edit (forced).
     L5c phone width (390 x 844 CSS pixels): E1 runs and the page is not wider than the screen.
     L5d wave/demo.html: every recorded sample loads and each of its decoders gives records without an error.
     No exception in the page or its worker during the checks.

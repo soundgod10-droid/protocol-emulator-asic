@@ -120,7 +120,12 @@ jobs:
           cd test
           rm -f tb.fst results.xml
           make clean
-          if [ "${{ matrix.part }}" = "3" ]; then mod=test_slu; else mod=test_rtl_fw; fi
+          case "${{ matrix.part }}" in
+            3) mod=test_slu ;;
+            4) mod=test_usb_dev ;;
+            5) mod=test_eth_dev ;;
+            *) mod=test_rtl_fw ;;
+          esac
           GATES=yes GL_PART=${{ matrix.part }} make COCOTB_TEST_MODULES=$mod
           # make returns success even if tests fail, so check results.xml.
           python -m cocotb_tools.check_results results.xml

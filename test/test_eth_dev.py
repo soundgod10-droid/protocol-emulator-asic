@@ -367,6 +367,8 @@ async def test_eth_dev_collision(dut):
     gap_bt = (t0 + second.t0 - t_p1) / BT
     assert gap_bt >= 96, "retry %.1f BT after the end of the partner burst (< 96 BT)" % gap_bt
     assert not second.violations and second.frame[:-4] == body, second.violations
+    dut._log.info("waveform marks: chip start %d ps, partner start %d ps, first chip burst end %d ps, partner "
+                  "idle start %d ps, retry start %d ps" % (t_dut0, t_p0, t0 + first.t1, t_p1, t0 + second.t0))
     dut._log.info("collision: chip frame started %.2f us after the host load began; partner burst %.1f BT; "
                   "first chip burst %.1f BT (ends %.1f BT after the partner start); retry %.1f BT after the "
                   "partner burst ended; retry valid (%d octets + FCS); events %s" % (

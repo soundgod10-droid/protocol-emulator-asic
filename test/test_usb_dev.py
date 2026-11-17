@@ -197,6 +197,7 @@ async def usb_chip(dut, clk_ps=CHIP_CLK_PS):
     await ClockCycles(dut.clk, 5)
     host = hs.SpiTimed(dut)
     bus = Bus(dut, host)
+    bus.prog = prog
     await host.write_mem(0, prog.image()[:prog.size])
     for addr, words in mem:
         await host.write_mem(addr, words)

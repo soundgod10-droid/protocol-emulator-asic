@@ -80,4 +80,7 @@ Before the helper tests of this version, the line coverage was 73.6 % (run [4396
 [43983798260]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43983798260
 [43989356298]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43989356298
 [43989356338]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43989356338
-[43989356387]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43989356387
+[43998187307]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43998187307
+[44005215379]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44005215379
+[44005215480]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44005215480
+[44005215486]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44005215486

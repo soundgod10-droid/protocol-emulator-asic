@@ -55,7 +55,9 @@ The properties are in the RTL (`ifdef FORMAL`) and in the wrapper files `formal/
 | `host_port.sby` | host port H1 to H7 of `src/pe_host_port.v` against a monitor that decodes the SPI pins as [docs/host_port.md](host_port.md) states; all inputs free, later resets free | prove, 4 | pass, k-induction |
 | `host_port_cover.sby` | reachability of complete transactions | cover, 90 | 4 covers reached (steps 63 to 79) |
 | `host_port_mut_id.sby` | check of the check: a wrong chip ID must make H6 fail | bmc, 90, expect fail | counterexample at step 64, as expected |
-| `mem.sby` | latch memory M1 to M4 of `src/pe_latch_ram.v`: 128 words, 2-bit word | prove, 8 | pass, k-induction |
+| `sram.sby` | program and data memory `src/pe_sram.v` with the functional macro models: a read returns the last word written to the same location, through both macros and the address alias 1,536 to 2,047 | bmc, 9 | pass |
+| `sram_cover.sby` | reachability: a data word and an alias read back | cover | covers reached |
+| `mem.sby` | latch memory M1 to M4 of `src/pe_latch_ram.v` (now the host FIFO words; it was the 128 x 16 program memory of the first version): 128 words, 2-bit word | prove, 8 | pass, k-induction |
 | `mem_small.sby` | the same, 8 words of 16 bits | prove, 8 | pass, k-induction |
 | `mem_cover.sby` | reachability, 8 x 16 | cover, 10 | cover reached |
 | `mem_reset.sby` | 8 x 16 with a free reset in every step | bmc, 10 | pass |

@@ -185,36 +185,8 @@ pkgo:   MOV  r0, r1
         BNE  drop
         LDI  r0, 0x330
         IOW  r0, USTAT           ; clear RXSOP, RXEOP, STUFFERR, RXOVER
-        CMPI r3, 2
-        BNE  slow
-        LDI  r2, RXBUF
-        LDX  r0, [r2]
-        LD   r1, V_IN0A
-        CMP  r0, r1
-        BNE  in1
-        ADDI r2, 1
-        LDX  r0, [r2]
-        LD   r1, V_IN0B
-        CMP  r0, r1
-        BNE  slow
-        LD   r1, V_ST0P          ; IN to endpoint 0: data, ZLP, NAK or STALL (8.4.6.1)
-        JAL  r3, reply
-        LD   r1, V_ST0P
-        LDI  r2, 0
-        JMP  sent
-in1:    LD   r1, V_IN1A
-        CMP  r0, r1
-        BNE  slow
-        ADDI r2, 1
-        LDX  r0, [r2]
-        LD   r1, V_IN1B
-        CMP  r0, r1
-        BNE  slow
-        LD   r1, V_ST1P          ; IN to endpoint 1 (interrupt): report, NAK or STALL
-        JAL  r3, reply
-        LD   r1, V_ST1P
-        LDI  r2, 1
-sent:   ADDI r1, 3
+        JMP  slow
+sent:   ADDI r1, 3               ; r1 = stage sent, r2 = endpoint
         LDX  r0, [r1]            ; data bytes; negative: a handshake
         MOV  r0, r0
         BMI  senths

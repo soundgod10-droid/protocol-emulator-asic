@@ -436,6 +436,9 @@ function renderEditorPc(st, exact) {
   // While paused on an exact state, scroll to the PC line of the thread chosen for "Step instr."
   // (or of the first thread in this file).
   const want = exact && !ui.playing && ui.followCycle !== st.cycle ? +$("stepi-thread").value : null;
+  // The run's PC lines belong to the text that ran. In a file with edits not yet run they would mark other lines,
+  // and a scroll to them would move the view away from the line being edited and its error marker.
+  const edited = !!(edits[run.ex.id] && edits[run.ex.id][cur] !== undefined);
   st.threads.forEach((th, n) => {
     const src = lineOf(th.pc);
     if (!src || !(th.run || (run.config && run.config.run[n]))) return;

@@ -155,12 +155,16 @@ def build(symbols):
     init = {"V_ADDR": 0, "V_PEND": 0xFFFF, "V_CONF": 0, "V_STATE": 0, "V_PTR": 0, "V_REM": 0, "V_TOK": 0,
             "V_HSW": 0, "V_AW": 0, "V_HALT1": 0, "V_TOG1": 0, "V_K2": 0, "V_WLEN": 0, "V_LASTEP": 0xFF,
             "V_WVAR": s["V_LED"], "V_IDLE": 0, "V_PROTO": 1,       # report protocol after reset (HID 7.2.6)
-            "V_LED": 0, "V_HW": 0, "V_FPTR": s["V_ST0P"], "V_ACKW": SYNC_PID["ACK"],
-            "V_STLW": SYNC_PID["STALL"], "V_PID0": SYNC_PID["DATA0"], "V_PID1": SYNC_PID["DATA1"],
-            "V_SPARE": 0, "V_IN0B": 0xFFFF, "V_IN1B": 0xFFFF,     # no token matches before a bus reset
+            "V_LED": 0, "V_HW": 0, "V_FPTR": s["V_NONE"], "V_FP1": 0, "V_FC": 0,
+            "V_ACKW": SYNC_PID["ACK"], "V_PID0": SYNC_PID["DATA0"], "V_PID1": SYNC_PID["DATA1"],
+            "V_NONE": 0xFFFF, "V_IN0B": 0xFFFF, "V_IN1B": 0xFFFF,  # no token matches before a bus reset
             "V_ST0P": s["STNAK"], "V_ST1P": s["STNAK"]}
-    base, nvar = s["V_BASE"], s["NVAR"]
-    assert base + nvar == 512 and len(init) == nvar
+    base = s["V_BASE"]
+    nvar = 512 - base
+    assert len(init) == nvar, "%d start values for %d variables" % (len(init), nvar)
+    # handshake for an OUT data packet in each endpoint 0 state: ACK in the status stage of a control
+    # read (1) and in the data stage of a control write (3), else STALL (8.5.3.4)
+    ouths = [SYNC_PID[h] for h in ("STALL", "ACK", "STALL", "ACK", "STALL")]
     by_addr = {s[name]: v for name, v in init.items()}
     assert sorted(by_addr) == list(range(base, 512)), "start values do not cover V_BASE..511"
     assert s["V_IN1B"] == s["V_IN0B"] + 1 and s["V_ST0P"] == s["V_IN0B"] + 2 and s["V_ST1P"] == s["V_IN0B"] + 3

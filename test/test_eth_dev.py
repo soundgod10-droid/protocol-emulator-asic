@@ -275,7 +275,7 @@ async def test_eth_dev_rx(dut):
         exp, why, ref = T.expected_rx(frame, extra_bits=extra, jitter_ps=jit, ppm=ppm)
         n_f, n_e = len(port.frames), len(port.events)
         await line.send(partner_wave(frame, ppm, jit, seed=10 + k, extra_bits=extra))
-        await port.wait(lambda: len(port.frames) > n_f or len(port.events) > n_e, 20000)
+        await port.wait(lambda: len(port.frames) > n_f or len(port.events) > n_e, 8000)
         await Timer(200, unit="us")
         new_f, new_e = port.frames[n_f:], [w for _, w in port.events[n_e:]]
         if exp == "DELIVER":

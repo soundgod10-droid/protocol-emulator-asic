@@ -51,6 +51,15 @@ def main(branch, out):
         # The layout, its signoff values and the gate-level results exist only in a gds run that finished its
         # jobs: take the newest successful gds run, and name a newer failed one.
         run = newest_run(workflow, branch, success_only=(key == "gds"))
+        if key == "gds" and run is None and branch != DEFAULT:
+            # A new branch has no successful gds run until its first one ends (about 4 h after the push). Its site
+            # build then takes the newest successful gds run of the default branch, so that the layout render and the
+            # pages are still checked; figures/site.py and figures/results.py label every place that shows it.
+            run = newest_run(workflow, DEFAULT, success_only=True)
+            if run:
+                result["gds_fallback"] = dict(branch=DEFAULT, id=run["id"], url=run["html_url"], sha=run["head_sha"])
+                print(f"::notice title=gds::no successful gds run on {branch}; the layout and its values come from "
+                      f"run {run['id']} of {DEFAULT}, labelled as such on the pages")
         if key == "gds":
             latest = newest_run(workflow, branch)
             if latest and run and latest["id"] != run["id"]:

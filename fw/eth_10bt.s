@@ -188,13 +188,18 @@ rxe:    ANDI r1, 0x20            ; RXEOP: end of carrier; every word is taken
         LD   r1, V_TMP
         ANDI r1, 0x40
         BEQ  rxd                 ; reason 2: FCS error (3.2.9)
-        IOR  r0, RXINFO
-        MOV  r1, r0
-        SHR  r1, 7
-        SHL  r1, 1               ; 2 octets per whole word
-        ANDI r0, 8
-        SHR  r0, 3               ; 8 or more bits in the last word: one more octet; dribble bits dropped
+        IOR  r0, RXINFO          ; bits in the last word (its word count field has 9 bits: not used)
+        ANDI r0, 31
+        LDI  r1, RXBUF
+        SUB  r3, r1              ; words stored
+        MOV  r1, r3
+        SHL  r1, 1               ; 2 octets per word
+        CMPI r0, 0
+        BEQ  oc1
+        ADDI r1, -2              ; a part word last: 8 to 15 bits give one octet, dribble bits dropped
+        SHR  r0, 3
         ADD  r1, r0
+oc1:
         LDI  r0, 1
         CMPI r1, 64
         BCC  rxd                 ; reason 1: shorter than minFrameSize (4.2.4.2.2)

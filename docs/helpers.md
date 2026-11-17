@@ -85,3 +85,16 @@ In a cycle with two samples, the loop uses at most one edge: an edge at the seco
 These are logic simulations at 60 MHz with ideal pads; the pad delays, the transceiver and the comparators are not in them (the layout timing is in docs/signoff.md).
 
 Synthesis area (typical corner, Yosys): USB helper 39,808 um2, 10BASE-Te helper 52,161 um2.
+
+## 5 Notes for firmware
+
+Found while writing the USB device and 10BASE-T station programs (`fw/usb_dev.s`, `fw/eth_10bt.s`, [protocols.md](protocols.md)):
+
+| Item | Behaviour | What the firmware does |
+|---|---|---|
+| Before SEL is written | the helper has no input pins and reads SE0; after 304 cycles the USB helper sets LINEA (bus reset) | write SEL first, then clear every STATUS flag |
+| RXINFO bits 15:7 | the word count of the frame has 9 bits: it wraps above 511 words (1,022 octets) | count the stored words; use RXINFO only for the bits in the last word |
+| USB reply time | the start time is TXTIME = TSTAMP + n; a buffer that is empty at TXTIME - 3 gives TXUNDER and no reply | put the reply words in the buffer before the end of packet (an IN token's reply at its first word, a data packet's handshake at its first word), then arm TXTIME at the end of packet; abort when the packet turns out wrong. With n = 224 the reply is 5.65 to 5.68 bit times after the host EOP |
+| TXCTRL fields | bits in the last word, CRC append and link pulse are registers read when the frame starts; abort (bit 8) and empty (bit 10) act at once | a handshake can be put in the buffer with TXLAST while TXCTRL is 0 (16 bits, no CRC) |
+| Own packets on USB | a transceiver feeds the device's own packets back into the receiver | after TXDONE, clear the receive flags and read the receive buffer empty |
+| LINKPULSE (10BASE-Te) | the first preamble half bit of a frame can set it before the carrier is up | look at CARRIER first; clear LINKPULSE at the end of each frame |

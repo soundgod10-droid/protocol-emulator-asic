@@ -57,7 +57,7 @@ jobs:
             echo "::notice title=fast min paths::${body}"
           done
           nl=$(ls ${r}final/nl/*.nl.v 2>/dev/null | head -n 1)
-          body=$(grep -n -E "u_core\.sa\[|u_core\.sa |net8736|hold8737" "$nl" 2>/dev/null | head -n 60 | sed ':a;N;$!ba;s/\n/%0A/g')
+          body=$(grep -n -B3 -E "u_core\.sa\[" "$nl" 2>/dev/null | head -n 80 | sed ':a;N;$!ba;s/\n/%0A/g')
           echo "::notice title=sa nets::${body}"
           true
 

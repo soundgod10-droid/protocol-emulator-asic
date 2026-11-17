@@ -485,7 +485,8 @@ Bits with "-" have no effect. Thus, two words that differ only in "-" bits have 
 | JAL and JR with a data register | No link register. | CALL and RET with a stack or a link register | More flip-flops for each thread. |
 | LD, LDX, ST and STX take 2 slots | The single-port SRAM macros give one access in each cycle; the second slot of the thread gives the data access its own cycle (section 3.3). | Dual-port memory | The PDK has single-port SRAM macros only (RM_IHPSG13_1P_*). |
 | Line helpers on I/O ports 16 to 47 | The helpers are units with their own state (buffers, CRC, receive loop); ports need no new instruction and keep the 16-bit encoding. | Helper instructions with opcode 15 | A new instruction for each operation, and the decode grows; the ports give the same access in one slot. |
-| 0x0000 = HALT, illegal instructions stop the thread | A thread that runs into a cleared area or into data stops and sets ERR. | 0x0000 = NOP | The thread runs through the memory with no indication. |
+| 0x0000 = HALT; illegal instructions stop the thread and set ERR | A thread that runs into unused words (the assembler fills them with 0) stops; HALT sets no ERR. A thread that runs into data with an illegal code stops and sets ERR. | 0x0000 = NOP | The thread runs through the memory with no indication. |
+| | | 0x0000 = illegal (RUN 0 and ERR 1) | A thread that runs into unused words would also be reported; about 0 area. Not taken for this version (docs/rationale.md section 5). |
 | Reset level of the output pins V = 1, OE = 0 | uio pins are inputs, UART_TX is at idle level 1. | V = 0 | UART_TX would show a start bit at reset. |
 
 ## 14 Summary of the main choices

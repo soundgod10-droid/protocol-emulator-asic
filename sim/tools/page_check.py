@@ -113,12 +113,15 @@ def main(argv):
         b.wait(DONE, timeout=600)
         name = b.eval("(() => { const v = window.__v1.editor.view; const ln = v.state.doc.line(5);"
                       " v.dispatch({changes: {from: ln.from, insert: 'FOO r0\\n'}}); return window.__v1.editor.current(); })()")
+        # The editor draws the lint marker after the message text is set (a later frame), so wait for both.
+        has_marker = "!!document.querySelector('.cm-lint-marker-error, .cm-lintRange-error')"
         try:
-            b.wait("document.getElementById('asm-msg').textContent.includes(':5: unknown instruction')", timeout=30)
-            msg = b.eval("document.getElementById('asm-msg').textContent")
-            marker = b.eval("!!document.querySelector('.cm-lint-marker-error, .cm-lintRange-error')")
+            b.wait("document.getElementById('asm-msg').textContent.includes(':5: unknown instruction') && "
+                   + has_marker, timeout=30)
         except TimeoutError:
-            msg, marker = b.eval("document.getElementById('asm-msg').textContent"), False
+            pass
+        msg = b.eval("document.getElementById('asm-msg').textContent")
+        marker = b.eval(has_marker)
         ok["L5b"] = msg.startswith(f"{name}:5: ") and marker
         b.shot(os.path.join(out, "asm_error_1440.png"))
         res["checks"]["L5b"] = {"pass": ok["L5b"], "file": name, "message": msg, "marker": marker}

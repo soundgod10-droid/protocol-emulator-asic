@@ -109,7 +109,7 @@ Does not check: the pads, process variation (one corner each, no Monte Carlo).
 
 ## 8. Layout checks
 
-Run [43989356298] (present layout), `final/metrics.csv` values in the run annotations: route DRC 0, antenna violations 0, LVS errors 0, power-grid violations 0, utilisation 0.389, 21,185 standard cells. Precheck: 10 of 10 checks pass, among them the KLayout SG13CMOS5L DRC with the SRAM macros. Magic DRC is off: with the macros it reports about 173,000 shapes of one SRAM rule exception inside the macro layout, and the precheck's KLayout deck is the DRC signoff ([decisions.md](decisions.md) entry 20). Before the macros, Magic DRC gave 0 errors (runs [43731920994], [41380161509]).
+Run [44005215480] (present layout), `final/metrics.csv` values in the run annotations: route DRC 0, antenna violations 0, LVS errors 0, power-grid violations 0, utilisation 0.388, 21,149 standard cells. Precheck: 10 of 10 checks pass, among them the KLayout SG13CMOS5L DRC with the SRAM macros. Magic DRC is off: with the macros it reports about 173,000 shapes of one SRAM rule exception inside the macro layout, and the precheck's KLayout deck is the DRC signoff ([decisions.md](decisions.md) entry 20). Before the macros, Magic DRC gave 0 errors (runs [43731920994], [41380161509]).
 
 ## 9. Pad SPICE
 

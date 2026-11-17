@@ -177,6 +177,7 @@ def build(symbols):
         (s["STSTALL"], [0, 1, SYNC_PID["STALL"]]),
         (s["STZLP1"], [0x20, 1, SYNC_PID["DATA1"]]),
         (s["VARBUF"], [0, 0, SYNC_PID["DATA1"], 0]),
+        (s["OUTHS"], ouths),
         (s["INIT"], [by_addr[a] for a in range(base, 512)]),
         (BLOBS, blob_words),
     ]

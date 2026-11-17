@@ -101,14 +101,19 @@ def viewer(out, sub):
                 f'<body><p><a href="{url}">Open the 3D layout viewer</a></p></body></html>\n')
 
 
-def main(out, sub=None):
+def main(out, sub=None, runs=None):
     os.makedirs(out, exist_ok=True)
     pages = page_map()
+    kind, note = layout_note(out, runs)
     for src, dst in pages.items():
         with open(os.path.join(ROOT, src), encoding="utf-8") as f:
-            text = f.read()
+            text = convert(f.read(), src, pages)
+        if note:
+            text = LAYOUT_FIG.sub(lambda m: note if kind == "missing" else m.group(0) + "\n\n" + note, text)
         with open(os.path.join(out, dst), "w", encoding="utf-8") as f:
-            f.write(convert(text, src, pages))
+            f.write(text)
+    if note:
+        print(f"layout figures labelled ({kind}): {note}")
     for path in glob.glob(os.path.join(ROOT, "docs", "*")):
         if not path.endswith(".md") and os.path.isfile(path):
             shutil.copy(path, out)

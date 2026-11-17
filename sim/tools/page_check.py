@@ -123,12 +123,23 @@ def main(argv):
                    + has_marker, timeout=30)
         except TimeoutError:
             pass
+        # After a run the page scrolls the editor to the PC line once, on the first render of the exact state, and
+        # that render can come after the edit. Force it: in an edited file the view must stay on the edited line.
+        try:
+            b.wait("(() => { const u = window.__v1.ui; return !!u.exact && u.exact.cycle === u.cursor; })()", timeout=30)
+        except TimeoutError:
+            pass
+        b.eval("(() => { const u = window.__v1.ui; u.followCycle = null; u.dirty = true; })()")
+        time.sleep(1.0)
+        view = b.eval(LINE5_VIEW)
         msg = b.eval("document.getElementById('asm-msg').textContent")
         marker = b.eval(has_marker)
-        ok["L5b"] = msg.startswith(f"{name}:5: ") and marker
+        ok["L5b"] = msg.startswith(f"{name}:5: ") and marker and view["in_view"]
         b.shot(os.path.join(out, "asm_error_1440.png"))
-        res["checks"]["L5b"] = {"pass": ok["L5b"], "file": name, "message": msg, "marker": marker}
-        print(f"L5b {'PASS' if ok['L5b'] else 'FAIL'}: {msg!r}, marker {marker}")
+        res["checks"]["L5b"] = {"pass": ok["L5b"], "file": name, "message": msg, "marker": marker,
+                                "line5_in_view": view["in_view"], "first_line_in_view": view["first"]}
+        print(f"L5b {'PASS' if ok['L5b'] else 'FAIL'}: {msg!r}, marker {marker}, line 5 in view {view['in_view']} "
+              f"(first line in view {view['first']})")
 
         # L5c (320 px: the narrowest phone screens in use; 390 px: a common one)
         widths, checks, wide = {}, [], {}

@@ -39,7 +39,7 @@ There is no FPGA step: the design does not fit the only FPGA of the template wor
 
 ## 4 Tape-out run, in this order
 
-1. [ ] Commit the final RTL on cmos5l and push. The gds run of this commit is the tape-out run and the submitted run (E5, E6). About 37 min for the gds job (run 43966684593), inside the 6 h job limit.
+1. [ ] Commit the final RTL on cmos5l and push. The gds run of this commit is the tape-out run and the submitted run (E5, E6). About 38 min for the gds job (run 44005215480), inside the 6 h job limit.
 2. [ ] Read the result (section 5). If a criterion fails, fix it and make a new tape-out commit; do not submit a run of another commit.
 3. [ ] Run the SDF job on the tape-out run (E9): Actions > sdf > Run workflow, with the id of the tape-out gds run. It checks out the commit of that run and loads its netlist and SDF files; no new gds run. About 5 h at the slow corner, in two parts per corner (main tests; test_counter_sequence alone). Pass: every test passes at slow, typ and fast, `test_r3_sdf_delay` gives a clock-to-MISO delay of more than 0.2 ns (the annotation is in effect), and the "SDF ERROR" count is 4 (the header lines of the file). A tag whose name starts with "tapeout" also starts the job by itself after the gds run of the tag ends with success; that checks the gds run of the tag, which is a second run of the same commit. Icarus Verilog applies the cell delays only and runs no timing checks: STA stays the setup and hold check (docs/decisions.md entry 13).
 4. [ ] Give the tape-out run in the submission (commit_id.json workflow_url, E6).

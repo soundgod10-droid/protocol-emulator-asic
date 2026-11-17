@@ -1,0 +1,83 @@
+# Signoff review
+
+This page applies the usual signoff checks of a digital tape-out to the layout and gives, for each check, the source of the practice, our result with its run, and what stays open. The competition asks for a clean run through the layout flow and the layout precheck and recommends gate-level simulation; the checks below go further. The design reviewed is the integration of the SRAM memory and the line helpers ([decisions.md](decisions.md) entries 3, 18 to 20): 8x4 tiles, 60 MHz, template main flow (`tt-gds-action@ttihp27a`), layout run [43989356298] (commit 9d3532d). The layout job prints the signoff values of all three corners in its run summary and as annotations (steps `Signoff facts` and `Path facts`, [.github/signoff_facts.py](../.github/signoff_facts.py)), so they can be read without downloading the log artifact.
+
+How to read a value: open the run, artifact `GDS_logs`. Timing: `runs/wokwi/<nn>-openroad-stapostpnr/<corner>/checks.rpt` and `summary.rpt`. Counts: `runs/wokwi/final/metrics.csv`. Corners: `nom_slow_1p08V_125C`, `nom_typ_1p20V_25C`, `nom_fast_1p32V_m40C`.
+
+## 1 Checks and results
+
+| Check | Source of the practice | Result (run [43989356298] unless stated) | State |
+|---|---|---|---|
+| Setup timing, all corners | signoff static timing of the LibreLane flow (`OpenROAD.STAPostPNR`, `Checker.SetupViolations`) | 0 violations at the 3 corners; flip-flop slack at 16.667 ns (group `flops`, [src/signoff.sdc](../src/signoff.sdc)): +0.487 ns slow, +4.260 ns typical, +4.462 ns fast; the FIFO latch paths borrow time and report 0.000; clock-gating checks +9.448 ns | clean; margin below the +1.1 ns target, section 5 item 1 |
+| Hold timing, all corners | same flow, `Checker.HoldViolations` | 0 violations; worst slack +0.057 ns (fast), +0.214 ns (typical), +0.492 ns (slow); 2,966 hold buffers | clean |
+| Max transition (slew) and max capacitance | Liberty `max_transition` and `max_capacitance` of the cells and of the SRAM macro pins (input 0.595 ns, A_DOUT 0.064 pF); with the macros a violation at any corner stops the run (`MAX_SLEW_VIOLATION_CORNERS`, `MAX_CAP_VIOLATION_CORNERS` "*") | 0 at the 3 corners; the macro-pin violations of the first SRAM layouts were removed by a 150 um wire-length limit in both design repairs ([decisions.md](decisions.md) entry 3) | clean |
+| Max fanout | `default_max_fanout` 8 of the CMOS5L library (smaller than the flow's `MAX_FANOUT_CONSTRAINT` 10) | 0 at the 3 corners (earlier layouts had 8 pins with antenna-diode loads, entry 17) | clean |
+| Lint | Verilator lint of the flow (`Verilator.Lint`) | run [43989356298]: 1 warning (UNUSEDSIGNAL, the upper bits of the CRC B step in `src/pe_slu.v`, fixed in the next commit); the run before it had 13 width and unused-signal warnings in the helper RTL, all fixed without a change of behaviour; 2 local waivers for the power pins of the two instantiated cells (entry 14) | see section 5 item 2 |
+| DRC | the PDK KLayout deck run by the layout precheck; Magic DRC of the flow | precheck KLayout SG13CMOS5L DRC: pass; route DRC 0 (detailed router). Magic DRC is off: with the SRAM macros it reports about 173,000 shapes of one rule exception inside the IHP macro layout ("N-Diffusion spacing to N-well in SRAM < 54 (NW.d exception)"), while the KLayout deck passes on the same layout ([decisions.md](decisions.md) entry 20) | clean (KLayout deck) |
+| LVS | Netgen LVS of the flow (`Netgen.LVS`, `Checker.LVS`); the macros are abstract cells (`MAGIC_EXT_ABSTRACT_CELLS`) | 0 errors | clean |
+| Antenna | OpenROAD antenna check and repair | 0 violating nets | clean |
+| Disconnected pins | `Checker.DisconnectedPins` | 1 disconnected pin, 0 critical (the unused `ena` input of the template) | clean |
+| Power grid | `Checker.PowerGridViolations`, fatal (`ERROR_ON_PDN_VIOLATIONS`); macro grid of `src/pdn_cfg.tcl` | 0 grid violations; every vertical stripe over a macro lies on a supply column of its own net (stripe pitch 67.44 um, entry 19). The IR-drop report is a tile estimate without voltage-source locations; the flow warns that this may be ignored when the design is not a top-level chip | clean at tile level |
+| Precheck | the shuttle's layout precheck (the competition's requirement) | 10 of 10 checks pass: KLayout pin labels, KLayout SG13CMOS5L DRC, KLayout zero area, KLayout checks, pin, boundary, layer, cell name, analog pin, Verilog syntax | clean |
+| Gate-level simulation, functional | template `gl_test` job and our `gl_protocols` jobs (recommended by the competition) | `gl_protocols` part 3 (the line-helper chip tests on the netlist) pass; parts 1 and 2 (protocol programs) and `gl_test`: [Results](https://soundgod10-droid.github.io/protocol-emulator-asic/results/) page | see the Results page |
+| Gate-level simulation with layout delays | SDF back-annotated simulation | `.github/workflows/sdf.yaml`, by hand on the final layout run; `test_r3_sdf` now runs at 60 MHz and reads back through both macros; not yet run on the SRAM layout (section 5 item 4) | open |
+| Clock domain crossing and reset | structural CDC and reset review: two-flip-flop synchronizer on every single-bit asynchronous input, no logic that combines two asynchronous inputs before a synchronizer, reset asserted asynchronously and released synchronously (C. E. Cummings, "Clock Domain Crossing (CDC) Design & Verification Techniques Using SystemVerilog", SNUG Boston 2008; C. E. Cummings, D. Mills, S. Golson, "Asynchronous & Synchronous Reset Design Techniques - Part Deux", SNUG Boston 2003) | section 2: reviewed by hand, and checked by tool with [formal/cdc.sby](../formal/cdc.sby) on every push: pass | clean (structure) |
+| Formal proofs | property checking of each block | 16 of 16 jobs give their expected result (formal run [43989356387]; [verification.md](verification.md) section 3) | clean |
+| Code coverage | line, branch and toggle coverage of the RTL tests (Verilator, [.github/workflows/coverage.yaml](../.github/workflows/coverage.yaml)) | section 4 | explained |
+| Metastability | MTBF of the input synchronizers from the measured time constant | tau about 101 ps at the slow corner (SPICE, [verification.md](verification.md) section 7). A two-stage synchronizer has about 16 ns to resolve at 60 MHz: e^(16 / 0.101) is about 10^68. The falling-edge first stage of a helper data input has half a cycle, 8.3 ns: e^(8.3 / 0.101) is about 10^35 (calculation; the other MTBF factors are not measured) | clean by calculation |
+
+## 2 CDC and reset review
+
+One clock domain (`clk`); the helper data inputs also use its falling edge. Asynchronous inputs and their treatment, from `src/project.v`, `src/pe_sync.v`, `src/pe_timed_in.v` and `src/pe_slu.v`. [formal/cdc.sby](../formal/cdc.sby) checks this table on the flattened RTL (single-bit cells and nets): the data inputs reach storage only at 20 first stages (16 `pe_sync2` first stages and 4 helper data-input stages, of which 2 on the falling edge); 47 logic cells lie between the pins and the first stages (the CS_N inverter, the multiplexer of each uio input, and the pin-select multiplexers of the helper data inputs); each first stage drives only its second stage; `rst_n` reaches only the two reset-synchronizer flip-flops; and every asynchronous reset pin is driven only by `rst_n` (reset synchronizer), the synchronized chip reset and `run_rst_n`.
+
+| Input | Path | Synchronizer | Notes |
+|---|---|---|---|
+| `ui_in[7]` HOST_SCK, `ui_in[6]` HOST_CS_N, `ui_in[5]` HOST_MOSI | `pe_sync2` each; CS_N is inverted before its synchronizer | yes | the three bits are related (MOSI is taken at the SCK edge); all three synchronizers have the same delay, and the host rules keep MOSI stable for T + pin skew around the rising SCK edge and each SCK level for 2 T ([host_port.md](host_port.md) section 3), so a 1-cycle difference between the synchronizers cannot take a wrong MOSI bit; checked in RTL at 10 host phases and by `formal/host_port.sby` with free inputs |
+| `ui_in[4:0]` inputs 8 to 12 | `pe_timed_in`: `pe_sync2` each | yes | single-bit protocol inputs |
+| `uio_in[7:0]` inputs 0 to 7 | `pe_timed_in`: the level is `(uio_in & ~OE) | (V & OE)`, then `pe_sync2` | yes | the multiplexer combines one asynchronous input with two flip-flop outputs of the same domain, not two asynchronous inputs; inputs 6, 7 have a 5-sample spike filter after the synchronizer |
+| Helper data input DIN (any of the 13 pin levels, chosen by the helper's SEL word) | pin-select multiplexer, then one first stage on the falling clock edge (`din_f1`, then `din_f2`, `din_f3`) and one on the rising edge (`din_r1`, then `din_r2`) | yes, two stages each | the select is a configuration flip-flop that changes only when a thread writes SEL, so the multiplexer passes the one selected asynchronous input and combines none; both samples enter the receive loop two stages after the pad, like the other inputs |
+| Helper AUX inputs (VP, VM, squelch) | the chip synchronizer outputs `s(c)` | yes | no own stage |
+| `rst_n` | `pe_reset_sync`: asserts at once, releases at the second clock edge | yes (reset synchronizer) | all flip-flops leave reset in the same cycle |
+| `ena` | not used | - | always 1 on the shuttle (template) |
+
+Reset tree:
+
+- Chip reset `rst_n_int` (from `pe_reset_sync`): every flip-flop with a reset, including the input synchronizers, the host port and the SRAM read-select flip-flop.
+- Processor reset `run_rst_n = rst_n_int & running`: the core, the host FIFOs, the event slots, the pin registers and the two line helpers. Both inputs are flip-flop outputs, so the AND has no glitch and its release is at a clock edge. STOP asserts it; START releases it at a known cycle ([host_port.md](host_port.md) section 8). A helper pin is an output only while the threads run.
+- No reset: the SRAM contents (the host loads them after every power-up and select, host rule 6), and the FIFO latches and their write-data flip-flops ([decisions.md](decisions.md) entry 7; `formal/mem_full_reset.sby`).
+- Gated clocks: only through the integrated clock-gate cells of the FIFO latch arrays (`pe_cg`); their enables come from flip-flops of the same domain and are checked by the clock-gating setup check (+9.448 ns at the slow corner).
+
+## 3 SRAM macros
+
+| Item | Value | Source |
+|---|---|---|
+| Macros | `RM_IHPSG13_1P_512x16_c2_bm_bist` (program) at (11.04, 40) FS, `RM_IHPSG13_1P_1024x16_c2_bm_bist` (data) at (348.24, 40) FS | [src/config.json](../src/config.json) `MACROS` |
+| Liberty corners | typical 1.20 V 25 C, slow 1.08 V 125 C, fast 1.32 V -55 C (mapped on the flow's -40 C fast corner) | same |
+| Request path | address, write enable and data from flip-flops; the word is read about 7.4 ns after the clock edge (slow, macro liberty) and taken into the instruction register two cycles after the request | [src/pe_sram.v](../src/pe_sram.v), [docs/isa.md](isa.md) 3.3 |
+| Supplies | VDD! and VDDARRAY! on VPWR, VSS! on VGND, through full-height Metal4 stripes on the macro supply columns | `PDN_MACRO_CONNECTIONS`, [src/pdn_cfg.tcl](../src/pdn_cfg.tcl) |
+| Simulation | functional models written from the macro data sheet (`src/sram_sim.v`), black boxes for synthesis and lint (`src/sram_bb.v`); `formal/sram.sby` checks the address map and the read-after-write of both macros | [verification.md](verification.md) section 3 |
+
+## 4 Code coverage
+
+The coverage job builds the cocotb test bench with Verilator (`SIM=verilator`, line, branch and toggle coverage; [test/coverage_summary.py](../test/coverage_summary.py)) and runs every test module. Run [43989356338] (commit 9d3532d): line 416 of 550 (75.6 %), branch 896 of 1,102 (81.3 %), toggle 14,291 of 18,398 (77.7 %), the same as run [43983798260]. Every file has 100 % line coverage except `src/pe_slu.v`, `src/pe_slu_loop.v` and `src/pe_proc.v`. The points that no test reaches are:
+
+- the modes of the general serial line unit that the chip's two helpers do not have: the helpers are the same RTL with the configuration fixed (parameter SPEC), and the general unit (SPEC 0) exists only as the unit-test instance in `test/tb.v`, so its clocked mode, NRZ coding, loopback, active-low OE, end of frame by bit count and the line conditions K and no-edge cannot occur in the chip;
+- default branches of case statements that no state reaches, and the BIST ports of the SRAM simulation models (tied off in the chip);
+- two lines of the receive loop: the phase wrap below minus half a bit and the integrator limit at +2,047, which the tests do not drive.
+
+Before the helper tests of this version, the line coverage was 73.6 % (run [43966684440]); the tests added after that run cover the transmit start rules, collision, jabber, the USB line timers, the helper event inputs and the delayed tap signals.
+
+## 5 Open items
+
+1. **Slow-corner setup margin.** +0.487 ns at 60 MHz in run [43989356298]; three layout runs of nearly the same netlist gave +1.308 ns (run [43966684593]), +0.740 ns and +0.487 ns. In each, the worst path starts at the core's register select `sa` and the hold repair has put a 0.69 ns delay cell right after it. The planned margin is +1.1 ns ([decisions.md](decisions.md) entry 4); research runs that keep the hold delay off this path are in progress.
+2. **Lint**: the last warning (unused upper bits of the CRC B step) is fixed in the commit after run [43989356298]; the next layout run must show 0.
+3. **IR drop** is a tile-level estimate without voltage-source locations.
+4. **SDF simulation** on the SRAM layout: the job has not run yet on this layout; `test.py` and `test_core.py` keep their 50 MHz clock in it, because the UART receiver model of `test.py` is written for 50 MHz.
+5. **CDC by tool**: [formal/cdc.sby](../formal/cdc.sby) checks the synchronizer and reset structure; it does not judge reconvergence of synchronized bits (the three host bits, argued in section 2) and is not a commercial CDC tool with its full rule set.
+
+[43966684440]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43966684440
+[43966684593]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43966684593
+[43983798260]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43983798260
+[43989356298]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43989356298
+[43989356338]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43989356338
+[43989356387]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43989356387

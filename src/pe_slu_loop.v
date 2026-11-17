@@ -96,7 +96,6 @@ module pe_slu_loop_step (
   reg signed [20:0] t;        // theta during the step
   reg signed [20:0] a;        // edge position against the expected edge, before mod N
   reg signed [20:0] eps;
-  reg signed [20:0] w;
   reg signed [20:0] corr;
   reg signed [20:0] d;
   reg signed [20:0] inew;

@@ -319,7 +319,9 @@ async def test_eth_dev_collision(dut):
     t_dut0 = line.tx[n_tx][0]
     burst = T.manchester_wave([(i + 1) % 2 for i in range(56)] + [1, 0] * 16)
     t_p0 = await line.send(burst)
-    t_p1 = line.rx_log[-1][1]
+    # the gap counts from the de-assertion of carrier sense (4.2.3.2.2), which is not before the end of
+    # the partner's last bit cell (its idle start)
+    t_p1 = t_p0 + burst.marks["idle_start"]
     n_e = len(port.events)
     await port.wait(lambda: EV_SENT in port.codes() or EV_NOTSENT in port.codes(), 5000)
     await Timer(100, unit="us")

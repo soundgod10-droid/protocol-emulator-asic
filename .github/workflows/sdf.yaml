@@ -23,9 +23,30 @@ on:
     types: [completed]
 
 jobs:
+  path:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v6
+
+      - name: signoff reports of the gds run
+        uses: actions/download-artifact@v7
+        with:
+          name: GDS_logs
+          path: gds_logs
+          run-id: ${{ inputs.gds_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: worst setup paths
+        run: python3 .github/sta_path.py gds_logs
+
   sdf:
     if: >-
-      github.event_name == 'workflow_dispatch' ||
+      false &&
       (github.event.workflow_run.conclusion == 'success' &&
        startsWith(github.event.workflow_run.head_branch, 'tapeout'))
     runs-on: ubuntu-24.04

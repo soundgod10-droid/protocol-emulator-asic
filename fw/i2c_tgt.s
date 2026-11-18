@@ -61,7 +61,7 @@ clr:    STX     r2, [r0]
         DJNZ    r1, clr
         TNOW    8
         OUT     SCL, 1          ; release both lines
-        OUT     SDA, 1
+        OUT     SDA, 1, 4
 idle:   WAIT    SDA, FALL, r2   ; an SDA fall (no time limit)
         IOR     r2, PINS
         ANDI    r2, 0x40        ; SCL high: a START

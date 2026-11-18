@@ -87,32 +87,33 @@ module slu_fv #(
       .ev      (ev)
   );
 
-  // Internal nets of the helper, connected by the .sby after flattening (not driven here).
-  wire [3:0]  mon_st;      // tx_st
-  wire        mon_bs;      // bit_start
-  wire        mon_hm;      // half_mid
-  wire [2:0]  mon_kind;    // t_kind
-  wire        mon_bit;     // t_bit
-  wire        mon_new;     // t_new
-  wire        mon_line;    // tx_line
-  wire        mon_crcen;   // tx_crcen
-  wire [2:0]  mon_skipw;   // tx_skipw
-  wire [2:0]  mon_run;     // tx_run
-  wire [5:0]  mon_jam;     // tx_jam
-  wire [15:0] mon_tmr;     // tx_tmr
-  wire        mon_half;    // tx_half
-  wire        mon_txbit;   // tx_bit
-  wire        mon_lead;    // tx_lead
-  wire [15:0] mon_time;    // tx_time
-  wire [31:0] mon_crct;    // crc_t
-  wire [31:0] mon_crca;    // crc_a
-  wire [7:0]  mon_crcb;    // crc_b
-  wire [31:0] mon_ra;      // c_ra (CRC A residue register)
-  wire [15:0] mon_crcbc;   // c_crcb (CRC B polynomial and residue register)
-  wire        mon_rdv;     // r_data_v
-  wire        mon_rd;      // r_data
-  wire        mon_sop;     // r_sop
-  wire [9:0]  mon_rxbits;  // rx_bits
+  // Internal nets of the helper, connected by the .sby after flattening (not driven here; kept, so that
+  // a wire that one helper form does not read still exists for the connect).
+  (* keep *) wire [3:0]  mon_st;      // tx_st
+  (* keep *) wire        mon_bs;      // bit_start
+  (* keep *) wire        mon_hm;      // half_mid
+  (* keep *) wire [2:0]  mon_kind;    // t_kind
+  (* keep *) wire        mon_bit;     // t_bit
+  (* keep *) wire        mon_new;     // t_new
+  (* keep *) wire        mon_line;    // tx_line
+  (* keep *) wire        mon_crcen;   // tx_crcen
+  (* keep *) wire [2:0]  mon_skipw;   // tx_skipw
+  (* keep *) wire [2:0]  mon_run;     // tx_run
+  (* keep *) wire [5:0]  mon_jam;     // tx_jam
+  (* keep *) wire [15:0] mon_tmr;     // tx_tmr
+  (* keep *) wire        mon_half;    // tx_half
+  (* keep *) wire        mon_txbit;   // tx_bit
+  (* keep *) wire        mon_lead;    // tx_lead
+  (* keep *) wire [15:0] mon_time;    // tx_time
+  (* keep *) wire [31:0] mon_crct;    // crc_t
+  (* keep *) wire [31:0] mon_crca;    // crc_a
+  (* keep *) wire [7:0]  mon_crcb;    // crc_b
+  (* keep *) wire [31:0] mon_ra;      // c_ra (CRC A residue register)
+  (* keep *) wire [15:0] mon_crcbc;   // c_crcb (CRC B polynomial and residue register)
+  (* keep *) wire        mon_rdv;     // r_data_v
+  (* keep *) wire        mon_rd;      // r_data
+  (* keep *) wire        mon_sop;     // r_sop
+  (* keep *) wire [9:0]  mon_rxbits;  // rx_bits
 
   // Bit reversal: the RTL keeps the CRC in the reflected (LSB-first) form.
   function [31:0] rev(input [31:0] x);

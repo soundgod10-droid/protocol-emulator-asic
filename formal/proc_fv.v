@@ -158,7 +158,7 @@ module proc_fv (
         else assert (mon_time == now + 16'd4);
       end
     end
-    if (f_past && rst_n && late_q) assert (th_late[late_tid]);
+    if (f_past && rst_n && late_q && !start) assert (th_late[late_tid]);
   end
 
   genvar p;

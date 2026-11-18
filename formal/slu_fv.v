@@ -48,7 +48,10 @@ module slu_fv #(
     input wire [3:0]  p_addr,
     input wire [15:0] p_wdata,
     input wire [12:0] pin_raw,
-    input wire [12:0] pin_sync
+    input wire [12:0] pin_sync,
+    // Replaces the falling-edge DIN sample din_f1 (connected by the .sby): any value in every cycle, so the
+    // receive path sees every possible half-cycle sample and the model needs one clock edge only.
+    input wire        din_f1_free
 );
   localparam FULL = (SPEC == 2) ? 1 : 0;
   localparam W    = (SPEC == 1) ? 16 : 32;

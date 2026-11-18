@@ -472,6 +472,8 @@ def read_results(run):
         return None
     cases, failed = 0, []
     for tc in ET.parse(xml).getroot().iter("testcase"):
+        if tc.find("skipped") is not None:  # tests outside the rung's filter are listed as skipped
+            continue
         cases += 1
         bad = tc.find("failure")
         if bad is None:

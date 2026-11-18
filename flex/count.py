@@ -272,6 +272,11 @@ def markdown(res, protos, notes):
     return "\n".join(lines) + "\n"
 
 
+def escape(text):
+    """Text as the message of a workflow command (escapes % CR LF)."""
+    return text.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+
+
 def main(argv):
     ap = argparse.ArgumentParser()
     ap.add_argument("--rtl", nargs="+", required=True)

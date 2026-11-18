@@ -669,6 +669,111 @@ def report(p, shard_files):
     return head, "\n".join(text), slines, problems, res
 
 
+# ----- equivalence check of survivors -----
+
+# The top module and parameter sets under which a file's mutants reach the chip (src/pe_proc.v: the USB helper is
+# pe_slu SPEC 1 FULL 0, the 10BASE-Te helper SPEC 2 FULL 1; pe_slu_loop is inside both). A file not listed is
+# checked as its first module with its default parameters: a proof there holds for the chip, a failure says nothing.
+EQUIV_TOPS = {"pe_slu.v": ("pe_slu", ["pe_slu.v", "pe_slu_loop.v"], [{"SPEC": 1, "FULL": 0}, {"SPEC": 2, "FULL": 1}]),
+              "pe_slu_loop.v": ("pe_slu", ["pe_slu.v", "pe_slu_loop.v"],
+                                [{"SPEC": 1, "FULL": 0}, {"SPEC": 2, "FULL": 1}])}
+# Falling-edge samples cut into free inputs of both copies: the check takes one step per clock cycle, and a free
+# sample covers every level the pad can have at the falling edge (an over-approximation).
+EQUIV_CUT = {"pe_slu": ["din_f1"]}
+
+
+def find_yosys():
+    here = os.path.dirname(sys.executable)
+    for c in (os.environ.get("YOSYS"), "yosys", "yowasp-yosys", os.path.join(here, "Scripts", "yowasp-yosys.exe"),
+              os.path.join(here, "yowasp-yosys")):
+        if c and shutil.which(c):
+            return shutil.which(c)
+    return None
+
+
+def equiv_checks(p, ids, work):
+    """Writes each mutant as <work>/<id>_<file> and returns its checks: (id, params, gold files, gate files, top).
+    Both copies are elaborated with the same parameters, flattened and optimized (constant configuration registers
+    of the chip's helper forms fold away), then compared by Yosys sequential equivalence: equiv_make matches the
+    ports and the named signals, equiv_simple and equiv_induct prove each match. Every $equiv cell proven means the
+    two copies have the same port behaviour after a reset, for every input sequence."""
+    os.makedirs(work, exist_ok=True)
+    muts = {m["id"]: m for m in p["mutants"]}
+    allf = info_sources()
+    checks = []
+    for mid in ids:
+        m = muts[mid]
+        orig = open(os.path.join(SRC, m["file"]), encoding="utf-8", newline="").read()
+        assert sha(orig) == p["src_sha"][m["file"]], f"{m['file']} differs from the plan"
+        assert orig[m["a"]:m["b"]] == m["before"], f"{mid}: span text differs"
+        mf = os.path.join(work, f"{mid}_{m['file']}")
+        with open(mf, "w", encoding="utf-8", newline="") as fh:
+            fh.write(orig[:m["a"]] + m["after"] + orig[m["b"]:])
+        if m["file"] in EQUIV_TOPS:
+            top, names, psets = EQUIV_TOPS[m["file"]]
+        else:
+            top, names, psets = re.search(r"^\s*module\s+(\w+)", code_only(orig), re.M).group(1), allf, [{}]
+        gold = [os.path.join(SRC, f) for f in names]
+        gate = [mf if f == m["file"] else os.path.join(SRC, f) for f in names]
+        for ps in psets:
+            checks.append((mid, ps, gold, gate, top))
+    return checks
+
+
+def equiv_script(ps, gold, gate, top, path=lambda f: f.replace("\\", "/")):
+    def load(files, name):
+        ch = "".join(f" -chparam {k} {v}" for k, v in ps.items())
+        cut = "".join(f"expose -cut w:{w}\n" for w in EQUIV_CUT.get(top, []))
+        return (f"read_verilog -DSYNTHESIS -sv {' '.join(path(f) for f in files)}\nhierarchy -top {top}{ch}\nproc\n"
+                f"flatten\nopt -full\n{cut}async2sync\nopt -full\nopt_clean\nrename -top {name}\n"
+                f"design -stash {name}\n")
+    return (load(gold, "gold") + load(gate, "gate") + "design -copy-from gold -as gold gold\n"
+            "design -copy-from gate -as gate gate\nequiv_make gold gate equiv\nhierarchy -top equiv\n"
+            "equiv_simple -seq 5\nequiv_induct -seq 5\n")
+
+
+def equiv_parse(text):
+    m = re.search(r"Of those cells (\d+) are proven and (\d+) are unproven", text)
+    if m:
+        return ("equivalent" if m.group(2) == "0" else "unproven"), f"{m.group(1)} proven, {m.group(2)} unproven"
+    if re.search(r"Found 0 \$equiv cells", text):
+        return "unproven", "no $equiv cells"
+    return "error", text[-300:]
+
+
+def equiv(p, ids, work, sby=None):
+    """Runs every check with Yosys if it is installed; else (or with sby) writes one SymbiYosys job that runs them
+    all and appends each result to equiv_status.txt in its work folder."""
+    checks = equiv_checks(p, ids, work)
+    ys = find_yosys()
+    if ys and not sby:
+        res = []
+        for k, (mid, ps, gold, gate, top) in enumerate(checks):
+            sf = os.path.join(work, f"check{k}.ys")
+            st = os.path.join(work, f"check{k}.txt")
+            with open(sf, "w") as fh:
+                fh.write(equiv_script(ps, gold, gate, top) + f"tee -o {st.replace(chr(92), '/')} equiv_status\n")
+            r = subprocess.run([ys, "-q", "-s", sf], capture_output=True, text=True)
+            text = open(st).read() if os.path.exists(st) else r.stdout[-2000:] + r.stderr[-2000:]
+            status, note = equiv_parse(text) if r.returncode == 0 else ("error", (r.stdout + r.stderr)[-300:])
+            res.append({"id": mid, "params": ps, "status": status, "note": note})
+        return res
+    files, body = set(), []
+    for mid, ps, gold, gate, top in checks:
+        files.update(gold + gate)
+        body.append(f"design -reset\ntee -q -a equiv_status.txt log === {mid} {ps}\n" +
+                    equiv_script(ps, gold, gate, top, path=os.path.basename) + "tee -q -a equiv_status.txt equiv_status\n")
+    end = os.path.join(work, "equiv_end.v")
+    with open(end, "w") as fh:
+        fh.write("module equiv_end (input clk, input a);\n  always @(posedge clk) assert (a | !a);\nendmodule\n")
+    files.add(end)
+    with open(sby or os.path.join(work, "equiv.sby"), "w") as fh:
+        fh.write("[options]\nmode bmc\ndepth 1\n\n[engines]\nsmtbmc\n\n[script]\n" + "".join(body) +
+                 "design -reset\nread_verilog -formal equiv_end.v\nprep -top equiv_end\n\n[files]\n" +
+                 "\n".join(sorted(f.replace("\\", "/") for f in files)) + "\n")
+    return None
+
+
 def notice(title, body):
     body = body.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
     print(f"::notice title={title}::{body}", flush=True)

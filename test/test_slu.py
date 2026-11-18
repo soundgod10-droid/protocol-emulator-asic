@@ -256,8 +256,9 @@ def loop_nacc(cfg, xs):
 async def test_slu_loop_acq_window(dut):
     """10BASE-T loop (N = 12 samples a bit, both clock edges): for the first 24 accepted edges after the initial
     sync the window is the acquisition window of 5 samples, then 3 (LOOP2, LOOP3). Manchester of alternating bits
-    (one edge a bit, at mid-bit) with the 7th edge, in acquisition, moved by 4 samples (inside 5, outside 3) or by 7
-    (outside both): the model accepts the 4-sample edge and refuses the 7-sample one, and RTL = model in every
+    (one edge a bit, at mid-bit) with the 7th edge, in acquisition, moved by 4 samples (inside 5, outside 3) or by 6
+    (half a bit, outside both; a larger move is a smaller one toward the neighbouring edge, as the phase error wraps
+    at half a bit): the model accepts the 4-sample edges and refuses the 6-sample one, and RTL = model in every
     cycle."""
     cocotb.start_soon(Clock(dut.clk, 10, unit="ns").start())
     dut.slu_ut_rst_n.value = 0

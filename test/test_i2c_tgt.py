@@ -276,6 +276,12 @@ def assemble():
         return pe_asm.assemble(f.read(), "i2c_tgt.s", 0)
 
 
+def stretch_text(ctl):
+    if not ctl.stretch:
+        return "the target never extended a LOW period"
+    return f"the target extended {len(ctl.stretch)} LOW periods by {min(ctl.stretch)} to {max(ctl.stretch)} cycles"
+
+
 def check(ctl, label):
     assert ctl.done, f"{label}: the controller did not finish ({len(ctl.results)} results)"
     assert not ctl.errors, f"{label}: {ctl.errors[:3]}"

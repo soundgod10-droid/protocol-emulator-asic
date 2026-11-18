@@ -1,7 +1,10 @@
 name: sigrok
 
 # Outside oracle of the protocol tests (flex/PREREG.md section 6, item 3; docs/counting.md): sigrok-cli 0.7.2 with
-# libsigrokdecode at the pinned commit 71f4514 (flex/sigrok_build.sh), built once and kept in the cache.
+# libsigrokdecode at the pinned commit 71f4514 (flex/sigrok_build.sh), built once and kept in the cache, decodes the
+# chip pins of the scenarios of test/test_sigrok.py (RTL, pin dump of the same run): no warning or error annotation,
+# content equal to the scenario's, and a tampered copy of each waveform must fail (flex/sigrok_judge.py). The table is
+# a run annotation, readable without sign-in.
 
 on:
   push:

@@ -200,7 +200,7 @@ module proc_fv (
     cover (rst_n && (mon_load != 15'd0) && mon_ontime);
     cover (rst_n && (mon_load != 15'd0) && !mon_ontime);
 `endif
-    cover (f_past && rst_n && ((pin_v & ~pin_hdrv) != (pv_q & ~pin_hdrv)));
+    cover (f_past && rst_n && ((pin_v & th_pin) != (pv_q & th_pin)));
   end
 
 endmodule

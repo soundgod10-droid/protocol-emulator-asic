@@ -905,7 +905,7 @@ async def test_slc_swd(dut):
     fx.SwdTarget (Arm IHI0031H) with output delay 2 or 25 ns after the rising edge, set-up and hold 2 ns, SWCLK high
     and low 20 ns or more: JTAG-to-SWD and line reset, DPIDR, SELECT, AP write, posted AP read with RDBUFF."""
     u = await unit_reset(dut)
-    dut.dump_off.value = 1
+    dump_on(dut, False)
     log = dut._log
     good = []
     for fall in (0, 1):

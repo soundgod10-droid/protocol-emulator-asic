@@ -697,7 +697,7 @@ def main():
             notice("mutation plan", s)
     elif args.cmd == "run":
         p = json.load(open(args.plan))
-        out = Shard(p, args.shard, args.workers, args.work, 60 * args.deadline_min).run(args.workers)
+        out = Shard(p, args.shard, args.workers, args.work, 60 * args.deadline_min, args.max_rungs).run(args.workers)
         json.dump(out, open(args.out, "w"), indent=1)
         n = {}
         for r in out["results"]:

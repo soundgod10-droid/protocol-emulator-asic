@@ -24,8 +24,8 @@ connect -set mon_ccrcw \u_slu.c_crcw
 connect -set mon_cpa \u_slu.c_pa
 opt_clean
 cd ..
-# The job stops with an error if a property was removed: 28 asserts of slu_fv.v for SPEC 2 and its assume.
-select -assert-min 29 t:$check t:$assert t:$assume
+# The job stops with an error if a property was removed: 28 asserts of slu_fv.v for SPEC 2 and its 2 assumes.
+select -assert-min 30 t:$check t:$assert t:$assume
 
 [files]
 ../src/pe_slu_loop.v

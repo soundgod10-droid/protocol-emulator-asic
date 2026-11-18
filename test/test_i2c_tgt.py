@@ -291,8 +291,8 @@ def check(ctl, label):
     assert ctl.results == expected(), f"{label}: results {ctl.results}"
 
 
-def model_run(mode, t_low, t_high, hd, phase):
-    prog = assemble()
+def model_run(mode, t_low, t_high, hd, phase, **equ):
+    prog = assemble(**equ)
     m = pe_model.PeModel(prog.words, owner=ff.owners({P_SCL: 0, P_SDA: 0}), open_drain=ff.open_drain({P_SCL, P_SDA}))
     ctl = I2cController(F_MHZ, mode, t_low, t_high, hd=hd, start=START + phase, script=SCRIPT)
     bench = ff.Bench(m, inputs=ctl)

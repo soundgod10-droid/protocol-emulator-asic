@@ -547,7 +547,7 @@ async def test_slc_uart_rx(dut):
     path from no multiplexer to 10 ns; the stop bit (sample 10) gives the framing check. Control: +/-2.8 % at 15 Mbaud
     must lose or corrupt a byte."""
     u = await unit_reset(dut)
-    dut.dump_off.value = 1
+    dump_on(dut, False)
     log = dut._log
     rng = random.Random(3)
     d_ins = (IN_PAD[0], IN_PAD[1] + MUX_MAX)

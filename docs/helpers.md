@@ -98,3 +98,40 @@ Found while writing the USB device and 10BASE-T station programs (`fw/usb_dev.s`
 | TXCTRL fields | bits in the last word, CRC append and link pulse are registers read when the frame starts; abort (bit 8) and empty (bit 10) act at once | a handshake can be put in the buffer with TXLAST while TXCTRL is 0 (16 bits, no CRC) |
 | Own packets on USB | a transceiver feeds the device's own packets back into the receiver | after TXDONE, clear the receive flags and read the receive buffer empty |
 | LINKPULSE (10BASE-Te) | the first preamble half bit of a frame can set it before the carrier is up | look at CARRIER first; clear LINKPULSE at the end of each frame |
+
+## 6 Clocked and NRZ modes of the USB helper
+
+The USB helper also sends and receives clocked serial lines (SPI controller, JTAG, the SWD clock) and NRZ lines (UART), so that these buses run at up to 15 MHz instead of the rates that a thread reaches with OUT and SAMPLE (docs/protocols.md). The thread writes four configuration words; after reset the helper is the USB helper again.
+
+| Index | Word | Writable bits | Use |
+|---|---|---|---|
+| 0 | MODE | 1:0 code (0 NRZ, 3 clocked; 1 NRZI is USB), 3 receive on, 4 bit stuffing, 9 USB line | clocked: 0x000B (receive on) or 0x0003; NRZ (UART transmit): 0x0000; USB again: 0x0219 |
+| 1 | TXPER | 7:0 (bits 15:8 are 0) | NRZ: cycles a bit; clocked: cycles a clock half period (a bit = 2 x TXPER cycles); 1 to 255 |
+| 8 | SEL | 15:0 | 3:0 DIN input, 15:12 clocked sample delay (0 to 15 cycles after the sampling clock edge) |
+| 18 | LTC | 12:8 | 8 clock idle level (CPOL), 9 data out with the leading clock edge (CPHA), 10 receive frames that start at a DIN falling edge (UART receive), 12 sample the falling-edge copy of DIN (half a cycle earlier) |
+
+Pins (pin configuration signal numbers of section 3): clocked mode: 0 TXA = data out, 1 TXB = clock; NRZ: 0 TXA = line. 2 and 3 are the same one cycle later, 4 and 5 OE and not OE. DIN comes from SEL[3:0] through the both-edge synchronizer of section 3.
+
+Frames: the thread puts the bits in 16-bit words, the first bit on the line in bit 0, and gives the bit count of the last word in TXCTRL[4:0], as for USB. For MSB-first buses (SPI, most flash commands) the thread reverses the bit order of each byte. A frame starts at TXTIME. In clocked mode with receive on, the helper takes one DIN sample per bit at the set delay after the sampling edge and gives the received bits in words in the same order (first bit in bit 0); RXEOP is set when the last sample of the frame is in. The thread chip-select (or TMS, or SWDIO) is a thread pin driven with OUT events at times taken from TXTIME, so it is in step with the clock.
+
+Edge-started receive (LTC[10], UART receive): with no transmit, a falling DIN edge starts a frame of TXCTRL[4:0] samples (for example 10 = start, 8 data bits, stop), the first sample TXPER + sample delay cycles after the edge (TXPER >= 2). Each frame is one word with the frame in the top bits (for 10 samples: start bit in bit 6, data in bits 7 to 14, stop bit in bit 15), RXEOP is set, and the helper waits for the next edge at once.
+
+| Item | Behaviour | What the firmware does |
+|---|---|---|
+| Time between frames | after each transmitted frame the helper keeps tail 1 for 84 cycles (1.40 us; the fixed USB SE0 time) before it accepts a new TXTIME: data stays at the last bit, the clock at its idle level, OE on | read TXCTRL until the transmit state is 0 before TXTIME; put long transfers in one frame (a frame has no length limit while the buffer is fed) |
+| Buffers | 2 words each way, as for USB: 16 bits last 64 cycles at 15 MHz | one thread feeds TXDATA and a second thread drains RXDATA (test_slu_chip_spi_flash), or one thread alternates both |
+| Sample delay | the right SEL[15:12] and LTC[12] depend on the clock rate, the pin path (pads, any board or multiplexer delay) and the device output delay | use a setting from the middle of the window the tests measured, or measure the window on the board with a known read (for example a flash ID) |
+
+Measured results (test/test_slu_clk.py on the helper with the chip pin path as delay parameters: one pin flip-flop, output pad 1.13 to 3.32 ns, input pad 0.26 to 0.45 ns (docs/verification.md section 9), and a multiplexer of 0 to 10 ns each way; 4 corners from fast pads with no multiplexer to slow pads with 10 ns each way, and both skews). These are logic simulations with delay parameters, not electrical simulations.
+
+| Test | Device model | Result |
+|---|---|---|
+| test_slc_spi_flash_15mhz | serial NOR flash at its pins, times of a 50 MHz part (clock high/low >= 45 %, set-up 1 ns, hold 2 ns, output valid <= 6 ns, output hold >= 1.5 ns, /CS times 3/3/10 ns), commands 9Fh and 03h | 15 MHz (TXPER 2), SPI modes 0 to 3: 3 sample settings read the ID at all 4 corners in each mode; 256-byte 03h reads correct with 0 timing errors at the flash pins |
+| test_slc_spi_flash_7m5_30mhz | same | 7.5 MHz: 6 to 7 settings at all corners; 30 MHz mode 0: 1 setting at all corners, 256-byte reads correct; control (30 MHz, delay 0, 10 ns multiplexer) reads the ID wrong, as required |
+| test_slc_jtag | two TAPs in a chain (IR 4 and 5 bits), output 7 ns after the falling edge, set-up 1 ns, hold 2 ns; TMS from a thread pin | 15 MHz shift: both IDCODEs, BYPASS, a 1,000-bit DR scan through Pause-DR, correct at all 4 corners; 30 MHz shift: 2 settings correct at all corners |
+| test_slc_swd | SW-DP target, output 2 or 25 ns after the rising edge, set-up/hold 2 ns, SWCLK high/low >= 20 ns; SWDIO from a thread pin | 7.5 MHz SWCLK: line reset, DPIDR, SELECT and AP writes, posted AP read with RDBUFF correct at all 4 corners and both output delays |
+| test_slc_uart_tx | independent receiver at each bit middle | 15 and 12 Mbaud: 64 back-to-back 8N1 bytes in one frame decoded equal; every edge on the bit grid |
+| test_slc_uart_rx | sender at -2.5 % and +2.5 %, 16 start phases inside a clock period | 15 and 7.5 Mbaud: 1,024 bytes each and 256 back-to-back bytes correct, a 0 stop bit reported; control at +/-2.8 % and 15 Mbaud loses or corrupts bytes, as required |
+| test_slu_chip_spi_flash | the flash model on the chip pins (uio0 clock, uio1 data, uio2 /CS, ui_in[0] data in), slow pads + 10 ns each way | the whole chip with two threads: 03h read of 256 bytes at 15 MHz in mode 0, equal to the flash, 0 timing errors at the flash pins |
+
+With the USB configuration (no write to MODE, TXPER or LTC) the helper is the same as the USB-only helper at every output in every cycle: an equivalence proof of the two RTL forms (all 3,817 compared signals proven by induction), and a control with MODE writes allowed fails on exactly the writable MODE bits.

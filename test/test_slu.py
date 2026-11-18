@@ -1212,7 +1212,6 @@ async def test_slu_chip_spi_flash(dut):
     /CS (uio2) with OUT events and feeds a 03h read of 256 bytes from the data memory; thread 1 stores the received
     words; SCK on uio0 (helper TXB = clock), MOSI on uio1 (TXA = data), MISO on ui_in[0]. The flash model of
     test_slu_clk.py (W25Q128JV times) on the pins, with the slow pad and 10 ns multiplexer delays both ways."""
-    from cocotb.triggers import Edge  # noqa: F401
     import test_slu_clk as sc
     rng = random.Random(77)
     flash = [rng.randrange(256) for _ in range(512)]

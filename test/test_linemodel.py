@@ -83,9 +83,10 @@ async def test_research_integrate(dut):
                     g("checkout", "--ours", "test/Makefile", cwd=wt)
                     p = os.path.join(wt, "test", "Makefile")
                     t = open(p, encoding="utf-8", newline="").read()
-                    old = "test_i2c_tgt\nelse"
-                    if t.count(old) == 1 and "test_sigrok" not in t:
-                        open(p, "w", encoding="utf-8", newline="").write(t.replace(old, "test_i2c_tgt,test_sigrok\nelse"))
+                    import re
+                    if len(re.findall(r"test_i2c_tgt(\r?\n)else", t)) == 1 and "test_sigrok" not in t:
+                        t = re.sub(r"test_i2c_tgt(\r?\n)else", r"test_i2c_tgt,test_sigrok\1else", t)
+                        open(p, "w", encoding="utf-8", newline="").write(t)
                         g("add", "test/Makefile", cwd=wt)
                         msg = g("log", "-1", "--format=%B", c).stdout.rstrip() + (
                             "\n\nThe RTL module list also has test_slu_clk from the integration branch; both kept.\n")

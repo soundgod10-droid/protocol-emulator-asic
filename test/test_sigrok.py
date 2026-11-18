@@ -580,6 +580,6 @@ async def test_sigrok_pdi(dut):
     key = [(w >> 1) & 0xFF for w in script[3:11]]
     texts = ["Data: 0x00", "Data: 0x" + "".join(f"{b:02x}" for b in reversed(key)), "Data: 0x02", "Data: 0x05",
              "Data: 0x05"]
-    record("test_sigrok_pdi", "pdi", [["pdi_clk", f"drvh:{ho.P_CLK - 8}"], ["pdi_data", f"bus:{ho.P_DAT - 8}"]],
+    record("test_sigrok_pdi", "pdi", [["pdi_clk", f"drvh:{ho.P_CLK}"], ["pdi_data", f"bus:{ho.P_DAT}"]],
            "avr_pdi:reset=pdi_clk:data=pdi_data", {"avr_pdi:data-prog|data-dev": texts}, t0, t1, "pdi_data",
            "chip as PDI programmer with the XMEGA model; PDI_DATA = chip level when driven, device level when released")

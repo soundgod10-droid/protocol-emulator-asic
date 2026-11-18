@@ -883,6 +883,8 @@ module pe_slu #(
         end
       endcase
       tx_v[3:2] <= tx_v[1:0];      // tap B: the same levels one cycle later
+      // SPEC 1: TXPER is 8 bits (1 to 255), so the symbol timer needs 8 bits.
+      if (SPEC == 1) tx_tmr[15:8] <= 8'd0;
     end
   end
 

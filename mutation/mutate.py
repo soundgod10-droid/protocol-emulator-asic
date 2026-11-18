@@ -725,7 +725,7 @@ def equiv_script(ps, gold, gate, top, path=lambda f: f.replace("\\", "/")):
         ch = "".join(f" -chparam {k} {v}" for k, v in ps.items())
         cut = "".join(f"expose -cut w:{w}\n" for w in EQUIV_CUT.get(top, []))
         return (f"read_verilog -DSYNTHESIS -sv {' '.join(path(f) for f in files)}\nhierarchy -top {top}{ch}\nproc\n"
-                f"flatten\nopt -full\n{cut}async2sync\nopt -full\nopt_clean\nrename -top {name}\n"
+                f"flatten\nopt -full\n{cut}async2sync\nopt -full\nopt_clean -purge\nrename -top {name}\n"
                 f"design -stash {name}\n")
     return (load(gold, "gold") + load(gate, "gate") + "design -copy-from gold -as gold gold\n"
             "design -copy-from gate -as gate gate\nequiv_make gold gate equiv\nhierarchy -top equiv\n"

@@ -496,6 +496,32 @@ async def test_slu_usb_rx(dut):
                   "flagged" % ", ".join(results))
 
 
+@cocotb.test(skip=GL)
+async def test_slu_rx_state_codes(dut):
+    """LINE[7:4] (the RX state, port 11) in every cycle through one USB packet from the host model:
+    hunt 1, data 2 from the end of SYNC, EOP wait 3 from the qualified SE0 to the J, then 4 for exactly
+    one cycle (receive loop off) and hunt 1 again."""
+    s = await slu_reset(dut)
+    await s.cfg(USB_CFG_RX)
+    line = ref.nrzi(ref.stuff(ref.usb_packet_bits(0xC3, bytes([0x12, 0x34]), "16")))
+    sch, t_end = usb_host_schedule(line, 1000.0 / 1.5, 2000.0)
+    await FallingEdge(dut.clk)
+    dut.slu_addr.value = P_LINE
+    cocotb.start_soon(drive_levels(dut, sch))
+    runs = []
+    for _ in range(int((t_end + 1000.0) / T_NS)):
+        await RisingEdge(dut.clk)
+        await ReadOnly()
+        st = (int(dut.slu_rdata.value) >> 4) & 0xF
+        if runs and runs[-1][0] == st:
+            runs[-1][1] += 1
+        else:
+            runs.append([st, 1])
+    dut._log.info("RX state runs (state x cycles): " + ", ".join("%d x%d" % (a, b) for a, b in runs))
+    assert [a for a, _ in runs] == [1, 2, 3, 4, 1], runs
+    assert runs[3][1] == 1, "state 4 lasts one cycle"
+
+
 ETH_CFG = {
     0: mode(2, ddr=1, rx=1, eop_car=1, tsel=0),
     1: 3,                                   # half bit = 3 cycles (10 Mbit/s at 60 MHz)

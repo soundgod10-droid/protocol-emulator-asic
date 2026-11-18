@@ -261,8 +261,9 @@ module slu_fv #(
           if (SPEC == 1) assert (mon_tmr + c_cur == TXPER - 1);
           else if (!jx_cur) assert (mon_tmr + c_cur == (mon_half ? TXPER - 1 : 2 * TXPER - 1));
           else assert (mon_tmr + c_cur == TXPER - 1 || (!mon_half && mon_tmr + c_cur == 2 * TXPER - 1));
-        end else if (first) begin
-          assert (mon_tmr == 16'd0);
+        end else begin
+          // only the first cycle of a frame has no bit start behind it
+          assert (first && mon_tmr == 16'd0);
         end
       end
       // H8: a frame starts on tx_v at TXTIME (a link test pulse is not a frame: st_q 6 is T_PULSE), with its

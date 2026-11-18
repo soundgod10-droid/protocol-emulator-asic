@@ -126,7 +126,7 @@ Measured results (test/test_slu_clk.py on the helper with the chip pin path as d
 
 | Test | Device model | Result |
 |---|---|---|
-| test_slc_spi_flash_15mhz | serial NOR flash at its pins, times of a 50 MHz part (clock high/low >= 45 %, set-up 1 ns, hold 2 ns, output valid <= 6 ns, output hold >= 1.5 ns, /CS times 3/3/10 ns), commands 9Fh and 03h | 15 MHz (TXPER 2), SPI modes 0 to 3: 3 sample settings read the ID at all 4 corners in each mode; 256-byte 03h reads correct with 0 timing errors at the flash pins |
+| test_slc_spi_flash_15mhz | serial NOR flash at its pins, times of a 50 MHz part (clock high/low >= 45 %, set-up 1 ns, hold 2 ns, output valid <= 6 ns, output hold >= 1.5 ns, /CS times 3/3/10 ns), commands 9Fh and 03h | 15 MHz (TXPER 2), SPI modes 0 to 3: 5 sample settings read the ID at all 4 corners in each mode (delay 3, 4, 5 with the rising-edge copy, 4, 5 with the falling-edge copy); 256-byte 03h reads correct with 0 timing errors at the flash pins |
 | test_slc_spi_flash_7m5_30mhz | same | 7.5 MHz: 6 to 7 settings at all corners; 30 MHz mode 0: 1 setting at all corners, 256-byte reads correct; control (30 MHz, delay 0, 10 ns multiplexer) reads the ID wrong, as required |
 | test_slc_jtag | two TAPs in a chain (IR 4 and 5 bits), output 7 ns after the falling edge, set-up 1 ns, hold 2 ns; TMS from a thread pin | 15 MHz shift: both IDCODEs, BYPASS, a 1,000-bit DR scan through Pause-DR, correct at all 4 corners; 30 MHz shift: 2 settings correct at all corners |
 | test_slc_swd | SW-DP target, output 2 or 25 ns after the rising edge, set-up/hold 2 ns, SWCLK high/low >= 20 ns; SWDIO from a thread pin | 7.5 MHz SWCLK: line reset, DPIDR, SELECT and AP writes, posted AP read with RDBUFF correct at all 4 corners and both output delays |

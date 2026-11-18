@@ -415,6 +415,7 @@ async def test_host_id_status_rules(dut):
     assert await host.read_status() == hs.parse_status([0] * hs.STATUS_BYTES)
     # The only change is the reset level at time 0 (X to 1).
     assert mon.after(0) == [], f"UART_TX changed with no program: {mon.after(0)}"
+    log.info("command rules: refused commands set CMD_ERR and change nothing; the 5th PUSH word sets PUSH_DROP")
 
 
 @cocotb.test()

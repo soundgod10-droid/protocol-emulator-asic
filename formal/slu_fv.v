@@ -129,6 +129,18 @@ module slu_fv #(
   (* keep *) wire [15:0] mon_ctxper;  // c_txper
   (* keep *) wire [15:0] mon_ccrcw;   // c_crcw
   (* keep *) wire [31:0] mon_cpa;     // c_pa
+  (* keep *) wire [4:0]  mon_cfgadr;  // cfg_adr
+
+  // The USB helper (SPEC 1) also runs the clocked and NRZ modes, selected by CFGDAT writes to MODE (index 0) and
+  // TXPER (index 1) (docs/helpers.md section 6). These properties are those of its USB configuration, so the
+  // thread is assumed not to write those two words; LTC and SEL writes stay free (in the USB configuration no
+  // output or USB receive path reads the clocked-mode bits of LTC or SEL[15:12]). The invariants below then
+  // prove that MODE and TXPER keep their USB values through every other access.
+  generate
+    if (SPEC == 1) begin : g_usb_cfg
+      always @* assume (!(p_we && (p_addr == 4'd13) && ((mon_cfgadr == 5'd0) || (mon_cfgadr == 5'd1))));
+    end
+  endgenerate
 
   // Fixed configuration of the helper form (src/pe_slu.v F_*): set at reset and never written for SPEC 1
   // and 2 (only SEL is writable). Asserted as invariants, except in the cover and tooth jobs, which force

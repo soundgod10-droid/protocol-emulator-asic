@@ -22,10 +22,13 @@ connect -set mon_cmode \u_slu.c_mode
 connect -set mon_ctxper \u_slu.c_txper
 connect -set mon_ccrcw \u_slu.c_crcw
 connect -set mon_cpa \u_slu.c_pa
+connect -set mon_jabber \u_slu.jabber
+connect -set mon_jabcnt \u_slu.jab_cnt
 opt_clean
 cd ..
-# The job stops with an error if a property was removed: 28 asserts of slu_fv.v for SPEC 2 and its 2 assumes.
-select -assert-min 30 t:$check t:$assert t:$assume
+# The job stops with an error if a property was removed: 29 asserts of slu_fv.v for SPEC 2 (with H9) and its
+# 2 assumes.
+select -assert-min 31 t:$check t:$assert t:$assume
 
 [files]
 ../src/pe_slu_loop.v

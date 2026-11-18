@@ -87,7 +87,10 @@ module iso_fv (
     // the next cycle is thread 0's slot: tid = 3, or START (the counter is 0 in the next cycle)
     if ((tid == 2'd3) || start) assume (mem_rdata_a == mem_rdata_b);
     if (tid == 2'd0) begin
+`ifndef ISO_MUT_IO
+      // (iso_mut_io.sby leaves this one out: a different helper port word then reaches thread 0)
       assume (io_rdata_a == io_rdata_b);
+`endif
       assume (fifo_in_valid_a == fifo_in_valid_b);
       assume (fifo_in_data_a == fifo_in_data_b);
       assume (fifo_out_full_a == fifo_out_full_b);

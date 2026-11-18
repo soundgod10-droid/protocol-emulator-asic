@@ -1,0 +1,65 @@
+# proc_cover: the covers of formal/proc_fv.v on the same composition as proc.sby (real pe_core, 15 real slots,
+# their properties assumed). Each cover must be reached: an event written on time, an event written late, a
+# thread pin that changes. So the assumptions of proc.sby leave these behaviours possible and its proof is not
+# empty.
+
+[options]
+mode cover
+depth 16
+
+[engines]
+smtbmc z3
+
+[script]
+read -formal pe_cycle_counter.v pe_core.v pe_timed_out.v pe_proc.v proc_stubs.v proc_fv.v
+prep -top proc_fv
+# The slots are parameterized (RESET_VALUE, RESET_OE), so after prep their module names are $paramod\pe_timed_out\...
+chformal -assert2assume pe_core *pe_timed_out*
+flatten
+cd proc_fv
+connect -set mon_load \u_proc.ev_load
+connect -set mon_ready \u_proc.ev_ready
+connect -set mon_time \u_proc.ev_time
+connect -set mon_ontime \u_proc.u_core.f_ontime
+connect -set mon_ft \u_proc.u_core.f_t
+connect -set mon_pv[0] \u_proc.g_out[0].u_slot.m_pv
+connect -set mon_pv[1] \u_proc.g_out[1].u_slot.m_pv
+connect -set mon_pv[2] \u_proc.g_out[2].u_slot.m_pv
+connect -set mon_pv[3] \u_proc.g_out[3].u_slot.m_pv
+connect -set mon_pv[4] \u_proc.g_out[4].u_slot.m_pv
+connect -set mon_pv[5] \u_proc.g_out[5].u_slot.m_pv
+connect -set mon_pv[6] \u_proc.g_out[6].u_slot.m_pv
+connect -set mon_pv[7] \u_proc.g_out[7].u_slot.m_pv
+connect -set mon_pv[8] \u_proc.g_out[8].u_slot.m_pv
+connect -set mon_pv[9] \u_proc.g_out[9].u_slot.m_pv
+connect -set mon_pv[10] \u_proc.g_out[10].u_slot.m_pv
+connect -set mon_pv[11] \u_proc.g_out[11].u_slot.m_pv
+connect -set mon_pv[12] \u_proc.g_out[12].u_slot.m_pv
+connect -set mon_pv[13] \u_proc.g_out[13].u_slot.m_pv
+connect -set mon_pv[14] \u_proc.g_out[14].u_slot.m_pv
+connect -set mon_pe[0] \u_proc.g_out[0].u_slot.m_pe
+connect -set mon_pe[1] \u_proc.g_out[1].u_slot.m_pe
+connect -set mon_pe[2] \u_proc.g_out[2].u_slot.m_pe
+connect -set mon_pe[3] \u_proc.g_out[3].u_slot.m_pe
+connect -set mon_pe[4] \u_proc.g_out[4].u_slot.m_pe
+connect -set mon_pe[5] \u_proc.g_out[5].u_slot.m_pe
+connect -set mon_pe[6] \u_proc.g_out[6].u_slot.m_pe
+connect -set mon_pe[7] \u_proc.g_out[7].u_slot.m_pe
+connect -set mon_pe[8] \u_proc.g_out[8].u_slot.m_pe
+connect -set mon_pe[9] \u_proc.g_out[9].u_slot.m_pe
+connect -set mon_pe[10] \u_proc.g_out[10].u_slot.m_pe
+connect -set mon_pe[11] \u_proc.g_out[11].u_slot.m_pe
+connect -set mon_pe[12] \u_proc.g_out[12].u_slot.m_pe
+connect -set mon_pe[13] \u_proc.g_out[13].u_slot.m_pe
+connect -set mon_pe[14] \u_proc.g_out[14].u_slot.m_pe
+cd ..
+# 3 covers in the wrapper.
+select -assert-min 3 t:$check t:$cover
+
+[files]
+../src/pe_cycle_counter.v
+../src/pe_core.v
+../src/pe_timed_out.v
+../src/pe_proc.v
+proc_stubs.v
+proc_fv.v

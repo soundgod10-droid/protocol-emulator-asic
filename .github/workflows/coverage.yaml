@@ -2,7 +2,7 @@ name: coverage
 # Code coverage of the RTL tests: the cocotb tests of test.yaml run on Verilator with line,
 # branch and toggle coverage (test/Makefile, SIM=verilator). cocotb 2.0 needs Verilator 5.036
 # or later; Ubuntu 24.04 packages 5.020, so Verilator is built from its release tag and cached.
-on: [push, workflow_dispatch]
+on: [workflow_dispatch]
 jobs:
   coverage:
     runs-on: ubuntu-24.04

@@ -56,9 +56,9 @@ connect -set mon_pe[12] \u_proc.g_out[12].u_slot.m_pe
 connect -set mon_pe[13] \u_proc.g_out[13].u_slot.m_pe
 connect -set mon_pe[14] \u_proc.g_out[14].u_slot.m_pe
 cd ..
-# The job stops with an error if a property was removed: 42 in pe_core, 9 in each of the 15 slots, 36 in the
-# wrapper (6 global, 2 for each of the 15 pins).
-select -assert-min 213 t:$check t:$assert
+# The job stops with an error if a property was removed: 42 in pe_core, 9 in each of the 15 slots (assumed
+# here), 38 in the wrapper (8 global, 2 for each of the 15 pins).
+select -assert-min 215 t:$check t:$assert
 
 [files]
 ../src/pe_cycle_counter.v

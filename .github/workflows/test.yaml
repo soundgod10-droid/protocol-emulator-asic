@@ -1,5 +1,9 @@
 name: test
 on: [push, workflow_dispatch]
+# On cmos5l and tags every run is kept; on other branches a newer push cancels the older run.
+concurrency:
+  group: ${{ (github.ref == 'refs/heads/cmos5l' || startsWith(github.ref, 'refs/tags/')) && format('test-run-{0}', github.run_id) || format('test-{0}', github.ref) }}
+  cancel-in-progress: true
 jobs:
   test:
     runs-on: ubuntu-24.04

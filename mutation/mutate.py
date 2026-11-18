@@ -513,7 +513,8 @@ class Shard:
                 d = os.path.join(self.work, "base")
                 mods, filt = RUNGS[rung]
                 run = os.path.join(d, "run_" + rung)
-                rc, s, to, out = call(["_test", os.path.join(d, "build"), run, ",".join(mods), filt], 4 * 3600)
+                rc, s, to, out = call(["_test", os.path.join(d, "src"), os.path.join(d, "build"), run, ",".join(mods),
+                                       filt], 4 * 3600)
                 res = read_results(run)
                 ok = res is not None and res[0] > 0 and not res[1] and not to
                 self.base[rung] = {"ok": ok, "seconds": round(s, 1), "cases": res[0] if res else 0,

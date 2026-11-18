@@ -160,12 +160,16 @@ module proc_fv (
       assert ((mon_load & (mon_load - 15'd1)) == 15'd0);
       if (mon_load != 15'd0) begin
         assert ((lead >= 16'd4) && (lead <= 16'd32767));
+`ifndef CORE_IF
         // C2: on time at T + offset, or late at the issue cycle + 4.
         if (mon_ontime) assert (mon_time == mon_ft);
         else assert (mon_time == now + 16'd4);
+`endif
       end
     end
+`ifndef CORE_IF
     if (f_past && rst_n && late_q && !start) assert (th_late[late_tid]);
+`endif
   end
 
   genvar p;

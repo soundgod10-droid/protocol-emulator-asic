@@ -94,7 +94,10 @@ module pe_slu #(
   // 15 TAIL [7:0] tail 1 cycles (USB SE0; TP_IDL hold; link pulse width), [15:8] tail 2 (USB J)
   // 16 LTA  line condition A threshold, 17 LTB condition B threshold (prescaled cycles; 0 = off)
   // 18 LTC  [3:0] prescale shift, [5:4] condition A, [7:6] condition B (0 SE0, 1 J, 2 K,
-  //         3 no DIN edge), [8] clocked: clock idle level, [9] clocked: data out with the leading edge
+  //         3 no DIN edge), [8] clocked: clock idle level, [9] clocked: data out with the leading edge,
+  //         [10] clocked: receive frames that start at a DIN falling edge (no transmit; frame length
+  //         from TXCTRL[4:0]; first sample TXPER + sample delay cycles after the edge; TXPER >= 2),
+  //         [12] clocked: sample the falling-edge copy of DIN (half a cycle earlier)
   // 19 SQ   [5:0] min and [11:6] max edge spacing (half cycles), [15:12] spacings in a row (carrier)
   // 20 LP   [5:0] min and [11:6] max received link pulse width, [15:12] sent pulse width (cycles)
 

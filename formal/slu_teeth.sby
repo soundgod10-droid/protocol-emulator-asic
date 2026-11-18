@@ -6,7 +6,7 @@
 #
 #   task               fault                                         property that must fail
 #   usb_stuff_off      no stuffing (need_stuff = 0)                  H3
-#   usb_stuff_k5       stuffing after 5 ones (stuff run K = 5)       H3
+#   usb_stuff_k5       stuffing after 5 ones (mode: stuff run K = 5) H3
 #   usb_crc16_poly     CRC polynomial A003 (one tap wrong)           H1
 #   usb_crc16_preset   CRC register preset 0, not all ones           H1
 #   usb_nrzi           line code NRZ instead of NRZI                 H4

@@ -395,6 +395,21 @@ module pe_slu #(
   wire tx_wr        = p_we && ((p_addr == 4'd0) || (p_addr == 4'd14));
   wire [15:0] lead  = p_wdata - now;
 
+  // Clocked mode frames. A transmitted frame (TXTIME or TXCTRL[9]) starts the receive count and
+  // ends it after its last sample. With LTC[10] a DIN falling edge starts a frame of TXCTRL[4:0]
+  // bits with no transmit (UART receive); it ends at the sample time of its last bit and the unit
+  // waits for the next edge at once.
+  wire        ck_mode   = (m_code == C_CLK) && m_rx;
+  wire        m_estart  = c_ltc[10];
+  wire [4:0]  ck_len    = (tx_lastbits == 5'd0) ? 5'd16 : tx_lastbits;
+  wire        ck_estart = ck_mode && m_estart && (tx_st == T_IDLE) && din_prev && !x1;
+  wire        ck_sop    = ck_mode && !m_estart && tx_take_go;
+  assign      ck_eop    = ck_frame && (m_code == C_CLK) && !tx_busy && (tx_st != T_ARM) &&
+                          (ck_pend == 16'd0) && !ck_bit_v;
+  assign      ck_lastb  = ck_mode && m_estart && r_data_v && ((rx_bits[4:0] + 5'd1) == ck_len);
+  wire        rx_sop    = r_sop || ck_sop || ck_estart;
+  wire        ck_eend   = ck_mode && m_estart && half_mid && (tx_nb == 5'd0) && tx_lastw;
+
   // ----------------------------------------------------------------------------------------------
   // Status, events, time stamp, port reads
   // ----------------------------------------------------------------------------------------------

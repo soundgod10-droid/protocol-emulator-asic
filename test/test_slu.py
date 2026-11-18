@@ -1163,7 +1163,8 @@ done:   IOR     r1, E+2         ; STATUS: RXEOP
         IOR     r1, E+2
         PUSH    r1
         HALT
-t1:     LDI     r1, 768         ; thread 1: received words to the data memory from 768
+        .org    120
+t1:     LDI     r1, 768         ; thread 1 (starts at 120): received words to the data memory from 768
 rx:     IOR     r0, E+6         ; RXINFO [6:5]: words in the RX buffer
         ANDI    r0, 0x60
         BEQ     rx

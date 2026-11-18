@@ -239,6 +239,56 @@ async def test_slu_loop_window_edge(dut):
     dut._log.info("USB loop window limit: " + "; ".join(log))
 
 
+def loop_nacc(cfg, xs):
+    """Accepted-edge count of the model after the stream xs (fed as run_stream feeds it)."""
+    lp = Loop(cfg)
+    lp.xprev = xs[0]
+    per = 2 if cfg.ddr else 1
+    for k in range(1, len(xs) - per + 1, per):
+        if cfg.ddr:
+            lp.step_pair(xs[k], xs[k + 1])
+        else:
+            lp.step(xs[k])
+    return lp.nacc
+
+
+@cocotb.test(skip=GL)
+async def test_slu_loop_acq_window(dut):
+    """10BASE-T loop (N = 12 samples a bit, both clock edges): for the first 24 accepted edges after the initial
+    sync the window is the acquisition window of 5 samples, then 3 (LOOP2, LOOP3). Manchester of alternating bits
+    (one edge a bit, at mid-bit) with the 7th edge, in acquisition, moved by 4 samples (inside 5, outside 3) or by 7
+    (outside both): the model accepts the 4-sample edge and refuses the 7-sample one, and RTL = model in every
+    cycle."""
+    cocotb.start_soon(Clock(dut.clk, 10, unit="ns").start())
+    dut.slu_ut_rst_n.value = 0
+    await RisingEdge(dut.clk)
+    await RisingEdge(dut.clk)
+    dut.slu_ut_rst_n.value = 1
+    assert (TENBASET.wina, TENBASET.win, TENBASET.acq_n) == (5, 3, 24), "test fault: loop configuration"
+    await configure(dut, TENBASET)
+
+    def stream(d):
+        edges = [31 + 12 * i for i in range(40)]
+        edges[6] += d
+        xs, lv = [], 1
+        for k in range(525):                         # xs[0], then 262 sample pairs
+            if k in edges:
+                lv = 1 - lv
+            xs.append(lv)
+        return xs
+
+    base = loop_nacc(TENBASET, stream(0))
+    log = [f"no move: {base} edges accepted"]
+    for d in (4, -4, 7, -7):
+        xs = stream(d)
+        na = loop_nacc(TENBASET, xs)
+        assert na == base - (1 if abs(d) > 5 else 0), f"edge moved by {d}: model accepted {na} edges, {base} unmoved"
+        cyc, got, err = await run_stream(dut, TENBASET, xs)
+        assert err is None, f"edge moved by {d} samples: {err}"
+        log.append(f"moved {d:+d}: {na} accepted, {cyc} cycles, {len(got)} bits, RTL = model")
+    dut._log.info("10BASE-T loop acquisition window: " + "; ".join(log))
+
+
 # --------------------------------------------------------------------------------------------------
 # The whole unit (tb.u_slu_ut, FULL build) through its ports, at 60 MHz.
 # --------------------------------------------------------------------------------------------------

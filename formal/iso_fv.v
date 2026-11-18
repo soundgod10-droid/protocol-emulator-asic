@@ -84,7 +84,8 @@ module iso_fv (
 
   // Thread 0 gets the same words in both copies.
   always @* begin
-    if (tid == 2'd3) assume (mem_rdata_a == mem_rdata_b);
+    // the next cycle is thread 0's slot: tid = 3, or START (the counter is 0 in the next cycle)
+    if ((tid == 2'd3) || start) assume (mem_rdata_a == mem_rdata_b);
     if (tid == 2'd0) begin
       assume (io_rdata_a == io_rdata_b);
       assume (fifo_in_valid_a == fifo_in_valid_b);

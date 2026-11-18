@@ -64,7 +64,7 @@ usbrx: connect -set \u_slu.r_sop sop_free
 usbrx: connect -set \u_slu.r_data_v rdv_free
 usbrx: connect -set \u_slu.r_data rd_free
 usb_stuff_off: connect -set \u_slu.need_stuff 1'b0
-usb_stuff_k5: connect -set \u_slu.m_k 3'd5
+usb_stuff_k5: connect -set \u_slu.c_mode 16'h0379
 usb_crc16_poly: connect -set \u_slu.c_pa 32'h0000A003
 usb_crc16_poly: connect -set \u_slu.c_crcw 16'h2050
 usb_crc16_preset: connect -set \u_slu.c_crcw 16'h2010

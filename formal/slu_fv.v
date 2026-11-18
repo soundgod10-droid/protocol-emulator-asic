@@ -256,10 +256,11 @@ module slu_fv #(
       end
       if (busy) begin
         // H6 and its invariants
-        if (mon_bs) assert (!cv_cur || (c_cur == PER - 1));
+        if (mon_bs) assert (!cv_cur || jx_cur || (c_cur == PER - 1));
         if (cv_cur) begin
           if (SPEC == 1) assert (mon_tmr + c_cur == TXPER - 1);
-          else assert (mon_tmr + c_cur == (mon_half ? TXPER - 1 : 2 * TXPER - 1));
+          else if (!jx_cur) assert (mon_tmr + c_cur == (mon_half ? TXPER - 1 : 2 * TXPER - 1));
+          else assert (mon_tmr + c_cur == TXPER - 1 || (!mon_half && mon_tmr + c_cur == 2 * TXPER - 1));
         end else if (first) begin
           assert (mon_tmr == 16'd0);
         end

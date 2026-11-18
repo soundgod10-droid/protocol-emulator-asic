@@ -74,4 +74,7 @@ jobs:
             formal/${{ matrix.job }}/logfile.txt
             formal/${{ matrix.job }}/status
             formal/${{ matrix.job }}/engine_*/trace*.vcd
+            formal/${{ matrix.job }}_*/logfile.txt
+            formal/${{ matrix.job }}_*/status
+            formal/${{ matrix.job }}_*/engine_*/trace*.vcd
           if-no-files-found: warn

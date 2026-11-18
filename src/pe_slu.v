@@ -601,6 +601,12 @@ module pe_slu #(
         crc_b_ok <= crc_b_byte;
         rx_nb    <= 5'd0;
       end
+      if (ck_lastb) begin                                   // edge-started frame complete
+        rx_lastn  <= rx_nb + 5'd1;
+        rx_nb     <= 5'd0;
+        rx_bits   <= 10'd0;
+        sticky[5] <= 1'b1;
+      end
       // RX buffer (2 words)
       if (rx_pop) rx_buf0 <= rx_buf1;
       if (rx_push) begin

@@ -1,0 +1,121 @@
+name: count
+
+# Protocol count of docs/counting.md, computed from flex/protocols.csv, the assembler, the model sources and the
+# results.xml files of named runs (flex/count.py); no count is typed by hand. The test workflow calls it after
+# its tests, with its own run; it can also be run by hand with chosen runs.
+#   RTL results: the test-results artifact of the test run.
+#   Gate-level results: the gl_protocols_* artifacts of the newest successful gds run of cmos5l whose src/ equals
+#   src/ of this commit, and the gl_fw_* artifacts of the newest successful gl_fw runs (up to 10) whose commit has the
+#   same src/ (gl_fw itself stops when src/ differs from the gds run's commit). gl_run_ids replaces this choice.
+# The job fails when a program in fw/ has no row, or a row claims more than its evidence gives.
+
+on:
+  workflow_call:
+    inputs:
+      test_run_id:
+        type: string
+        required: false
+        default: ""
+      gl_run_ids:
+        type: string
+        required: false
+        default: ""
+  workflow_dispatch:
+    inputs:
+      test_run_id:
+        description: "id of the test workflow run (empty: the newest completed one of this branch)"
+        required: false
+        default: ""
+      gl_run_ids:
+        description: "space-separated ids of gds or gl_fw runs for the gate-level results (empty: automatic)"
+        required: false
+        default: ""
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  count:
+    runs-on: ubuntu-24.04
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: runs
+        env:
+          TEST_IN: ${{ inputs.test_run_id }}
+          GL_IN: ${{ inputs.gl_run_ids }}
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+        run: |
+          TEST_RUN="$TEST_IN"
+          if [ -z "$TEST_RUN" ]; then
+            TEST_RUN=$(gh run list -R "$REPO" -w test.yaml -b "$BRANCH" -s completed -L 1 --json databaseId --jq '.[0].databaseId')
+          fi
+          echo "TEST_RUN=$TEST_RUN" >> $GITHUB_ENV
+          GL="$GL_IN"
+          if [ -z "$GL" ]; then
+            for line in $(gh run list -R "$REPO" -w gds.yaml -b cmos5l -s success -L 20 --json databaseId,headSha --jq '.[] | "\(.databaseId):\(.headSha)"'); do
+              id=${line%%:*}; sha=${line##*:}
+              if git cat-file -e "$sha^{commit}" 2>/dev/null && git diff --quiet "$sha" HEAD -- src; then GL="$id"; break; fi
+            done
+            n=0
+            for line in $(gh run list -R "$REPO" -w gl_fw.yaml -s success -L 30 --json databaseId,headSha --jq '.[] | "\(.databaseId):\(.headSha)"'); do
+              id=${line%%:*}; sha=${line##*:}
+              if [ $n -lt 10 ] && git cat-file -e "$sha^{commit}" 2>/dev/null && git diff --quiet "$sha" HEAD -- src; then GL="$GL $id"; n=$((n + 1)); fi
+            done
+          fi
+          echo "GL_RUNS=$GL" >> $GITHUB_ENV
+          echo "test run $TEST_RUN; gate-level runs: ${GL:-none}"
+
+      - name: RTL results of this run
+        if: inputs.test_run_id == github.run_id
+        uses: actions/download-artifact@v7
+        with:
+          name: test-results
+          path: rtl
+
+      - name: RTL results of another run
+        if: inputs.test_run_id != github.run_id
+        run: gh run download "$TEST_RUN" -R "$REPO" -n test-results -D rtl
+
+      - name: gate-level results
+        run: |
+          mkdir -p gl
+          NOTES=""
+          for id in $GL_RUNS; do
+            info=$(gh run view "$id" -R "$REPO" --json workflowName,headSha,conclusion --jq '"\(.workflowName) \(.headSha[0:7]) \(.conclusion)"')
+            gh run download "$id" -R "$REPO" -p 'gl_protocols_*' -D "gl/$id" 2>/dev/null || true
+            gh run download "$id" -R "$REPO" -p 'gl_fw_*' -D "gl/$id" 2>/dev/null || true
+            netlist=""
+            if [ -f "gl/$id/gl_fw_info/gl_fw_info.json" ]; then
+              netlist=", netlist of gds run $(jq -r .gds_run_id gl/$id/gl_fw_info/gl_fw_info.json) SHA-256 $(jq -r .netlist_sha256 gl/$id/gl_fw_info/gl_fw_info.json)"
+            fi
+            echo "gate level: run $id ($info)$netlist: $(find gl/$id -name results.xml | wc -l) results files"
+            echo "--note=gate level: run $id ($info)$netlist" >> notes.txt
+          done
+          touch notes.txt
+
+      - name: count
+        run: |
+          mapfile -t NOTES < notes.txt
+          python flex/count.py --rtl $(find rtl -name results.xml) --gl $(find gl -name results.xml) \
+            --note "commit $(git rev-parse --short HEAD); RTL: test run $TEST_RUN" "${NOTES[@]}" \
+            --summary "$GITHUB_STEP_SUMMARY" --out count
+
+      - name: table
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: count
+          path: count/

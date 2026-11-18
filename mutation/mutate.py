@@ -684,6 +684,7 @@ def main():
     a.add_argument("src")
     a.add_argument("build")
     a = sub.add_parser("_test")
+    a.add_argument("src")
     a.add_argument("build")
     a.add_argument("run")
     a.add_argument("modules")

@@ -41,7 +41,6 @@ connect -set mon_rd \u_slu.r_data
 connect -set mon_sop \u_slu.r_sop
 connect -set mon_rxbits \u_slu.rx_bits
 connect -set mon_cmode \u_slu.c_mode
-connect -set mon_ctxper \u_slu.c_txper
 connect -set mon_ccrcw \u_slu.c_crcw
 connect -set mon_cpa \u_slu.c_pa
 connect -set \u_slu.din_f1 din_f1_free

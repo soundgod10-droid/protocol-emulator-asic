@@ -363,8 +363,9 @@ module slu_fv #(
   end
 
   // ---------------------------------------------------------------------------------------------------
-  // Covers (cover jobs only): a CRC bit sent, a stuffed bit (USB), the end of a jam (10BASE-Te), a CRC-OK
-  // compare after received data.
+  // Covers (cover jobs only): a CRC bit sent, a stuffed bit (USB), a collision that starts a jam
+  // (10BASE-Te). The end of a 32-bit jam needs about 75 steps even with 1-cycle symbols, beyond the cover
+  // budget; H7 rests on its k-induction proof (jam counter + bits sent = 32).
   // ---------------------------------------------------------------------------------------------------
 `ifdef SLU_COVER
   always @* begin

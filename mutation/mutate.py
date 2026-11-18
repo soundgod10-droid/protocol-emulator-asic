@@ -859,6 +859,17 @@ def main():
             if chunk:
                 notice(f"mutation survivors {n + 1}", "\n".join(chunk))
         sys.exit(1 if problems else 0)
+    elif args.cmd == "equiv":
+        p = json.load(open(args.plan))
+        res = equiv(p, re.split(r"[\s,]+", args.ids.strip()), args.work, args.sby or None)
+        if res is None:
+            print(f"wrote {args.sby or os.path.join(args.work, 'equiv.sby')}")
+        else:
+            json.dump(res, open(args.out, "w"), indent=1)
+            text = "\n".join(f"{r['id']} {r['params']} {r['status']}: {r['note']}" for r in res)
+            print(text)
+            if os.environ.get("GITHUB_ACTIONS"):
+                notice("mutation equivalence", text)
     elif args.cmd == "_build":
         do_build(args.src, args.build)
     elif args.cmd == "_test":

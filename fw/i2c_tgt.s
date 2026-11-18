@@ -25,9 +25,10 @@
 ;     Table 11): a START or STOP condition lasts at least tSU;STO or tHD;STA
 ;     (0.6 us), longer than the 20-cycle read period.
 ;   - After the 8th bit of each received byte the thread holds SCL low (clock
-;     stretching, UM10204 3.1.9) at most 52 cycles after the SCL fall on the
-;     pin, before the controller can end its LOW period (tLOW 1.3 us = 78
-;     cycles). While SCL is low it decides on the ACK, writes the byte, sets
+;     stretching, UM10204 3.1.9) at most 67 cycles after the SCL fall on the
+;     pin (7 cycles to the thread, up to 19 to the next read of the pins, 41
+;     to the pin event), before the controller can end its LOW period (tLOW
+;     1.3 us = 78 cycles). While SCL is low it decides on the ACK, writes the byte, sets
 ;     SDA, and releases SCL TSU cycles after the SDA change. Table 11 note [3]:
 ;     a device that stretches must have the data valid by the set-up time
 ;     before it releases the clock; TSU 80 cycles (1.33 us) covers note [4]

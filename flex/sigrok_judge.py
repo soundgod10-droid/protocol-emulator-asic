@@ -125,8 +125,11 @@ def pd_match(row_pd, pd):
     return row_pd == pd or row_pd.startswith(pd + "-")
 
 
-def evaluate(rows, content):
-    fails = [f"{r[2]}: {r[3]}: {r[4]}" for r in rows if FAIL_CLASS.search(r[3])]
+def evaluate(rows, content, forbid=()):
+    """forbid: further "decoder:class" names that a decoder uses for errors only (swd: parity)."""
+    fails = [f"{r[2]}: {r[3]}: {r[4]}" for r in rows
+             if FAIL_CLASS.search(r[3]) or any(pd_match(r[2], f.split(":")[0]) and r[3] == f.split(":")[1]
+                                               for f in forbid)]
     got, first = {}, None
     for key in content:
         pd, _, cls = key.partition(":")

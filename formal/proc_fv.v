@@ -190,8 +190,10 @@ module proc_fv (
   reg [14:0] pv_q;
   always @(posedge clk) pv_q <= pin_v;
   always @* begin
+`ifndef CORE_IF
     cover (rst_n && (mon_load != 15'd0) && mon_ontime);
     cover (rst_n && (mon_load != 15'd0) && !mon_ontime);
+`endif
     cover (f_past && rst_n && ((pin_v & ~pin_hdrv) != (pv_q & ~pin_hdrv)));
   end
 

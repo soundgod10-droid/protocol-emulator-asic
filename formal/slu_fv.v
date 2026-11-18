@@ -204,6 +204,7 @@ module slu_fv #(
     m_mv  <= busy && mv_cur;
     m_cv  <= busy && cv_cur;
     m_c   <= (c_cur == 16'hFFFF) ? c_cur : c_cur + 16'd1;
+    m_jx  <= busy && jx_cur && !mon_bs;
     m_j   <= j_cur;
     if (mon_hm) m_h <= 1'b1;
     if (mon_bs) begin

@@ -1,0 +1,181 @@
+name: gl_fw
+
+# Gate-level firmware tests on the netlist of a finished gds run, with no new gds run. A protocol written after
+# the layout (or after the rtl-freeze tag) gets its gate-level result here (docs/counting.md, condition (d)).
+#   - The tests are those of the dispatched commit. Its src/ must equal src/ of the gds run's commit, so that the
+#     netlist is the layout of the RTL that the tests were written for; the job stops otherwise.
+#   - The SHA-256 of the netlist is written to the job summary and to the gl_fw_info artifact, and checked against
+#     netlist_sha256 when it is given (after the tag: the value in the rtl-freeze Release; docs/tapeout_checklist.md).
+#   - Each shard is one cocotb module, with a part number for test_rtl_fw (GL_PARTS in test/test_rtl_fw.py).
+# Set up as the gl_protocols jobs of gds.yaml (netlist and PDK revision from tt_submission, Icarus 13, -DFUNCTIONAL).
+
+on:
+  workflow_dispatch:
+    inputs:
+      gds_run_id:
+        description: "id of the gds workflow run whose netlist is tested"
+        required: true
+      shards:
+        description: "space-separated module:part list; the part is used by test_rtl_fw only"
+        required: false
+        default: "test_rtl_fw:1 test_rtl_fw:2"
+      netlist_sha256:
+        description: "expected SHA-256 of the netlist (empty: no check)"
+        required: false
+        default: ""
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  netlist:
+    runs-on: ubuntu-24.04
+    outputs:
+      matrix: ${{ steps.shards.outputs.matrix }}
+      sha: ${{ steps.hash.outputs.sha }}
+    env:
+      RUN_ID: ${{ inputs.gds_run_id }}
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: shards
+        id: shards
+        env:
+          SHARDS: ${{ inputs.shards }}
+        run: |
+          python3 - "$SHARDS" >> "$GITHUB_OUTPUT" <<'EOF'
+          import json, os, re, sys
+          inc = []
+          for s in sys.argv[1].split():
+              mod, _, part = s.partition(":")
+              assert re.fullmatch(r"test_[a-z0-9_]+", mod) and os.path.isfile(f"test/{mod}.py"), f"module {mod}"
+              assert re.fullmatch(r"[0-9]*", part), f"part {part}"
+              inc.append({"module": mod, "part": part, "name": mod + ("_" + part if part else "")})
+          assert inc, "no shard"
+          print("matrix=" + json.dumps({"include": inc}))
+          EOF
+
+      - name: commit of the gds run; src/ must be equal
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          SHA=$(gh run view "$RUN_ID" --repo "$GITHUB_REPOSITORY" --json headSha --jq .headSha)
+          echo "GDS_SHA=$SHA" >> $GITHUB_ENV
+          if ! git diff --quiet "$SHA" HEAD -- src; then
+            echo "::error title=gl_fw::src/ of $(git rev-parse --short HEAD) differs from src/ of ${SHA:0:7}, the commit of gds run $RUN_ID"
+            git diff --stat "$SHA" HEAD -- src
+            exit 1
+          fi
+          echo "gds run $RUN_ID, commit ${SHA:0:7}; tests of commit $(git rev-parse --short HEAD); src/ equal" | tee -a $GITHUB_STEP_SUMMARY
+
+      - name: netlist of the gds run
+        uses: actions/download-artifact@v7
+        with:
+          name: tt_submission
+          path: tt_sub
+          run-id: ${{ inputs.gds_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: netlist hash
+        id: hash
+        env:
+          WANT: ${{ inputs.netlist_sha256 }}
+        run: |
+          ls tt_sub/tt_submission/*.v
+          test "$(ls tt_sub/tt_submission/*.v | wc -l)" -eq 1
+          f=$(ls tt_sub/tt_submission/*.v)
+          sha=$(sha256sum "$f" | cut -d' ' -f1)
+          echo "sha=$sha" >> $GITHUB_OUTPUT
+          echo "netlist $(basename "$f"): SHA-256 $sha" | tee -a $GITHUB_STEP_SUMMARY
+          echo "::notice title=gl_fw netlist::gds run $RUN_ID, commit ${GDS_SHA:0:7}, $(basename "$f") SHA-256 $sha"
+          if [ -n "$WANT" ] && [ "$WANT" != "$sha" ]; then
+            echo "::error title=gl_fw::netlist SHA-256 $sha is not the expected $WANT"
+            exit 1
+          fi
+          mkdir -p info
+          printf '{"gds_run_id": "%s", "gds_sha": "%s", "tests_sha": "%s", "netlist": "%s", "netlist_sha256": "%s", "shards": "%s"}\n' \
+            "$RUN_ID" "$GDS_SHA" "$(git rev-parse HEAD)" "$(basename "$f")" "$sha" "${{ inputs.shards }}" > info/gl_fw_info.json
+          cat info/gl_fw_info.json
+
+      - name: info
+        uses: actions/upload-artifact@v7
+        with:
+          name: gl_fw_info
+          path: info/gl_fw_info.json
+
+  test:
+    needs: netlist
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.netlist.outputs.matrix) }}
+    env:
+      PDK_ROOT: /home/runner/pdk
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: netlist of the gds run
+        uses: actions/download-artifact@v7
+        with:
+          name: tt_submission
+          path: tt_sub
+          run-id: ${{ inputs.gds_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: PDK name and version
+        run: |
+          echo "PDK=$(jq -r '.PDK' tt_sub/tt_submission/pdk.json)" >> $GITHUB_ENV
+          echo "PDK_VERSION=$(jq -r '.PDK_VERSION' tt_sub/tt_submission/pdk.json)" >> $GITHUB_ENV
+
+      - name: Install the PDK
+        uses: TinyTapeout/ciel-action@v1
+        with:
+          pdk_name: ${{ env.PDK }}
+          pdk_version: ${{ env.PDK_VERSION }}
+          pdk_root: ${{ env.PDK_ROOT }}
+
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: tools
+        run: |
+          wget -q https://github.com/TinyTapeout/iverilog/releases/download/v13.0/iverilog_13.0-1_amd64.deb
+          sudo apt-get update -y
+          sudo apt-get install -y ./iverilog_13.0-1_amd64.deb
+          pip install -r test/requirements.txt
+
+      - name: ${{ matrix.module }} at gate level, part ${{ matrix.part }}
+        shell: bash
+        run: |
+          f=$(ls tt_sub/tt_submission/*.v)
+          test "$(sha256sum "$f" | cut -d' ' -f1)" = "${{ needs.netlist.outputs.sha }}"
+          cp "$f" test/gate_level_netlist.v
+          cd test
+          rm -f tb.fst results.xml
+          make clean
+          GATES=yes GL_PART=${{ matrix.part }} make COCOTB_TEST_MODULES=${{ matrix.module }}
+          # make returns success even if tests fail, so check results.xml.
+          python -m cocotb_tools.check_results results.xml
+
+      - name: results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: gl_fw_${{ matrix.name }}
+          path: test/results.xml
+
+      - name: Test Summary
+        if: always()
+        uses: test-summary/action@v2.6
+        with:
+          paths: test/results.xml

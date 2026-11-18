@@ -297,10 +297,6 @@ module slu_fv #(
   // ---------------------------------------------------------------------------------------------------
   // Receive monitors: the CRC of the data bits after the start pattern (r_sop), from the RXSTART-th bit.
   // ---------------------------------------------------------------------------------------------------
-  reg [W-1:0] m_r;
-  reg [4:0]   m_r5;
-  reg [9:0]   m_nb;
-  reg         m_rv;
   always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
       m_rv <= 1'b0;

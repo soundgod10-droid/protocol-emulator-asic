@@ -625,7 +625,10 @@ module pe_slu #(
       ck_pend  <= {1'b0, ck_pend[15:1]};
       if (half_mid && m_code == C_CLK && m_rx) ck_pend[c_sel[15:12]] <= 1'b1;
       ck_bit_v <= ck_pend[0];
-      ck_bit_d <= x1;
+      ck_bit_d <= c_ltc[12] ? x0 : x1;
+      if (!(m_code == C_CLK)) ck_frame <= 1'b0;
+      else if (ck_sop)        ck_frame <= 1'b1;
+      else if (ck_eop)        ck_frame <= 1'b0;
 
       // ---------------- transmit ----------------
       if (tx_busy || tx_st == T_TAIL1) tx_tmr <= sym_end ? (c_txper - 16'd1) : (tx_tmr - 16'd1);

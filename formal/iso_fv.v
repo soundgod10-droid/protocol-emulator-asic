@@ -11,8 +11,8 @@
 //   Two copies u_a and u_b of src/pe_core.v share the clock, reset, cycle counter, start sequence (as
 //   project.v), configuration (start PCs, RUN mask, pin owners), the event-slot state and the input pins.
 //   The words that reach the threads may differ between the copies, except those that reach thread 0:
-//     - the memory word on mem_rdata in a cycle with tid = 3 (it goes into ir for thread 0's slot: an
-//       instruction or the data word of its LD/LDX),
+//     - the memory word on mem_rdata in the cycle before thread 0's slot (tid = 3, or the START cycle; it
+//       goes into ir for thread 0's slot: an instruction or the data word of its LD/LDX),
 //     - the helper port word, the in-FIFO word and valid flag and the out-FIFO full flag in a cycle with
 //       tid = 0 (thread 0's slot; the FIFOs are per thread).
 //   So the other three threads may run any different programs with any different data in the two copies.

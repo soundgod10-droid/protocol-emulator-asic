@@ -52,6 +52,47 @@ async def test_research_rebase(dut):
 
 
 @cocotb.test(skip=GL)
+async def test_research_integrate(dut):
+    import subprocess
+    root = os.path.dirname(HERE)
+    wt = os.path.join(os.path.dirname(root), "pe-lane2-int")
+    out = []
+
+    def g(*a, cwd=root):
+        r = subprocess.run(["git"] + list(a), cwd=cwd, capture_output=True, text=True)
+        out.append("$ git %s -> %d\n%s%s" % (" ".join(a), r.returncode, r.stdout[-3000:], r.stderr[-2000:]))
+        return r
+    ident = ["-c", "user.name=soundgod10-droid", "-c", "user.email=334736888+soundgod10-droid@users.noreply.github.com"]
+    g("fetch", "origin")
+    g("worktree", "remove", "--force", wt)
+    g("worktree", "prune")
+    g("branch", "-f", "lane2-int", "lane2-mutequiv")
+    ok = g("worktree", "add", wt, "lane2-int").returncode == 0
+    for b in ("lane2-sigrok", "lane2-covfix"):
+        if not ok:
+            break
+        r = g("cherry", "origin/cmos5l", b)
+        commits = [ln[2:].strip() for ln in r.stdout.splitlines() if ln.startswith("+ ")]
+        out.append("%s: %d commits to apply" % (b, len(commits)))
+        for c in commits:
+            r = g(*ident, "cherry-pick", c, cwd=wt)
+            if r.returncode != 0:
+                g("diff", "--name-only", "--diff-filter=U", cwd=wt)
+                g("cherry-pick", "--abort", cwd=wt)
+                out.append("STOP at %s of %s" % (c, b))
+                ok = False
+                break
+    g("log", "--oneline", "-8", "lane2-int")
+    g("rev-list", "--count", "origin/cmos5l..lane2-int")
+    g("diff", "--stat", "origin/cmos5l", "lane2-int")
+    g("worktree", "remove", "--force", wt)
+    out.append("RESULT %s" % ("integrated" if ok else "stopped"))
+    text = "\n".join(out)
+    open(os.path.join(root, "build", "git_int.txt"), "w").write(text + "\n")
+    dut._log.info(text[-6000:])
+
+
+@cocotb.test(skip=GL)
 async def test_research_kill(dut):
     import sys
     from concurrent.futures import ThreadPoolExecutor

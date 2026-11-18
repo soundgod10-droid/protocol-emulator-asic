@@ -44,7 +44,7 @@ Does not check: the line helpers, which are not in the reference model (the rand
 
 ## 3. Formal proofs
 
-The properties are in the RTL (`ifdef FORMAL`) and in the wrapper files `formal/*_fv.v`. Each proof job stops with an error if fewer property cells than written reach the solver (`select -assert-min`), so a pass cannot come from properties that synthesis removed. Run with `sby -f formal/<job>.sby`. Every push runs all 16 jobs (below); the newest result is on the [Results](https://soundgod10-droid.github.io/protocol-emulator-asic/results/) page. Earlier local runs: commit afff916 (14 November 2026; mem_full 556 s, mem_full_reset 636 s, host_port_cover 722 s) and commit 9edf37e.
+The properties are in the RTL (`ifdef FORMAL`) and in the wrapper files `formal/*_fv.v`. Each proof job stops with an error if fewer property cells than written reach the solver (`select -assert-min`), so a pass cannot come from properties that synthesis removed. Run with `sby -f formal/<job>.sby`. Every push that changes `src/` or `formal/` runs all 16 jobs (below); a push of other files does not, because the proofs read nothing else; the newest result is on the [Results](https://soundgod10-droid.github.io/protocol-emulator-asic/results/) page. Earlier local runs: commit afff916 (14 November 2026; mem_full 556 s, mem_full_reset 636 s, host_port_cover 722 s) and commit 9edf37e.
 
 | Job | What | Mode, depth | Result |
 |---|---|---|---|

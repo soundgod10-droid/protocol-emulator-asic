@@ -127,7 +127,8 @@ def run_sigrok(vcd, stack):
         m = ROW.match(ln.strip())
         if m:
             rows.append((int(m.group(1)), int(m.group(2)), m.group(3), m.group(4), first_text(m.group(5))))
-    return rows, p.returncode, p.stderr[-800:], " ".join(["sigrok-cli"] + cmd[1:3] + cmd[3:]).replace(vcd, os.path.basename(vcd))
+    err = "\n".join(x for x in p.stderr.splitlines() if not x.startswith(("srd:", "sr:", "cli:")))[-800:]
+    return rows, p.returncode, err, " ".join(["sigrok-cli"] + cmd[1:]).replace(vcd, os.path.basename(vcd))
 
 
 def pd_match(row_pd, pd):

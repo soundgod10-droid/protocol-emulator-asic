@@ -99,7 +99,7 @@ async def test_sigrok_uart_rx(dut):
     await bench.collect(0, len(frames))
     t1 = now_ps()
     words = bench.words(0)
-    assert len(words) == len(frames) and all(ff.rx_bits(w, 8) == bits[:9] for w, (_, bits) in zip(words, frames)), (
+    assert len(words) == len(frames) and all(ff.rx_bits(w, 9) == bits[:10] for w, (_, bits) in zip(words, frames)), (
         f"{label}: words {[hex(w) for w in words]}")
     await bench.finish(dut._log)
     record("test_sigrok_uart_rx", "uart_rx", [["uart_rx", "ui:3"]], f"uart:rx=uart_rx:baudrate={rate}",

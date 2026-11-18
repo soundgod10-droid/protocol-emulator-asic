@@ -351,6 +351,14 @@ async def spi_flash_run(dut, plan):
             if txper >= 2:
                 assert (txper, mode) in rated, "TXPER %d mode %d: no read-back setting works at all corners" % (
                     txper, mode)
+    # review frames for the waveform: one JEDEC ID read in mode 0 at the rated setting of each rate, slow corner
+    for (txper, mode), (delay, fall) in sorted(rated.items()):
+        if mode == 0:
+            dut.dump_off.value = 0
+            ok, got, _ = await id_ok(dut, u, 0, txper, delay, fall, "slow, mux 10 ns")
+            dut.dump_off.value = 1
+            log.info("waveform: JEDEC ID read at TXPER %d, sample delay %d, slow pads + 10 ns mux, ends at %.1f ns: %s" % (
+                txper, delay, now_ns(), ["%02X" % b for b in got]))
     # 256-byte reads at the middle of each window, at the two extreme corners
     for (txper, mode), (delay, fall) in sorted(rated.items()):
         for corner in ("fast, no mux", "slow, mux 10 ns"):

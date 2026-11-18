@@ -59,7 +59,8 @@ RUNGS = {
     "core_dir": (["test_core"], T + r"test_core_(alu_flags|start_top|shifts|branches_memory|time|out_events|horizon|"
                  r"sample_wait|spike_filter|host_io|illegal_halt|barrel|wait_far_expired)$"),      # 52 s
     "host": (["test"], T + r"test_(reset_keeps_line_idle|reset_during_frame|fixed_patterns|host_id_status_rules|"
-             r"host_load_readback|host_sck_limit|stop_start|r2_stop_pins)$"),                    # 49 s
+             r"host_load_readback|host_sck_limit|stop_start|r2_stop_pins|host_status_reserved_bits|"
+             r"host_partial_byte)$"),                                                            # 49 s
     "fw_fast": (["test_rtl_fw"], T + r"test_rtl_(uart_tx|spi_ctl|spi_tgt|jtag|swd|pdi|four_protocols|trigger|"
                 r"pull_rule)$"),                                                                 # 211 s
     "slu_unit": (["test_slu"], T + r"test_slu_(usb_tx|usb_rx|eth_tx|eth_rx|tx_late_underflow|eth_collision|"

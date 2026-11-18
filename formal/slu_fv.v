@@ -51,7 +51,12 @@ module slu_fv #(
     input wire [12:0] pin_sync,
     // Replaces the falling-edge DIN sample din_f1 (connected by the .sby): any value in every cycle, so the
     // receive path sees every possible half-cycle sample and the model needs one clock edge only.
-    input wire        din_f1_free
+    input wire        din_f1_free,
+    // Free receive strobes for the receive-CRC teeth (slu_teeth.sby connects r_sop, r_data_v, r_data to them,
+    // so the CRC datapath is reached without a locked receive loop); unused in the proofs.
+    input wire        sop_free,
+    input wire        rdv_free,
+    input wire        rd_free
 );
   localparam FULL = (SPEC == 2) ? 1 : 0;
   localparam W    = (SPEC == 1) ? 16 : 32;

@@ -520,6 +520,9 @@ async def test_slu_rx_state_codes(dut):
     dut._log.info("RX state runs (state x cycles): " + ", ".join("%d x%d" % (a, b) for a, b in runs))
     assert [a for a, _ in runs] == [1, 2, 3, 4, 1], runs
     assert runs[3][1] == 1, "state 4 lasts one cycle"
+    # The EOP SE0 lasts 2 bit times (80 cycles); the receiver qualifies it after 20 SE0 samples (PAT2[15:10]), so
+    # the EOP wait state lasts the rest of the SE0 up to the J: 60 cycles.
+    assert runs[2][1] == 60, f"EOP wait {runs[2][1]} cycles"
 
 
 ETH_CFG = {

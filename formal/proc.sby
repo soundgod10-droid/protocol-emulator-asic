@@ -10,7 +10,7 @@ mode prove
 depth 2
 
 [engines]
-smtbmc z3
+abc pdr
 
 [script]
 read -formal pe_cycle_counter.v pe_core.v pe_timed_out.v pe_proc.v proc_stubs.v proc_fv.v

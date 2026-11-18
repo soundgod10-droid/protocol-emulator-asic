@@ -17,8 +17,9 @@ read -formal pe_cycle_counter.v pe_core.v pe_timed_out.v pe_proc.v proc_stubs.v 
 # The properties of pe_core and pe_timed_out are proved for every input by core.sby and timed_out.sby; here
 # they are assumptions (they hold in any environment, so assuming them removes no behaviour) and the contract
 # C1 to C4 of the wrapper is proved.
+prep -top proc_fv
 chformal -assert2assume pe_core pe_timed_out
-prep -flatten -top proc_fv
+flatten
 cd proc_fv
 connect -set mon_load \u_proc.ev_load
 connect -set mon_ready \u_proc.ev_ready

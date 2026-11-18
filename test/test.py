@@ -455,7 +455,6 @@ async def test_host_partial_byte(dut):
     dut._log.info(f"after a 3-bit transaction: READ_ID {[f'{b:02X}' for b in chip_id]}, status {st}")
     assert chip_id == hs.CHIP_ID, f"READ_ID after a 3-bit transaction: {chip_id}"
     assert st == hs.parse_status([0] * hs.STATUS_BYTES), f"status after a 3-bit transaction: {st}"
-    log.info("command rules: refused commands set CMD_ERR and change nothing; the 5th PUSH word sets PUSH_DROP")
 
 
 @cocotb.test()

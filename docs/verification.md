@@ -70,6 +70,8 @@ Does not check: the whole chip in one proof (the jobs prove blocks: core, event 
 Kinds of the 16 jobs: unbounded proofs by k-induction (7): `core`, `timed_out`, `host_port`, `mem`, `mem_small`, `mem_full`, `mem_full_reset`; bounded checks (3): `sram` (bmc 9), `mem_reset` (bmc 10), `host_port_mut_id` (bmc 90, the check of the check, which must find its counterexample); cover jobs (5): `core_cover`, `timed_out_cover`, `host_port_cover`, `sram_cover`, `mem_cover`; structural check (1): `cdc`. Every push that changes `src/` or `formal/` runs all 16 in parallel (`.github/workflows/formal.yaml`, a job matrix with OSS CAD Suite 2026-11-14; a job passes when SymbiYosys returns 0, so `host_port_mut_id.sby` passes only with its counterexample, "expect fail"). First run: [43759085016] (commit 361732b), the 14 jobs of that time: `mem_full` PASS in 750 s, `mem_full_reset` PASS in 680 s, `host_port_cover` all covers in 384 s, `host_port_mut_id` DONE (FAIL, rc=0), `cdc` PASS in 8 s; about 13 min of wall time.
 
 [43759085016]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43759085016
+[44266106276]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44266106276
+[44265588374]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44265588374
 
 ## 4. Gate-level test
 

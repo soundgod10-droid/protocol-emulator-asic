@@ -1183,12 +1183,14 @@ class ChipSpiPins:
     def __init__(self, dut, dev, d_out):
         self.dut, self.dev, self.d_out = dut, dev, d_out
         self.last = None
-        self.review = True
-        dut.dump_off.value = 1
+        self.dump = getattr(dut, "dump_off", None)           # not in the coverage build (test/tb.v)
+        self.review = self.dump is not None
+        if self.review:
+            self.dump.value = 1
         self.task = cocotb.start_soon(self.run())
 
     def dump_stop(self):
-        self.dut.dump_off.value = 1
+        self.dump.value = 1
 
     def set_pin(self, pin, level):
         self.dut.ui_in.value = (1 << hs.CS_N_BIT) | (level & 1)

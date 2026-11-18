@@ -482,6 +482,7 @@ async def test_slc_uart_tx(dut):
     rng = random.Random(4)
     for txper in (4, 5):
         data = [0x55, 0x00, 0xFF, 0x0F] + [rng.randrange(256) for _ in range(60)]
+        await FallingEdge(dut.clk)                                # out of the read-only phase of the last frame
         dump_on(dut, txper == 4)                                  # waveform of the 15 Mbaud frame only
         t0 = now_ns()
         line, nbits = await uart_tx_frame(dut, u, txper, data)

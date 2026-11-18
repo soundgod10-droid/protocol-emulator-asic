@@ -322,6 +322,7 @@ async def spi_flash_run(dut, plan):
     pin-path corner; then a 256-byte 03h read at the rated settings. Control: at TXPER 1 with sample delay 0
     and the 10 ns multiplexer the ID must be read wrong."""
     u = await unit_reset(dut)
+    dut.dump_off.value = 1          # waveform only for the review frames below (test/tb.v dump_off)
     log = dut._log
     rng = random.Random(1118)
     mem = [rng.randrange(256) for _ in range(512)]

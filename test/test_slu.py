@@ -640,6 +640,96 @@ async def test_slu_squelch_after_idle(dut):
 
 
 @cocotb.test(skip=GL)
+async def test_slu_ports_after_reset(dut):
+    """Every readable port right after reset: TXDATA 2 words free, every other port 0 (STATUS flags, EVMASK, TX
+    state, TXTIME, RXINFO, the CRC registers, TSTAMP, LINE)."""
+    s = await slu_reset(dut)
+    want = {P_TXDATA: 2, P_RXDATA: 0, P_STATUS: 0, P_EVMASK: 0, P_TXCTRL: 0, P_TXTIME: 0, P_RXINFO: 0,
+            P_CRCA_LO: 0, P_CRCA_HI: 0, P_CRCB: 0, P_TSTAMP: 0, P_LINE: 0}
+    got = {}
+    for a in want:
+        await FallingEdge(dut.clk)
+        dut.slu_addr.value = a
+        await Timer(1, unit="ns")
+        v = dut.slu_rdata.value
+        assert v.is_resolvable, f"port {a} after reset: {v}"
+        got[a] = int(v)
+    dut._log.info("ports after reset: " + " ".join(f"{a}:{v:04x}" for a, v in got.items()))
+    assert got == want, got
+
+
+@cocotb.test(skip=GL)
+async def test_slu_rxinfo_words(dut):
+    """RXINFO[15:7] counts the full words of the last frame only: two USB packets (DATA0 with 8 bytes, then a
+    token); for each, RXINFO words = RXDATA words popped less the part word (RXINFO[4:0] bits, if not 0)."""
+    s = await slu_reset(dut)
+    await s.cfg(USB_CFG_RX)
+    data = bytes([0x12, 0xFF, 0xFF, 0x00, 0xA5, 0x7F, 0xFE, 0x80])
+    tok = (0x15 | (1 << 7)).to_bytes(2, "little")
+    log = []
+    for pid, payload, crc in ((0xC3, data, "16"), (0xE1, tok, "5")):
+        words, info, st, _ = await usb_rx_packet(dut, s, pid, payload, crc)
+        nw, last = info >> 7, info & 0x1F
+        log.append(f"PID {pid:02X}: {len(words)} words popped, RXINFO words {nw}, last bits {last}")
+        assert nw == len(words) - (1 if last else 0), "; ".join(log)
+    dut._log.info("RXINFO: " + "; ".join(log))
+
+
+@cocotb.test(skip=GL)
+async def test_slu_txtime_lead_limit(dut):
+    """TXTIME lead 4 (the smallest on-time lead, docs: lead 4 to 32,767) starts the frame at TXTIME with no TXLATE;
+    lead 3 is late: TXLATE, start at write + 4."""
+    s = await slu_reset(dut)
+    await s.cfg({0: mode(0), 1: 4})                  # NRZ, 4 cycles a bit
+    await s.wr(P_TXCTRL, 0)
+    log = []
+    for lead in (4, 3):
+        await s.wr(P_STATUS, 0xFFFF)
+        await s.wr(P_TXLAST, 0x00F0)
+        caps = []
+        cocotb.start_soon(capture(dut, 4 * 30, caps))
+        await FallingEdge(dut.clk)
+        t_wr = int(dut.slu_now.value)
+        dut.slu_addr.value = P_TXTIME
+        dut.slu_wdata.value = (t_wr + lead) & 0xFFFF
+        dut.slu_we.value = 1
+        await FallingEdge(dut.clk)
+        dut.slu_we.value = 0
+        while len(caps) < 4 * 30:
+            await RisingEdge(dut.clk)
+        first = [c[2] for c in caps if c[1]][0]
+        st = await s.rd(P_STATUS)
+        log.append(f"lead {lead}: write in cycle {t_wr}, first symbol at now {first}, TXLATE {(st >> 1) & 1}")
+        assert (first - t_wr) & 0xFFFF == 4, "; ".join(log)
+        assert ((st >> 1) & 1) == (1 if lead < 4 else 0), "; ".join(log)
+    dut._log.info("TXTIME lead limit: " + "; ".join(log))
+
+
+@cocotb.test(skip=GL)
+async def test_slu_eth_frame_end(dut):
+    """10BASE-Te end of a frame: after the last bit, TP_IDL (TD+ high, tx_v 01) for 16 cycles (TAIL), then the
+    outputs are released at once (tx_oe 0, tx_v 00): no other symbol after TP_IDL."""
+    s = await slu_reset(dut)
+    await s.cfg(ETH_CFG)
+    await s.wr(P_TXCTRL, 0)                          # last word 16 bits, no CRC
+    await s.wr(P_TXLAST, 0xA55A)
+    caps = []
+    cocotb.start_soon(capture(dut, 300, caps))
+    await s.wr(P_TXCTRL, 1 << 9)
+    while len(caps) < 300:
+        await RisingEdge(dut.clk)
+    oe = [c[1] for c in caps]
+    last = max(i for i, o in enumerate(oe) if o)
+    tail = 0
+    while caps[last - tail][0] & 3 == 1 and oe[last - tail]:
+        tail += 1
+    dut._log.info(f"10BASE-Te frame end: {tail} cycles of tx_v 01 (TP_IDL) to the last OE cycle, then tx_v "
+                  f"{caps[last + 1][0] & 3:02b} OE {oe[last + 1]}")
+    assert tail == 16 and caps[last][0] & 3 == 1, f"TP_IDL {tail} cycles, last OE cycle tx_v {caps[last][0] & 3:02b}"
+    assert oe[last + 1] == 0 and caps[last + 1][0] & 3 == 0, "outputs not released after TP_IDL"
+
+
+@cocotb.test(skip=GL)
 async def test_slu_eth_tx(dut):
     """10BASE-Te transmit: preamble and SFD from the thread, 46-byte payload, CRC-32 appended by the
     unit, Manchester at 3 cycles per half bit on TD+ (TXA) and TD- (TXB), tap B one cycle later,

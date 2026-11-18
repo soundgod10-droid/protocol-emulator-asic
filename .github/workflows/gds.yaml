@@ -32,6 +32,9 @@ jobs:
           grep -h "Number of violations" ${r}*-openroad-detailedrouting/*.log | head -n 30 | note "detailed routing iterations"
           grep -h -i -A16 "congestion report" ${r}*-openroad-globalrouting/*.log | head -n 40 | note "global routing congestion"
           cut -d' ' -f1 ${r}warning.log | sort | uniq -c | sort -rn | note "warning codes"
+          nl=$(ls ${r}final/nl/*.nl.v 2>/dev/null | head -n 1)
+          net=$(grep -A60 'u_proc.u_mem.u_dmem ' "$nl" | grep -o '\.A_MEN([^)]*)' | head -n 1 | sed 's/^\.A_MEN(//;s/)$//')
+          { echo "netlist $nl, A_MEN of u_dmem on net [$net]"; grep -n -B4 -A1 -F "($net)" "$nl" | head -n 70; } | note "u_dmem A_MEN net"
           grep -h -i -E "worst|average|drop" ${r}*-openroad-irdropreport/*.log | head -n 30 | note "IR drop"
           cat ${r}warning.log | note "warning.log"
 

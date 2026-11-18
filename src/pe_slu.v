@@ -456,6 +456,7 @@ module pe_slu #(
       rx_buf0 <= 16'd0; rx_buf1 <= 16'd0; rx_cnt <= 2'd0; rx_lastn <= 5'd0;
       crc_a <= 32'd0; crc_b <= 8'd0; crc_a_ok <= 1'b0; crc_b_ok <= 1'b0;
       crc_a_byte <= 1'b0; crc_b_byte <= 1'b0; ck_pend <= 16'd0; ck_bit_v <= 1'b0; ck_bit_d <= 1'b0;
+      ck_frame <= 1'b0;
       tx_st <= T_IDLE; tx_buf0 <= 16'd0; tx_buf1 <= 16'd0; tx_lst0 <= 1'b0; tx_lst1 <= 1'b0;
       tx_cnt <= 2'd0; tx_sh <= 16'd0; tx_nb <= 5'd0; tx_lastw <= 1'b0; tx_tmr <= 16'd0;
       tx_half <= 1'b0; tx_bit <= 1'b0; tx_line <= 1'b1; tx_sck <= 1'b0; tx_run <= 3'd0;

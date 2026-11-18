@@ -34,8 +34,9 @@
 ;     before it releases the clock; TSU 80 cycles (1.33 us) covers note [4]
 ;     (tr(max) + tSU;DAT = 1,250 ns for Standard-mode).
 ;   - Transmit: each bit is put on SDA HOLD cycles after the filtered SCL fall
-;     (HOLD + 7 = 25 cycles = 417 ns after the pin edge: more than the 300 ns
-;     fall time tf(max) of Table 11, note [2], and less than tVD;DAT 0.9 us).
+;     (the pin changes 7 + HOLD + 1 = 26 cycles = 433 ns after the SCL pin
+;     edge: more than the 300 ns fall time tf(max) of Table 11, note [2], and
+;     less than tVD;DAT 0.9 us).
 ;     After the 8th bit the thread releases SDA for the ACK and holds SCL low
 ;     while it loads the next byte.
 ;

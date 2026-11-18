@@ -315,8 +315,7 @@ async def id_ok(dut, u, mode, txper, delay, fall, corner):
     return tuple(got) == JEDEC_ID and not errs, got, errs
 
 
-@cocotb.test(skip=GL)
-async def test_slc_spi_flash(dut):
+async def spi_flash_run(dut, plan):
     """T1: SPI controller on the USB helper's clocked mode, against the flash model, at TXPER 2 (4 cycles a bit,
     15 MHz) and TXPER 4 (8 cycles, 7.5 MHz) in modes 0 to 3, and at TXPER 1 (30 MHz) in mode 0: the read-back
     settings (sample delay 0 to 15 cycles, rising or falling-edge copy of DIN) that read the JEDEC ID at every

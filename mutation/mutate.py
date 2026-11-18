@@ -769,7 +769,7 @@ def equiv(p, ids, work, sby=None):
         fh.write("module equiv_end (input clk, input a);\n  always @(posedge clk) assert (a | !a);\nendmodule\n")
     files.add(end)
     with open(sby or os.path.join(work, "equiv.sby"), "w") as fh:
-        fh.write("[options]\nmode bmc\ndepth 1\n\n[engines]\nsmtbmc\n\n[script]\n" + "".join(body) +
+        fh.write("[options]\nmode bmc\ndepth 1\n\n[engines]\nsmtbmc z3\n\n[script]\n" + "".join(body) +
                  "design -reset\nread_verilog -formal equiv_end.v\nprep -top equiv_end\n\n[files]\n" +
                  "\n".join(sorted(f.replace("\\", "/") for f in files)) + "\n")
     return None

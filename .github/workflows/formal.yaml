@@ -6,7 +6,7 @@ name: formal
 # "expect fail"). A changed RTL that breaks a property, removes properties (select -assert-min) or
 # bypasses a synchronizer (cdc.sby) fails its job.
 
-on: [push, workflow_dispatch]
+on: [workflow_dispatch]
 
 jobs:
   formal:

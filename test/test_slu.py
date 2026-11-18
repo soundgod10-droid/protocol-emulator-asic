@@ -835,6 +835,109 @@ async def test_slu_tx_write_at_take(dut):
     dut._log.info("TX write in the take cycle: " + "; ".join(log) + ": each frame in the order written")
 
 
+async def eth_rx_one(dut, s, payload):
+    """One 10BASE-Te frame through the pins (no jitter, no offset); returns (words popped, RXINFO, STATUS) after
+    its carrier-off EOP and the end of the line schedule."""
+    sch, t_end = eth_rx_schedule(ref.eth_frame_bits(payload), 0.0, 0.0, random.Random(1), 1000.0)
+    await s.wr(P_STATUS, 0xFFFF)
+    cocotb.start_soon(drive_levels(dut, sch))
+    words = []
+    while True:
+        st = await s.rd(P_STATUS)                    # status first: words of an EOP seen here are queued
+        info = await s.rd(P_RXINFO)
+        while (info >> 5) & 3:
+            words.append(await s.rd(P_RXDATA, pop=True))
+            info = await s.rd(P_RXINFO)
+        if st & (1 << 5):
+            break
+    await Timer(round(t_end * 1000), unit="ps")
+    return words, info, st
+
+
+@cocotb.test(skip=GL)
+async def test_slu_tstamp_hold(dut):
+    """TSTAMP with MODE[13:12] = 0 holds now[15:0] of the last EOP (10BASE-Te: the carrier-off end of a received
+    frame) until the next EOP: a frame that the unit sends and a received link test pulse leave it unchanged."""
+    s = await slu_reset(dut)
+    await s.cfg(ETH_CFG)
+    await eth_rx_one(dut, s, bytes(range(46)))
+    ts0 = await s.rd(P_TSTAMP)
+    await s.wr(P_STATUS, 0xFFFF)
+    await s.wr(P_TXCTRL, 0)
+    await s.wr(P_TXLAST, 0x255A)
+    await s.wr(P_TXCTRL, 1 << 9)                     # start now
+    await ClockCycles(dut.clk, 16 * 6 + 60)
+    st_tx = await s.rd(P_STATUS)
+    ts1 = await s.rd(P_TSTAMP)
+    await s.wr(P_STATUS, 0xFFFF)
+    await drive_levels(dut, [(0.0, {DIN: 1, AUX0: 1}), (6 * T_NS, {DIN: 0, AUX0: 0}), (400.0, {})])
+    st_lp = await s.rd(P_STATUS)
+    ts2 = await s.rd(P_TSTAMP)
+    dut._log.info(f"TSTAMP after the received frame {ts0:04x}, after a sent frame {ts1:04x} (status {st_tx:04x}), "
+                  f"after a link pulse {ts2:04x} (status {st_lp:04x})")
+    assert st_tx & 1 and st_lp & (1 << 13), "test fault: no TXDONE or no link pulse"
+    assert ts0 != 0 and ts1 == ts0 and ts2 == ts0, "TSTAMP changed without an EOP"
+
+
+@cocotb.test(skip=GL)
+async def test_slu_crca_after_frame(dut):
+    """CRCA_LO and CRCA_HI (ports 7, 8) after a received 10BASE-Te frame are the CRC A register: CRC-32 (reflected
+    EDB88320, preset ones) over every data bit received after the SFD, computed here from the popped words (full
+    words, then RXINFO[4:0] bits of the last one). The register over payload and FCS alone is the residue
+    DEBB20E3 (IEEE 802.3 3.2.9)."""
+    s = await slu_reset(dut)
+    await s.cfg(ETH_CFG)
+    payload = bytes((7 * i + 3) & 0xFF for i in range(64))
+    words, info, st = await eth_rx_one(dut, s, payload)
+    lastn = info & 0x1F
+    bits = []
+    for k, w in enumerate(words):
+        n = lastn if (k == len(words) - 1 and lastn) else 16
+        bits += [(w >> i) & 1 for i in range(n)]
+
+    def crc32(bs):
+        c = 0xFFFFFFFF
+        for b in bs:
+            c = (c >> 1) ^ (0xEDB88320 if (c ^ b) & 1 else 0)
+        return c
+
+    nfcs = 8 * (len(payload) + 4)
+    assert crc32(bits[:nfcs]) == 0xDEBB20E3, "test fault: payload and FCS bits do not give the residue"
+    lo, hi = await s.rd(P_CRCA_LO), await s.rd(P_CRCA_HI)
+    dut._log.info(f"CRCA {hi:04x}{lo:04x} after {len(bits)} data bits ({len(bits) - nfcs} after the FCS); model "
+                  f"{crc32(bits):08x}; status {st:04x}")
+    assert st & (1 << 6), "CRCA_OK"
+    assert (hi << 16 | lo) == crc32(bits), "CRCA_HI:CRCA_LO is not the CRC register of the received bits"
+
+
+@cocotb.test(skip=GL)
+async def test_slu_link_pulse_width(dut):
+    """10BASE-Te link test pulse classifier (LP: 2 to 12 cycles): a high on TD+ (DIN) while the squelch comparator
+    (AUX0) is active is a link pulse (STATUS 13) when it lasts 2 to 12 cycles; 1 and 13 cycles are not. Each high is
+    driven from just after a rising clock edge for a whole number of cycles, so the input register sees it exactly
+    that many times; AUX0 is active from 20 cycles before to 10 cycles after."""
+    s = await slu_reset(dut)
+    await s.cfg(ETH_CFG)
+
+    async def level(pins, cycles):
+        await RisingEdge(dut.clk)
+        await Timer(2, unit="ns")
+        dut.slu_pins.value = pins
+        for _ in range(cycles - 1):
+            await RisingEdge(dut.clk)
+
+    res = {}
+    for w in (1, 2, 12, 13):
+        await s.wr(P_STATUS, 0xFFFF)
+        await level(1 << AUX0, 20)
+        await level((1 << AUX0) | (1 << DIN), w)
+        await level(1 << AUX0, 10)
+        await level(0, 30)
+        res[w] = ((await s.rd(P_STATUS)) >> 13) & 1
+    dut._log.info("link pulse width (cycles): LINKPULSE " + ", ".join(f"{w}: {v}" for w, v in res.items()))
+    assert res == {1: 0, 2: 1, 12: 1, 13: 0}, res
+
+
 @cocotb.test(skip=GL)
 async def test_slu_eth_tx(dut):
     """10BASE-Te transmit: preamble and SFD from the thread, 46-byte payload, CRC-32 appended by the

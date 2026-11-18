@@ -48,8 +48,8 @@ connect -set \u_slu.din_f1 din_f1_free
 connect -set \u_slu.c_txper 16'd1
 opt_clean
 cd ..
-# 2 covers for SPEC 1.
-select -assert-min 2 t:$cover
+# This Yosys keeps asserts, assumes and covers as $check cells: 22 asserts, 1 assume, 2 covers for SPEC 1.
+select -assert-min 25 t:$check
 
 [files]
 ../src/pe_slu_loop.v

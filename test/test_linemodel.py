@@ -23,3 +23,24 @@ async def test_linemodel_selftests(dut):
     for line in lines[-25:]:
         dut._log.info(line)
     assert rc == 0, "line-model self-tests failed (pytest exit code %d)" % rc
+
+
+@cocotb.test(skip=GL)
+async def test_research_kill(dut):
+    import sys
+    from concurrent.futures import ThreadPoolExecutor
+    sys.path.insert(0, os.path.join(os.path.dirname(HERE), "mutation"))
+    import mutate
+    ids = ["0a65671e7326", "20fdafc0bd85", "1726901b49a6", "038eccf2ef3a", "1d0b8400d6ca", "20097dad2292",
+           "29f6aef214cb", "12fbf0f316e8", "1abd84bfba59", "34c211d0bc95"]
+    p = mutate.plan(0.0, 1, set(ids))
+    work = os.path.join(os.path.dirname(HERE), "build", "mutation_kill")
+    sh = mutate.Shard(p, 0, 3, work, 3000, max_rungs=1)
+    with ThreadPoolExecutor(3) as ex:
+        res = list(ex.map(sh.one, ids))
+    lines = ["KILL %s %s:%s %s %s rungs %s note %s" % (r["id"], r["file"], r["line"], r["status"], r.get("rung", ""),
+                                                      r.get("rungs"), r.get("note", "")) for r in res]
+    lines.append("baselines %s" % sh.base)
+    for ln in lines:
+        dut._log.info(ln)
+    open(os.path.join(os.path.dirname(HERE), "build", "kill3.txt"), "w").write("\n".join(lines) + "\n")

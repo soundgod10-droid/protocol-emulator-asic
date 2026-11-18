@@ -591,6 +591,16 @@ async def test_slc_uart_rx(dut):
         log.info("UART RX %d cycles a bit (%.1f Mbaud): setting delay %d, %s copy; %d bytes at -2.5 %% and +2.5 %%, 16 "
                  "start phases, input %.2f and %.2f ns, and 256 back-to-back bytes at +2.5 %%: all equal, start 0, stop 1" % (
                      b_cycles, 60.0 / b_cycles, delay, "falling" if fall else "rising", nbytes, d_ins[0], d_ins[1]))
+        if b_cycles == 4:                                         # review frame for the waveform
+            data = [0x55, 0xA3, 0x0F, 0xF0]
+            dump_on(dut, True)
+            t0 = now_ns()
+            rx = await uart_rx_run(dut, u, 4, 0.025, delay, fall, 0.3, data, d_ins[1])
+            dump_on(dut, False)
+            log.info("waveform: bytes 55 A3 0F F0 at 15 Mbaud +2.5 %%, input %.2f ns, delay %d %s copy, %.1f to %.1f ns: "
+                     "received %s" % (d_ins[1], delay, "falling" if fall else "rising", t0, now_ns(),
+                                      ["%02X" % b for b, _, _ in rx]))
+            assert rx_ok(rx, data), "review frame: %s" % rx
     # framing error: a frame with a 0 stop bit is reported (stop flag 0)
     delay, fall = chosen[4]
     await clocked_config(u, 2, estart=1, fall=fall, delay=delay)

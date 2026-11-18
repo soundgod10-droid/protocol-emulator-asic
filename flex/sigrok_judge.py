@@ -53,8 +53,26 @@ VCD_ID = [chr(c) for c in range(33, 127)]
 
 
 def line_of(raw, src):
-    """Changes of one named line; drvh/drvl: a push-pull uio output read with a pull-up or pull-down when undriven."""
+    """Changes of one named line; drvh/drvl: a push-pull uio output read with a pull-up or pull-down when undriven;
+    bus: a line that the chip drives push-pull or releases to the other side (uio_out when uio_oe is 1, else the
+    level that the model returns on uio_in)."""
     kind, n = src.split(":")
+    if kind == "bus":
+        drv, inp = trim_vcd.line(raw, f"drv:{n}"), trim_vcd.line(raw, f"in:{n}")
+        ev = sorted([(t, 0, v) for t, v in drv] + [(t, 1, v) for t, v in inp])
+        d = i = "x"
+        out = []
+        for t, k, v in ev:
+            if k == 0:
+                d = v
+            else:
+                i = v
+            val = i if d == "z" else d
+            if out and out[-1][0] == t:
+                out[-1] = (t, val)
+            elif not out or out[-1][1] != val:
+                out.append((t, val))
+        return out
     if kind in ("drvh", "drvl"):
         fill = "1" if kind == "drvh" else "0"
         out = []

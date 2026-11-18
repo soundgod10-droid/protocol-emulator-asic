@@ -606,7 +606,7 @@ class Shard:
         with ThreadPoolExecutor(workers) as ex:
             futs = [ex.submit(self.one, c, True) for c in canaries] + [ex.submit(self.one, i) for i in ids]
             self.results = [f.result() for f in futs]
-        return {"shard": self.k, "commit": self.p["commit"], "baselines": self.base, "results": self.results}
+        return self.summary(self.results)
 
 
 # ----- report -----

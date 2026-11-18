@@ -54,7 +54,6 @@ eth0: hierarchy -top slu_fv -chparam SPEC 2 -chparam TXPER 1 -chparam SKIP 0
 prep -top slu_fv
 flatten
 cd slu_fv
-script slu_connect.ys
 usb: connect -set \u_slu.c_txper 16'd1
 usbrx: connect -set \u_slu.c_txper 16'd1
 usb0: connect -set \u_slu.c_txper 16'd1

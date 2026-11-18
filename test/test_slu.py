@@ -1201,6 +1201,11 @@ class ChipSpiPins:
             self.last = v
             if ch & 4:
                 cocotb.start_soon(sc.later(self.d_out, self.dev.set_cs, (v >> 2) & 1))
+                if not (v >> 2) & 1 and self.review:
+                    # waveform only for the first 5 us after /CS falls: command, address, first data bits
+                    self.review = False
+                    self.dut.dump_off.value = 0
+                    cocotb.start_soon(sc.later(5000.0, self.dump_stop))
             if ch & 2:
                 cocotb.start_soon(sc.later(self.d_out, self.dev.on_di, (v >> 1) & 1))
             if ch & 1:

@@ -10,6 +10,9 @@ mode prove
 depth 2
 
 [engines]
+# Two engines race; the first result decides. k-induction with z3 did not finish step 1 in 28 minutes on a
+# workstation, so the job uses the yices solver and property-directed reachability of the CI tool suite.
+smtbmc yices
 abc pdr
 
 [script]

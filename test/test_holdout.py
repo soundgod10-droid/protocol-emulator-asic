@@ -65,7 +65,7 @@ T_RSTH = 480  # tRSTH minimum
 # .equ values of fw/onewire.s for each clock (MHz): the AN126 times (with C 65 us, D 5 us) in cycles.
 OW_EQU = {
     50: {},  # the values written in the file
-    60: dict(TA=360, TE=540, TF=3300, TC=3900, TD=300, TI2=2100, H32=900, J32=769),
+    60: dict(TA=360, TE=540, TF=3300, TC=3900, TD=300, TI2=2100, H32=919, J32=788),
 }
 
 ROM = [0x28, 0x1D, 0x39, 0x31, 0x02, 0x00, 0x00, 0xF0]  # family code 0x28, serial number, CRC byte

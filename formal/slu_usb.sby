@@ -16,38 +16,11 @@ hierarchy -top slu_fv -chparam SPEC 1
 prep -top slu_fv
 flatten
 cd slu_fv
-connect -set mon_st \u_slu.tx_st
-connect -set mon_bs \u_slu.bit_start
-connect -set mon_hm \u_slu.half_mid
-connect -set mon_kind \u_slu.t_kind
-connect -set mon_bit \u_slu.t_bit
-connect -set mon_new \u_slu.t_new
-connect -set mon_line \u_slu.tx_line
-connect -set mon_crcen \u_slu.tx_crcen
-connect -set mon_skipw \u_slu.tx_skipw
-connect -set mon_run \u_slu.tx_run
-connect -set mon_jam \u_slu.tx_jam
-connect -set mon_tmr \u_slu.tx_tmr
-connect -set mon_half \u_slu.tx_half
-connect -set mon_txbit \u_slu.tx_bit
-connect -set mon_lead \u_slu.tx_lead
-connect -set mon_time \u_slu.tx_time
-connect -set mon_crct \u_slu.crc_t
-connect -set mon_crca \u_slu.crc_a
-connect -set mon_crcb \u_slu.crc_b
-connect -set mon_ra \u_slu.c_ra
-connect -set mon_crcbc \u_slu.c_crcb
-connect -set mon_rdv \u_slu.r_data_v
-connect -set mon_rd \u_slu.r_data
-connect -set mon_sop \u_slu.r_sop
-connect -set mon_rxbits \u_slu.rx_bits
+script slu_connect.ys
 connect -set mon_cmode \u_slu.c_mode
 connect -set mon_ctxper \u_slu.c_txper
 connect -set mon_ccrcw \u_slu.c_crcw
 connect -set mon_cpa \u_slu.c_pa
-# The falling-edge DIN sample becomes a free input (an over-approximation of the receive input); its
-# flip-flop then has no load and is removed, so the model has one clock edge.
-connect -set \u_slu.din_f1 din_f1_free
 opt_clean
 cd ..
 # The job stops with an error if a property was removed: 28 asserts of slu_fv.v for SPEC 1 and its assume.

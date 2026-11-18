@@ -238,7 +238,8 @@ module tt_um_soundgod10_droid_protocol_emulator (
       .ui_in      (ui_in[4:0]),
       .uio_in     (uio_in),
       .pin_v      (pin_v),
-      .pin_oe     (pin_oe)
+      .pin_oe     (pin_oe),
+      .fill       (fill)
   );
 
   // All output pins are assigned. uo_out[7] = HOST_MISO (a flip-flop

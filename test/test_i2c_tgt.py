@@ -328,7 +328,7 @@ async def test_i2c_tgt_model(dut):
                     check(ctl, label)
                     ff.assert_status_clean(m, [0])
                 log.info(f"{label} (and {len(phases) - 1} more phases): {len(ctl.results)} results correct, no timing "
-                         f"fault; target stretches {min(ctl.stretch)} to {max(ctl.stretch)} cycles")
+                         f"fault; {stretch_text(ctl)}")
 
 
 @cocotb.test()

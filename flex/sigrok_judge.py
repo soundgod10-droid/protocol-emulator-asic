@@ -109,15 +109,24 @@ def write_vcd(lines, t0, t1, path, comments):
         fh.write("\n".join(out) + "\n")
 
 
+def first_text(s):
+    """At log level 4 sigrok-cli 0.7.2 prints every text variant of an annotation in quotes, longest first."""
+    if not s.startswith('"'):
+        return s
+    end = s.find('" "', 1)
+    return s[1:end] if end > 0 else s[1:-1] if s.endswith('"') else s[1:]
+
+
 def run_sigrok(vcd, stack):
-    cmd = [SG, "-i", vcd, "-I", f"vcd:downsample={DS}", "--protocol-decoder-samplenum",
-           "--protocol-decoder-ann-class", "-P", stack]
+    # sigrok-cli 0.7.2 has no --protocol-decoder-ann-class; it prints the annotation class (its id, as named in
+    # the decoder's pd.py) when the log level is above info (decode.c show_pd_annotations), so -l 4.
+    cmd = [SG, "-l", "4", "-i", vcd, "-I", f"vcd:downsample={DS}", "--protocol-decoder-samplenum", "-P", stack]
     p = subprocess.run(cmd, capture_output=True, text=True, timeout=900)
     rows = []
     for ln in p.stdout.splitlines():
         m = ROW.match(ln.strip())
         if m:
-            rows.append((int(m.group(1)), int(m.group(2)), m.group(3), m.group(4), m.group(5)))
+            rows.append((int(m.group(1)), int(m.group(2)), m.group(3), m.group(4), first_text(m.group(5))))
     return rows, p.returncode, p.stderr[-800:], " ".join(["sigrok-cli"] + cmd[1:3] + cmd[3:]).replace(vcd, os.path.basename(vcd))
 
 

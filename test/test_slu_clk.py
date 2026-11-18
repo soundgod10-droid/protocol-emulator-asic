@@ -332,7 +332,12 @@ async def spi_flash_run(dut, plan):
             window = []
             for fall in (0, 1):
                 for delay in range(12):
-                    if all([(await id_ok(dut, u, mode, txper, delay, fall, c))[0] for c in CORNERS]):
+                    good = True
+                    for c in CORNERS:
+                        if not (await id_ok(dut, u, mode, txper, delay, fall, c))[0]:
+                            good = False
+                            break
+                    if good:
                         window.append((delay, fall))
             summary.append("TXPER %d (%.1f MHz) mode %d: settings that read the ID at all %d corners: %s" % (
                 txper, 60.0 / (2 * txper), mode, len(CORNERS), window or "none"))

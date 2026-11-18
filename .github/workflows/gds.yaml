@@ -5,7 +5,38 @@ on:
   workflow_dispatch:
 
 jobs:
+  # Research branch only: read the logs of finished layout runs and give the facts that the run
+  # summary does not show (disconnected-pin report, max-slew violator, detailed-routing iterations,
+  # global-routing overflow, IR drop, warning list) as annotations. No layout is built here.
+  diag:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        run: [44264726328, 44215058313, 44215191874]
+    steps:
+      - name: logs of run ${{ matrix.run }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh run download ${{ matrix.run }} -R ${{ github.repository }} -n GDS_logs -D logs
+
+      - name: facts of run ${{ matrix.run }}
+        shell: bash
+        run: |
+          set +e +o pipefail
+          note() { b=$(head -n 90 | sed 's/%/%25/g;s/\r//g' | sed ':a;N;$!ba;s/\n/%0A/g'); [ -n "$b" ] || b="(nothing found)"; echo "::notice title=$1::$b"; }
+          r=$(ls -d logs/runs/*/ | head -n 1)
+          ls "$r" | note "steps"
+          for f in $(find "$r" -path '*disconnected*' -type f | head -n 6); do echo "== $f"; head -n 40 "$f"; done | note "disconnected pins"
+          f=$(ls ${r}*-openroad-stapostpnr/nom_slow_1p08V_125C/checks.rpt | head -n 1)
+          awk '/report_check_types/{p=1} p' "$f" | head -n 90 | note "slow checks violators"
+          grep -h -E "violations|Iteration|iter" ${r}*-openroad-detailedrouting/*.log | head -n 40 | note "detailed routing iterations"
+          grep -h -i "overflow" ${r}*-openroad-globalrouting/*.log | head -n 20 | note "global routing overflow"
+          grep -h -i -E "worst|average|drop" ${r}*-openroad-irdropreport/*.log | head -n 30 | note "IR drop"
+          cat ${r}warning.log | note "warning.log"
+
   gds:
+    if: false
     runs-on: ubuntu-24.04
     steps:
       - name: checkout repo

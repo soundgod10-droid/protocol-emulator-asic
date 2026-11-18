@@ -1,0 +1,66 @@
+# proc_if: the pin side of the chip timing contract at the level of pe_proc (formal/proc_fv.v with CORE_IF):
+# the real pin multiplexers of pe_proc and its 15 real pe_timed_out slots, driven by an interface model of
+# pe_core (proc_core_if.v) whose event writes obey exactly what core.sby proves for every program (E1 to E4).
+# Proved here: C1 and C3 at the slot ports as pe_proc connects them, and C4 (every thread pin shows the state
+# of the last event of its slot that has come). C2 and the LATE flag are pe_core properties (core.sby E4, E6)
+# and are checked in the full composition, proc.sby.
+
+[options]
+mode prove
+depth 2
+
+[engines]
+smtbmc z3
+
+[script]
+read -formal -D CORE_IF pe_cycle_counter.v proc_core_if.v pe_timed_out.v pe_proc.v proc_stubs.v proc_fv.v
+# The properties of pe_timed_out are proved for every input by timed_out.sby; here they are assumptions.
+prep -top proc_fv
+chformal -assert2assume pe_timed_out
+flatten
+cd proc_fv
+connect -set mon_load \u_proc.ev_load
+connect -set mon_ready \u_proc.ev_ready
+connect -set mon_time \u_proc.ev_time
+connect -set mon_pv[0] \u_proc.g_out[0].u_slot.m_pv
+connect -set mon_pv[1] \u_proc.g_out[1].u_slot.m_pv
+connect -set mon_pv[2] \u_proc.g_out[2].u_slot.m_pv
+connect -set mon_pv[3] \u_proc.g_out[3].u_slot.m_pv
+connect -set mon_pv[4] \u_proc.g_out[4].u_slot.m_pv
+connect -set mon_pv[5] \u_proc.g_out[5].u_slot.m_pv
+connect -set mon_pv[6] \u_proc.g_out[6].u_slot.m_pv
+connect -set mon_pv[7] \u_proc.g_out[7].u_slot.m_pv
+connect -set mon_pv[8] \u_proc.g_out[8].u_slot.m_pv
+connect -set mon_pv[9] \u_proc.g_out[9].u_slot.m_pv
+connect -set mon_pv[10] \u_proc.g_out[10].u_slot.m_pv
+connect -set mon_pv[11] \u_proc.g_out[11].u_slot.m_pv
+connect -set mon_pv[12] \u_proc.g_out[12].u_slot.m_pv
+connect -set mon_pv[13] \u_proc.g_out[13].u_slot.m_pv
+connect -set mon_pv[14] \u_proc.g_out[14].u_slot.m_pv
+connect -set mon_pe[0] \u_proc.g_out[0].u_slot.m_pe
+connect -set mon_pe[1] \u_proc.g_out[1].u_slot.m_pe
+connect -set mon_pe[2] \u_proc.g_out[2].u_slot.m_pe
+connect -set mon_pe[3] \u_proc.g_out[3].u_slot.m_pe
+connect -set mon_pe[4] \u_proc.g_out[4].u_slot.m_pe
+connect -set mon_pe[5] \u_proc.g_out[5].u_slot.m_pe
+connect -set mon_pe[6] \u_proc.g_out[6].u_slot.m_pe
+connect -set mon_pe[7] \u_proc.g_out[7].u_slot.m_pe
+connect -set mon_pe[8] \u_proc.g_out[8].u_slot.m_pe
+connect -set mon_pe[9] \u_proc.g_out[9].u_slot.m_pe
+connect -set mon_pe[10] \u_proc.g_out[10].u_slot.m_pe
+connect -set mon_pe[11] \u_proc.g_out[11].u_slot.m_pe
+connect -set mon_pe[12] \u_proc.g_out[12].u_slot.m_pe
+connect -set mon_pe[13] \u_proc.g_out[13].u_slot.m_pe
+connect -set mon_pe[14] \u_proc.g_out[14].u_slot.m_pe
+cd ..
+# The job stops with an error if a property was removed: 19 in the core interface model, 9 in each of the 15
+# slots (assumed here), 35 in the wrapper (5 global, 2 for each of the 15 pins).
+select -assert-min 189 t:$check t:$assert
+
+[files]
+../src/pe_cycle_counter.v
+proc_core_if.v
+../src/pe_timed_out.v
+../src/pe_proc.v
+proc_stubs.v
+proc_fv.v

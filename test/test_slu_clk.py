@@ -381,6 +381,231 @@ async def spi_flash_run(dut, plan):
     assert not ok, "control: TXPER 1 with sample delay 0 and a 10 ns multiplexer read the ID correctly"
 
 
+# ----- T4: UART transmitter (NRZ code) -----
+
+def uart_bits(data, nbits=8, stop=1):
+    """Line bits of back-to-back 8N1 frames (start 0, LSB first, stop 1)."""
+    out = []
+    for b in data:
+        out += [0] + [(b >> i) & 1 for i in range(nbits)] + [1] * stop
+    return out
+
+
+async def uart_tx_frame(dut, u, txper, data):
+    """Send data as one NRZ frame (the host packs start and stop bits into the words); record the line (tx_v[0],
+    TXA) at every clock edge from the frame start. Returns (line levels per cycle from the first start bit, cycles)."""
+    await u.cfg(CFG_MODE, C_NRZ)                                  # NRZ, RX off
+    await u.cfg(CFG_TXPER, txper)
+    bits = uart_bits(data)
+    caps = []
+    done = {"stop": False}
+
+    async def cap():
+        while not done["stop"]:
+            await RisingEdge(dut.clk)
+            await ReadOnly()
+            caps.append(int(dut.slc_txv.value) & 1)
+    task = cocotb.start_soon(cap())
+    await clocked_frame_tx(u, bits)
+    await ClockCycles(dut.clk, 4 * txper)
+    done["stop"] = True
+    await task
+    first = caps.index(0)
+    return caps[first:], len(bits)
+
+
+async def clocked_frame_tx(u, bits_out, lead=40):
+    """Transmit-only frame (RX off): push the words, start at TXTIME, feed until the last word, wait for TXDONE."""
+    n = len(bits_out)
+    words = words_of(bits_out)
+    for _ in range(300):
+        if (await u.rd(P_TXCTRL)) & 0xF == 0:
+            break
+    await u.wr(P_TXCTRL, 1 << 10)
+    await u.wr(P_STATUS, 0xFFFF)
+    await u.wr(P_TXCTRL, n % 16)
+    feed = list(words)
+    while feed and len(words) - len(feed) < 2:
+        w = feed.pop(0)
+        await u.wr(P_TXDATA if feed else P_TXLAST, w)
+    await u.wr(P_TXTIME, (await u.now() + lead) & 0xFFFF)
+    budget = 4 * n * 256 // 16 + 2000
+    while True:
+        budget -= 1
+        assert budget > 0, "NRZ frame of %d bits did not end" % n
+        if feed:
+            if await u.rd(P_TXDATA):
+                w = feed.pop(0)
+                await u.wr(P_TXDATA if feed else P_TXLAST, w)
+            continue
+        st = await u.rd(P_STATUS)
+        if st & 1:                                                # TXDONE
+            assert not st & 4, "TXUNDER in an NRZ frame (status %04x)" % st
+            return st
+
+
+def uart_decode(line, b_cycles, nbytes):
+    """Independent receiver: find each start edge on the cycle grid, sample every bit at its middle, check the stop
+    bit, and check that every edge of the line falls on a multiple of the bit time from the first start edge."""
+    out, i = [], 0
+    for _ in range(nbytes):
+        while i < len(line) and line[i] != 0:
+            i += 1
+        assert i < len(line), "start bit %d missing" % len(out)
+        bits = [line[i + b_cycles * k + b_cycles // 2] for k in range(10)]
+        assert bits[0] == 0 and bits[9] == 1, "byte %d: start %d stop %d" % (len(out), bits[0], bits[9])
+        out.append(sum(bits[1 + k] << k for k in range(8)))
+        i += 10 * b_cycles - b_cycles // 2                        # into the stop bit
+    edges = [k for k in range(1, len(line)) if line[k] != line[k - 1]]
+    off_grid = [k for k in edges if k % b_cycles]
+    return out, len(edges), off_grid
+
+
+@cocotb.test(skip=GL)
+async def test_slc_uart_tx(dut):
+    """T4: UART transmitter on the USB helper's NRZ code at TXPER 4 (15 Mbaud) and TXPER 5 (12 Mbaud): 64 back-to-back
+    8N1 bytes in one frame (start and stop bits packed by the host into the words), decoded by an independent receiver
+    at each bit middle; every edge of the line on the bit grid of the first start edge."""
+    u = await unit_reset(dut)
+    log = dut._log
+    rng = random.Random(4)
+    for txper in (4, 5):
+        data = [0x55, 0x00, 0xFF, 0x0F] + [rng.randrange(256) for _ in range(60)]
+        line, nbits = await uart_tx_frame(dut, u, txper, data)
+        got, nedges, off = uart_decode(line, txper, len(data))
+        log.info("UART TX TXPER %d (%.1f Mbaud): %d bytes back to back, %d line bits, %d edges, %d off the %d-cycle grid; "
+                 "decoded %s" % (txper, 60.0 / txper, len(data), nbits, nedges, len(off), txper,
+                                 "equal" if got == data else "DIFFERENT"))
+        assert got == data, "TXPER %d: decoded %s" % (txper, got[:8])
+        assert not off, "TXPER %d: edges off the bit grid at cycles %s" % (txper, off[:8])
+
+
+# ----- T3: UART receiver, frames started by the DIN falling edge (LTC[10]) -----
+
+async def uart_send(u, data, bt_ns, phase_ns, d_in, idle_bits=0):
+    """Sender at its own bit time bt_ns (rate error included), first start edge phase_ns after the call; the line reaches
+    the unit pin d_in ns later. Back-to-back 8N1 frames with idle_bits between them."""
+    t = phase_ns + d_in
+    sch = []
+    for b in data:
+        for k, lv in enumerate([0] + [(b >> i) & 1 for i in range(8)] + [1]):
+            sch.append((t + k * bt_ns, lv))
+        t += (10 + idle_bits) * bt_ns
+    t0 = now_ns()
+    for tt, lv in sch:
+        dt = t0 + tt - now_ns()
+        if dt > 0:
+            await Timer(max(1, round(dt * 1000)), unit="ps")
+        u.set_pin(DIN, lv)
+    return t
+
+
+async def uart_rx_run(dut, u, b_cycles, err, delay, fall, phase_ns, data, d_in, framing_at=None):
+    """Receive data with the edge-started frames. Returns the received (byte, start, stop) list."""
+    txper = b_cycles // 2
+    await clocked_config(u, txper, estart=1, fall=fall, delay=delay)
+    await u.wr(P_TXCTRL, 10)                                      # 10 samples a frame: start, 8 data, stop
+    while (await u.rd(P_RXINFO) >> 5) & 3:
+        await u.rd(P_RXDATA, pop=True)
+    await u.wr(P_STATUS, 0xFFFF)
+    u.set_pin(DIN, 1)
+    await ClockCycles(dut.clk, 8)
+    if framing_at is not None:
+        data = list(data)
+    sender = cocotb.start_soon(uart_send(u, data, b_cycles * T_NS * (1 + err), phase_ns, d_in))
+    words = []
+    while len(words) < len(data):
+        info = await u.rd(P_RXINFO)
+        if (info >> 5) & 3:
+            words.append(await u.rd(P_RXDATA, pop=True))
+        elif sender.done():
+            await ClockCycles(dut.clk, 4 * b_cycles)
+            if not (await u.rd(P_RXINFO) >> 5) & 3:
+                break
+    return [((w >> 7) & 0xFF, (w >> 6) & 1, (w >> 15) & 1) for w in words]
+
+
+def rx_ok(rx, data):
+    return len(rx) == len(data) and all(b == d and s == 0 and p == 1 for (b, s, p), d in zip(rx, data))
+
+
+@cocotb.test(skip=GL)
+async def test_slc_uart_rx(dut):
+    """T3: UART receiver on the edge-started clocked frames (LTC[10]): 15 Mbaud (4 cycles a bit) and 7.5 Mbaud
+    (8 cycles), sender error -2.5 % and +2.5 %, 16 start phases inside a clock period, back-to-back 8N1 bytes, input
+    path from no multiplexer to 10 ns; the stop bit (sample 10) gives the framing check. Control: +/-2.8 % at 15 Mbaud
+    must lose or corrupt a byte."""
+    u = await unit_reset(dut)
+    dut.dump_off.value = 1
+    log = dut._log
+    rng = random.Random(3)
+    d_ins = (IN_PAD[0], IN_PAD[1] + MUX_MAX)
+    chosen = {}
+    for b_cycles in (4, 8):
+        # read-back setting: the first that passes both rate errors at a few phases and both input delays
+        for fall in (0, 1):
+            for delay in range(4):
+                good = True
+                for err in (-0.025, 0.025):
+                    for ph in (0.0, T_NS / 2):
+                        for d_in in d_ins:
+                            data = [rng.randrange(256) for _ in range(12)]
+                            if not rx_ok(await uart_rx_run(dut, u, b_cycles, err, delay, fall, ph, data, d_in), data):
+                                good = False
+                                break
+                        if not good:
+                            break
+                    if not good:
+                        break
+                if good:
+                    chosen[b_cycles] = (delay, fall)
+                    break
+            if b_cycles in chosen:
+                break
+        assert b_cycles in chosen, "%d cycles a bit: no read-back setting passes +/-2.5 %%" % b_cycles
+        delay, fall = chosen[b_cycles]
+        # full run: 16 phases x 2 errors x 2 input delays, 16 bytes each, and one run of 256 back-to-back bytes
+        nbytes = 0
+        for k in range(16):
+            for err in (-0.025, 0.025):
+                for d_in in d_ins:
+                    data = [rng.randrange(256) for _ in range(16)]
+                    rx = await uart_rx_run(dut, u, b_cycles, err, delay, fall, k * T_NS / 16, data, d_in)
+                    assert rx_ok(rx, data), "%d cycles, err %+.1f %%, phase %d/16, input %.2f ns: %s" % (
+                        b_cycles, err * 100, k, d_in, rx[:4])
+                    nbytes += len(data)
+        data = [rng.randrange(256) for _ in range(256)]
+        rx = await uart_rx_run(dut, u, b_cycles, 0.025, delay, fall, 0.3, data, d_ins[1])
+        assert rx_ok(rx, data), "256 back-to-back bytes at +2.5 %%: %d received" % len(rx)
+        log.info("UART RX %d cycles a bit (%.1f Mbaud): setting delay %d, %s copy; %d bytes at -2.5 %% and +2.5 %%, 16 "
+                 "start phases, input %.2f and %.2f ns, and 256 back-to-back bytes at +2.5 %%: all equal, start 0, stop 1" % (
+                     b_cycles, 60.0 / b_cycles, delay, "falling" if fall else "rising", nbytes, d_ins[0], d_ins[1]))
+    # framing error: a frame with a 0 stop bit is reported (stop flag 0)
+    delay, fall = chosen[4]
+    await clocked_config(u, 2, estart=1, fall=fall, delay=delay)
+    await u.wr(P_TXCTRL, 10)
+    u.set_pin(DIN, 1)
+    await ClockCycles(dut.clk, 8)
+    t = now_ns() + 20.0
+    for k, lv in enumerate([0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1]):        # 0x55 with stop 0, then idle
+        await Timer(max(1, round((t + k * 4 * T_NS - now_ns()) * 1000)), unit="ps")
+        u.set_pin(DIN, lv)
+    await ClockCycles(dut.clk, 40)
+    w = await u.rd(P_RXDATA, pop=True)
+    log.info("framing check: word %04x, data %02x, stop bit %d (0 = framing error)" % (w, (w >> 7) & 0xFF, (w >> 15) & 1))
+    assert (w >> 15) & 1 == 0 and (w >> 7) & 0xFF == 0x55
+    # control: +/-2.8 % at 15 Mbaud over the 16 phases must fail somewhere
+    delay, fall = chosen[4]
+    failed = 0
+    for err in (-0.028, 0.028):
+        for k in range(16):
+            data = [rng.randrange(256) for _ in range(16)]
+            if not rx_ok(await uart_rx_run(dut, u, 4, err, delay, fall, k * T_NS / 16, data, d_ins[1]), data):
+                failed += 1
+    log.info("control +/-2.8 %% at 15 Mbaud: %d of 32 runs lost or corrupted a byte" % failed)
+    assert failed, "control: +/-2.8 % at 15 Mbaud passed every run"
+
+
 @cocotb.test(skip=GL)
 async def test_slc_spi_flash_15mhz(dut):
     """T1 at TXPER 2 (4 cycles a bit, 15 MHz), SPI modes 0 to 3 (see spi_flash_run)."""

@@ -46,3 +46,14 @@ jobs:
             test/tb.fst
             test/results.xml
             test/output/*
+
+  # Protocol count from these results (docs/counting.md, .github/workflows/count.yaml).
+  count:
+    needs: test
+    if: success() || failure()
+    permissions:
+      actions: read
+      contents: read
+    uses: ./.github/workflows/count.yaml
+    with:
+      test_run_id: ${{ github.run_id }}

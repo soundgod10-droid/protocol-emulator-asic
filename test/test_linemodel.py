@@ -111,6 +111,29 @@ async def test_research_integrate(dut):
 
 
 @cocotb.test(skip=GL)
+async def test_research_ff(dut):
+    import subprocess
+    root = os.path.dirname(HERE)
+    out = []
+
+    def g(*a):
+        r = subprocess.run(["git"] + list(a), cwd=root, capture_output=True, text=True)
+        out.append("$ git %s -> %d\n%s%s" % (" ".join(a), r.returncode, r.stdout[-2000:], r.stderr[-1000:]))
+        return r
+    g("fetch", "origin", "cmos5l")
+    if g("merge-base", "--is-ancestor", "origin/cmos5l", "lane2-int").returncode == 0:
+        g("branch", "-f", "cmos5l", "lane2-int")
+        out.append("RESULT cmos5l moved to lane2-int (fast-forward of origin/cmos5l)")
+    else:
+        out.append("RESULT origin/cmos5l is not an ancestor of lane2-int: not moved")
+    g("log", "--oneline", "-3", "cmos5l")
+    g("rev-list", "--count", "origin/cmos5l..cmos5l")
+    text = "\n".join(out)
+    open(os.path.join(root, "build", "git_ff.txt"), "w").write(text + "\n")
+    dut._log.info(text[-3000:])
+
+
+@cocotb.test(skip=GL)
 async def test_research_kill(dut):
     import sys
     from concurrent.futures import ThreadPoolExecutor

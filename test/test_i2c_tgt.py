@@ -251,18 +251,15 @@ SCRIPT = ([S, w(ADDR << 1), w(0x10)] + [w(b) for b in DATA] + [P]               
 
 
 def expected():
-    out = []
+    """Results of SCRIPT for a 24C02-type map: ACK for every byte except the other address; reads give the written
+    bytes, map[0x15] = 0 (cleared), and the 3 bytes written at 0xFE, 0xFF and 0x00."""
+    reads = iter(DATA + [0x00, 0x11, 0x22, 0x33])
+    res = []
     for op in SCRIPT:
         if op[0] == "w":
-            out.append(("w", op[1], 1 if op[1] >> 1 == 0x52 else 0))
-    reads = DATA + [0x00] + [0x11, 0x22, 0x33]
-    res, k = [], 0
-    for op in SCRIPT:
-        if op[0] == "w":
-            res.append(out.pop(0))
+            res.append(("w", op[1], 1 if op[1] >> 1 == 0x52 else 0))
         elif op[0] == "r":
-            res.append(("r", reads[k]))
-            k += 1
+            res.append(("r", next(reads)))
     return res
 
 

@@ -803,6 +803,14 @@ async def test_slc_jtag(dut):
         log.info("JTAG TXPER %d, delay %d %s copy: %s, IR BYPASS, 1,000-bit scan through Pause-DR correct at all %d "
                  "corners, 0 device timing errors, TMS changes 8 or more cycles apart" % (
                      shift_txper, delay, "falling" if fall else "rising", note, len(CORNERS)))
+        if shift_txper == 2:                                      # review session for the waveform
+            dump_on(dut, True)
+            t0 = now_ns()
+            f, _ = await jtag_session(dut, u, 2, delay, fall, "slow, mux 10 ns")
+            dump_on(dut, False)
+            log.info("waveform: JTAG session at TXPER 2, delay %d %s copy, slow pads + 10 ns mux, %.1f to %.1f ns: %s" % (
+                delay, "falling" if fall else "rising", t0, now_ns(), f or "correct"))
+            assert f is None, "review session: %s" % f
 
 
 class SwdAtPins:

@@ -388,6 +388,18 @@ module slu_fv #(
     else if (now[8:0] == 9'd0) m_jt <= m_jt + 17'd1;
   end
   always @* if (rst_n && mon_jabber) assert (mon_jabcnt == m_jt);
+  // H10: jabber is set only by transmit time without a break: while jabber is clear, the counter equals the
+  // 512-cycle ticks since the last cycle with no transmit activity (frame, CRC, jam, tails or link pulse), so
+  // jabber comes exactly 8,192 ticks (2^22 cycles, 69.9 ms at 60 MHz; IEEE 802.3 14.2.1.6 xmit_max 20-150 ms)
+  // into an unbroken transmission and never from idle time.
+  reg [16:0] m_ja;
+  wire       m_act = (mon_st >= 4'd2) && (mon_st <= 4'd7);
+  always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) m_ja <= 17'd0;
+    else if (mon_jabber || !m_act) m_ja <= 17'd0;
+    else if (now[8:0] == 9'd0) m_ja <= m_ja + 17'd1;
+  end
+  always @* if (rst_n && !mon_jabber) assert (mon_jabcnt == m_ja);
 `endif
 
   // ---------------------------------------------------------------------------------------------------

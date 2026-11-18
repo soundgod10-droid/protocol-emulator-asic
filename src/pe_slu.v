@@ -823,7 +823,7 @@ module pe_slu #(
       end
 
       // ---------------- status ----------------
-      if (r_sop) begin
+      if (rx_sop) begin
         sticky[4] <= 1'b1;
         if (m_tsel == 2'd1) tstamp <= now;
       end

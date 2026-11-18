@@ -105,7 +105,7 @@ The USB helper also sends and receives clocked serial lines (SPI controller, JTA
 
 | Index | Word | Writable bits | Use |
 |---|---|---|---|
-| 0 | MODE | 1:0 code (0 NRZ, 3 clocked; 1 NRZI is USB), 3 receive on, 4 bit stuffing, 9 USB line | clocked: 0x000B (receive on) or 0x0003; NRZ (UART transmit): 0x0000; USB again: 0x0219 |
+| 0 | MODE | 1:0 code (0 NRZ, 3 clocked; 1 NRZI is USB), 3 receive on, 4 bit stuffing, 9 USB line | clocked: 0x000B (receive on) or 0x0003; NRZ (UART transmit): 0x0000; USB again: 0x0219 with TXPER 40 and LTC 0 |
 | 1 | TXPER | 7:0 (bits 15:8 are 0) | NRZ: cycles a bit; clocked: cycles a clock half period (a bit = 2 x TXPER cycles); 1 to 255 |
 | 8 | SEL | 15:0 | 3:0 DIN input, 15:12 clocked sample delay (0 to 15 cycles after the sampling clock edge) |
 | 18 | LTC | 12:8 | 8 clock idle level (CPOL), 9 data out with the leading clock edge (CPHA), 10 receive frames that start at a DIN falling edge (UART receive), 12 sample the falling-edge copy of DIN (half a cycle earlier) |

@@ -38,10 +38,11 @@ def now_ps():
     return int(get_sim_time(unit="ps"))
 
 
-def record(test, name, lines, stack, content, t0, t1, tamper, note):
-    """Adds one scenario and rewrites the scenario file (each test of the module adds its records)."""
+def record(test, name, lines, stack, content, t0, t1, tamper, note, forbid=()):
+    """Adds one scenario and rewrites the scenario file (each test of the module adds its records). forbid: classes
+    that a decoder uses for errors only."""
     _scenarios.append(dict(test=test, name=name, lines=lines, stack=stack, content=content, window_ps=[t0, t1],
-                           tamper=tamper, note=note))
+                           tamper=tamper, note=note, forbid=list(forbid)))
     with open(OUT, "w", encoding="utf-8", newline="\n") as fh:
         json.dump({"level": LEVEL, "commit": os.environ.get("GITHUB_SHA", ""), "clock_ps": rf.CLK_PS,
                    "scenarios": _scenarios}, fh, indent=1)

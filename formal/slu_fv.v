@@ -222,9 +222,12 @@ module slu_fv #(
           assert (mon_tmr == 16'd0);
         end
       end
-      // H8: a frame starts on tx_v at TXTIME
+      // H8: a frame starts on tx_v at TXTIME (a link test pulse is not a frame: st_q 6 is T_PULSE), with its
+      // invariants: tx_oe is the registered "a symbol is on the line" of the cycle before, and the first
+      // T_DATA cycle is 2 cycles before TXTIME.
       if (f_past && tx_oe && !oe_q && st_q != 4'd6) assert (now == mon_time);
-      if (mon_st == T_ARM) assert (mon_tmr == 16'd0 || 1'b1);
+      if (f_past) assert (tx_oe == ((st_q >= 4'd2) && (st_q <= 4'd7) && !(lead_q && st_q == T_DATA)));
+      if (mon_lead) assert (now == mon_time - 16'd2);
       // H2: receive CRC registers
       if (m_rv) begin
         assert (mon_crca == rev({{(32-W){1'b0}}, m_r}));

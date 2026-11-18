@@ -333,7 +333,7 @@ async def test_i2c_tgt_model(dut):
                 log.info(f"{label} (and {len(phases) - 1} more phases): {len(ctl.results)} results correct, no timing "
                          f"fault; {stretch_text(ctl)}")
     # Negative controls: the checks of the controller model must catch a target that breaks them.
-    for equ, want in ((dict(HOLD=4), "after the SCL fall"), (dict(TSU=8), "before the stretched SCL rise"),
+    for equ, want in ((dict(HOLD=60), "tVD max"), (dict(TSU=8), "before the stretched SCL rise"),
                       (dict(ADDR=0x51), "results")):
         _, ctl = model_run("Fm", 1.3, 1.2, 1, 0, **equ)
         found = ctl.errors[:1] if ctl.errors else ([] if ctl.results == expected() else ["results"])

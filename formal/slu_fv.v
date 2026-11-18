@@ -58,7 +58,7 @@ module slu_fv #(
   localparam PER     = (SPEC == 1) ? TXPER : 2 * TXPER;
 
   localparam [3:0] T_ARM = 4'd1, T_DATA = 4'd2, T_CRC = 4'd3, T_JAM = 4'd7;
-  localparam [2:0] K_STUFF = 3'd1, K_DATA = 3'd2, K_LOAD = 3'd3, K_CRC = 4'd4, K_JAM = 3'd5, K_END = 3'd6;
+  localparam [2:0] K_STUFF = 3'd1, K_DATA = 3'd2, K_LOAD = 3'd3, K_CRC = 3'd4, K_JAM = 3'd5, K_END = 3'd6;
 
   initial assume (!rst_n);
 

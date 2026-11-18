@@ -612,8 +612,10 @@ async def test_sigrok_usb(dut):
     def read():
         out["dev"], out["stall"] = yield from s.control_read(0, gd)
         yield from s.gap(20)
-    await glue.run(reset())
+    # usb_signalling/pd.py seeds its state from the first sample of the window, so the window starts before the bus
+    # reset: the decoder sees the reset (SE0 longer than 2.5 us) and the idle J before the first SYNC.
     t0 = now_ps()
+    await glue.run(reset())
     await glue.run(read())
     t1 = now_ps()
     ud.check_clean(s, bus)

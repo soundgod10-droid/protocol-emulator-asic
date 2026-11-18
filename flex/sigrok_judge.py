@@ -149,8 +149,10 @@ def evaluate(rows, content, forbid=()):
         classes = set(cls.split("|"))
         sel = [r for r in rows if pd_match(r[2], pd) and r[3] in classes]
         got[key] = [r[4] for r in sel]
-        if sel and first is None:
-            first = sel[0]
+        # the control needs a span to invert: an annotation of a single sample point (i2c "Start") has none
+        wide = [r for r in sel if r[1] - r[0] >= 2]
+        if wide and first is None:
+            first = wide[0]
     equal = all(got[k] == list(v) for k, v in content.items()) and all(content.values())
     return fails, got, equal, first
 

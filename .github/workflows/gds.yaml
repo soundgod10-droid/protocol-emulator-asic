@@ -26,12 +26,12 @@ jobs:
           set +e +o pipefail
           note() { b=$(head -n 90 | sed 's/%/%25/g;s/\r//g' | sed ':a;N;$!ba;s/\n/%0A/g'); [ -n "$b" ] || b="(nothing found)"; echo "::notice title=$1::$b"; }
           r=$(ls -d logs/runs/*/ | head -n 1)
-          ls "$r" | note "steps"
-          for f in $(find "$r" -path '*disconnected*' -type f | head -n 6); do echo "== $f"; head -n 40 "$f"; done | note "disconnected pins"
+          for f in $(ls ${r}*-odb-reportdisconnectedpins/*.log ${r}*-odb-reportdisconnectedpins/reports/* 2>/dev/null); do echo "== $f"; grep -v '^[[:space:]]*$' "$f" | grep -v -i -E '^\+|^\[INFO ORD' | head -n 30; done | note "disconnected pins report"
           f=$(ls ${r}*-openroad-stapostpnr/nom_slow_1p08V_125C/checks.rpt | head -n 1)
-          awk '/report_check_types/{p=1} p' "$f" | head -n 90 | note "slow checks violators"
-          grep -h -E "violations|Iteration|iter" ${r}*-openroad-detailedrouting/*.log | head -n 40 | note "detailed routing iterations"
-          grep -h -i "overflow" ${r}*-openroad-globalrouting/*.log | head -n 20 | note "global routing overflow"
+          awk '/report_check_types/{p=1} /report_parasitic_annotation/{p=0} p' "$f" | grep -v '^[[:space:]]*$' | head -n 60 | note "slow checks violators"
+          grep -h "Number of violations" ${r}*-openroad-detailedrouting/*.log | head -n 30 | note "detailed routing iterations"
+          grep -h -i -A16 "congestion report" ${r}*-openroad-globalrouting/*.log | head -n 40 | note "global routing congestion"
+          cut -d' ' -f1 ${r}warning.log | sort | uniq -c | sort -rn | note "warning codes"
           grep -h -i -E "worst|average|drop" ${r}*-openroad-irdropreport/*.log | head -n 30 | note "IR drop"
           cat ${r}warning.log | note "warning.log"
 

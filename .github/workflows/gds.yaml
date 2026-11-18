@@ -73,6 +73,7 @@ jobs:
   # tt-gds-action@ttihp27a does (netlist and PDK revision from tt_submission, Icarus 13, -DFUNCTIONAL).
   gl_protocols:
     needs: gds
+    if: false  # research layout: its netlist is not a candidate
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false

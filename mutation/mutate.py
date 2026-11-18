@@ -64,7 +64,7 @@ RUNGS = {
                 r"pull_rule)$"),                                                                 # 211 s
     "slu_unit": (["test_slu"], T + r"test_slu_(usb_tx|usb_rx|eth_tx|eth_rx|tx_late_underflow|eth_collision|"
                  r"usb_line_conditions|rx_state_codes|tx_buffer_full|line_after_reset|"
-                 r"squelch_after_idle)$"),                                                       # 109 s
+                 r"squelch_after_idle|ports_after_reset|rxinfo_words|txtime_lead_limit|eth_frame_end)$"),  # 109 s
     "slu_loop": (["test_slu"], T + r"test_slu_loop_(equiv|window_edge)$"),                       # 70 s
     "slu_chip": (["test_slu"], T + r"test_slu_chip_\w+$"),                                       # 12 s
     "dev_fast": (["test_usb_dev", "test_eth_dev"], T + r"test_(usb_dev_(enumerate|errors|hid)|"

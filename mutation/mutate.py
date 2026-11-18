@@ -671,6 +671,7 @@ def main():
     a.add_argument("--workers", type=int, default=os.cpu_count() or 2)
     a.add_argument("--work", default=os.path.join(ROOT, "build", "mutation"))
     a.add_argument("--deadline-min", type=float, default=320)
+    a.add_argument("--max-rungs", type=int, default=0, help="trial runs only: stop each ladder after N rungs")
     a.add_argument("--out", required=True)
     a = sub.add_parser("report")
     a.add_argument("--plan", default="plan.json")

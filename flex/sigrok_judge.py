@@ -17,8 +17,8 @@ What it does:
        or "break"), from any decoder of the stack;
     3. compares, for each decoder and class set, the decoded texts in order with the scenario's texts: they must be
        equal and not empty;
-    4. negative control: inverts the scenario's data line in the middle of the first content annotation (40 to 60 %
-       of its span) and decodes again; the copy must fail step 2 or step 3. A check whose control does not fail is a
+    4. negative control: inverts the scenario's data line in the middle of the first content annotation that spans
+       at least 2 samples (40 to 60 % of its span) and decodes again; the copy must fail step 2 or step 3. A check whose control does not fail is a
        failure, because then the comparison could not see a wrong byte.
   The list check: every decoder of the pool (flex/pool.csv, status pool), sbus_futaba (for the reserve list) and every
   decoder used by a scenario must be in the list of the pinned build.

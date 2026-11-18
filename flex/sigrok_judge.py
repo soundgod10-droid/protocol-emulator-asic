@@ -120,7 +120,10 @@ def first_text(s):
 def run_sigrok(vcd, stack):
     # sigrok-cli 0.7.2 has no --protocol-decoder-ann-class; it prints the annotation class (its id, as named in
     # the decoder's pd.py) when the log level is above info (decode.c show_pd_annotations), so -l 4.
-    cmd = [SG, "-l", "4", "-i", vcd, "-I", f"vcd:downsample={DS}", "--protocol-decoder-samplenum", "-P", stack]
+    # Without -A, sigrok-cli shows only the top decoder of a stack; -A with every decoder id shows all of them.
+    ids = ",".join(x.split(":")[0] for x in stack.split(","))
+    cmd = [SG, "-l", "4", "-i", vcd, "-I", f"vcd:downsample={DS}", "--protocol-decoder-samplenum", "-P", stack,
+           "-A", ids]
     p = subprocess.run(cmd, capture_output=True, text=True, timeout=900)
     rows = []
     for ln in p.stdout.splitlines():

@@ -13,7 +13,7 @@
 ;
 ; Timing (the .equ values below are cycles at 50 MHz, 50 cycles for each us;
 ; at 60 MHz the host assembles with TA 360, TE 540, TF 3300, TC 3900, TD 300,
-; TI2 2100, H32 900, J32 769, docs/host_port.md 14): Analog Devices
+; TI2 2100, H32 919, J32 788, docs/host_port.md 14): Analog Devices
 ; application note 126, "1-Wire Communication Through Software", Table 1
 ; (steps) and Table 2 (recommended standard-speed values, us): A 6, B 64,
 ; C 60, D 10, E 9, F 55, G 0, H 480, I 70, J 410.

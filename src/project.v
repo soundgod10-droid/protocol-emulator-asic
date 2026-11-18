@@ -202,6 +202,7 @@ module tt_um_soundgod10_droid_protocol_emulator (
 
   wire [14:0] pin_v;
   wire [14:0] pin_oe;
+  wire        fill;
   pe_proc u_proc (
       .clk        (clk),
       .rst_n      (rst_n_int),

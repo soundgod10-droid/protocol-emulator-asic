@@ -80,7 +80,8 @@ module pe_proc (
     input  wire [4:0]  ui_in,       // ui_in[4:0]: inputs 8 to 12
     input  wire [7:0]  uio_in,
     output wire [14:0] pin_v,
-    output wire [14:0] pin_oe
+    output wire [14:0] pin_oe,
+    output wire        fill         // research layout only: utilisation filler
 );
 
   // Core to memory

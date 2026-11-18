@@ -415,6 +415,46 @@ async def test_host_id_status_rules(dut):
     assert await host.read_status() == hs.parse_status([0] * hs.STATUS_BYTES)
     # The only change is the reset level at time 0 (X to 1).
     assert mon.after(0) == [], f"UART_TX changed with no program: {mon.after(0)}"
+
+
+@cocotb.test()
+async def test_host_status_reserved_bits(dut):
+    """READ_STATUS bytes 3 to 6 (docs/host_port.md 5): bits 7 and 3 are 0, also when every count field is not 0
+    (each in-FIFO holds 1 to 4 words: thread n gets n + 1 words while no thread runs a program)."""
+    _, host = await start(dut)
+    await host.write_cfg(4, [0])
+    await host.start()
+    for n in range(4):
+        await host.push(n, list(range(1, n + 2)))
+    raw = await host.transaction([hs.READ_STATUS] + [0] * hs.STATUS_BYTES)
+    status = raw[1:1 + hs.STATUS_BYTES]
+    dut._log.info("READ_STATUS bytes with in-FIFO counts 1, 2, 3, 4: " + " ".join(f"{b:02X}" for b in status))
+    assert [b & 0x07 for b in status[3:7]] == [1, 2, 3, 4], f"in-FIFO counts {status}"
+    assert all(b & 0x88 == 0 for b in status[3:7]), f"reserved bits 7 and 3 of status bytes 3 to 6: {status}"
+    assert status[0] & 0xF8 == 0 and status[1] & 0xF0 == 0, f"reserved bits of status bytes 0 and 1: {status}"
+
+
+@cocotb.test()
+async def test_host_partial_byte(dut):
+    """A transaction that ends after 3 bits (CS_N high before the byte is complete) has no effect
+    (docs/host_port.md 2); the next transaction starts with a new byte: READ_ID gives the ID."""
+    _, host = await start(dut)
+
+    async def pins(sck, cs_n, mosi, cycles):
+        dut.ui_in.value = (sck << hs.SCK_BIT) | (cs_n << hs.CS_N_BIT) | (mosi << hs.MOSI_BIT)
+        await ClockCycles(dut.clk, cycles)
+
+    await pins(0, 0, 1, 4)
+    for _ in range(3):
+        await pins(0, 0, 1, 2)
+        await pins(1, 0, 1, 2)
+    await pins(0, 0, 1, 2)
+    await pins(0, 1, 0, 8)
+    chip_id = await host.read_id()
+    st = await host.read_status()
+    dut._log.info(f"after a 3-bit transaction: READ_ID {[f'{b:02X}' for b in chip_id]}, status {st}")
+    assert chip_id == hs.CHIP_ID, f"READ_ID after a 3-bit transaction: {chip_id}"
+    assert st == hs.parse_status([0] * hs.STATUS_BYTES), f"status after a 3-bit transaction: {st}"
     log.info("command rules: refused commands set CMD_ERR and change nothing; the 5th PUSH word sets PUSH_DROP")
 
 

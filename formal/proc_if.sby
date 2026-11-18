@@ -16,7 +16,8 @@ smtbmc z3
 read -formal -D CORE_IF pe_cycle_counter.v proc_core_if.v pe_timed_out.v pe_proc.v proc_stubs.v proc_fv.v
 # The properties of pe_timed_out are proved for every input by timed_out.sby; here they are assumptions.
 prep -top proc_fv
-chformal -assert2assume pe_timed_out
+# The slots are parameterized (RESET_VALUE, RESET_OE), so after prep their module names are $paramod\pe_timed_out\...
+chformal -assert2assume *pe_timed_out*
 flatten
 cd proc_fv
 connect -set mon_load \u_proc.ev_load

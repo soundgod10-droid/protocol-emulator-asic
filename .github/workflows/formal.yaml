@@ -2,8 +2,8 @@ name: formal
 
 # Every proof job of formal/ and the structural CDC check, on every push that changes src/ or formal/ (docs/verification.md section 3).
 # A job passes when SymbiYosys returns 0: PASS for the proofs, bmc and structure jobs, all covers reached
-# for the cover jobs, and the expected counterexample for the checks of the checks (host_port_mut_id.sby and
-# the 13 tasks of slu_teeth.sby, "expect fail"). A changed RTL that breaks a property, removes properties (select -assert-min) or
+# for the cover jobs, and the expected counterexample for the checks of the checks (host_port_mut_id.sby,
+# iso_mut_io.sby and the 13 tasks of slu_teeth.sby, "expect fail"). A changed RTL that breaks a property, removes properties (select -assert-min) or
 # bypasses a synchronizer (cdc.sby) fails its job.
 
 # It runs when a push changes the RTL, the proof files or this workflow; the proofs read nothing else.

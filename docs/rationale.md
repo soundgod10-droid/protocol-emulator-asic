@@ -1,6 +1,6 @@
 # Design rationale: why each module, parameter and instruction
 
-This page answers "why is this line here?" for the chip as submitted (branch `cmos5l`, RTL of decision entries 3, 10, 18 to 21; no RTL change after commit 109aff0 of 16 November 2026). Each row gives what the item does, why it was chosen, the alternative that was compared with its numbers, and where a reader can check it. The larger decisions have a full entry in [decisions.md](decisions.md) ("entry N" below); this page covers every module, parameter, flow setting and instruction form, including the small ones.
+This page answers "why is this line here?" for the chip as submitted (branch `cmos5l`, RTL of decision entries 3, 10, 18 to 21; the last RTL change is the clocked and NRZ modes of the USB helper, entry 18, November 2026). Each row gives what the item does, why it was chosen, the alternative that was compared with its numbers, and where a reader can check it. The larger decisions have a full entry in [decisions.md](decisions.md) ("entry N" below); this page covers every module, parameter, flow setting and instruction form, including the small ones.
 
 Measurements on this page that are not in a CI run, and how to repeat them:
 

@@ -643,7 +643,13 @@ module pe_slu #(
           tx_half <= 1'b0;
           tx_line <= 1'b1;
           tx_sck  <= c_ltc[8];
-          if (p_we && p_addr == 4'd4 && p_wdata[9]) begin
+          if (ck_estart) begin                             // LTC[10]: the edge starts bit 0
+            tx_st    <= T_DATA;
+            tx_half  <= 1'b1;                              // next symbol end: the sample of bit 0
+            tx_tmr   <= (c_txper >= 16'd2) ? (c_txper - 16'd2) : 16'd0;   // 2 cycles to the sample
+            tx_nb    <= ck_len - 5'd1;
+            tx_lastw <= 1'b1;
+          end else if (p_we && p_addr == 4'd4 && p_wdata[9]) begin
             tx_st   <= T_ARM;
             tx_time <= now + 16'd4;
           end else if (p_we && p_addr == 4'd5) begin

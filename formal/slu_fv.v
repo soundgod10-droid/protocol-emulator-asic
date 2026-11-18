@@ -375,6 +375,22 @@ module slu_fv #(
   end
 
   // ---------------------------------------------------------------------------------------------------
+  // H9 (10BASE-Te, slu_eth.sby only: SLU_JABBER): the unjab time runs from the jabber onset. While jabber is
+  // set, the jabber counter equals the 512-cycle ticks since the onset, so jabber ends exactly 65,536 ticks
+  // (2^25 cycles, 0.559 s at 60 MHz; IEEE 802.3 14.2.1.6 unjab 0.25-0.75 s) after it began.
+  // ---------------------------------------------------------------------------------------------------
+`ifdef SLU_JABBER
+  (* keep *) wire        mon_jabber;  // jabber
+  (* keep *) wire [16:0] mon_jabcnt;  // jab_cnt
+  reg [16:0] m_jt;
+  always @(posedge clk) begin
+    if (!mon_jabber) m_jt <= 17'd0;
+    else if (now[8:0] == 9'd0) m_jt <= m_jt + 17'd1;
+  end
+  always @* if (rst_n && mon_jabber) assert (mon_jabcnt == m_jt);
+`endif
+
+  // ---------------------------------------------------------------------------------------------------
   // Covers (cover jobs only): a CRC bit sent, a stuffed bit (USB), a collision that starts a jam
   // (10BASE-Te). The end of a 32-bit jam needs about 75 steps even with 1-cycle symbols, beyond the cover
   // budget; H7 rests on its k-induction proof (jam counter + bits sent = 32).

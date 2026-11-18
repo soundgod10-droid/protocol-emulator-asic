@@ -1188,6 +1188,7 @@ class ChipSpiPins:
         self.dut.ui_in.value = (1 << hs.CS_N_BIT) | (level & 1)
 
     async def run(self):
+        from cocotb.triggers import Edge
         import test_slu_clk as sc
         while True:
             await Edge(self.dut.uio_out)

@@ -117,6 +117,30 @@ module slu_fv #(
   (* keep *) wire        mon_rd;      // r_data
   (* keep *) wire        mon_sop;     // r_sop
   (* keep *) wire [9:0]  mon_rxbits;  // rx_bits
+  (* keep *) wire [15:0] mon_cmode;   // c_mode
+  (* keep *) wire [15:0] mon_ctxper;  // c_txper
+  (* keep *) wire [15:0] mon_ccrcw;   // c_crcw
+  (* keep *) wire [31:0] mon_cpa;     // c_pa
+
+  // Fixed configuration of the helper form (src/pe_slu.v F_*): set at reset and never written for SPEC 1
+  // and 2 (only SEL is writable). Asserted as invariants, except in the cover and tooth jobs, which force
+  // some of these registers (SLU_FORCED).
+  localparam [15:0] F_MODE  = (SPEC == 1) ? 16'h03B9 : 16'h040E;
+  localparam [15:0] F_TXPER = (SPEC == 1) ? 16'd40 : 16'd3;
+  localparam [15:0] F_CRCW  = (SPEC == 1) ? 16'h20D0 : 16'h0260;
+  localparam [31:0] F_PA    = (SPEC == 1) ? 32'h0000A001 : 32'hEDB88320;
+  localparam [31:0] F_RA    = (SPEC == 1) ? 32'h0000B001 : 32'hDEBB20E3;
+  localparam [15:0] F_CRCB  = (SPEC == 1) ? 16'h0614 : 16'h0000;
+`ifndef SLU_FORCED
+  always @* begin
+    assert (mon_cmode == F_MODE);
+    assert (mon_ctxper == F_TXPER);
+    assert (mon_ccrcw == F_CRCW);
+    assert (mon_cpa == F_PA);
+    assert (mon_ra == F_RA);
+    assert (mon_crcbc == F_CRCB);
+  end
+`endif
 
   // Bit reversal: the RTL keeps the CRC in the reflected (LSB-first) form.
   function [31:0] rev(input [31:0] x);

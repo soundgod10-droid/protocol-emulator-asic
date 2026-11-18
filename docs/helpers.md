@@ -84,7 +84,7 @@ In a cycle with two samples, the loop uses at most one edge: an edge at the seco
 
 These are logic simulations at 60 MHz with ideal pads; the pad delays, the transceiver and the comparators are not in them (the layout timing is in docs/signoff.md).
 
-Synthesis area (typical corner, Yosys): USB helper 39,808 um2, 10BASE-Te helper 52,161 um2.
+Synthesis area (typical corner, Yosys): USB helper 39,808 um2, 10BASE-Te helper 52,161 um2. The clocked and NRZ modes of section 6 add 4,355 um2 and 37 flip-flops to the USB helper (39,808.84 to 44,163.78 um2 in one synthesis job with both forms, same method); the 10BASE-Te helper keeps its 448 flip-flops.
 
 ## 5 Notes for firmware
 

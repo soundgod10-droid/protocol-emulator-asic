@@ -1,0 +1,112 @@
+# slu_teeth: the check of the checks for formal/slu_fv.v. Each task plants one fault into the helper by
+# connecting a named net or register to a wrong value after flattening (the RTL files stay unchanged), and
+# must give a counterexample (expect fail). The symbol period is forced to 1 cycle so the counterexamples are
+# short (SLU_FORCED leaves out the fixed-configuration invariants). The receive-CRC teeth drive the receive
+# start and data strobes from free inputs, so the CRC datapath is reached without a locked receive loop.
+#
+#   task               fault                                         property that must fail
+#   usb_stuff_off      no stuffing (need_stuff = 0)                  H3
+#   usb_stuff_k5       stuffing after 5 ones (stuff run K = 5)       H3
+#   usb_crc16_poly     CRC polynomial A003 (one tap wrong)           H1
+#   usb_crc16_preset   CRC register preset 0, not all ones           H1
+#   usb_nrzi           line code NRZ instead of NRZI                 H4
+#   usb_start          first symbol one cycle early (no lead cycle)  H8
+#   usb_rx_poly        receive CRC polynomial A003                   H2
+#   usb_rx_resid       residue register B003                         H2 (residue compare)
+#   usb_rx_crc5        CRC5 polynomial 16                            H2c
+#   eth_manchester     line code NRZ instead of Manchester           H5
+#   eth_crc32_poly     CRC-32 polynomial EDB88321                    H1
+#   eth_period         symbol period 2 cycles, monitors expect 1     H6
+#   eth_half           no mid-bit change (half_mid = 0)              H5, H6
+
+[tasks]
+usb_stuff_off usb
+usb_stuff_k5 usb
+usb_crc16_poly usb0
+usb_crc16_preset usb0
+usb_nrzi usb
+usb_start usb
+usb_rx_poly usbrx
+usb_rx_resid usbrx
+usb_rx_crc5 usbrx
+eth_manchester eth
+eth_crc32_poly eth0
+eth_period ethp
+eth_half eth
+
+[options]
+mode bmc
+depth 24
+usb_rx_resid: depth 36
+expect fail
+
+[engines]
+smtbmc z3
+
+[script]
+read -formal -D SLU_FORCED pe_slu_loop.v pe_slu.v slu_fv.v
+usb: hierarchy -top slu_fv -chparam SPEC 1 -chparam TXPER 1
+usbrx: hierarchy -top slu_fv -chparam SPEC 1 -chparam TXPER 1
+usb0: hierarchy -top slu_fv -chparam SPEC 1 -chparam TXPER 1 -chparam SKIP 0
+eth: hierarchy -top slu_fv -chparam SPEC 2 -chparam TXPER 1
+ethp: hierarchy -top slu_fv -chparam SPEC 2 -chparam TXPER 1
+eth0: hierarchy -top slu_fv -chparam SPEC 2 -chparam TXPER 1 -chparam SKIP 0
+prep -top slu_fv
+flatten
+cd slu_fv
+connect -set mon_st \u_slu.tx_st
+connect -set mon_bs \u_slu.bit_start
+connect -set mon_hm \u_slu.half_mid
+connect -set mon_kind \u_slu.t_kind
+connect -set mon_bit \u_slu.t_bit
+connect -set mon_new \u_slu.t_new
+connect -set mon_line \u_slu.tx_line
+connect -set mon_crcen \u_slu.tx_crcen
+connect -set mon_skipw \u_slu.tx_skipw
+connect -set mon_run \u_slu.tx_run
+connect -set mon_jam \u_slu.tx_jam
+connect -set mon_tmr \u_slu.tx_tmr
+connect -set mon_half \u_slu.tx_half
+connect -set mon_txbit \u_slu.tx_bit
+connect -set mon_lead \u_slu.tx_lead
+connect -set mon_time \u_slu.tx_time
+connect -set mon_crct \u_slu.crc_t
+connect -set mon_crca \u_slu.crc_a
+connect -set mon_crcb \u_slu.crc_b
+connect -set mon_ra \u_slu.c_ra
+connect -set mon_crcbc \u_slu.c_crcb
+connect -set mon_rdv \u_slu.r_data_v
+connect -set mon_rd \u_slu.r_data
+connect -set mon_sop \u_slu.r_sop
+connect -set mon_rxbits \u_slu.rx_bits
+connect -set \u_slu.din_f1 din_f1_free
+usb: connect -set \u_slu.c_txper 16'd1
+usbrx: connect -set \u_slu.c_txper 16'd1
+usb0: connect -set \u_slu.c_txper 16'd1
+eth: connect -set \u_slu.c_txper 16'd1
+eth0: connect -set \u_slu.c_txper 16'd1
+usbrx: connect -set \u_slu.r_sop sop_free
+usbrx: connect -set \u_slu.r_data_v rdv_free
+usbrx: connect -set \u_slu.r_data rd_free
+usb_stuff_off: connect -set \u_slu.need_stuff 1'b0
+usb_stuff_k5: connect -set \u_slu.m_k 3'd5
+usb_crc16_poly: connect -set \u_slu.c_pa 32'h0000A003
+usb_crc16_poly: connect -set \u_slu.c_crcw 16'h2050
+usb_crc16_preset: connect -set \u_slu.c_crcw 16'h2010
+usb_nrzi: connect -set \u_slu.m_code 2'd0
+usb_start: connect -set \u_slu.tx_lead 1'b0
+usb_rx_poly: connect -set \u_slu.c_pa 32'h0000A003
+usb_rx_resid: connect -set \u_slu.c_ra 32'h0000B003
+usb_rx_crc5: connect -set \u_slu.c_crcb 16'h0616
+eth_manchester: connect -set \u_slu.m_code 2'd0
+eth_crc32_poly: connect -set \u_slu.c_pa 32'hEDB88321
+eth_crc32_poly: connect -set \u_slu.c_crcw 16'h0060
+eth_period: connect -set \u_slu.c_txper 16'd2
+eth_half: connect -set \u_slu.half_mid 1'b0
+opt_clean
+cd ..
+
+[files]
+../src/pe_slu_loop.v
+../src/pe_slu.v
+slu_fv.v

@@ -183,9 +183,11 @@ module slu_fv #(
   wire [2:0]   run_cur = first ? 3'd0 : m_run;
   wire         lvl_cur = first ? 1'b1 : m_lvl;
   wire         mv_cur  = first ? 1'b0 : m_mv;
-  wire         cv_cur  = first ? 1'b0 : m_cv;
-  wire [15:0]  c_cur   = m_c;
   wire         jfirst  = (mon_st == T_JAM) && (st_q != T_JAM);
+  // The bit timing restarts at a jam: a collision seen in the cycle of the frame's end decision starts the
+  // jam at the next symbol boundary (half a bit later), which IEEE 802.3 allows (the jam content is free).
+  wire         cv_cur  = (first || jfirst) ? 1'b0 : m_cv;
+  wire [15:0]  c_cur   = m_c;
   wire [5:0]   j_cur   = jfirst ? 6'd0 : m_j;
 
   wire covered = mon_crcen && (((mon_kind == K_DATA) && (w_cur > SKIP)) ||

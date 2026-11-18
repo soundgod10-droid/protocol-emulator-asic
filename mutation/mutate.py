@@ -761,7 +761,8 @@ def equiv(p, ids, work, sby=None):
     files, body = set(), []
     for mid, ps, gold, gate, top in checks:
         files.update(gold + gate)
-        body.append(f"design -reset\ntee -q -a equiv_status.txt log === {mid} {ps}\n" +
+        tag = " ".join(f"{k}={v}" for k, v in ps.items()) or "default"
+        body.append(f"design -reset\ntee -q -a equiv_status.txt log === {mid} {tag}\n" +
                     equiv_script(ps, gold, gate, top, path=os.path.basename) + "tee -q -a equiv_status.txt equiv_status\n")
     end = os.path.join(work, "equiv_end.v")
     with open(end, "w") as fh:

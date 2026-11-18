@@ -50,8 +50,8 @@ connect -set mon_cpa \u_slu.c_pa
 connect -set \u_slu.din_f1 din_f1_free
 opt_clean
 cd ..
-# The job stops with an error if a property was removed: 22 asserts of slu_fv.v for SPEC 1 and its assume.
-select -assert-min 23 t:$check t:$assert t:$assume
+# The job stops with an error if a property was removed: 28 asserts of slu_fv.v for SPEC 1 and its assume.
+select -assert-min 29 t:$check t:$assert t:$assume
 
 [files]
 ../src/pe_slu_loop.v

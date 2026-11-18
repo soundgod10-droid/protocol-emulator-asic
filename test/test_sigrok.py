@@ -24,8 +24,9 @@ import os
 import cocotb
 from cocotb.utils import get_sim_time
 
-import test_flex as fx  # noqa: F401  (models used by the later scenarios)
+import test_flex as fx
 import test_fw_full as ff
+import test_holdout as ho
 import test_rtl_fw as rf
 
 OUT = os.environ.get("SIGROK_SCENARIO", "scenario.json")

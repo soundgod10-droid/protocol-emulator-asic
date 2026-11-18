@@ -1110,6 +1110,157 @@ async def test_slu_chip_eth_events(dut):
                   "event input 14 and pushed status %04x" % (len(exp), words_out[0]))
 
 
+SPI_CLK_FW = """
+        .equ    E, 16           ; USB helper ports 16-31
+        .equ    CS, 2           ; uio2: /CS, a thread pin
+t0:     TNOW    8
+        OUT     CS, 1
+        LDI     r0, 0
+        IOW     r0, E+12        ; CFGADR 0
+        LDI     r0, 0x00B
+        IOW     r0, E+13        ; MODE: clocked code, RX on
+        LDI     r0, 2
+        IOW     r0, E+13        ; TXPER 2: 4 cycles a bit (15 MHz at 60 MHz)
+        LDI     r0, 8
+        IOW     r0, E+12
+        LDI     r0, 0x17F
+        SHL     r0, 6
+        ORI     r0, 0x38
+        IOW     r0, E+13        ; SEL 0x5FF8: DIN = input 8 (ui_in[0]), sample delay 5
+        LDI     r0, 18
+        IOW     r0, E+12
+        LDI     r0, 0
+        IOW     r0, E+13        ; LTC: clock idle low, data at the trailing edge (SPI mode 0)
+        LDI     r2, 512         ; frame: bit count N at 512, then the words (first bit in bit 0)
+        LDX     r3, [r2]
+        MOV     r0, r3
+        ANDI    r0, 15
+        IOW     r0, E+4         ; TXCTRL: bits in the last word
+        ADDI    r3, 15
+        SHR     r3, 4           ; words
+        ADDI    r2, 1
+        TNOW    40
+        OUT     CS, 0           ; /CS low at T
+        TGET    r0
+        ADDI    r0, 100
+        IOW     r0, E+5         ; TXTIME = T + 100: the loop fills the TX buffer first
+tx:     IOR     r0, E+0         ; TX buffer free words
+        CMPI    r0, 0
+        BEQ     tx
+        LDX     r0, [r2]
+        ADDI    r2, 1
+        CMPI    r3, 1
+        BEQ     last
+        IOW     r0, E+0         ; TXDATA
+        ADDI    r3, -1
+        JMP     tx
+last:   IOW     r0, E+14        ; TXLAST
+done:   IOR     r1, E+2         ; STATUS: RXEOP
+        ANDI    r1, 0x20
+        BEQ     done
+        TNOW    20
+        OUT     CS, 1
+        IOR     r1, E+2
+        PUSH    r1
+        HALT
+t1:     LDI     r1, 768         ; thread 1: received words to the data memory from 768
+rx:     IOR     r0, E+6         ; RXINFO [6:5]: words in the RX buffer
+        ANDI    r0, 0x60
+        BEQ     rx
+        IOR     r0, E+1         ; RXDATA (pop)
+        STX     r0, [r1]
+        ADDI    r1, 1
+        JMP     rx
+"""
+
+
+class ChipSpiPins:
+    """The flash model of test_slu_clk.py on the chip pins: SCK uio0, MOSI uio1, /CS uio2 after the output delay;
+    MISO back on ui_in[0] after the input delay (host port idle)."""
+
+    def __init__(self, dut, dev, d_out):
+        self.dut, self.dev, self.d_out = dut, dev, d_out
+        self.last = None
+        self.task = cocotb.start_soon(self.run())
+
+    def set_pin(self, pin, level):
+        self.dut.ui_in.value = (1 << hs.CS_N_BIT) | (level & 1)
+
+    async def run(self):
+        import test_slu_clk as sc
+        while True:
+            await Edge(self.dut.uio_out)
+            v = self.dut.uio_out.value
+            if not v.is_resolvable:
+                continue
+            v = v.to_unsigned() & 7
+            ch = v ^ (self.last if self.last is not None else v ^ 7)
+            self.last = v
+            if ch & 4:
+                cocotb.start_soon(sc.later(self.d_out, self.dev.set_cs, (v >> 2) & 1))
+            if ch & 2:
+                cocotb.start_soon(sc.later(self.d_out, self.dev.on_di, (v >> 1) & 1))
+            if ch & 1:
+                cocotb.start_soon(sc.later(self.d_out, self.dev.on_clk, v & 1))
+
+
+@cocotb.test()
+async def test_slu_chip_spi_flash(dut):
+    """USB helper in the chip in its clocked mode (SPI mode 0, 15 MHz SCK): thread 0 configures the helper, drives
+    /CS (uio2) with OUT events and feeds a 03h read of 256 bytes from the data memory; thread 1 stores the received
+    words; SCK on uio0 (helper TXB = clock), MOSI on uio1 (TXA = data), MISO on ui_in[0]. The flash model of
+    test_slu_clk.py (W25Q128JV times) on the pins, with the slow pad and 10 ns multiplexer delays both ways."""
+    from cocotb.triggers import Edge  # noqa: F401
+    import test_slu_clk as sc
+    rng = random.Random(77)
+    flash = [rng.randrange(256) for _ in range(512)]
+    addr = 0x2C
+    bits = sc.bytes_to_bits([0x03, 0, 0, addr]) + [0] * (8 * 256)
+    words = sc.words_of(bits)
+    prog = pe_asm.assemble(SPI_CLK_FW, "spi_clk")
+    t1 = prog.labels["t1"] if hasattr(prog, "labels") else None
+    pins = [0] * 15
+    pins[0], pins[1] = helper_pin(0, 1), helper_pin(0, 0)
+    cocotb.start_soon(Clock(dut.clk, CHIP_CLK_PS, unit="ps").start())
+    dut.ena.value = 1
+    dut.ui_in.value = 1 << hs.CS_N_BIT
+    dut.uio_in.value = 0
+    dut.rst_n.value = 0
+    await ClockCycles(dut.clk, 10)
+    dut.rst_n.value = 1
+    await ClockCycles(dut.clk, 5)
+    host = hs.SpiTimed(dut)
+    await host.write_mem(0, prog.image()[:prog.size])
+    await host.write_mem(512, [len(bits)] + words)
+    owner = [None] * 15
+    owner[2] = 0
+    head, _ = hs.config_words((0, t1, 0, 0), (True, True, False, False), owner, [False] * 15)
+    await host.write_cfg(0, head)
+    await host.write_cfg(16, pins)
+    d_out = sc.OUT_PAD[1] + sc.MUX_MAX
+    d_in = sc.IN_PAD[1] + sc.MUX_MAX
+    dev = sc.SpiFlash(None, 0, 0, flash, d_in)
+    io = ChipSpiPins(dut, dev, d_out)
+    dev.u = io
+    await host.start()
+    await ClockCycles(dut.clk, 4 * len(bits) + 3000)
+    words_out, _ = await host.pull(0)
+    assert len(words_out) == 1, "thread 0 pushed its status: %s" % words_out
+    status = words_out[0]
+    await host.stop()
+    got_words = await host.read_mem(768, len(words))
+    got = sc.bits_to_bytes(sc.bits_of(got_words, len(bits))[32:])
+    want = [flash[(addr + k) % len(flash)] for k in range(256)]
+    io.task.cancel()
+    assert not status & 0x204, "status %04x: TXUNDER or RXOVER" % status
+    assert not dev.errors, "flash timing at its pins: %s" % dev.errors[:3]
+    assert got == want, "%d of 256 bytes differ (first %s)" % (sum(a != b for a, b in zip(got, want)),
+                                                              [(i, got[i], want[i]) for i in range(256) if got[i] != want[i]][:3])
+    dut._log.info("chip SPI flash read: 03h of 256 bytes at 15 MHz SCK in mode 0 through uio0/uio1/ui_in[0], /CS on "
+                  "uio2 by thread 0, words stored by thread 1; slow pads + 10 ns mux both ways; equal to the flash, "
+                  "0 timing errors at the flash pins; status %04x" % status)
+
+
 @cocotb.test()
 async def test_slu_chip_usb_events(dut):
     """USB low-speed helper in the chip, event input: thread 0 sends DATA0 with 8 bytes and waits for TXDONE on

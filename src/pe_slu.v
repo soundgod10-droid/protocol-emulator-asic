@@ -758,6 +758,7 @@ module pe_slu #(
             tx_jam <= 6'd32;
           end
           if (FULL && jabber) tx_st <= T_IDLE;
+          if (ck_eend) tx_st <= T_IDLE;                    // edge-started frame: wait for the next edge
         end
         T_TAIL1: begin
           if (tx_tail <= 8'd1) begin                     // tail 1 lasts c_tail[7:0] cycles

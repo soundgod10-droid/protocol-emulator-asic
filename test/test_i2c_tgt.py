@@ -350,5 +350,5 @@ async def test_i2c_tgt_rtl(dut):
         await bench.run(1000)
         check(ctl, label)
         await bench.finish(log)
-        log.info(f"{label}: {len(ctl.results)} results correct, no timing fault; target stretches "
-                 f"{min(ctl.stretch)} to {max(ctl.stretch)} cycles; bus changes {len(ctl.changes)}")
+        log.info(f"{label}: {len(ctl.results)} results correct, no timing fault; {stretch_text(ctl)}; "
+                 f"{len(ctl.changes)} bus changes")

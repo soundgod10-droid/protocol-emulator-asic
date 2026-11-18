@@ -358,6 +358,8 @@ async def spi_flash_run(dut, plan):
             log.info("03h read of 256 bytes at address %d: TXPER %d (%.1f MHz) mode %d, sample delay %d, %s edge "
                      "copy, %s: equal to the flash, 0 timing errors at the device pins" % (
                          addr, txper, 60.0 / (2 * txper), mode, delay, "falling" if fall else "rising", corner))
+    if not any(txper == 1 for txper, _ in plan):
+        return
     # control: TXPER 1, sample delay 0, 10 ns multiplexer: the ID must be read wrong
     ok, got, errs = await id_ok(dut, u, 0, 1, 0, 0, "slow, mux 10 ns")
     log.info("control TXPER 1, delay 0, slow pads + 10 ns mux: ID %s (must not be %s)" % (

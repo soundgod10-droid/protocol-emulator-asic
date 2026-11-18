@@ -246,7 +246,7 @@ module tt_um_soundgod10_droid_protocol_emulator (
   // output), uo_out[6:0] = V of pins 14 to 8; uio_out and uio_oe = V and
   // OE of pins 7 to 0. A uo_out pin has no enable, so a released pin
   // shows V = 1 (docs/isa.md 4.5).
-  assign uo_out  = {host_miso, pin_v[14:8]};
+  assign uo_out  = {host_miso | (fill & ~ena), pin_v[14:8]};
   assign uio_out = pin_v[7:0];
   assign uio_oe  = pin_oe[7:0];
 

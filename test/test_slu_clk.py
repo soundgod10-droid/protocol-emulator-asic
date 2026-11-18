@@ -482,7 +482,11 @@ async def test_slc_uart_tx(dut):
     rng = random.Random(4)
     for txper in (4, 5):
         data = [0x55, 0x00, 0xFF, 0x0F] + [rng.randrange(256) for _ in range(60)]
+        dump_on(dut, txper == 4)                                  # waveform of the 15 Mbaud frame only
+        t0 = now_ns()
         line, nbits = await uart_tx_frame(dut, u, txper, data)
+        if txper == 4:
+            log.info("waveform: UART TX frame at TXPER 4 from %.1f to %.1f ns" % (t0, now_ns()))
         got, nedges, off = uart_decode(line, txper, len(data))
         log.info("UART TX TXPER %d (%.1f Mbaud): %d bytes back to back, %d line bits, %d edges, %d off the %d-cycle grid; "
                  "decoded %s" % (txper, 60.0 / txper, len(data), nbits, nedges, len(off), txper,

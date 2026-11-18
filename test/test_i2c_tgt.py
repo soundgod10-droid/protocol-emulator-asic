@@ -353,7 +353,9 @@ async def test_i2c_tgt_rtl(dut):
         label = f"rtl i2c_tgt {mode} tLOW {t_low} us tHIGH {t_high} us"
         bench = rf.RtlBench(dut, prog.words, owner=ff.owners({P_SCL: 0, P_SDA: 0}),
                             od=ff.open_drain({P_SCL, P_SDA}), inputs=ctl, label=label)
-        if mode == "Fm" and t_low == 1.3:  # waveform of the first write transfer (tb.fst), for review
+        # waveform of the first write transfer (tb.fst), for review; the Verilator coverage build has no dump and
+        # no dump_off (test/tb.v), so there the test runs without it
+        if mode == "Fm" and t_low == 1.3 and hasattr(dut, "dump_off"):
             await bench.run(rf.HOST_START + START - 500)
             dut.dump_off.value = 0
             await bench.run(30_000)

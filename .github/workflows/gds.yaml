@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        run: [44264726328, 44178417537, 44215058313, 44215191874]
+        run: [44264726328, 44178417537]
     steps:
       - name: logs of run ${{ matrix.run }}
         env:

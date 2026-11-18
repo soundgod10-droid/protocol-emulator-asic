@@ -366,3 +366,220 @@ async def test_sigrok_am2302(dut):
                {"am230x:humidity|temperature|checksum": [f"Humidity: {hum / 10:.1f} %", f"Temperature: {t:.1f} °C",
                                                           "Checksum: OK"]}, t0, t1, "am_sda",
                f"chip reads the AM2302 model, data sheet example {k}, bus level of the data line (open drain)")
+
+
+# ----- I2C target -----
+# The 24C02-type transfers of test_i2c_tgt.SCRIPT that a 24xx EEPROM decoder reads without a warning: a page write
+# at 0x10, a sequential random read of it, a current-address read (the NACKed other address and the write that
+# ends with a repeated START are left out: eeprom24xx/pd.py gives "Warning: No reply from slave!" and does not
+# take a write ended by a repeated START). eeprom24xx/pd.py (chip generic: 8-byte pages, 1 address byte): classes
+# page-write "Page write (addr={a:02X}, {n} bytes): {bytes}", seq-random-read "Sequential random read (addr=...,
+# ...): ...", cur-addr-read "Current address read: {b:02X}".
+I2C_TGT_SCRIPT = ([it.S, it.w(it.ADDR << 1), it.w(0x10)] + [it.w(b) for b in it.DATA] + [it.P]
+                  + [it.S, it.w(it.ADDR << 1), it.w(0x10), it.S, it.w(it.ADDR << 1 | 1)] + [it.r(True)] * 4
+                  + [it.r(False), it.P] + [it.S, it.w(it.ADDR << 1 | 1), it.r(False), it.P])
+
+
+def i2c_script_texts(script, results):
+    """i2c texts of a controller script and its results: the byte after a START is the address byte."""
+    out, res, prev, in_xfer = [], iter(results), None, False
+    for op in script:
+        if op[0] == "start":
+            out.append("Start repeat" if in_xfer else "Start")
+            in_xfer = True
+        elif op[0] == "stop":
+            out.append("Stop")
+            in_xfer = False
+        elif op[0] == "w":
+            _, byte, nack = next(res)
+            out.append(f"Address {'read' if byte & 1 else 'write'}: {byte >> 1:02X}" if prev == "start"
+                       else f"Data write: {byte:02X}")
+            out.append("NACK" if nack else "ACK")
+        else:
+            _, byte = next(res)
+            out += [f"Data read: {byte:02X}", "ACK" if op[1] else "NACK"]
+        prev = op[0]
+    return out
+
+
+@cocotb.test()
+async def test_sigrok_i2c_tgt(dut):
+    """fw/i2c_tgt.s in Fast-mode (tLOW 1.3 us, tHIGH 1.2 us, with clock stretching) against the I2C controller model
+    of test_i2c_tgt.py: page write, sequential random read, current-address read."""
+    rf.start_clock(dut)
+    want = ([("w", op[1], 0) for op in I2C_TGT_SCRIPT if op[0] == "w"])
+    reads = iter(it.DATA + [0x00])
+    exp = [("w", op[1], 0) if op[0] == "w" else ("r", next(reads)) for op in I2C_TGT_SCRIPT if op[0] in ("w", "r")]
+    ctl = it.I2cController(rf.F_MHZ, "Fm", 1.3, 1.2, hd=1, start=rf.HOST_START + it.START, script=I2C_TGT_SCRIPT)
+    label = "sigrok i2c_tgt Fm"
+    bench = rf.RtlBench(dut, it.assemble().words, owner=ff.owners({it.P_SCL: 0, it.P_SDA: 0}),
+                        od=ff.open_drain({it.P_SCL, it.P_SDA}), inputs=ctl, label=label)
+    await bench.run(rf.HOST_START + it.START - 500)
+    t0 = now_ps()
+    for _ in range(400):
+        if ctl.done:
+            break
+        await bench.run(5000)
+    await bench.run(1000)
+    t1 = now_ps()
+    assert ctl.done and not ctl.errors, f"{label}: done {ctl.done}, errors {ctl.errors[:3]}"
+    assert ctl.results == exp and len(want) == sum(1 for r in exp if r[0] == "w"), f"{label}: results {ctl.results}"
+    await bench.finish(dut._log)
+    data = " ".join(f"{b:02X}" for b in it.DATA)
+    record("test_sigrok_i2c_tgt", "i2c_tgt_fm", I2C_LINES, "i2c:scl=i2c_scl:sda=i2c_sda,eeprom24xx:chip=generic",
+           {I2C_CLASSES: i2c_script_texts(I2C_TGT_SCRIPT, exp),
+            "eeprom24xx:page-write|seq-random-read|cur-addr-read": [
+                f"Page write (addr=10, 5 bytes): {data}", f"Sequential random read (addr=10, 5 bytes): {data}",
+                "Current address read: 00"]}, t0, t1, "i2c_sda",
+           "I2C controller model (UM10204 Fm corner), chip as a 24C02-type target with clock stretching; bus levels")
+
+
+# ----- 1-Wire -----
+# onewire_network/pd.py on onewire_link: class text "Reset/presence: true", "ROM command: 0x{c:02x} '{name}'"
+# (0x33 'Read ROM', 0xcc 'Skip ROM'), "ROM: 0x{rom:016x}" (64 bits, first bit = bit 0), "Data: 0x{b:02x}".
+
+
+@cocotb.test()
+async def test_sigrok_onewire(dut):
+    """fw/onewire.s against the DS18B20 device model at its default times: Read ROM, Write Scratchpad, Read
+    Scratchpad (test_rtl_fw.test_rtl_onewire with the device's typical times)."""
+    rf.start_clock(dut)
+    dev = ho.OneWireDevice(rf.F_MHZ)
+    label = "sigrok onewire.s"
+    bench = rf.RtlBench(dut, ho.assemble("onewire.s", **ho.OW_EQU[rf.F_MHZ]).words, owner=ff.owners({ho.P_OW: 0}),
+                        od=ff.open_drain({ho.P_OW}), inputs=dev, label=label)
+    await bench.run(100)
+    t0 = now_ps()
+    bench.send(0, *ho.OW_SCRIPT)
+    resets = sum(1 for w in ho.OW_SCRIPT if w & 0x100)
+    await bench.run(rf.HOST_START + resets * 1000 * rf.F_MHZ + (len(ho.OW_SCRIPT) - resets) * 8 * 72 * rf.F_MHZ)
+    await bench.collect(0, len(ho.ow_expected()))
+    t1 = now_ps()
+    assert bench.words(0) == ho.ow_expected(), f"{label}: replies {[hex(w) for w in bench.words(0)]}"
+    await bench.finish(dut._log)
+    rom = sum(b << (8 * k) for k, b in enumerate(ho.ROM))
+    scratch = list(ho.SCRATCH)
+    scratch[2:5] = [0x19, 0xE6, 0x3F]
+    texts = (["Reset/presence: true", "ROM command: 0x33 'Read ROM'", f"ROM: 0x{rom:016x}",
+              "Reset/presence: true", "ROM command: 0xcc 'Skip ROM'"] + [f"Data: 0x{b:02x}" for b in (0x4E, 0x19, 0xE6, 0x3F)]
+             + ["Reset/presence: true", "ROM command: 0xcc 'Skip ROM'", "Data: 0xbe"] + [f"Data: 0x{b:02x}" for b in scratch])
+    record("test_sigrok_onewire", "onewire", [["ow_bus", f"in:{ho.P_OW}"]], "onewire_link:owr=ow_bus,onewire_network",
+           {"onewire_network:text": texts}, t0, t1, "ow_bus",
+           "chip as 1-Wire controller with the DS18B20 model: bus level (open drain)")
+
+
+# ----- JTAG -----
+# jtag/pd.py: at Update-DR/IR, class bitstring-tdi "{IR|DR} TDI: {bits} (0x{v:x}), {n} bits" and bitstring-tdo
+# the same with TDO; the bits are written last shifted bit first. fw/jtag_tap.s has no Pause state (a scan through
+# Pause-DR gets one more bit in jtag/pd.py, which also takes a bit at Exit1-DR to Pause-DR).
+
+
+def jtag_texts():
+    out = []
+    for ops in fx.jtag_ops():
+        for cmd, tdi, tdo in ops:
+            if cmd == 0:
+                continue
+            kind = "IR" if cmd & 0x8000 else "DR"
+            for name, bits in (("TDI", tdi), ("TDO", tdo)):
+                b = "".join(str(x) for x in reversed(bits))
+                out.append(f"{kind} {name}: {b} (0x{int('0' + b, 2):x}), {len(bits)} bits")
+    return out
+
+
+@cocotb.test()
+async def test_sigrok_jtag(dut):
+    """fw/jtag_tap.s (TCK 1.5 MHz) against the two-TAP chain: both IDCODEs, IR scan, a DR write of 0xA53 and its
+    read-back, reset and IDCODEs again (test_rtl_fw.rtl_jtag with fw/jtag_tap.s)."""
+    rf.start_clock(dut)
+    t0 = now_ps()
+    await rf.rtl_jtag(dut, "jtag_tap.s", 12, 28)
+    t1 = now_ps()
+    record("test_sigrok_jtag", "jtag_tap", [["jtag_tck", "uo:0"], ["jtag_tms", "uo:1"], ["jtag_tdi", "uo:2"],
+                                            ["jtag_tdo", "ui:0"]],
+           "jtag:tdi=jtag_tdi:tdo=jtag_tdo:tck=jtag_tck:tms=jtag_tms", {"jtag:bitstring-tdi|bitstring-tdo": jtag_texts()},
+           t0, t1, "jtag_tdi", "chip as JTAG controller (fw/jtag_tap.s) with the two-TAP chain model; TDO from the chain")
+
+
+# ----- SWD -----
+# swd/pd.py: classes reset "LINERESET", enable "JTAG->SWD", read/write "IDCODE", "W SELECT", "W AP4", "R AP4",
+# "RDBUFF", ack "OK"/"WAIT", data "0x{v:08x}"; class parity is given only for a parity error (forbidden here).
+
+
+@cocotb.test()
+async def test_sigrok_swd(dut):
+    """fw/swd.s (SWCLK 1.875 MHz) against the SW-DP target model: JTAG-to-SWD and line reset, DPIDR read, SELECT
+    write, AP write with two WAITs, posted AP read and RDBUFF (test_rtl_fw.test_rtl_swd without the parity-error
+    write and the reset-state part)."""
+    rf.start_clock(dut)
+    h1, h2 = 12, 20
+    tgt = fx.SwdTarget()
+    label = "sigrok swd.s"
+    bench = rf.RtlBench(dut, fx.assemble("swd.s", H1=h1, H2=h2).words, owner=ff.owners({fx.P_SWCLK: 0, fx.P_SWDIO: 0}),
+                        inputs=fx.SwdLine(tgt), label=label)
+    host = rf.RtlSwdHost(bench, h1 + h2)
+    await bench.run(50)
+    t0 = now_ps()
+    await host.raw(fx.SWD_CONNECT)
+    got = await host.xfer(0, 1, 0x0)
+    assert got == (0b001, tgt.dpidr, True), f"{label}: DPIDR read {got}"
+    assert (await host.xfer(0, 0, 0x8, 0x000000F0))[0] == 0b001, f"{label}: SELECT write"
+    tgt.waits = 2
+    acks = [(await host.xfer(1, 0, 0x4, 0xCAFEF00D))[0] for _ in range(3)]
+    assert acks == [0b010, 0b010, 0b001], f"{label}: ACKs {acks}"
+    first = await host.xfer(1, 1, 0x4)
+    last = await host.xfer(0, 1, 0xC)
+    assert first[0] == 0b001 and first[2] and last == (0b001, 0xCAFEF00D, True), f"{label}: {first}, {last}"
+    await bench.run(60 * (h1 + h2))
+    t1 = now_ps()
+    assert not tgt.errors, f"{label}: target errors {tgt.errors[:3]}"
+    await bench.finish(dut._log)
+    texts = (["LINERESET", "JTAG->SWD", "LINERESET", "IDCODE", "OK", f"0x{tgt.dpidr:08x}", "W SELECT", "OK",
+              "0x000000f0", "W AP4", "WAIT", "W AP4", "WAIT", "W AP4", "OK", "0xcafef00d", "R AP4", "OK",
+              f"0x{first[1]:08x}", "RDBUFF", "OK", "0xcafef00d"])
+    record("test_sigrok_swd", "swd", [["swd_swclk", f"uo:{fx.P_SWCLK - 8}"], ["swd_swdio", f"in:{fx.P_SWDIO}"]],
+           "swd:swclk=swd_swclk:swdio=swd_swdio", {"swd:reset|enable|read|write|ack|data": texts}, t0, t1, "swd_swdio",
+           "chip as SWD host with the SW-DP model; SWDIO bus level", forbid=["swd:parity"])
+
+
+# ----- AVR PDI -----
+# avr_pdi/pd.py: classes data-prog and data-dev "Data: 0x{bytes}", a multi-byte item little endian written high
+# byte first. The first 17 words of test_holdout.PDI_SCRIPT (before the planted parity error and BREAK): LDCS
+# status, KEY with the 8-byte NVM key, LDCS status, STCS ctrl 0x05, LDCS ctrl.
+
+
+@cocotb.test()
+async def test_sigrok_pdi(dut):
+    """fw/pdi.s (PDI_CLK 1 MHz) against the XMEGA PDI device model: enable, LDCS, KEY, STCS, LDCS; replies 0x00,
+    0x02 (NVMEN), 0x05."""
+    rf.start_clock(dut)
+    dev = ho.PdiDevice(rf.F_MHZ, t_rst=1.0, d_out=1, undriven=0, mem=ho.PDI_MEM)
+    label = "sigrok pdi.s"
+    bench = rf.RtlBench(dut, ho.assemble("pdi.s", **ho.PDI_EQU[rf.F_MHZ]).words,
+                        owner=ff.owners({ho.P_CLK: 0, ho.P_DAT: 0}), inputs=dev, label=label)
+    script = list(ho.PDI_SCRIPT[:17])
+    i = 0
+    while i < len(script):
+        if i + 1 < len(script) and script[i + 1] & 0x8000:
+            bench.send_group(0, script[i], script[i + 1])
+            i += 2
+        else:
+            bench.send(0, script[i])
+            i += 1
+    await bench.run(100)
+    t0 = now_ps()
+    for _ in range(100):
+        await bench.run(5000)
+        if len(bench.words(0)) >= 3 and not any(bench.to_thread):
+            break
+    await bench.run(2000)
+    t1 = now_ps()
+    assert not dev.faults, f"{label}: {dev.faults}"
+    assert ho.pdi_result(bench.words(0)) == [0x00, 0x02, 0x05], f"{label}: replies {bench.words(0)}"
+    await bench.finish(dut._log)
+    key = [(w >> 1) & 0xFF for w in script[3:11]]
+    texts = ["Data: 0x00", "Data: 0x" + "".join(f"{b:02x}" for b in reversed(key)), "Data: 0x02", "Data: 0x05",
+             "Data: 0x05"]
+    record("test_sigrok_pdi", "pdi", [["pdi_clk", f"drvh:{ho.P_CLK - 8}"], ["pdi_data", f"bus:{ho.P_DAT - 8}"]],
+           "avr_pdi:reset=pdi_clk:data=pdi_data", {"avr_pdi:data-prog|data-dev": texts}, t0, t1, "pdi_data",
+           "chip as PDI programmer with the XMEGA model; PDI_DATA = chip level when driven, device level when released")

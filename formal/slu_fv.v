@@ -371,7 +371,7 @@ module slu_fv #(
   always @* begin
     cover (rst_n && m_on && mon_bs && mon_kind == K_CRC);
     if (SPEC == 1) cover (rst_n && m_on && mon_bs && mon_kind == K_STUFF);
-    if (SPEC == 2) cover (rst_n && mon_st == T_JAM && mon_bs && mon_kind == K_END);
+    if (SPEC == 2) cover (rst_n && jfirst);
   end
 `endif
 

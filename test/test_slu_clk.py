@@ -606,6 +606,304 @@ async def test_slc_uart_rx(dut):
     assert failed, "control: +/-2.8 % at 15 Mbaud passed every run"
 
 
+# ----- T2 (JTAG) and T6 (SWD): the device models of test/test_flex.py, run at their pins in ns -----
+
+import sys  # noqa: E402
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import test_flex as fx  # noqa: E402  JtagDevice (TI SSYA002C) and SwdTarget (Arm IHI0031H), unchanged
+
+
+class ThreadPin:
+    """A pin that a thread drives with OUT events at the helper's bit starts (the falling clock edges of a
+    clocked frame, read from tx_v as a thread knows them from TXTIME): pin flip-flop, out pad and multiplexer.
+    One event slot per pin: a change less than 8 cycles after the previous one is an error (docs/isa.md 4.4)."""
+
+    def __init__(self, d_out, apply):
+        self.d_out, self.apply = d_out, apply
+        self.t_last, self.errors = -1e9, []
+
+    def change(self, v):
+        t = now_ns()
+        if t - self.t_last < 8 * T_NS - 0.5:
+            self.errors.append("pin change %.1f ns after the previous one" % (t - self.t_last))
+        self.t_last = t
+        cocotb.start_soon(later(T_NS + self.d_out, self.apply, v))
+
+
+class ClockedHost:
+    """Runs one clocked frame and gives the bench the bit starts: plan[k] is applied by the thread pin at the
+    start of bit k (bit 0 before the frame, the others at the falling edges of tx_v[1])."""
+
+    def __init__(self, dut, plan, pin, on_clk, d_clk):
+        self.dut, self.plan, self.pin, self.on_clk, self.d_clk = dut, plan, pin, on_clk, d_clk
+        self.k = 0
+        self.task = cocotb.start_soon(self.run())
+
+    async def run(self):
+        last = int(self.dut.slc_txv.value) & 2
+        while True:
+            await Edge(self.dut.slc_txv)
+            v = int(self.dut.slc_txv.value) & 2
+            if v == last:
+                continue
+            last = v
+            cocotb.start_soon(later(T_NS + self.d_clk, self.on_clk, v >> 1))
+            if not v:                                             # falling edge: start of the next bit
+                self.k += 1
+                if self.k < len(self.plan) and self.plan[self.k] is not None and self.plan[self.k] != self.plan[self.k - 1]:
+                    self.pin.change(self.plan[self.k])
+
+    def stop(self):
+        self.task.cancel()
+
+
+class JtagAtPins:
+    """The chain of fx.JtagDevice at its pins, times in ns; TDO (or the pull-up) reaches DIN after d_in."""
+
+    def __init__(self, u, devs, d_in):
+        self.u, self.devs, self.d_in = u, devs, d_in
+        self.tck, self.tms, self.tdi, self.out = 0, 1, 1, None
+
+    def eval(self):
+        t = now_ns()
+        tdi = self.tdi
+        for d in self.devs:
+            d.step(t, self.tck, self.tms, tdi)
+            tdi = 1 if d.tdo is None else d.tdo
+        if tdi != self.out:
+            self.out = tdi
+            cocotb.start_soon(later(self.d_in, self.u.set_pin, DIN, tdi))
+        nxt = [d.pend[0][0] for d in self.devs if d.pend]
+        if nxt and min(nxt) > t:
+            cocotb.start_soon(later(min(nxt) - t + 0.001, self.eval))
+
+    def on_tck(self, v):
+        self.tck = v
+        self.eval()
+
+    def on_tdi(self, v):
+        self.tdi = v
+        self.eval()
+
+    def on_tms(self, v):
+        self.tms = v
+        self.eval()
+
+
+JTAG_TD, JTAG_TSU, JTAG_TH, JTAG_TCKMIN = 7.0, 1.0, 2.0, 10.0   # ns, device parameters (the primer gives no times)
+
+
+async def jtag_frame(dut, u, chain, txper, tms, tdi, delay, fall, corner):
+    """One clocked frame with TMS from a thread pin and TDI from the helper; returns the TDO samples."""
+    d = CORNERS[corner]
+    await clocked_config(u, txper, cpol=0, lead=0, fall=fall, delay=delay)
+    tms_pin = ThreadPin(d[1], chain.on_tms)
+    path = PinPath(dut, None, chain.on_tdi, d[0], d[1])
+    host = ClockedHost(dut, tms, tms_pin, chain.on_tck, d[0])
+    chain.on_tms(tms[0])
+    got, st, _ = await clocked_frame(u, tdi)
+    await ClockCycles(dut.clk, 4)
+    host.stop()
+    path.stop()
+    return got, tms_pin.errors
+
+
+async def jtag_session(dut, u, shift_txper, delay, fall, corner):
+    """IDCODEs, BYPASS in both devices, a 1,000-bit DR scan through Pause-DR. Returns (fault or None, notes)."""
+    devs = fx.jtag_devices(td=JTAG_TD, tsu=JTAG_TSU, th=JTAG_TH, tlow=JTAG_TCKMIN, thigh=JTAG_TCKMIN)
+    chain = JtagAtPins(u, devs, CORNERS[corner][2])
+    errs = []
+
+    async def nav(tms):
+        _, e = await jtag_frame(dut, u, chain, 4, tms, [1] * len(tms), delay, fall, corner)
+        errs.extend(e)
+
+    async def shift(tdi):
+        tms = [0] * (len(tdi) - 1) + [1]
+        got, e = await jtag_frame(dut, u, chain, shift_txper, tms, tdi, delay, fall, corner)
+        errs.extend(e)
+        return got
+
+    await nav([1] * 5 + [0, 1, 0, 0])                            # Test-Logic-Reset, Run-Test/Idle, to Shift-DR
+    ids = await shift([1] * 64)
+    want = fx.value_bits(fx.JTAG_IDS[1], 32) + fx.value_bits(fx.JTAG_IDS[0], 32)
+    if ids != want:
+        return "IDCODE scan: %08x %08x" % (fx.lsb_word(ids[:32]), fx.lsb_word(ids[32:64])), None
+    await nav([1, 0, 1, 1, 0, 0])                                 # Update-DR, RTI, Select-DR, Select-IR, Capture-IR, Shift-IR
+    cap = await shift([1] * 9)                                    # BYPASS (all ones) in both instruction registers
+    if cap != fx.value_bits(0b01001, 5) + fx.value_bits(0b1001, 4):
+        return "IR capture %s" % cap, None
+    await nav([1, 0, 1, 0, 0])                                    # Update-IR, RTI, Select-DR, Capture-DR, Shift-DR
+    rng = random.Random(9)
+    pat = [rng.randrange(2) for _ in range(1000)]
+    a = await shift(pat[:500])
+    await nav([0, 0, 1, 0])                                       # Exit1-DR -> Pause-DR (twice) -> Exit2-DR -> Shift-DR
+    b = await shift(pat[500:])
+    await nav([1, 0])                                             # Update-DR, RTI
+    if a + b != [0, 0] + pat[:998]:
+        bad = [i for i, (x, y) in enumerate(zip(a + b, [0, 0] + pat[:998])) if x != y]
+        return "1,000-bit bypass scan: %d bits wrong, first at %s" % (len(bad), bad[:5]), None
+    dev_errs = [e for dv in devs for e in dv.errors]
+    if dev_errs or errs:
+        return "device timing %s, thread pin %s" % (dev_errs[:3], errs[:3]), None
+    return None, "IDCODEs %08x %08x" % (fx.JTAG_IDS[1], fx.JTAG_IDS[0])
+
+
+@cocotb.test(skip=GL)
+async def test_slc_jtag(dut):
+    """T2: JTAG on the USB helper's clocked mode: TCK = helper clock, TDI = helper data, TDO = DIN, TMS from a thread
+    pin with OUT events at the bit starts (at most one change per 8 cycles: navigation frames at TXPER 4, shift frames
+    with TMS only at the last bit). Two TAPs of test_flex.py (TI SSYA002C) with TDO 7 ns after the falling edge,
+    set-up 1 ns, hold 2 ns, TCK high and low 10 ns or more: both IDCODEs, BYPASS in both, a 1,000-bit DR scan through
+    Pause-DR, at shift rates 15 MHz (TXPER 2) and 30 MHz (TXPER 1), at the extreme pin-path corners."""
+    u = await unit_reset(dut)
+    dut.dump_off.value = 1
+    log = dut._log
+    for shift_txper in (2, 1):
+        good = []
+        for fall in (0, 1):
+            for delay in range(8):
+                ok = True
+                for corner in ("fast, no mux", "slow, mux 10 ns"):
+                    f, _ = await jtag_session(dut, u, shift_txper, delay, fall, corner)
+                    if f:
+                        ok = False
+                        break
+                if ok:
+                    good.append((delay, fall))
+        log.info("JTAG shift at TXPER %d (%.0f MHz TCK), navigation at TXPER 4: read-back settings correct at both "
+                 "extreme corners: %s" % (shift_txper, 60.0 / (2 * shift_txper), good or "none"))
+        assert good, "JTAG at TXPER %d: no setting works at both corners" % shift_txper
+        delay, fall = good[len(good) // 2]
+        for corner in CORNERS:
+            f, note = await jtag_session(dut, u, shift_txper, delay, fall, corner)
+            assert f is None, "JTAG TXPER %d %s: %s" % (shift_txper, corner, f)
+        log.info("JTAG TXPER %d, delay %d %s copy: %s, IR BYPASS, 1,000-bit scan through Pause-DR correct at all %d "
+                 "corners, 0 device timing errors, TMS changes 8 or more cycles apart" % (
+                     shift_txper, delay, "falling" if fall else "rising", note, len(CORNERS)))
+
+
+class SwdAtPins:
+    """fx.SwdTarget at its pins, times in ns: SWCLK from the helper, host SWDIO from a thread pin (OE and value),
+    the line (target, host or pull-up) reaches DIN after d_in."""
+
+    def __init__(self, u, tgt, d_in):
+        self.u, self.t, self.d_in = u, tgt, d_in
+        self.clk, self.oe, self.v, self.out = 0, 0, 1, None
+
+    def eval(self):
+        now = now_ns()
+        line = self.t.step(now, self.clk, self.oe, self.v)
+        if line != self.out:
+            self.out = line
+            cocotb.start_soon(later(self.d_in, self.u.set_pin, DIN, line))
+        if self.t.pend and self.t.pend[0][0] > now:
+            cocotb.start_soon(later(self.t.pend[0][0] - now + 0.001, self.eval))
+
+    def on_clk(self, v):
+        self.clk = v
+        self.eval()
+
+    def host(self, ov):
+        self.oe, self.v = ov
+        self.eval()
+
+
+async def swd_frame(dut, u, swd, plan, delay, fall, corner):
+    """One clocked frame at TXPER 4: plan[k] = (OE, value) of the host SWDIO in bit k (None = unchanged)."""
+    d = CORNERS[corner]
+    await clocked_config(u, 4, cpol=0, lead=0, fall=fall, delay=delay)
+    pin = ThreadPin(d[1], swd.host)
+    host = ClockedHost(dut, plan, pin, swd.on_clk, d[0])
+    swd.host(plan[0])
+    got, st, _ = await clocked_frame(u, [0] * len(plan))
+    await ClockCycles(dut.clk, 4)
+    host.stop()
+    return got, pin.errors
+
+
+async def swd_session(dut, u, delay, fall, corner, td):
+    """Connection, DPIDR read, SELECT write, AP write, posted AP read and RDBUFF. Returns fault or None."""
+    tgt = fx.SwdTarget(td=td, tsu=2.0, th=2.0, tlow=20.0, thigh=20.0)
+    swd = SwdAtPins(u, tgt, CORNERS[corner][2])
+    errs = []
+
+    async def drive(bits):
+        _, e = await swd_frame(dut, u, swd, [(1, b) for b in bits], delay, fall, corner)
+        errs.extend(e)
+
+    async def xfer(apndp, rnw, a, value=0):
+        req = fx.swd_request(apndp, rnw, a)
+        plan = [(1, (req >> i) & 1) for i in range(8)] + [(0, 1)] * 3        # request, release, ACK bits 8-10
+        got, e = await swd_frame(dut, u, swd, plan, delay, fall, corner)
+        errs.extend(e)
+        ack = got[8] | got[9] << 1 | got[10] << 2
+        if ack != 0b001:
+            return ack, None
+        if rnw:                                                   # data 11-42, parity 43, turnaround 44, end 45
+            got, e = await swd_frame(dut, u, swd, [(0, 1)] * 34 + [(1, 0)], delay, fall, corner)
+            errs.extend(e)
+            v = fx.lsb_word(got[:32])
+            return ack, v if fx.parity(v) == got[32] else ("parity", v)
+        wbits = fx.value_bits(value, 32) + [fx.parity(value)]     # release 11, turnaround 12, data 13-45
+        _, e = await swd_frame(dut, u, swd, [(0, 1), (0, 1)] + [(1, b) for b in wbits], delay, fall, corner)
+        errs.extend(e)
+        return ack, None
+
+    await drive(fx.SWD_CONNECT)
+    r = await xfer(0, 1, 0x0)
+    if r != (0b001, tgt.dpidr):
+        return "DPIDR read %s" % (r,)
+    if (await xfer(0, 0, 0x8, 0x000000F0))[0] != 0b001:
+        return "SELECT write"
+    if (await xfer(1, 0, 0x4, 0xCAFEF00D))[0] != 0b001 or tgt.ap.get((0xF0, 0x4)) != 0xCAFEF00D:
+        return "AP write: AP %s" % tgt.ap
+    await xfer(1, 1, 0x4)
+    r = await xfer(0, 1, 0xC)
+    if r != (0b001, 0xCAFEF00D):
+        return "RDBUFF %s" % (r,)
+    if tgt.errors or errs:
+        return "target timing %s, thread pin %s" % (tgt.errors[:3], errs[:3])
+    return None
+
+
+@cocotb.test(skip=GL)
+async def test_slc_swd(dut):
+    """T6: SWD at 7.5 MHz SWCLK (TXPER 4, 8 cycles a bit): SWCLK = helper clock, SWDIO driven by a thread pin (OUT
+    events at the bit starts, OE off for the turnaround and the target's bits) and sampled by the helper on DIN. The
+    request and ACK are one frame and the data phase the next, so the host has the ACK before it drives data. Target:
+    fx.SwdTarget (Arm IHI0031H) with output delay 2 or 25 ns after the rising edge, set-up and hold 2 ns, SWCLK high
+    and low 20 ns or more: JTAG-to-SWD and line reset, DPIDR, SELECT, AP write, posted AP read with RDBUFF."""
+    u = await unit_reset(dut)
+    dut.dump_off.value = 1
+    log = dut._log
+    good = []
+    for fall in (0, 1):
+        for delay in range(8):
+            ok = True
+            for corner in ("fast, no mux", "slow, mux 10 ns"):
+                for td in (2.0, 25.0):
+                    if await swd_session(dut, u, delay, fall, corner, td):
+                        ok = False
+                        break
+                if not ok:
+                    break
+            if ok:
+                good.append((delay, fall))
+    log.info("SWD 7.5 MHz: read-back settings correct at both extreme corners and target delays 2 and 25 ns: %s" % (
+        good or "none"))
+    assert good, "SWD: no read-back setting works"
+    delay, fall = good[len(good) // 2]
+    for corner in CORNERS:
+        for td in (2.0, 25.0):
+            f = await swd_session(dut, u, delay, fall, corner, td)
+            assert f is None, "SWD %s, target delay %.0f ns: %s" % (corner, td, f)
+    log.info("SWD 7.5 MHz, delay %d %s copy: connection, DPIDR, SELECT, AP write, posted AP read and RDBUFF correct "
+             "at all %d corners and target delays 2 and 25 ns; 0 target timing errors; SWDIO changes 8 or more cycles "
+             "apart" % (delay, "falling" if fall else "rising", len(CORNERS)))
+
+
 @cocotb.test(skip=GL)
 async def test_slc_spi_flash_15mhz(dut):
     """T1 at TXPER 2 (4 cycles a bit, 15 MHz), SPI modes 0 to 3 (see spi_flash_run)."""

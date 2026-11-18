@@ -353,6 +353,11 @@ async def test_i2c_tgt_rtl(dut):
         label = f"rtl i2c_tgt {mode} tLOW {t_low} us tHIGH {t_high} us"
         bench = rf.RtlBench(dut, prog.words, owner=ff.owners({P_SCL: 0, P_SDA: 0}),
                             od=ff.open_drain({P_SCL, P_SDA}), inputs=ctl, label=label)
+        if mode == "Fm" and t_low == 1.3:  # waveform of the first write transfer (tb.fst), for review
+            await bench.run(rf.HOST_START + START - 500)
+            dut.dump_off.value = 0
+            await bench.run(30_000)
+            dut.dump_off.value = 1
         for _ in range(400):
             if ctl.done:
                 break

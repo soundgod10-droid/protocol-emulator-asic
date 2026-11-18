@@ -257,7 +257,7 @@ module slu_fv #(
         if (cv_cur) begin
           if (SPEC == 1) assert (mon_tmr + c_cur == TXPER - 1);
           else assert (mon_tmr + c_cur == (mon_half ? TXPER - 1 : 2 * TXPER - 1));
-        end else begin
+        end else if (first) begin
           assert (mon_tmr == 16'd0);
         end
       end

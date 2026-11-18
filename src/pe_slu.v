@@ -47,8 +47,10 @@ module pe_slu #(
     parameter FULL = 1,
     // SPEC = 0: the general unit (configuration words written by the thread). SPEC = 1: a dedicated
     // USB low-speed helper, SPEC = 2: a dedicated 10BASE-Te helper; their configuration is fixed to
-    // the values below (only SEL, the pin choice, stays writable), so synthesis removes the other
-    // modes. SPEC 1 and 2 exist to measure the dedicated-helper alternative with the same RTL.
+    // the values below, so synthesis removes the other modes. SEL (the pin choice) stays writable in
+    // both; in SPEC 1 also MODE bits 0, 1, 3, 4, 9, TXPER[7:0] and LTC[12:8], so that the USB helper
+    // also runs the clocked and NRZ modes (SPI controller, JTAG, SWD clock, UART). SPEC 1 and 2 exist
+    // to measure the dedicated-helper alternative with the same RTL.
     parameter SPEC = 0
 ) (
     input  wire        clk,

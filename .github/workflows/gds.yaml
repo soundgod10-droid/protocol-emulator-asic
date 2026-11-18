@@ -1,8 +1,30 @@
 name: gds
 
+# The layout and its gate-level tests run when a push changes a file they use: the RTL and flow configuration
+# (src/, info.yaml, docs/info.md that the submission carries), the tests and what they load (test/, fw/, asm/,
+# model/), or this workflow. A push that changes only other files (documentation, site, simulator, registry,
+# formal, other workflows) starts no layout run; the newest gds run with the same src/ stays the evidence
+# (count.yaml and gl_fw.yaml select gds runs by src/). Tag pushes always run (path filters do not apply to tags).
 on:
   push:
+    paths:
+      - 'src/**'
+      - 'info.yaml'
+      - 'docs/info.md'
+      - 'test/**'
+      - 'fw/**'
+      - 'asm/**'
+      - 'model/**'
+      - '.gitmodules'
+      - '.github/workflows/gds.yaml'
+      - '.github/signoff_facts.py'
   workflow_dispatch:
+
+# On the integration branch and on tags every run is kept (a group of its own): each RTL commit keeps its layout
+# result, and a later push does not wait for an earlier run. On other branches a newer push cancels the older run.
+concurrency:
+  group: ${{ (github.ref == 'refs/heads/cmos5l' || startsWith(github.ref, 'refs/tags/')) && format('gds-run-{0}', github.run_id) || format('gds-{0}', github.ref) }}
+  cancel-in-progress: true
 
 jobs:
   gds:

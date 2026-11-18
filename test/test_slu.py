@@ -1194,6 +1194,9 @@ class ChipSpiPins:
         while True:
             await Edge(self.dut.uio_out)
             s = str(self.dut.uio_out.value)[-3:]                # uio2..uio0; the unused pins may be X or Z
+            if len(self.seen) < 12:
+                self.seen.append("%.0f:%s/%s" % (get_sim_time("ns"), str(self.dut.uio_out.value),
+                                                 str(self.dut.uio_oe.value)))
             if any(c not in "01" for c in s):
                 continue
             v = int(s, 2)

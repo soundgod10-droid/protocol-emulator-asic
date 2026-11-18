@@ -47,3 +47,42 @@ jobs:
           "$HOME/sigrok/bin/sigrok-cli" -L > decoders.txt
           ls "$HOME/sigrok/share/libsigrokdecode/decoders" | grep -v -e '^common$' -e '^__' | wc -l
           sed -n '/Supported protocol decoders/,/Supported output/p' decoders.txt
+
+      - name: Install iverilog
+        run: sudo apt-get install -y iverilog
+
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Install Python packages
+        run: pip install -r test/requirements.txt
+
+      # The scenarios of test/test_sigrok.py on the RTL, with the pin dump of the whole run (test/tb.v PIN_VCD).
+      - name: Scenarios on the RTL with the pin dump
+        run: |
+          cd test
+          rm -f pins.vcd results.xml scenario.json
+          make PIN_VCD=1 FST= COCOTB_TEST_MODULES=test_sigrok
+          # make returns success even if tests fail, so check results.xml
+          python -m cocotb_tools.check_results results.xml
+
+      - name: sigrok judge
+        env:
+          SIGROK_CLI: /home/runner/sigrok/bin/sigrok-cli
+        run: |
+          export LD_LIBRARY_PATH="$HOME/sigrok/lib"
+          python3 -I flex/sigrok_judge.py list decoders.txt test/scenario.json
+          python3 -I flex/sigrok_judge.py judge test/scenario.json test/pins.vcd build/sigrok
+
+      - name: Results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: sigrok
+          path: |
+            build/sigrok
+            test/scenario.json
+            test/results.xml
+            decoders.txt

@@ -1,0 +1,146 @@
+name: mutation
+
+# Mutation testing of the RTL tests (mutation/mutate.py). The plan job finds every mutant of the synthesized RTL,
+# takes the hash sample and deals it into shards; each shard job runs its mutants through the ladder of RTL tests,
+# with a baseline of every rung on the unchanged RTL in the same job (it must pass; it sets the timeout) and one
+# canary per file group (it must be killed); the report job checks that every sampled mutant has exactly one
+# result and prints the table, the self-checks and the survivors as annotations (readable without sign-in).
+# It takes hours of runner time, so it runs by hand only. At most 12 shard jobs run at once, so that 8 of the 20
+# concurrent jobs of the account stay free for the layout and test workflows.
+#
+# Conditions: RTL simulation with Icarus Verilog (behavioural latch and clock-gate models, zero delay).
+
+on:
+  workflow_dispatch:
+    inputs:
+      rate:
+        description: "sample rate (0.3: campaign 1; 1: every mutant)"
+        required: false
+        default: "0.3"
+      shards:
+        description: "number of shard jobs"
+        required: false
+        default: "24"
+      ids:
+        description: "space-separated mutant ids to run instead of a sample (empty: the sample)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mutation-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-24.04
+    outputs:
+      shards: ${{ steps.plan.outputs.shards }}
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v6
+
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: plan
+        id: plan
+        env:
+          RATE: ${{ inputs.rate }}
+          SHARDS: ${{ inputs.shards }}
+          IDS: ${{ inputs.ids }}
+        run: |
+          python mutation/mutate.py plan --rate "$RATE" --shards "$SHARDS" --ids "$IDS" --out plan.json
+          echo "shards=$(python -c 'import json; print(json.dumps(list(range(len(json.load(open("plan.json"))["shards"])))))')" >> "$GITHUB_OUTPUT"
+
+      - name: plan file
+        uses: actions/upload-artifact@v7
+        with:
+          name: mutation-plan
+          path: plan.json
+
+  shard:
+    needs: plan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      max-parallel: 12
+      matrix:
+        shard: ${{ fromJSON(needs.plan.outputs.shards) }}
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v6
+
+      - name: Install iverilog
+        run: sudo apt-get update && sudo apt-get install -y iverilog
+
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Install Python packages
+        run: pip install -r test/requirements.txt
+
+      - name: plan file
+        uses: actions/download-artifact@v7
+        with:
+          name: mutation-plan
+
+      # No new mutant starts after 220 minutes; the result file is written after every mutant, so a job stopped by
+      # its time limit keeps its results, and the report lists the mutants without a result.
+      - name: mutants of shard ${{ matrix.shard }}
+        run: |
+          nproc
+          python mutation/mutate.py run --plan plan.json --shard ${{ matrix.shard }} --deadline-min 220 \
+            --work "$RUNNER_TEMP/mutation" --out shard_${{ matrix.shard }}.json
+
+      - name: shard result
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: mutation-shard-${{ matrix.shard }}
+          path: shard_${{ matrix.shard }}.json
+          if-no-files-found: warn
+
+  report:
+    needs: [plan, shard]
+    if: always() && needs.plan.result == 'success'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v6
+
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: plan file
+        uses: actions/download-artifact@v7
+        with:
+          name: mutation-plan
+
+      - name: shard results
+        uses: actions/download-artifact@v7
+        with:
+          pattern: mutation-shard-*
+          path: shards
+          merge-multiple: true
+
+      - name: report
+        run: python mutation/mutate.py report --plan plan.json --out mutation_report.md shards/*.json
+
+      - name: report file
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: mutation-report
+          path: |
+            mutation_report.md
+            mutation_report.json

@@ -186,7 +186,7 @@ def judge(scen_path, vcd_path, out_dir):
             cvcd = os.path.join(out_dir, f"{s['name']}_control.vcd")
             write_vcd(tl, t0, t1, cvcd, comments + [f"negative control: {s['tamper']} inverted {a - t0}..{b - t0} ps"])
             crows, _, _, _ = run_sigrok(cvcd, s["stack"])
-            cfails, cgot, cequal, _ = evaluate(crows, s["content"])
+            cfails, cgot, cequal, _ = evaluate(crows, s["content"], s.get("forbid", ()))
             control = {"bites": bool(cfails) or not cequal, "inverted_ps": [a - t0, b - t0], "line": s["tamper"],
                        "fail_annotations": cfails[:4],
                        "first_difference": next((first_diff(s["content"][k], cgot[k]) for k in s["content"]

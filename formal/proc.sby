@@ -1,0 +1,65 @@
+# proc: the chip timing contract at the level of pe_proc (formal/proc_fv.v, C1 to C4), together with the
+# properties of pe_core (B, E, W, I) and of the 15 pe_timed_out slots (T1 to T6) in their composition. The
+# memory, FIFOs, helpers and input unit are free models (proc_stubs.v): every program, every input. After
+# flattening, the script connects the undriven monitor wires of the wrapper to internal nets of pe_proc, so the
+# RTL files stay unchanged. The properties are invariants of one or two cycles, so k-induction proves them for
+# all time.
+
+[options]
+mode prove
+depth 4
+
+[engines]
+smtbmc z3
+
+[script]
+read -formal pe_cycle_counter.v pe_core.v pe_timed_out.v pe_proc.v proc_stubs.v proc_fv.v
+prep -flatten -top proc_fv
+cd proc_fv
+connect -set mon_load \u_proc.ev_load
+connect -set mon_ready \u_proc.ev_ready
+connect -set mon_time \u_proc.ev_time
+connect -set mon_ontime \u_proc.u_core.f_ontime
+connect -set mon_ft \u_proc.u_core.f_t
+connect -set mon_pv[0] \u_proc.g_out[0].u_slot.m_pv
+connect -set mon_pv[1] \u_proc.g_out[1].u_slot.m_pv
+connect -set mon_pv[2] \u_proc.g_out[2].u_slot.m_pv
+connect -set mon_pv[3] \u_proc.g_out[3].u_slot.m_pv
+connect -set mon_pv[4] \u_proc.g_out[4].u_slot.m_pv
+connect -set mon_pv[5] \u_proc.g_out[5].u_slot.m_pv
+connect -set mon_pv[6] \u_proc.g_out[6].u_slot.m_pv
+connect -set mon_pv[7] \u_proc.g_out[7].u_slot.m_pv
+connect -set mon_pv[8] \u_proc.g_out[8].u_slot.m_pv
+connect -set mon_pv[9] \u_proc.g_out[9].u_slot.m_pv
+connect -set mon_pv[10] \u_proc.g_out[10].u_slot.m_pv
+connect -set mon_pv[11] \u_proc.g_out[11].u_slot.m_pv
+connect -set mon_pv[12] \u_proc.g_out[12].u_slot.m_pv
+connect -set mon_pv[13] \u_proc.g_out[13].u_slot.m_pv
+connect -set mon_pv[14] \u_proc.g_out[14].u_slot.m_pv
+connect -set mon_pe[0] \u_proc.g_out[0].u_slot.m_pe
+connect -set mon_pe[1] \u_proc.g_out[1].u_slot.m_pe
+connect -set mon_pe[2] \u_proc.g_out[2].u_slot.m_pe
+connect -set mon_pe[3] \u_proc.g_out[3].u_slot.m_pe
+connect -set mon_pe[4] \u_proc.g_out[4].u_slot.m_pe
+connect -set mon_pe[5] \u_proc.g_out[5].u_slot.m_pe
+connect -set mon_pe[6] \u_proc.g_out[6].u_slot.m_pe
+connect -set mon_pe[7] \u_proc.g_out[7].u_slot.m_pe
+connect -set mon_pe[8] \u_proc.g_out[8].u_slot.m_pe
+connect -set mon_pe[9] \u_proc.g_out[9].u_slot.m_pe
+connect -set mon_pe[10] \u_proc.g_out[10].u_slot.m_pe
+connect -set mon_pe[11] \u_proc.g_out[11].u_slot.m_pe
+connect -set mon_pe[12] \u_proc.g_out[12].u_slot.m_pe
+connect -set mon_pe[13] \u_proc.g_out[13].u_slot.m_pe
+connect -set mon_pe[14] \u_proc.g_out[14].u_slot.m_pe
+cd ..
+# The job stops with an error if a property was removed: 42 in pe_core, 9 in each of the 15 slots, 66 in the
+# wrapper (4 + 2 + 1 global, 4 for each of the 15 pins).
+select -assert-min 240 t:$check t:$assert
+
+[files]
+../src/pe_cycle_counter.v
+../src/pe_core.v
+../src/pe_timed_out.v
+../src/pe_proc.v
+proc_stubs.v
+proc_fv.v

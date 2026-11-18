@@ -14,6 +14,8 @@ The newest results of the RTL and gate-level tests, with their runs, are on the 
 
 ## Programs
 
+How programs are counted as protocols (roles, outline programs and the timed trigger are not counted separately) is fixed in [counting.md](counting.md); the registry of all programs is [flex/protocols.csv](../flex/protocols.csv).
+
 The RTL and gate-level column gives what `test/test_rtl_fw.py` runs at 60 MHz. The last column gives the highest rate that the model test measured at 50 MHz, the clock declared when the model tests were written.
 
 | Protocol | Firmware, words | Standard or document | On the RTL and the netlist at 60 MHz | Highest rate in the model (50 MHz) |

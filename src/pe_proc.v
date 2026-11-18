@@ -231,6 +231,35 @@ module pe_proc (
       .ev      (eth_ev)
   );
 
+  // Research layout only (utilisation study): one more helper with inverted bus inputs and permuted pins, so that
+  // synthesis can neither merge it with u_usb nor remove it; it reaches the chip only through fill.
+  wire [15:0] x_rdata;
+  wire [3:0]  x_v;
+  wire        x_oe, x_ev;
+  pe_slu #(
+      .FULL(0),
+      .SPEC(1)
+  ) u_fill (
+      .clk     (clk),
+      .rst_n   (run_rst_n),
+      .now     (~now),
+      .p_we    (io_we && (io_addr[5:4] == 2'b01)),
+      .p_re    (io_re && (io_addr[5:4] == 2'b01)),
+      .p_addr  (~io_addr[3:0]),
+      .p_wdata (~io_wdata),
+      .p_rdata (x_rdata),
+      .pin_raw ({level[0], level[12:1]}),
+      .pin_sync({s_now[0], s_now[12:1]}),
+      .tx_v    (x_v),
+      .tx_oe   (x_oe),
+      .ev      (x_ev)
+  );
+  reg fill_q;
+  always @(posedge clk or negedge rst_n)
+    if (!rst_n) fill_q <= 1'b0;
+    else fill_q <= ^{x_rdata, x_v, x_oe, x_ev};
+  assign fill = fill_q;
+
   // docs/isa.md 2.4: after reset each output pin has V = 1, OE = 0. Thus
   // UART_TX (pin 12, uo_out[4]) is at the idle level and all uio pins are
   // inputs. A helper pin drives its signal from a flip-flop, with OE = 1 while the threads run.

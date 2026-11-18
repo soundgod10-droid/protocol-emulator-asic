@@ -195,7 +195,8 @@ def i2c_texts(events):
             in_xfer = False
         elif e[0] == "ADDR":
             _, addr, rd, ack = e
-            out += [f"Address {'read' if rd else 'write'}: {addr:02X}", "ACK" if ack else "NACK"]
+            out += ["Read" if rd else "Write", f"Address {'read' if rd else 'write'}: {addr:02X}",
+                    "ACK" if ack else "NACK"]
         elif e[0] == "W":
             out += [f"Data write: {e[1]:02X}", "ACK"]
         elif e[0] == "R":

@@ -112,8 +112,7 @@ def model_faults(spec):
             if target:
                 sub = resolve(orig, 1, target) if os.path.basename(target) == "__init__.py" else None
                 if sub:
-                    if attr:
-                        visit(sub, attr)
+                    visit(sub, attr)
                 else:
                     visit(target, orig)
 

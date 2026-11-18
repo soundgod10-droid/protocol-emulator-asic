@@ -28,3 +28,4 @@ select -assert-min 25 t:$check
 ../src/pe_slu_loop.v
 ../src/pe_slu.v
 slu_fv.v
+slu_connect.ys

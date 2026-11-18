@@ -936,12 +936,12 @@ async def test_slc_swd(dut):
     log.info("SWD 7.5 MHz, delay %d %s copy: connection, DPIDR, SELECT, AP write, posted AP read and RDBUFF correct "
              "at all %d corners and target delays 2 and 25 ns; 0 target timing errors; SWDIO changes 8 or more cycles "
              "apart" % (delay, "falling" if fall else "rising", len(CORNERS)))
-    dump_on(dut, True)                                            # review session for the waveform
-    t0 = now_ns()
+    dump_on(dut, True)                                            # review session for the waveform: its first 30 us
+    t0 = now_ns()                                                 # (connection and the DPIDR read)
+    cocotb.start_soon(later(30000.0, dump_on, dut, False))
     f = await swd_session(dut, u, delay, fall, "slow, mux 10 ns", 25.0)
-    dump_on(dut, False)
-    log.info("waveform: SWD session, delay %d %s copy, slow pads + 10 ns mux, target delay 25 ns, %.1f to %.1f ns: %s" % (
-        delay, "falling" if fall else "rising", t0, now_ns(), f or "correct"))
+    log.info("waveform: SWD session, delay %d %s copy, slow pads + 10 ns mux, target delay 25 ns, from %.1f ns (dump "
+             "30 us; session ends %.1f ns): %s" % (delay, "falling" if fall else "rising", t0, now_ns(), f or "correct"))
     assert f is None, "review session: %s" % f
 
 

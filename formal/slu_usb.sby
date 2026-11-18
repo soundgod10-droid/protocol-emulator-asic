@@ -42,7 +42,8 @@ connect -set mon_rd \u_slu.r_data
 connect -set mon_sop \u_slu.r_sop
 connect -set mon_rxbits \u_slu.rx_bits
 cd ..
-select -assert-min 999 t:$check t:$assert
+# The job stops with an error if a property was removed: 22 asserts of slu_fv.v for SPEC 1 and its assume.
+select -assert-min 23 t:$check t:$assert t:$assume
 
 [files]
 ../src/pe_slu_loop.v

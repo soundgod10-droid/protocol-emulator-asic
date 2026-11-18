@@ -29,7 +29,7 @@ jobs:
       matrix:
         job: [core, core_cover, timed_out, timed_out_cover, host_port, host_port_cover, host_port_mut_id,
               mem, mem_small, mem_cover, mem_reset, mem_full, mem_full_reset, sram, sram_cover, cdc,
-              proc, proc_if, proc_cover]
+              proc, proc_if, proc_cover, slu_usb, slu_eth, slu_cover_usb, slu_cover_eth, slu_teeth]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v6

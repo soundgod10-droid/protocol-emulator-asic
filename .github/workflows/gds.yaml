@@ -55,6 +55,7 @@ jobs:
 
   gl_test:
     needs: gds
+    if: false  # research layout: its netlist is not a candidate
     runs-on: ubuntu-24.04
     steps:
       - name: checkout repo

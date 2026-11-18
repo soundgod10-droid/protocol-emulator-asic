@@ -139,6 +139,10 @@ module proc_fv (
     late_q   <= rst_n && (mon_load != 15'd0) && !mon_ontime && !start;
     late_tid <= now[1:0];
   end
+`else
+  reg f_past = 1'b0;
+  always @(posedge clk) f_past <= 1'b1;
+`endif
 
   // The start sequence runs once after each reset: pre-start 1, pre-start 2, START (as in project.v, where the
   // host starts the threads only from STOP, which holds them in reset). Invariants of that sequence:

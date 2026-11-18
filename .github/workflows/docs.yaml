@@ -14,7 +14,6 @@ name: docs
 # site); the site keeps the layout file for the 3D viewer under viewer/.
 
 on:
-  push:
   workflow_dispatch:
   workflow_run:
     workflows: [gds, test, coverage, formal]

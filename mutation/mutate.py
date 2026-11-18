@@ -389,8 +389,8 @@ def plan(rate, shards, ids=None):
     sample = sorted((m for m in allm if m["sampled"]), key=lambda m: m["id"])
     canaries = {}
     for g, (f, needle, op) in CANARIES.items():
-        c = [m for m in allm if m["file"] == f and m["op"] == op and re.search(needle, m["before"] + m["text"])
-             and re.search(needle, m["text"]) and m["text"].count("<=") == 1]
+        c = [m for m in allm if m["file"] == f and m["op"] == op and re.search(needle, m["text"])
+             and m["text"].count("<=") == 1]
         assert c, f"no canary for group {g}"
         canaries[g] = c[0]["id"]
     deal = [[] for _ in range(shards)]

@@ -100,3 +100,4 @@ So 101 of the 125 missed line points are in the two chip helper copies, not in t
 [44055275323]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44055275323
 [44005215480]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44005215480
 [44005215486]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44005215486
+[44421405029]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44421405029

@@ -73,7 +73,7 @@ usb_start: connect -set \u_slu.tx_lead 1'b0
 usb_rx_poly: connect -set \u_slu.c_pa 32'h0000A003
 usb_rx_resid: connect -set \u_slu.c_ra 32'h0000B003
 usb_rx_crc5: connect -set \u_slu.c_crcb 16'h0616
-eth_manchester: connect -set \u_slu.m_code 2'd0
+eth_manchester: connect -set \u_slu.c_mode 16'h040C
 eth_crc32_poly: connect -set \u_slu.c_pa 32'hEDB88321
 eth_crc32_poly: connect -set \u_slu.c_crcw 16'h0060
 eth_period: connect -set \u_slu.c_txper 16'd2

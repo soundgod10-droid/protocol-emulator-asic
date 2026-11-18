@@ -25,7 +25,10 @@
 ;   ends exactly at the end of that window (test_holdout_onewire: a device that
 ;   samples at 60 us reads the 0 as a 1). D is 5 us (tREC is 1 us minimum).
 ;   Reset: low for H, release, sample at H + I, the next slot starts at
-;   H + I + J or later. I is two TADD of I/2: at 60 MHz I is 4,200 cycles,
+;   H + I + J or later. H is 490 us and J 420 us, not 480 and 410 us: the
+;   DS18B20 minimums tRSTL and tRSTH are 480 us (page 3), and with exactly
+;   480 us a chip clock that is a little fast gives a pulse below the minimum;
+;   10 us (2 %) covers any crystal or oscillator tolerance. I is two TADD of I/2: at 60 MHz I is 4,200 cycles,
 ;   more than the 4,095 of one TADD immediate (docs/isa.md 7).
 ; Each time comes from T (TADD), not from the time that the instructions
 ; take. SAMPLE at T + 2 reads the bus level at T (synchronizer, isa 6.2).

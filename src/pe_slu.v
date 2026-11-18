@@ -306,8 +306,10 @@ module pe_slu #(
   wire [15:0] rx_p2        = rx_ps[2] ? {4'b0, rx_p1[15:4]} : rx_p1;
   wire [15:0] rx_p3        = rx_ps[3] ? {8'b0, rx_p2[15:8]} : rx_p2;
   wire [15:0] rx_part      = rx_ps[4] ? 16'd0 : rx_p3;
-  wire        rx_push      = (rx_word_full || (r_eop && rx_nb != 5'd0));
-  wire [15:0] rx_push_w    = rx_word_full ? rx_word : rx_part;
+  // The last bit of an edge-started frame pushes the word with that bit at once (the frame in the top
+  // bits), so that the next start edge can follow right after it.
+  wire        rx_push      = (rx_word_full || ck_lastb || (r_eop && rx_nb != 5'd0));
+  wire [15:0] rx_push_w    = (rx_word_full || ck_lastb) ? rx_word : rx_part;
   wire        rx_pop       = p_re && (p_addr == 4'd1) && (rx_cnt != 2'd0);
 
   // ----------------------------------------------------------------------------------------------

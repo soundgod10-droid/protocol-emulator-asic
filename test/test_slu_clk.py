@@ -144,7 +144,10 @@ async def clocked_frame(u, bits_out, lead=40, before_start=None, after_end=None)
     await u.wr(P_TXTIME, t0)
     rx = []
     st = 0
+    budget = 4 * n * 256 // 16 + 2000                             # port accesses; a frame bit is at most 512 cycles
     while True:
+        budget -= 1
+        assert budget > 0, "clocked frame of %d bits: no RXEOP (status %04x, %d words received)" % (n, st, len(rx))
         if feed and await u.rd(P_TXDATA):
             w = feed.pop(0)
             await u.wr(P_TXDATA if feed else P_TXLAST, w)

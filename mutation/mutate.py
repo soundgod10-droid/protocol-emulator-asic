@@ -79,10 +79,11 @@ LADDERS = {
     "host": ["host", "core_dir", "fw_fast", "slu_chip", "fw_slow", "core_rand", "dev_fast", "dev_slow"],
     "slu": ["slu_unit", "slu_loop", "slu_chip", "dev_fast", "dev_slow"],
 }
-# Canary per group: a mutant that every rung-1 test must see (the hold of a register that everything uses).
-CANARIES = {"core": ("pe_cycle_counter.v", "count <= count +", "hold"),
-            "host": ("pe_host_port.v", None, "hold"),
-            "slu": ("pe_slu.v", None, "hold")}
+# Canary per group: a mutant that rung 1 must kill: the cycle counter does not count; the host port state machine
+# never enters its response state; the helper's data input synchronizer stops at its first stage.
+CANARIES = {"core": ("pe_cycle_counter.v", r"\bcount\s*<=\s*count\s*\+", "hold"),
+            "host": ("pe_host_port.v", r"\bst\s*<=\s*S_RESP\s*;", "hold"),
+            "slu": ("pe_slu.v", r"\bdin_f2\s*<=\s*din_f1\s*;", "hold")}
 
 
 def group_of(f):

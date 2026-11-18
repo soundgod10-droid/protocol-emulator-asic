@@ -735,7 +735,7 @@ def main():
     elif args.cmd == "_build":
         do_build(args.src, args.build)
     elif args.cmd == "_test":
-        do_test(args.build, args.run, args.modules, args.filt)
+        do_test(args.src, args.build, args.run, args.modules, args.filt)
 
 
 if __name__ == "__main__":

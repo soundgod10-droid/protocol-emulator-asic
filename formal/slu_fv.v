@@ -200,8 +200,17 @@ module slu_fv #(
     vq    <= (SPEC == 1) ? {lvl_cur, ~lvl_cur} : {~man_e, man_e};
   end
 
-  reg oe_q;
-  always @(posedge clk) oe_q <= tx_oe;
+  reg oe_q, lead_q;
+  always @(posedge clk) begin
+    oe_q   <= tx_oe;
+    lead_q <= mon_lead;
+  end
+
+  // Receive monitors (declared here, used below): the CRC of the data bits after the start pattern.
+  reg [W-1:0] m_r;
+  reg [4:0]   m_r5;
+  reg [9:0]   m_nb;
+  reg         m_rv;
 
   always @* begin
     if (rst_n) begin

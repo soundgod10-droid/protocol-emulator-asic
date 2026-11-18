@@ -562,7 +562,7 @@ class Shard:
                 mods, filt = RUNGS[rung]
                 run = os.path.join(d, "run")
                 shutil.rmtree(run, ignore_errors=True)
-                rc, s, to, out = call(["_test", build, run, ",".join(mods), filt], limit)
+                rc, s, to, out = call(["_test", os.path.join(d, "src"), build, run, ",".join(mods), filt], limit)
                 rec["rungs"].append([rung, round(s, 1)])
                 if to:
                     rec.update(status="timeout", rung=rung, note=f"over {limit:.0f} s")

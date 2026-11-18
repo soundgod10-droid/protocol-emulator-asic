@@ -138,6 +138,16 @@ def pd_match(row_pd, pd):
     return row_pd == pd or row_pd.startswith(pd + "-")
 
 
+# Decoders whose bit annotations run from one clock edge to the next: the middle of such a span is where the data
+# line may change with no effect (i2c: SCL low; the R/W bit is a bit annotation in the address class), so the
+# negative control of these decoders tampers inside a byte annotation of the listed classes.
+CONTROL_CLASSES = {"i2c": {"data-read", "data-write"}}
+
+
+def control_ok(r):
+    return all(not pd_match(r[2], pd) or r[3] in cls for pd, cls in CONTROL_CLASSES.items())
+
+
 def evaluate(rows, content, forbid=()):
     """forbid: further "decoder:class" names that a decoder uses for errors only (swd: parity)."""
     fails = [f"{r[2]}: {r[3]}: {r[4]}" for r in rows

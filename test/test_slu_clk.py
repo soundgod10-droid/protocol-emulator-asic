@@ -310,8 +310,8 @@ async def test_slc_spi_flash(dut):
     """T1: SPI controller on the USB helper's clocked mode, against the flash model, at TXPER 2 (4 cycles a bit,
     15 MHz) and TXPER 4 (8 cycles, 7.5 MHz) in modes 0 to 3, and at TXPER 1 (30 MHz) in mode 0: the read-back
     settings (sample delay 0 to 15 cycles, rising or falling-edge copy of DIN) that read the JEDEC ID at every
-    pin-path corner; then a 256-byte 03h read at the rated settings. Controls: at TXPER 1 with sample delay 0
-    and the 10 ns multiplexer the ID must be wrong; a 1-ns-too-short tCLQV window must still pass (model)."""
+    pin-path corner; then a 256-byte 03h read at the rated settings. Control: at TXPER 1 with sample delay 0
+    and the 10 ns multiplexer the ID must be read wrong."""
     u = await unit_reset(dut)
     log = dut._log
     rng = random.Random(1118)

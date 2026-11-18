@@ -59,13 +59,21 @@ Reset tree:
 
 ## 4 Code coverage
 
-The coverage job builds the cocotb test bench with Verilator (`SIM=verilator`, line, branch and toggle coverage; [test/coverage_summary.py](../test/coverage_summary.py)) and runs every test module. Run [44005215379] (commit 33e087b; the same values as run [43989356338] of commit 9d3532d): line 416 of 550 (75.6 %), branch 891 of 1,096 (81.3 %), toggle 14,297 of 18,540 (77.1 %); run [43983798260] (before the lint fixes) gave line 416 of 550, branch 896 of 1,102, toggle 14,291 of 18,398. Every file has 100 % line coverage except `src/pe_slu.v`, `src/pe_slu_loop.v` and `src/pe_proc.v`. The points that no test reaches are:
+The coverage job builds the cocotb test bench with Verilator (`SIM=verilator`, line, branch and toggle coverage; [test/coverage_summary.py](../test/coverage_summary.py)) and runs every test module. Run [44265588374] (commit f147d6c; `src/` the same as the reviewed layout's): line 425 of 550 (77.3 %), branch 909 of 1,096 (82.9 %), toggle 14,564 of 18,540 (78.6 %). Every RTL file has 100 % line coverage except `src/pe_slu.v` (214 of 336) and `src/pe_slu_loop.v` (13 of 16). Earlier: line 416 of 550 (75.6 %) in run [44005215379] (commit 33e087b), 73.6 % before the helper tests (run [43966684440]).
 
-- the modes of the general serial line unit that the chip's two helpers do not have: the helpers are the same RTL with the configuration fixed (parameter SPEC), and the general unit (SPEC 0) exists only as the unit-test instance in `test/tb.v`, so its clocked mode, NRZ coding, loopback, active-low OE, end of frame by bit count and the line conditions K and no-edge cannot occur in the chip;
-- default branches of case statements that no state reaches, and the BIST ports of the SRAM simulation models (tied off in the chip);
-- two lines of the receive loop: the phase wrap below minus half a bit and the integrator limit at +2,047, which the tests do not drive.
+**Where the missed points are.** Verilator counts each parameter set of a module as a separate copy, and `coverage.dat` records the instance of every point (key `h`). The same run, counted per instance with the parser of `test/coverage_summary.py`:
 
-Before the helper tests of this version, the line coverage was 73.6 % (run [43966684440]); the tests added after that run cover the transmit start rules, collision, jabber, the USB line timers, the helper event inputs and the delayed tap signals.
+| Instance of `src/pe_slu.v` | SPEC | Line | Branch | Toggle |
+|---|---|---|---|---|
+| `tb.u_slu_ut`: the general unit, unit tests only | 0 | 91 of 112 (81.2 %) | 239 of 266 (89.8 %) | 1,802 of 2,498 (72.1 %) |
+| `tb.user_project.u_proc.u_usb`: the chip's USB helper | 1 | 63 of 112 (56.2 %) | 184 of 266 (69.2 %) | 1,339 of 2,498 (53.6 %) |
+| `tb.user_project.u_proc.u_eth`: the chip's 10BASE-Te helper | 2 | 60 of 112 (53.6 %) | 194 of 266 (72.9 %) | 1,464 of 2,498 (58.6 %) |
+
+All chip instances (`tb.user_project`, every file): line 321 of 422 (76.1 %), branch 620 of 778 (79.7 %), toggle 11,562 of 14,446 (80.0 %).
+
+So 101 of the 125 missed line points are in the two chip helper copies, not in the unit-test copy (21). The cause is the fixed configuration of the chip copies: the configuration registers are written only when SPEC is 0 (`src/pe_slu.v`, the `p_addr == 13 && SPEC == 0` case; a chip copy can write only the pin select `c_sel`), so in each chip copy they keep their reset values. That case alone is 22 missed lines in each chip copy, and most of the others are branches of modes that the fixed configuration of that copy cannot enter: the clocked and NRZ codings, loopback, stuffing in the 10BASE-Te copy, jam, jabber and squelch in the USB copy. Synthesis removes the same logic. The general unit's own misses (21 lines: clocked mode, NRZ, loopback, the reads of EVMASK, CRCA, CRCB and the line register, TXCTRL "start now", defaults) are modes that only the unit tests can reach. In `src/pe_slu_loop.v`, two lines (the phase wrap below minus half a bit and the integrator limit at +2,047) are not driven by the tests.
+
+**Points that the chip can reach and no test drives** (by reading the source; each will get a test, or a proof that it cannot be reached): receive overflow and a transmit start with an empty buffer in the 10BASE-Te copy, a transmit underflow in the middle of a frame, a link test pulse requested on the USB helper, and jabber in the 10BASE-Te copy (2^22 cycles of transmit, about 26 minutes of RTL simulation). Until then the raw figure above is the published figure, and no point is excluded from it.
 
 ## 5 Open items
 

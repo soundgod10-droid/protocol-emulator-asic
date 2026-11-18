@@ -394,8 +394,10 @@ def i2c_script_texts(script, results):
             in_xfer = False
         elif op[0] == "w":
             _, byte, nack = next(res)
-            out.append(f"Address {'read' if byte & 1 else 'write'}: {byte >> 1:02X}" if prev == "start"
-                       else f"Data write: {byte:02X}")
+            if prev == "start":
+                out += ["Read" if byte & 1 else "Write", f"Address {'read' if byte & 1 else 'write'}: {byte >> 1:02X}"]
+            else:
+                out.append(f"Data write: {byte:02X}")
             out.append("NACK" if nack else "ACK")
         else:
             _, byte = next(res)

@@ -45,6 +45,13 @@ async def later(ns, fn, *args):
     fn(*args)
 
 
+def dump_on(dut, on):
+    """Waveform on or off (test/tb.v dump_off; the coverage build has none): the tests dump only review frames."""
+    d = getattr(dut, "dump_off", None)
+    if d is not None:
+        d.value = 0 if on else 1
+
+
 class Unit:
     """Port access to tb.u_slc_ut, one access per two falling edges (as test_slu.Slu)."""
 

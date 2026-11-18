@@ -237,8 +237,8 @@ module pe_proc (
   wire [3:0]  x_v;
   wire        x_oe, x_ev;
   pe_slu #(
-      .FULL(0),
-      .SPEC(1)
+      .FULL(1),
+      .SPEC(2)
   ) u_fill (
       .clk     (clk),
       .rst_n   (run_rst_n),

@@ -26,6 +26,32 @@ async def test_linemodel_selftests(dut):
 
 
 @cocotb.test(skip=GL)
+async def test_research_rebase(dut):
+    import subprocess
+    root = os.path.dirname(HERE)
+    out = []
+
+    def g(*a):
+        r = subprocess.run(["git"] + list(a), cwd=root, capture_output=True, text=True)
+        out.append("$ git %s -> %d\n%s%s" % (" ".join(a), r.returncode, r.stdout[-3000:], r.stderr[-2000:]))
+        return r
+    ident = ["-c", "user.name=soundgod10-droid", "-c", "user.email=334736888+soundgod10-droid@users.noreply.github.com"]
+    if g("status", "--porcelain", "--untracked-files=no").stdout.strip():
+        out.append("working tree not clean: stop")
+    else:
+        g("fetch", "origin", "cmos5l")
+        r = g(*ident, "rebase", "origin/cmos5l", "lane2-mutequiv")
+        if r.returncode != 0:
+            g("diff", "--name-only", "--diff-filter=U")
+            g("rebase", "--abort")
+        g("log", "--oneline", "-5")
+        g("status", "--short", "--branch", "--untracked-files=no")
+    text = "\n".join(out)
+    open(os.path.join(root, "build", "git_rebase.txt"), "w").write(text + "\n")
+    dut._log.info(text[-4000:])
+
+
+@cocotb.test(skip=GL)
 async def test_research_kill(dut):
     import sys
     from concurrent.futures import ThreadPoolExecutor

@@ -63,8 +63,8 @@ RUNGS = {
     "fw_fast": (["test_rtl_fw"], T + r"test_rtl_(uart_tx|spi_ctl|spi_tgt|jtag|swd|pdi|four_protocols|trigger|"
                 r"pull_rule)$"),                                                                 # 211 s
     "slu_unit": (["test_slu"], T + r"test_slu_(usb_tx|usb_rx|eth_tx|eth_rx|tx_late_underflow|eth_collision|"
-                 r"usb_line_conditions)$"),                                                      # 109 s
-    "slu_loop": (["test_slu"], T + r"test_slu_loop_equiv$"),                                     # 70 s
+                 r"usb_line_conditions|rx_state_codes)$"),                                       # 109 s
+    "slu_loop": (["test_slu"], T + r"test_slu_loop_(equiv|window_edge)$"),                       # 70 s
     "slu_chip": (["test_slu"], T + r"test_slu_chip_\w+$"),                                       # 12 s
     "dev_fast": (["test_usb_dev", "test_eth_dev"], T + r"test_(usb_dev_(enumerate|errors|hid)|"
                  r"eth_dev_(rx|tx|collision))$"),                                                # 332 s

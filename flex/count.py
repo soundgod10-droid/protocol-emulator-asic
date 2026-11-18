@@ -296,6 +296,8 @@ def main(argv):
             f"{len(res['sigrok_declared'])}: {', '.join(res['strict'])}")
     if os.environ.get("GITHUB_ACTIONS"):
         print(f"::notice title=protocol count::{line}")
+        # A job summary is shown only to signed-in readers; the run's annotations are public, so the table is one too.
+        print(f"::notice title=protocol count table::{escape(md)}")
         for e in res["errors"]:
             print(f"::error title=protocol count::{e}")
     print(line)

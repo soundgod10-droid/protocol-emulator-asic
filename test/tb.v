@@ -118,6 +118,30 @@ module tb ();
       .p_addr(slu_addr), .p_wdata(slu_wdata), .p_rdata(slu_rdata), .pin_raw(slu_pins),
       .pin_sync(slu_ps2), .tx_v(slu_txv), .tx_oe(slu_txoe), .ev(slu_ev)
   );
+
+  // The USB helper form (SPEC 1, as in the chip) alone, for its clocked and NRZ modes, driven by
+  // test/test_slu_clk.py through its own port bus and pins; now as for the unit above.
+  reg         slc_rst_n = 1'b0;
+  reg         slc_we = 1'b0;
+  reg         slc_re = 1'b0;
+  reg  [3:0]  slc_addr = 4'd0;
+  reg  [15:0] slc_wdata = 16'd0;
+  wire [15:0] slc_rdata;
+  reg  [12:0] slc_pins = 13'h0000;
+  reg  [12:0] slc_ps1 = 13'h0000, slc_ps2 = 13'h0000;   // 2-stage synchronizer, as pe_sync2
+  wire [3:0]  slc_txv;
+  wire        slc_txoe;
+  wire        slc_ev;
+  always @(posedge clk) begin
+    slc_ps1 <= slc_pins;
+    slc_ps2 <= slc_ps1;
+  end
+
+  pe_slu #(.FULL(0), .SPEC(1)) u_slc_ut (
+      .clk(clk), .rst_n(slc_rst_n), .now(slu_now), .p_we(slc_we), .p_re(slc_re),
+      .p_addr(slc_addr), .p_wdata(slc_wdata), .p_rdata(slc_rdata), .pin_raw(slc_pins),
+      .pin_sync(slc_ps2), .tx_v(slc_txv), .tx_oe(slc_txoe), .ev(slc_ev)
+  );
 `endif
 
   tt_um_soundgod10_droid_protocol_emulator user_project (

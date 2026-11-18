@@ -129,6 +129,7 @@ module proc_fv (
 
   wire [15:0] lead = mon_time - now;
 
+`ifndef CORE_IF
   // C2 (LATE part): a late write sets the writer's LATE flag, seen in the next cycle.
   reg       late_q;
   reg [1:0] late_tid;

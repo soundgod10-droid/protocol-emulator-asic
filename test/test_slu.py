@@ -1232,7 +1232,7 @@ async def test_slu_chip_spi_flash(dut):
     dut.rst_n.value = 1
     await ClockCycles(dut.clk, 5)
     host = hs.SpiTimed(dut)
-    await host.write_mem(0, prog.image()[:prog.size])
+    await host.write_mem(0, prog.image()[:max(prog.words) + 1])     # up to the thread-1 code at .org 120
     await host.write_mem(512, [len(bits)] + words)
     owner = [None] * 15
     owner[2] = 0

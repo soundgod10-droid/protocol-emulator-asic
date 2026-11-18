@@ -7,6 +7,12 @@ on:
   push:
     paths:
       - 'flex/sigrok*'
+      - 'src/**'
+      - 'test/**'
+      - 'fw/**'
+      - 'asm/**'
+      - 'model/**'
+      - 'sim/tools/trim_vcd.py'
       - '.github/workflows/sigrok.yaml'
   workflow_dispatch:
 

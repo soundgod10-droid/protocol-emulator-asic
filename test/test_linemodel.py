@@ -77,7 +77,24 @@ async def test_research_integrate(dut):
         for c in commits:
             r = g(*ident, "cherry-pick", c, cwd=wt)
             if r.returncode != 0:
-                g("diff", "--name-only", "--diff-filter=U", cwd=wt)
+                bad = g("diff", "--name-only", "--diff-filter=U", cwd=wt).stdout.split()
+                if bad == ["test/Makefile"]:
+                    # both lanes changed the RTL module list: keep the chip lane's modules and add this one
+                    g("checkout", "--ours", "test/Makefile", cwd=wt)
+                    p = os.path.join(wt, "test", "Makefile")
+                    t = open(p, encoding="utf-8", newline="").read()
+                    old = "test_i2c_tgt\nelse"
+                    if t.count(old) == 1 and "test_sigrok" not in t:
+                        open(p, "w", encoding="utf-8", newline="").write(t.replace(old, "test_i2c_tgt,test_sigrok\nelse"))
+                        g("add", "test/Makefile", cwd=wt)
+                        msg = g("log", "-1", "--format=%B", c).stdout.rstrip() + (
+                            "\n\nThe RTL module list also has test_slu_clk from the integration branch; both kept.\n")
+                        mp = os.path.join(root, "build", "int_msg.txt")
+                        open(mp, "w", encoding="utf-8", newline="\n").write(msg)
+                        if g(*ident, "commit", "-F", mp, cwd=wt).returncode == 0:
+                            out.append("resolved test/Makefile for %s: both module lists kept" % c)
+                            continue
+                g("diff", cwd=wt)
                 g("cherry-pick", "--abort", cwd=wt)
                 out.append("STOP at %s of %s" % (c, b))
                 ok = False

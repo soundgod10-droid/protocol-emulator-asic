@@ -222,3 +222,145 @@ async def test_sigrok_i2c_ctl(dut):
         record("test_sigrok_i2c_ctl", f"i2c_ctl_{mode.lower()}", I2C_LINES, "i2c:scl=i2c_scl:sda=i2c_sda",
                {I2C_CLASSES: i2c_texts(events)}, t0, t1, "i2c_sda",
                f"chip I2C controller {mode} with the target model: bus levels (open drain, wired AND)")
+
+
+# ----- PS/2 -----
+# ps2/pd.py: it samples DATA at the falling CLK edges (device-to-host frames only) and gives class word
+# "Data: {:02x}" and class parity-ok "Parity OK" (parity-err "Parity error" is a failure class).
+PS2_LINES = [["ps2_clk", f"in:{fx.P_PCLK}"], ["ps2_data", f"in:{fx.P_PDATA}"]]
+
+
+def ps2_texts(values):
+    return [t for b in values for t in (f"Data: {b:02x}", "Parity OK")]
+
+
+@cocotb.test()
+async def test_sigrok_ps2_host(dut):
+    """fw/ps2_host.s receives 3 device frames from the PS/2 device model at 12.5 kHz (test_rtl_fw.test_rtl_ps2,
+    first part, without the host command: sigrok's ps2 decoder reads device-to-host frames only)."""
+    rf.start_clock(dut)
+    frames = fx.PS2_BYTES[:3]
+    dev = fx.Ps2Device(rf.PS2_PERIOD, frames, gap=3600, rts_delay=600, start=rf.HOST_START + 1000)
+    label = "sigrok ps2_host.s 12.5 kHz device clock"
+    bench = rf.RtlBench(dut, fx.assemble("ps2_host.s", LATE="st").words, owner=ff.owners({fx.P_PCLK: 0, fx.P_PDATA: 0}),
+                        od=fx.od((fx.P_PCLK, fx.P_PDATA)), inputs=fx.Ps2Bus(dev), label=label)
+    await bench.run(100)
+    t0 = now_ps()
+    await bench.run(rf.HOST_START + 1000 + len(frames) * (12 * rf.PS2_PERIOD + 3800) - 100)
+    t1 = now_ps()
+    got = [fx.ps2_decode(fx.ps2_word_bits(w)) if w >= 32 else (None, False) for w in bench.words(0)]
+    assert got == [(b, True) for b in frames], f"{label}: received {got}, device sent {dev.sent}"
+    assert not dev.errors, f"{label}: device errors {dev.errors[:2]}"
+    await bench.finish(dut._log)
+    record("test_sigrok_ps2_host", "ps2_host", PS2_LINES, "ps2:clk=ps2_clk:data=ps2_data",
+           {"ps2:word|parity-ok": ps2_texts(frames)}, t0, t1, "ps2_data",
+           "PS/2 device model sends 3 frames to the chip (host), bus levels of CLK and DATA (open drain)")
+
+
+@cocotb.test()
+async def test_sigrok_ps2_dev(dut):
+    """fw/ps2_dev.s (12.5 kHz) sends 5 frames to the PS/2 system model, one frame per host word, with no inhibit
+    (test_rtl_fw.test_rtl_ps2, second part, without the inhibited frame and the system command)."""
+    rf.start_clock(dut)
+    host = fx.Ps2Host(t_rts=4800, tchg=120, inhibit_frame=-1)
+    label = "sigrok ps2_dev.s 12.5 kHz"
+    bench = rf.RtlBench(dut, fx.assemble("ps2_dev.s", **rf.PS2_DEV_EQU).words,
+                        owner=ff.owners({fx.P_PCLK: 0, fx.P_PDATA: 0}), od=fx.od((fx.P_PCLK, fx.P_PDATA)),
+                        inputs=fx.Ps2Bus(host), label=label)
+    await bench.run(200)
+    t0 = now_ps()
+    sent = (0xAA, 0xFA, 0x12, 0xF0, 0x12)
+    for b in sent:
+        n0 = len(bench.words(0))
+        bench.send(0, sum(bit << i for i, bit in enumerate(fx.ps2_frame(b))))
+        for _ in range(100):
+            await bench.run(2400)
+            if len(bench.words(0)) > n0:
+                break
+        assert bench.words(0)[n0:] == [0], f"{label}: frame 0x{b:02X} status {bench.words(0)[n0:]}"
+    await bench.run(4800)
+    t1 = now_ps()
+    assert host.frames == [(b, True) for b in sent], f"{label}: system received {host.frames}"
+    await bench.finish(dut._log)
+    record("test_sigrok_ps2_dev", "ps2_dev", PS2_LINES, "ps2:clk=ps2_clk:data=ps2_data",
+           {"ps2:word|parity-ok": ps2_texts(sent)}, t0, t1, "ps2_data",
+           "chip as PS/2 device sends 5 frames to the system model, bus levels of CLK and DATA (open drain)")
+
+
+# ----- CAN -----
+# can/pd.py: classes id "Identifier: {id} (0x{id:x})", rtr "Remote transmission request: data frame",
+# dlc "Data length code: {n}", data "Data byte {i}: 0x{b:02x}", crc-sequence "CRC-15 sequence: 0x{crc:04x}",
+# ack-slot "ACK slot: ACK".
+CAN_CLASSES = "can:id|rtr|dlc|data|crc-sequence|ack-slot"
+
+
+def can_texts(frames):
+    out = []
+    for f in frames:
+        bits = fx.can_bits(**f)
+        ident, data = f["ident"], f.get("data", [])
+        out += [f"Identifier: {ident} (0x{ident:x})", "Remote transmission request: data frame",
+                f"Data length code: {len(data)}"]
+        out += [f"Data byte {i}: 0x{b:02x}" for i, b in enumerate(data)]
+        out += [f"CRC-15 sequence: 0x{fx.bits_value(bits[-15:]):04x}", "ACK slot: ACK"]
+    return out
+
+
+@cocotb.test()
+async def test_sigrok_can(dut):
+    """fw/can.s at 250 kbit/s sends 4 data frames (stuffing in identifier and data, DLC 0 to 8) to the CAN node model
+    at +0.5 % clock with a 10-cycle loop delay; the node acknowledges each (test_rtl_fw.test_rtl_can, first part,
+    without the remote frame: sigrok's can decoder reads DLC data bytes after a remote frame too)."""
+    rf.start_clock(dut)
+    bt = round(rf.F_CLK / 250_000)
+    sp = round(0.55 * bt)
+    frames = [f for f in fx.CAN_FRAMES if not f.get("rtr")]
+    label = f"sigrok can 250 kbit/s BT {bt} SP {sp}"
+    bench, node = rf.can_bench(dut, bt, sp, node_ppm=5000, delay=10, label=label)
+    await bench.run(rf.HOST_START)
+    t0 = now_ps()
+    sent = await rf.can_send_all(bench, frames, bt)
+    await bench.run(int(20 * bt))
+    t1 = now_ps()
+    fault = fx.can_fault(bench, bench.m, node, sent, frames)
+    assert fault is None, f"{label}: {fault}"
+    await bench.finish(dut._log)
+    record("test_sigrok_can", "can", [["can_rx", "ui:4"]], "can:can_rx=can_rx:nominal_bitrate=250000:sample_point=75",
+           {CAN_CLASSES: can_texts(frames)}, t0, t1, "can_rx",
+           "chip sends 4 data frames, CAN_RX (IN12) = the bus as the transceiver returns it, 10 cycles loop delay")
+
+
+# ----- AM2302 -----
+# am230x/pd.py: classes humidity "Humidity: {h:.1f} %", temperature "Temperature: {t:.1f} °C", checksum
+# "Checksum: OK". Its bit windows (bit 1 high 65 to 80 us) are the data sheet's typical times, so the sensor
+# model runs at the data sheet times (scale 1.0), not at the x 1.2 corner of test_rtl_fw.test_rtl_am2302.
+
+
+@cocotb.test()
+async def test_sigrok_am2302(dut):
+    """fw/am2302.s reads both data sheet examples (65.2 % / 35.1 C and 40.0 % / -10.1 C) from the AM2302 sensor
+    model at the data sheet times."""
+    rf.start_clock(dut)
+    prog = ho.assemble("am2302.s", **ho.AM_EQU[rf.F_MHZ])
+    for k, (hum, tmp) in enumerate(ho.AM_DATA):
+        dev = ho.Am2302Device(rf.F_MHZ, hum, tmp, scale=1.0, t_go=30)
+        label = f"sigrok am2302.s example {k}"
+        bench = rf.RtlBench(dut, prog.words, owner=ff.owners({ho.P_AM: 0}), od=ff.open_drain({ho.P_AM}), inputs=dev,
+                            label=label)
+        await bench.run(100)
+        t0 = now_ps()
+        bench.send(0, 1)
+        for _ in range(12000 * rf.F_MHZ // 10_000 + 2):
+            await bench.run(10_000)
+            got = bench.words(0)
+            if got and (got[0] != 0 or len(got) == 4):
+                break
+        await bench.run(1000)
+        t1 = now_ps()
+        assert bench.words(0) == [0, hum, tmp, ho.am_sum(hum, tmp)], f"{label}: replies {bench.words(0)}"
+        await bench.finish(dut._log)
+        t = (tmp & 0x7FFF) / 10 * (-1 if tmp & 0x8000 else 1)
+        record("test_sigrok_am2302", f"am2302_{k}", [["am_sda", f"in:{ho.P_AM}"]], "am230x:sda=am_sda",
+               {"am230x:humidity|temperature|checksum": [f"Humidity: {hum / 10:.1f} %", f"Temperature: {t:.1f} °C",
+                                                          "Checksum: OK"]}, t0, t1, "am_sda",
+               f"chip reads the AM2302 model, data sheet example {k}, bus level of the data line (open drain)")

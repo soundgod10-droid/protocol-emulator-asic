@@ -1255,7 +1255,6 @@ async def test_slu_chip_spi_flash(dut):
     dut._log.info("thread 0 status %04x; thread 1 stored words up to address %d (%d words, %d expected); the flash "
                   "saw %d bits, %d timing errors %s" % (status, end, end - 768, len(words), len(dev.bits),
                                                         len(dev.errors), dev.errors[:3]))
-    dut._log.info("first uio_out/uio_oe values at the monitor: %s" % ", ".join(io.seen))
     assert end - 768 == len(words), "thread 1 stored %d words, expected %d" % (end - 768, len(words))
     got_words = await host.read_mem(768, len(words))
     got = sc.bits_to_bytes(sc.bits_of(got_words, len(bits))[32:])

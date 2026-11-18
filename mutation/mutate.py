@@ -548,7 +548,8 @@ class Shard:
                 return rec
             rec["status"] = "survived"
             rec["rungs"] = []
-            for rung in LADDERS[m["group"]]:
+            ladder = LADDERS[m["group"]][:self.max_rungs] if self.max_rungs else LADDERS[m["group"]]
+            for rung in ladder:
                 b = self.baseline(rung)
                 if not b["ok"]:
                     rec.update(status="error", note=f"baseline of {rung} failed")

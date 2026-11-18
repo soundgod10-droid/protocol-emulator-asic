@@ -62,7 +62,7 @@ A CI job reads the registry, assembles every program, checks condition (b) on th
 
 The census pool (44 protocols, [flex/PREREG.md](../flex/PREREG.md) section 2) stays untouched until the `rtl-freeze` tag. Other protocols may be written before the tag. Which ones, and in which order, is fixed here by a rule, so that the list is not our choice.
 
-**Universe U.** (i) The 75 libsigrokdecode decoders at commit `71f4514` that `flex/pool.csv` excludes because they decode another decoder's output or carry the Util or Encoding tag. (ii) The protocol programs that other public entries of the same competition showed on 2026-11-16 and 2026-11-17 (protocol names only; the entries are not named).
+**Universe U.** (i) The 75 libsigrokdecode decoders at commit `71f4514` that `flex/pool.csv` excludes because they decode another decoder's output or carry the Util or Encoding tag. (ii) The protocol programs of other public entries of the same competition, as read from 2026-11-15 to 2026-11-17 (protocol names only; the entries are not named).
 
 **Removals**, in this order, each with its reason in [flex/candidates.csv](../flex/candidates.csv) (column `rule`):
 

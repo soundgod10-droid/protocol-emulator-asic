@@ -783,6 +783,59 @@ async def test_slu_eth_frame_end(dut):
 
 
 @cocotb.test(skip=GL)
+async def test_slu_tx_write_at_take(dut):
+    """A TXDATA/TXLAST write in the cycle in which the transmitter takes a word from the buffer (the frame start, or
+    the load of the next word at a bit start) keeps the order: with one word waiting it becomes the next word, with
+    two waiting it goes behind them. NRZ, 4 cycles a bit: A, then B written at the start take; A, B, then C at the
+    start take; A, B, then C at the take of B inside the frame. Each frame carries its words in the order written
+    and ends after them."""
+    s = await slu_reset(dut)
+    await s.cfg({0: mode(0), 1: 4})                  # NRZ, 4 cycles a bit, no CRC
+    await s.wr(P_TXCTRL, 0)                          # last word 16 bits
+    u = dut.u_slu_ut
+    A, B, C = 0x1234, 0xA5C3, 0x0FF0
+
+    async def write_at_take(addr, data, skip):
+        # tx_take is 1 for the cycle whose closing clock edge takes the word; the write is driven for that cycle
+        while True:
+            await FallingEdge(dut.clk)
+            if int(u.tx_take.value):
+                if skip == 0:
+                    break
+                skip -= 1
+        t, n = int(dut.slu_now.value), int(u.tx_cnt.value)
+        dut.slu_addr.value = addr
+        dut.slu_wdata.value = data
+        dut.slu_we.value = 1
+        await FallingEdge(dut.clk)
+        dut.slu_we.value = 0
+        return t, n
+
+    log = []
+    for label, pre, late, skip in (("start take", [A], B, 0), ("start take", [A, B], C, 0),
+                                   ("load take", [A, B], C, 1)):
+        for w in pre:
+            await s.wr(P_TXDATA, w)
+        caps = []
+        cocotb.start_soon(capture(dut, 4 * 70, caps))
+        await s.wr(P_TXTIME, (await s.now() + 20) & 0xFFFF)
+        t, n = await write_at_take(P_TXLAST, late, skip)
+        while len(caps) < 4 * 70:
+            await RisingEdge(dut.clk)
+        words = pre + [late]
+        nb = 16 * len(words)
+        oe = [c[1] for c in caps]
+        first = oe.index(1)
+        got = [caps[first + 4 * i + 2][0] & 1 for i in range(nb)]
+        exp = [(w >> i) & 1 for w in words for i in range(16)]
+        desc = f"{label} at now {t} with {n} word(s) in the buffer, words " + " ".join(f"{w:04X}" for w in words)
+        assert got == exp, f"{desc}: frame bits {''.join(map(str, got))}"
+        assert oe[first + 4 * nb + 8] == 0, f"{desc}: the frame does not end after its words"
+        log.append(desc)
+    dut._log.info("TX write in the take cycle: " + "; ".join(log) + ": each frame in the order written")
+
+
+@cocotb.test(skip=GL)
 async def test_slu_eth_tx(dut):
     """10BASE-Te transmit: preamble and SFD from the thread, 46-byte payload, CRC-32 appended by the
     unit, Manchester at 3 cycles per half bit on TD+ (TXA) and TD- (TXB), tap B one cycle later,

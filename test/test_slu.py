@@ -715,7 +715,7 @@ async def test_slu_eth_frame_end(dut):
     s = await slu_reset(dut)
     await s.cfg(ETH_CFG)
     await s.wr(P_TXCTRL, 0)                          # last word 16 bits, no CRC
-    await s.wr(P_TXLAST, 0xA55A)
+    await s.wr(P_TXLAST, 0x255A)                     # last bit (bit 15) 0: its second half is TD+ low, not TP_IDL
     caps = []
     cocotb.start_soon(capture(dut, 300, caps))
     await s.wr(P_TXCTRL, 1 << 9)

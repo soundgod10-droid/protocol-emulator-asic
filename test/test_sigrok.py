@@ -27,6 +27,7 @@ from cocotb.utils import get_sim_time
 import test_flex as fx
 import test_fw_full as ff
 import test_holdout as ho
+import test_i2c_tgt as it
 import test_rtl_fw as rf
 
 OUT = os.environ.get("SIGROK_SCENARIO", "scenario.json")

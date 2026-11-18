@@ -34,8 +34,8 @@ Port p of a helper is I/O port 16 + p (USB) or 32 + p (10BASE-Te).
 | 9 | CRCB | CRC B register (CRC5, USB) | - |
 | 10 | TSTAMP | now[15:0] at the event: USB end of packet, 10BASE-Te end of frame | - |
 | 11 | LINE | bit 0 AUX0, 1 AUX1, 2 DIN, 3 carrier, 7:4 receive state | - |
-| 12 | CFGADR | - | configuration index (only 8 = SEL is writable) |
-| 13 | CFGDAT | - | configuration word: SEL bits 3:0 DIN input, 7:4 AUX0 input, 11:8 AUX1 input (input numbers of docs/isa.md 5.1; 13 to 15 = none) |
+| 12 | CFGADR | - | configuration index (+1 after each CFGDAT write); writable: 8 = SEL in both helpers, and 0 = MODE, 1 = TXPER, 18 = LTC in the USB helper (section 6) |
+| 13 | CFGDAT | - | configuration word: SEL bits 3:0 DIN input, 7:4 AUX0 input, 11:8 AUX1 input (input numbers of docs/isa.md 5.1; 13 to 15 = none), 15:12 clocked sample delay (section 6) |
 | 14 | TXLAST | - | add the last word of the frame (its bit count from TXCTRL bits 4:0) |
 
 STATUS flags: 0 TXDONE, 1 TXLATE, 2 TXUNDER (buffer empty in a frame), 3 RXWORD (a word is waiting), 4 RXSOP, 5 RXEOP, 6 CRCA_OK (last frame), 7 CRCB_OK, 8 STUFFERR, 9 RXOVER (word lost), 10 LINEA (USB bus reset), 11 LINEB (USB suspend), 12 CARRIER, 13 LINKPULSE, 14 COLLISION, 15 JABBER. Flags 3, 6, 7, 12 and 15 show a level; the others stay set until cleared.

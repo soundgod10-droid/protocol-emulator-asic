@@ -808,13 +808,13 @@ async def test_slc_jtag(dut):
         log.info("JTAG TXPER %d, delay %d %s copy: %s, IR BYPASS, 1,000-bit scan through Pause-DR correct at all %d "
                  "corners, 0 device timing errors, TMS changes 8 or more cycles apart" % (
                      shift_txper, delay, "falling" if fall else "rising", note, len(CORNERS)))
-        if shift_txper == 2:                                      # review session for the waveform
-            dump_on(dut, True)
+        if shift_txper == 2:                                      # review session for the waveform: its first 20 us
+            dump_on(dut, True)                                    # (navigation and the IDCODE scan)
             t0 = now_ns()
+            cocotb.start_soon(later(20000.0, dump_on, dut, False))
             f, _ = await jtag_session(dut, u, 2, delay, fall, "slow, mux 10 ns")
-            dump_on(dut, False)
-            log.info("waveform: JTAG session at TXPER 2, delay %d %s copy, slow pads + 10 ns mux, %.1f to %.1f ns: %s" % (
-                delay, "falling" if fall else "rising", t0, now_ns(), f or "correct"))
+            log.info("waveform: JTAG session at TXPER 2, delay %d %s copy, slow pads + 10 ns mux, from %.1f ns (dump 20 us; "
+                     "session ends %.1f ns): %s" % (delay, "falling" if fall else "rising", t0, now_ns(), f or "correct"))
             assert f is None, "review session: %s" % f
 
 

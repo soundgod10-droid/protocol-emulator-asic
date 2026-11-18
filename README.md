@@ -44,7 +44,7 @@ Simulator in the browser: **<https://soundgod10-droid.github.io/protocol-emulato
 | USB low-speed device (HID keyboard) and 10BASE-T station firmware with standard-based host and partner models, on the RTL / on the gate-level netlist | 5 + 5 tests / the same 10 tests pass. USB: enumeration with the host at -500, 0 and +500 ppm, reply 5.65 to 5.68 bit times after the host's end of packet (limit 6.5), no reply to 6 damaged packets. 10BASE-T: frames received at -100 and +100 ppm, link test pulses every 16.01 ms (8 to 24 ms), link integrity test, collision backoff | [test 44116299449][test], [gds 44116299456][gds] |
 | 10BASE-T receive margin of the helper's loop (1,000 frames of 1,518 bytes per case, model) | 1,000 of 1,000 at the 13.5 ns jitter limit, +1.34 ns margin with up to 3 ns pattern-dependent jitter | [helpers](docs/helpers.md) |
 | Code coverage of the RTL tests: line / branch / toggle | 75.6 % / 81.3 % / 77.1 % (every file 100 % line except the helpers, [signoff](docs/signoff.md)) | [coverage 44005215379][cov] |
-| Formal proofs and covers (SymbiYosys) | 16 of 16 jobs pass | [formal 44116299495][formal] |
+| Formal proofs and covers (SymbiYosys) | 27 of 27 jobs pass | [formal 44421405029][formal] |
 
 Conditions: static timing of the routed layout at the three corners of the flow (slow 1.08 V 125 °C, typical 1.20 V 25 °C, fast 1.32 V -40 °C). The tests are logic simulations. The gate-level tests use the netlist of the layout with functional cell models and no delays. There is no silicon result yet. The [Results](https://soundgod10-droid.github.io/protocol-emulator-asic/results/) page is made again from the newest runs on every push, with every value and its run.
 

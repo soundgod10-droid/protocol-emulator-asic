@@ -37,6 +37,8 @@ jobs:
           { echo "netlist $nl, A_MEN of u_dmem on net [$net]"; grep -n -B4 -A1 -F "($net)" "$nl" | head -n 70; } | note "u_dmem A_MEN net"
           grep -h -i -E "worst|average|drop" ${r}*-openroad-irdropreport/*.log | head -n 30 | note "IR drop"
           cat ${r}warning.log | note "warning.log"
+          grep -h -i "lint" ${r}final/metrics.csv | note "lint metrics"
+          { ls -d ${r}*lint*; grep -h -E "%Warning|%Error|Lint" ${r}*lint*/*.log | head -n 40; } | note "lint log"
 
   gds:
     if: false

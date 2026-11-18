@@ -51,12 +51,17 @@ jobs:
         if: always()
         shell: bash
         run: |
-          log=formal/${{ matrix.job }}/logfile.txt
-          if [ -f "$log" ]; then
+          # A job with tasks (slu_teeth.sby) writes one folder per task: <job>_<task>.
+          found=0
+          for log in formal/${{ matrix.job }}/logfile.txt formal/${{ matrix.job }}_*/logfile.txt; do
+            [ -f "$log" ] || continue
+            found=1
+            dir=$(basename "$(dirname "$log")")
             status=$(grep -h "summary: Elapsed\|DONE (" "$log" | tail -n 2 | tr '\n' ' ')
-            echo "::notice title=formal ${{ matrix.job }}::$status"
-            { echo "### formal/${{ matrix.job }}.sby"; echo '```'; grep -h "summary:" "$log"; tail -n 3 "$log"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
-          else
+            echo "::notice title=formal $dir::$status"
+            { echo "### formal/$dir"; echo '```'; grep -h "summary:" "$log"; tail -n 3 "$log"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          done
+          if [ "$found" = 0 ]; then
             echo "::error title=formal ${{ matrix.job }}::no logfile.txt"
           fi
 

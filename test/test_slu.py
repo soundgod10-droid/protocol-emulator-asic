@@ -541,6 +541,105 @@ ETH_CFG = {
 
 
 @cocotb.test(skip=GL)
+async def test_slu_tx_buffer_full(dut):
+    """A TXDATA write while both buffer words wait and no word is taken is dropped: free (TXDATA read)
+    stays 0, the frame carries the first two words only, and afterwards both words are free."""
+    s = await slu_reset(dut)
+    await s.cfg({0: mode(0), 1: 4})                  # NRZ, 4 cycles a bit, no CRC
+    await s.wr(P_TXCTRL, 0)                          # last word 16 bits
+    await s.wr(P_TXDATA, 0x1234)
+    assert await s.rd(P_TXDATA) == 1, "one word free"
+    await s.wr(P_TXLAST, 0xA5C3)
+    assert await s.rd(P_TXDATA) == 0, "no word free"
+    await s.wr(P_TXDATA, 0xFFFF)                     # full: dropped
+    free = await s.rd(P_TXDATA)
+    assert free == 0, "a write to the full buffer changed the free count to %d" % free
+    caps = []
+    cocotb.start_soon(capture(dut, 4 * 40, caps))
+    await s.wr(P_TXCTRL, 1 << 9)                     # start now (TXTIME = now + 4)
+    while len(caps) < 4 * 40:
+        await RisingEdge(dut.clk)
+    oe = [c[1] for c in caps]
+    first = oe.index(1)
+    got = [caps[first + 4 * i + 2][0] & 1 for i in range(32)]
+    exp = [(0x1234 >> i) & 1 for i in range(16)] + [(0xA5C3 >> i) & 1 for i in range(16)]
+    assert got == exp, "frame bits %s" % "".join(map(str, got))
+    assert oe[first + 4 * 32 + 8] == 0, "the frame ends after the two words"
+    free = await s.rd(P_TXDATA)
+    assert free == 2, "after the frame %d words free" % free
+    dut._log.info("TX buffer full: third write dropped (free 0), frame of 32 bits = 1234 A5C3, then free 2")
+
+
+@cocotb.test(skip=GL)
+async def test_slu_line_after_reset(dut):
+    """LINE (port 11) during the reset and in the first cycles after its release: no pin is selected
+    (SEL resets to all ones), the input synchronizers and the RX state reset to 0, so LINE reads 0,
+    also with every pin high."""
+    cocotb.start_soon(Clock(dut.clk, 16666, unit="ps").start())
+    dut.slu_ut_rst_n.value = 0
+    dut.slu_we.value = 0
+    dut.slu_re.value = 0
+    dut.slu_addr.value = P_LINE
+    dut.slu_pins.value = (1 << 13) - 1
+    reads = []
+    for _ in range(3):
+        await RisingEdge(dut.clk)
+        await Timer(1, unit="ns")
+        reads.append(int(dut.slu_rdata.value))
+    dut.slu_ut_rst_n.value = 1
+    await Timer(1, unit="ns")
+    reads.append(int(dut.slu_rdata.value))           # after the release, before the next clock edge
+    for _ in range(4):
+        await RisingEdge(dut.clk)
+        await Timer(1, unit="ns")
+        reads.append(int(dut.slu_rdata.value))
+    dut._log.info("LINE in reset (3 cycles), after the release, then 4 cycles: " +
+                  " ".join("%04x" % r for r in reads))
+    assert reads == [0] * len(reads), reads
+
+
+@cocotb.test(skip=GL)
+async def test_slu_squelch_after_idle(dut):
+    """10BASE-Te squelch (SQ: 4 spacings in a row of 3 to 16 half cycles): after an idle gap the first
+    edge does not end a valid spacing, so carrier needs 4 more edges. Gaps of 60 to 80 cycles (the gap
+    counter saturates at 127 half cycles), each edge on a whole cycle (even half-cycle count), train
+    spacing 6 cycles; LINE[3] (carrier) read before each train edge."""
+    s = await slu_reset(dut)
+    cfg = dict(ETH_CFG)
+    cfg[0] = mode(2, ddr=1, rx=0, eop_car=1)         # receiver off: only the line conditions run
+    await s.cfg(cfg)
+    await FallingEdge(dut.clk)
+    dut.slu_addr.value = P_LINE
+    din = 0
+    pins = 1 << AUX0                                 # squelch comparator: signal present
+
+    async def cycle(level):
+        await RisingEdge(dut.clk)
+        await Timer(2, unit="ns")                    # first half of the cycle: x0 and x1 see the edge
+        dut.slu_pins.value = pins | (level << DIN)
+
+    async def carrier():
+        await ReadOnly()
+        return (int(dut.slu_rdata.value) >> 3) & 1
+
+    log = []
+    for gap in range(60, 81):
+        for _ in range(gap - 1):
+            await cycle(din)
+        seen = []
+        for e in range(6):
+            din ^= 1
+            await cycle(din)
+            for _ in range(5):
+                await cycle(din)
+            seen.append(await carrier())
+        n = seen.index(1) + 1 if 1 in seen else 0
+        log.append("%d:%d" % (gap, n))
+        assert n == 5, "gap %d cycles: carrier after edge %d of the train (expected 5): %s" % (gap, n, seen)
+    dut._log.info("squelch after idle, gap cycles:train edges to carrier " + " ".join(log))
+
+
+@cocotb.test(skip=GL)
 async def test_slu_eth_tx(dut):
     """10BASE-Te transmit: preamble and SFD from the thread, 46-byte payload, CRC-32 appended by the
     unit, Manchester at 3 cycles per half bit on TD+ (TXA) and TD- (TXB), tap B one cycle later,

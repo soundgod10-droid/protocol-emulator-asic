@@ -252,6 +252,9 @@ module pe_slu #(
   reg         crc_a_ok, crc_b_ok, crc_a_byte, crc_b_byte;
   reg  [15:0] ck_pend;              // clocked mode: sample times in flight
   reg         ck_bit_v, ck_bit_d;
+  reg         ck_frame;             // clocked mode: a transmitted frame whose samples are not all in
+  wire        ck_eop;               // clocked mode: end of a transmitted frame (all samples in)
+  wire        ck_lastb;             // clocked mode: last sample of an edge-started frame (LTC[10])
 
   wire [3:0]  pat_len  = c_pat2[3:0];
   wire [15:0] pat_mask = (pat_len == 4'd15) ? 16'hFFFF : ((16'd1 << (pat_len + 4'd1)) - 16'd1);

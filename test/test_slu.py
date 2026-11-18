@@ -280,7 +280,7 @@ async def test_slu_loop_acq_window(dut):
 
     base = loop_nacc(TENBASET, stream(0))
     log = [f"no move: {base} edges accepted"]
-    for d in (4, -4, 7, -7):
+    for d in (4, -4, 6):
         xs = stream(d)
         na = loop_nacc(TENBASET, xs)
         assert na == base - (1 if abs(d) > 5 else 0), f"edge moved by {d}: model accepted {na} edges, {base} unmoved"

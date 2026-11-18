@@ -459,6 +459,55 @@ async def test_host_partial_byte(dut):
 
 
 @cocotb.test()
+async def test_host_default_start(dut):
+    """The start addresses reset to 0 (docs/isa.md 2.4): with only the RUN mask and the pin written, START runs
+    thread 0 from address 0. Address 0 jumps over a HALT at address 1 to an OUT that drives UART_TX (pin 12) low;
+    a start at any other address leaves the line high."""
+    mon, host = await start(dut)
+    prog = pe_asm.assemble("""
+            JMP     go
+            HALT
+    go:     TNOW    24
+            OUT     UO4, 0
+            HALT
+    """)
+    await host.write_mem(0, prog.image()[:8])
+    owner = [None] * 15
+    owner[P_TX] = 0
+    _, pins = hs.config_words((0, 0, 0, 0), (True, False, False, False), owner, [False] * 15)
+    await host.write_cfg(4, [0b0001])                # RUN mask only: the start addresses keep their reset value
+    await host.write_cfg(16, pins)
+    t0 = now_ps()
+    await host.start()
+    await ClockCycles(dut.clk, 200)
+    changes = mon.after(t0)
+    dut._log.info(f"START with the reset start addresses: UART_TX changes {changes}")
+    assert [v for _, v in changes] == ["0"], f"thread 0 did not run from address 0: UART_TX changes {changes}"
+
+
+@cocotb.test()
+async def test_helper_pin_stopped_level(dut):
+    """A uo_out pin driven by a line helper (pin configuration bit 4) shows V = 1 while the threads stop, before START
+    and after STOP (docs/isa.md 2.4; a uo_out pin has no enable). Pin 12 (uo_out[4]) takes the USB helper's TXA
+    (VPO), which is 0 while the helper idles at J during the run: 1 before START, 0 while running, 1 after STOP."""
+    _, host = await start(dut)
+    pins = [0] * 15
+    pins[P_TX] = 1 << 4                              # helper drives the pin: USB (bit 5 = 0), signal 0 = TXA
+    await host.write_cfg(4, [0])
+    await host.write_cfg(16, pins)
+    await ClockCycles(dut.clk, 20)
+    levels = [str(dut.uart_tx.value)]
+    await host.start()
+    await ClockCycles(dut.clk, 20)
+    levels.append(str(dut.uart_tx.value))
+    await host.stop()
+    await ClockCycles(dut.clk, 20)
+    levels.append(str(dut.uart_tx.value))
+    dut._log.info(f"uo_out[4] with the USB helper's TXA: stopped {levels[0]}, running {levels[1]}, after STOP {levels[2]}")
+    assert levels == ["1", "0", "1"], f"helper pin levels (stopped, running, after STOP): {levels}"
+
+
+@cocotb.test()
 async def test_host_load_readback(dut):
     """WRITE_MEM of 128 random words, READ_MEM in one transaction; words across the program/data
     boundary (511 -> 512), at the top of the data memory, the alias 1,536-2,047 = 512-1,023 and

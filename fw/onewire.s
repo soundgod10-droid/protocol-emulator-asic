@@ -42,8 +42,8 @@
         .equ    TC, 3250        ; C = 65 us (AN126: 60 us; see above)
         .equ    TD, 250         ; D = 5 us (AN126: 10 us), so that C + D stays 70 us
         .equ    TI2, 1750       ; I / 2 = 35 us
-        .equ    H32, 750        ; H = 480 us = 750 x 32 cycles
-        .equ    J32, 641        ; J = 410 us: 641 x 32 = 20,512 cycles (410.24 us)
+        .equ    H32, 766        ; H = 490 us: 766 x 32 = 24,512 cycles (490.24 us; AN126: 480 us)
+        .equ    J32, 657        ; J = 420 us: 657 x 32 = 21,024 cycles (420.48 us; AN126: 410 us)
         .equ    MARGIN, 32      ; the first OUT is 7 instructions after TSYNC: 7 x 4 + 4 = 32
 
 start:  TNOW    MARGIN          ; T = now + MARGIN

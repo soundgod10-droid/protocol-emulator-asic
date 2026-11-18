@@ -1171,6 +1171,7 @@ rx:     IOR     r0, E+6         ; RXINFO [6:5]: words in the RX buffer
         IOR     r0, E+1         ; RXDATA (pop)
         STX     r0, [r1]
         ADDI    r1, 1
+        ST      r1, 500         ; next free address, for the host
         JMP     rx
 """
 

@@ -122,6 +122,13 @@ async def clocked_frame(u, bits_out, lead=40, before_start=None, after_end=None)
     Returns (received bits, status at the end, TXTIME). before_start/after_end: callbacks of the bench (CS)."""
     n = len(bits_out)
     words = words_of(bits_out)
+    # A TXTIME write starts a frame only in the idle state; after a frame the unit keeps tail 1 for
+    # c_tail[7:0] = 84 cycles (the fixed USB value of SPEC 1), so wait for the idle state first.
+    for _ in range(300):
+        if (await u.rd(P_TXCTRL)) & 0xF == 0:
+            break
+    else:
+        raise AssertionError("transmitter not idle 600 cycles after the last frame")
     await u.wr(P_TXCTRL, 1 << 10)                                 # empty the TX buffer
     while (await u.rd(P_RXINFO) >> 5) & 3:
         await u.rd(P_RXDATA, pop=True)

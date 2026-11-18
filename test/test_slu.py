@@ -195,6 +195,50 @@ async def test_slu_loop_equiv(dut):
         dut._log.info(line)
 
 
+def window_limit_hits(cfg, xs):
+    """Edges of the stream whose phase error is exactly the lower window limit (-win samples), counted
+    with the model's own arithmetic (NRZ form: expected edge at the bit boundary)."""
+    lp = Loop(cfg)
+    lp.xprev = xs[0]
+    none, n = cfg.n * 4096, 0
+    for x in xs[1:]:
+        if lp.init and x != lp.xprev:
+            eps = (lp.th + 4096 - 2048 + none // 2) % none - none // 2
+            n += eps == -cfg.win * 4096
+        lp.step(x)
+    return n
+
+
+@cocotb.test(skip=GL)
+async def test_slu_loop_window_edge(dut):
+    """USB loop (N = 40, hard resync, window 20 samples = half a bit): an edge exactly half a bit away
+    from the expected bit boundary has the phase error -20 samples, the lower window limit, and is used
+    (|eps| <= window; test/slu_loop_model.py). Bits of 0 (an edge every 40 samples) with one edge moved
+    by 20 samples later or earlier: that edge and the next one sit on the limit. Edges moved by 19 and
+    21 samples (inside the window) as neighbours. RTL = model in every cycle."""
+    cocotb.start_soon(Clock(dut.clk, 10, unit="ns").start())
+    dut.slu_ut_rst_n.value = 0
+    await RisingEdge(dut.clk)
+    await RisingEdge(dut.clk)
+    dut.slu_ut_rst_n.value = 1
+    await configure(dut, USB_LS)
+    log = []
+    for d in (20, -20, 19, 21):
+        edges = [30 + 40 * i for i in range(12)]
+        edges[6] += d
+        xs, lv = [], 1
+        for k in range(30 + 40 * 13):
+            if k in edges:
+                lv = 1 - lv
+            xs.append(lv)
+        hits = window_limit_hits(USB_LS, xs)
+        assert (hits > 0) == (abs(d) == 20), "edge moved by %d samples: %d edges on the window limit" % (d, hits)
+        cyc, got, err = await run_stream(dut, USB_LS, xs)
+        assert err is None, "edge moved by %d samples: %s" % (d, err)
+        log.append("moved %+d: %d edges on the limit, %d cycles, %d bits, RTL = model" % (d, hits, cyc, len(got)))
+    dut._log.info("USB loop window limit: " + "; ".join(log))
+
+
 # --------------------------------------------------------------------------------------------------
 # The whole unit (tb.u_slu_ut, FULL build) through its ports, at 60 MHz.
 # --------------------------------------------------------------------------------------------------

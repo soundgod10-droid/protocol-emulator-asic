@@ -479,8 +479,9 @@ def read_results(run):
 
 
 class Shard:
-    def __init__(self, p, k, workers, work, deadline_s):
+    def __init__(self, p, k, workers, work, deadline_s, max_rungs=0):
         self.p, self.k, self.work, self.deadline = p, k, work, time.time() + deadline_s
+        self.max_rungs = max_rungs
         self.muts = {m["id"]: m for m in p["mutants"]}
         self.base = {}          # rung -> dict(ok, seconds, cases, note)
         self.lock = threading.Lock()

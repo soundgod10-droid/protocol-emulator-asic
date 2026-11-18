@@ -1219,7 +1219,7 @@ async def test_slu_chip_spi_flash(dut):
     bits = sc.bytes_to_bits([0x03, 0, 0, addr]) + [0] * (8 * 256)
     words = sc.words_of(bits)
     prog = pe_asm.assemble(SPI_CLK_FW, "spi_clk")
-    t1 = prog.labels["t1"] if hasattr(prog, "labels") else None
+    t1 = 120
     pins = [0] * 15
     pins[0], pins[1] = helper_pin(0, 1), helper_pin(0, 0)
     cocotb.start_soon(Clock(dut.clk, CHIP_CLK_PS, unit="ps").start())

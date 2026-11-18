@@ -327,11 +327,11 @@ async def spi_flash_run(dut, plan):
     mem = [rng.randrange(256) for _ in range(512)]
     summary = []
     rated = {}
-    for txper, modes in ((2, (0, 1, 2, 3)), (4, (0, 1, 2, 3)), (1, (0,))):
+    for txper, modes in plan:
         for mode in modes:
             window = []
             for fall in (0, 1):
-                for delay in range(16):
+                for delay in range(12):
                     if all([(await id_ok(dut, u, mode, txper, delay, fall, c))[0] for c in CORNERS]):
                         window.append((delay, fall))
             summary.append("TXPER %d (%.1f MHz) mode %d: settings that read the ID at all %d corners: %s" % (

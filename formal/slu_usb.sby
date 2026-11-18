@@ -41,6 +41,10 @@ connect -set mon_rdv \u_slu.r_data_v
 connect -set mon_rd \u_slu.r_data
 connect -set mon_sop \u_slu.r_sop
 connect -set mon_rxbits \u_slu.rx_bits
+# The falling-edge DIN sample becomes a free input (an over-approximation of the receive input); its
+# flip-flop then has no load and is removed, so the model has one clock edge.
+connect -set \u_slu.din_f1 din_f1_free
+opt_clean
 cd ..
 # The job stops with an error if a property was removed: 22 asserts of slu_fv.v for SPEC 1 and its assume.
 select -assert-min 23 t:$check t:$assert t:$assume

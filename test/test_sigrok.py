@@ -177,7 +177,8 @@ async def test_sigrok_spi_tgt(dut):
 
 # ----- I2C -----
 # i2c/pd.py: classes start ("Start"), repeat-start ("Start repeat"), stop ("Stop"), ack ("ACK"), nack ("NACK"),
-# address-read/-write ("Address read: {b:02X}", 7-bit address with the default address_format "shifted"),
+# address-read/-write ("Address read: {b:02X}", 7-bit address with the default address_format "shifted", and before
+# it the R/W bit "Read" or "Write" in the same class),
 # data-read/-write ("Data read: {b:02X}", "Data write: {b:02X}").
 I2C_CLASSES = "i2c:start|repeat-start|stop|ack|nack|address-read|address-write|data-read|data-write"
 I2C_LINES = [["i2c_scl", "in:6"], ["i2c_sda", "in:7"]]

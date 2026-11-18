@@ -31,7 +31,7 @@ iolink,"IO-Link device (COM2)",C,-,-,entries,"IO-Link Interface and System Speci
 mil1553,"MIL-STD-1553B bus controller transmitter and remote terminal receiver",C,-,-,entries,"MIL-STD-1553B (public)","terminal model; 1 Mbit/s receive by timed sampling after the sync edge: feasibility not verified",150,L,4.0,9.0,-,T,0,2,0,1,no
 sdi12,"SDI-12 v1.4 recorder",C,-,-,entries,"SDI-12 Specification v1.4 (sdi-12.org, free)","sensor model (break 12 ms, 1200 bit/s 7E1)",120,L,4.0,9.0,-,L5,0,2,0,1,no
 centronics,"Centronics host",C,-,"scope read against ieee488 (GPIB: three-wire DAV/NRFD/NDAC interlocked handshake and ATN commands): Centronics uses STROBE, BUSY and ACK",entries,"public descriptions (IEEE 1284 is paid)","printer model",35,S,2.0,5.0,-,L5,0,0,0,0,no
-sega6,"Sega Mega Drive 6-button pad host",C,-,"from an entry's pad program (SNES and 6-button pad), read on 2026-11-17; no pool decoder has this scope",entries,"public reverse-engineered notes","pad model (select-line phases and the pad's time-out)",30,S,2.0,5.0,-,L5,0,0,0,0,no
+sega6,"Sega Mega Drive 6-button pad host",C,-,"from an entry's pad program (SNES and 6-button pad); no pool decoder has this scope",entries,"public reverse-engineered notes","pad model (select-line phases and the pad's time-out)",30,S,2.0,5.0,-,L5,0,0,0,0,no
 arinc429,"ARINC 429 transmitter and receiver",C,-,-,entries,"Holt HI-8585 and HI-8282A data sheets (ARINC 429 is paid)","receiver and transmitter model",100,M,2.75,6.75,-,T,0,0,0,0,no
 asi,"AS-Interface (logic level)",C,-,-,entries,"public AS-i IC data sheets","slave model",80,M,2.75,6.75,-,T,0,0,0,0,no
 j1708,"SAE J1708 node",C,-,-,entries,"public application notes (SAE J1708 is paid)","bus model with access time",60,M,2.75,6.75,-,T,0,0,0,0,no

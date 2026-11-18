@@ -62,7 +62,8 @@ T_LOW1 = (1, 15)  # tLOW1
 T_RSTL = 480  # tRSTL minimum
 T_RSTH = 480  # tRSTH minimum
 
-# .equ values of fw/onewire.s for each clock (MHz): the AN126 times (with C 65 us, D 5 us) in cycles.
+# .equ values of fw/onewire.s for each clock (MHz): the AN126 times (with C 65 us, D 5 us, H 490 us, J 420 us) in
+# cycles.
 OW_EQU = {
     50: {},  # the values written in the file
     60: dict(TA=360, TE=540, TF=3300, TC=3900, TD=300, TI2=2100, H32=919, J32=788),

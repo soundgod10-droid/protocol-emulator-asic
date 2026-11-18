@@ -1,7 +1,7 @@
 # slu_eth: the 10BASE-Te helper copy of the chip (pe_slu SPEC 2, FULL 1) against formal/slu_fv.v H1, H2, H5 to
 # H8 (CRC-32 sent and checked with the IEEE 802.3 polynomial and residue, Manchester halves on the outputs,
 # 6-cycle bit period with the mid-bit change after 3 cycles, 32 jam bits after a collision, frame start at
-# TXTIME), every port access and pin input free. The monitor wires are connected to internal nets after
+# TXTIME) and H9 (unjab 65,536 ticks after the jabber onset), every port access and pin input free. The monitor wires are connected to internal nets after
 # flattening, so the RTL stays unchanged.
 
 [options]

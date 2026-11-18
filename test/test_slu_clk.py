@@ -370,3 +370,16 @@ async def spi_flash_run(dut, plan):
     log.info("control TXPER 1, delay 0, slow pads + 10 ns mux: ID %s (must not be %s)" % (
         ["%02X" % b for b in got], ["%02X" % b for b in JEDEC_ID]))
     assert not ok, "control: TXPER 1 with sample delay 0 and a 10 ns multiplexer read the ID correctly"
+
+
+@cocotb.test(skip=GL)
+async def test_slc_spi_flash_15mhz(dut):
+    """T1 at TXPER 2 (4 cycles a bit, 15 MHz), SPI modes 0 to 3 (see spi_flash_run)."""
+    await spi_flash_run(dut, ((2, (0, 1, 2, 3)),))
+
+
+@cocotb.test(skip=GL)
+async def test_slc_spi_flash_7m5_30mhz(dut):
+    """T1 at TXPER 4 (7.5 MHz) in modes 0 to 3 and at TXPER 1 (30 MHz) in mode 0, with the control that must fail
+    (see spi_flash_run)."""
+    await spi_flash_run(dut, ((4, (0, 1, 2, 3)), (1, (0,))))

@@ -779,7 +779,7 @@ async def test_slc_jtag(dut):
     set-up 1 ns, hold 2 ns, TCK high and low 10 ns or more: both IDCODEs, BYPASS in both, a 1,000-bit DR scan through
     Pause-DR, at shift rates 15 MHz (TXPER 2) and 30 MHz (TXPER 1), at the extreme pin-path corners."""
     u = await unit_reset(dut)
-    dut.dump_off.value = 1
+    dump_on(dut, False)
     log = dut._log
     for shift_txper in (2, 1):
         good = []

@@ -15,7 +15,7 @@ A thread of the processor executes one instruction every 4 cycles (docs/isa.md 3
 | USB low speed | 16 to 31 | 13 | NRZI, bit stuffing after 6 ones, SYNC end detection, EOP (SE0 qualified for 20 samples), CRC16 and CRC5 checked at the same time, CRC16 appended, EOP SE0 84 cycles (1.40 us) and J 40 cycles, line timers for bus reset (SE0) and suspend (J) |
 | 10BASE-Te | 32 to 47 | 14 | Manchester at 3 cycles per half bit, receive phase loop on both clock edges, SFD detection after 16 accepted edges, CRC-32 checked and appended, TP_IDL hold 16 cycles, link test pulse 6 cycles (100 ns), squelch qualifier (4 edge spacings of 3 to 16 half cycles), link-pulse classifier (2 to 12 cycles), collision (receive carrier while sending) with a 32-bit jam, jabber (transmit longer than 2^22 cycles = 69.9 ms stops it for 2^25 cycles = 0.559 s) |
 
-Both helpers are the same RTL (pe_slu) with a fixed configuration (parameter SPEC); only the pin choice SEL is writable. The fixed values are in src/pe_slu.v (F_*) and are the values that the tests use.
+Both helpers are the same RTL (pe_slu) with a fixed configuration (parameter SPEC). The pin choice SEL is writable in both. The USB helper also accepts MODE bits 0, 1, 3, 4, 9, TXPER bits 7:0 and LTC bits 12:8, so that it also runs the clocked and NRZ modes of section 6 (SPI controller, JTAG, SWD clock, UART). The fixed values are in src/pe_slu.v (F_*) and are the values that the tests use; after reset both helpers have them.
 
 ## 2 Ports
 

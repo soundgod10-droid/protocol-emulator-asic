@@ -588,7 +588,16 @@ class Shard:
                 self.slot_cv.notify()
         print(f"{mid} {m['file']}:{m['line']} {m['op']} {rec['status']} {rec.get('rung', '')} {rec['seconds']} s",
               flush=True)
+        if self.out:
+            with self.lock:
+                self.done.append(rec)
+                with open(self.out + ".tmp", "w") as fh:
+                    json.dump(self.summary(self.done), fh, indent=1)
+                os.replace(self.out + ".tmp", self.out)
         return rec
+
+    def summary(self, results):
+        return {"shard": self.k, "commit": self.p["commit"], "baselines": dict(self.base), "results": list(results)}
 
     def run(self, workers):
         ids = self.p["shards"][self.k]

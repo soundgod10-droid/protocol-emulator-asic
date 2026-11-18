@@ -164,7 +164,7 @@ def judge(scen_path, vcd_path, out_dir):
         vcd = os.path.join(out_dir, f"{s['name']}.vcd")
         write_vcd(lines, t0, t1, vcd, comments)
         rows, rc, err, cmd = run_sigrok(vcd, s["stack"])
-        fails, got, equal, first = evaluate(rows, s["content"])
+        fails, got, equal, first = evaluate(rows, s["content"], s.get("forbid", ()))
         # negative control: invert the data line in the middle of the first content annotation
         control = {"bites": False, "note": "no content annotation to tamper"}
         if first is not None:

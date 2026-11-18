@@ -6,7 +6,19 @@ name: formal
 # "expect fail"). A changed RTL that breaks a property, removes properties (select -assert-min) or
 # bypasses a synchronizer (cdc.sby) fails its job.
 
-on: [push, workflow_dispatch]
+# It runs when a push changes the RTL, the proof files or this workflow; the proofs read nothing else.
+on:
+  push:
+    paths:
+      - 'src/**'
+      - 'formal/**'
+      - '.github/workflows/formal.yaml'
+  workflow_dispatch:
+
+# On cmos5l and tags every run is kept; on other branches a newer push cancels the older run.
+concurrency:
+  group: ${{ (github.ref == 'refs/heads/cmos5l' || startsWith(github.ref, 'refs/tags/')) && format('formal-run-{0}', github.run_id) || format('formal-{0}', github.ref) }}
+  cancel-in-progress: true
 
 jobs:
   formal:

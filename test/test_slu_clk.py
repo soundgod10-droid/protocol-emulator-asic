@@ -340,9 +340,11 @@ async def spi_flash_run(dut, plan):
                 rated[(txper, mode)] = window[len(window) // 2]
     for line in summary:
         log.info(line)
-    for txper in (2, 4):
-        for mode in range(4):
-            assert (txper, mode) in rated, "TXPER %d mode %d: no read-back setting works at all corners" % (txper, mode)
+    for txper, modes in plan:
+        for mode in modes:
+            if txper >= 2:
+                assert (txper, mode) in rated, "TXPER %d mode %d: no read-back setting works at all corners" % (
+                    txper, mode)
     # 256-byte reads at the middle of each window, at the two extreme corners
     for (txper, mode), (delay, fall) in sorted(rated.items()):
         for corner in ("fast, no mux", "slow, mux 10 ns"):

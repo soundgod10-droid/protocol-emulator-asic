@@ -1240,7 +1240,8 @@ async def test_slu_chip_spi_flash(dut):
     await host.write_mem(512, [len(bits)] + words)
     owner = [None] * 15
     owner[2] = 0
-    head, _ = hs.config_words((0, t1, 0, 0), (True, True, False, False), owner, [False] * 15)
+    head, own = hs.config_words((0, t1, 0, 0), (True, True, False, False), owner, [False] * 15)
+    pins[2] = own[2]                                                # /CS: a pin of thread 0
     await host.write_cfg(0, head)
     await host.write_cfg(16, pins)
     d_out = sc.OUT_PAD[1] + sc.MUX_MAX

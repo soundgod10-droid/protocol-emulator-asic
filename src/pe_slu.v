@@ -549,7 +549,7 @@ module pe_slu #(
         R_HUNT: begin
           if (!m_rx) rx_st <= R_OFF;
           else if (r_dec_v) pat_sh <= {pat_sh[14:0], r_dec};
-          if (m_rx && r_sop) rx_st <= R_DATA;
+          if (m_rx && (r_sop || m_code == C_CLK)) rx_st <= R_DATA;   // clocked: no start pattern
         end
         R_DATA: begin
           if (!m_rx) rx_st <= R_OFF;

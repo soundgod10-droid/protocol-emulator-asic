@@ -317,7 +317,7 @@ module slu_fv #(
             end
             if (mon_hm) assert (c_cur == TXPER - 1);
             // the first bit start of a frame begins a bit (the first word has 1 to 16 bits)
-            if (cv_cur) assert (mv_cur);
+            assert (cv_cur == mv_cur);
           end
           if (vq_ok) assert (tx_v[1:0] == vq);
           // H7: 32 jam bits

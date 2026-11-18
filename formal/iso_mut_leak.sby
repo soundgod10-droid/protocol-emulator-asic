@@ -17,7 +17,7 @@ chformal -assert2assume pe_core
 flatten
 cd iso_fv
 # the planted leak (before the monitors are connected)
-connect -set \u_a.ra \u_a.st1 [15:0]
+connect -set \u_a.ra \u_a.st1[15:0]
 connect -set a_st0 \u_a.st0
 connect -set a_st1 \u_a.st1
 connect -set a_st2 \u_a.st2

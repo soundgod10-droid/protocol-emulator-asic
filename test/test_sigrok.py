@@ -581,6 +581,51 @@ async def test_sigrok_pdi(dut):
     key = [(w >> 1) & 0xFF for w in script[3:11]]
     texts = ["Data: 0x00", "Data: 0x" + "".join(f"{b:02x}" for b in reversed(key)), "Data: 0x02", "Data: 0x05",
              "Data: 0x05"]
+    record_pdi(t0, t1, texts)
+
+
+# ----- USB low speed -----
+# usb_packet/pd.py on usb_signalling (low-speed): at the end of each packet a class packet-<pid> with the summary
+# "SETUP ADDR {a} EP {e}" or "DATA0 [ {bytes} ]" (" %02X" per byte); SYNC and CRC errors are classes *-err, a short
+# packet is packet-invalid (forbidden here). The content is the SETUP token and the data packets: the device may NAK
+# an IN before its data (legal), so the handshakes are checked by the host model, not listed here.
+
+
+@cocotb.test()
+async def test_sigrok_usb(dut):
+    """fw/usb_dev.s with the USB 2.0 host model of test/linemodel: after a bus reset (20 us, simulation speed) and the
+    recovery, GET_DESCRIPTOR device (18 bytes, 3 data packets of the 8-byte low-speed maximum) and the status stage
+    (test_usb_dev.py)."""
+    host, bus, _, _ = await ud.usb_chip(dut)
+    glue = ud.Glue(bus)
+    s = ud.H.UsbHostSession()
+    gd = ud.C.get_descriptor(ud.C.DT_DEVICE, 0, 18)
+    out = {}
+
+    def reset():
+        yield from s.reset(ud.RESET_PS, ud.RECOVERY_PS)
+
+    def read():
+        out["dev"], out["stall"] = yield from s.control_read(0, gd)
+        yield from s.gap(20)
+    await glue.run(reset())
+    t0 = now_ps()
+    await glue.run(read())
+    t1 = now_ps()
+    ud.check_clean(s, bus)
+    desc = bytes(ud.usb_dev_data.DEVICE)
+    assert out["dev"] == desc and not out["stall"], out
+    hexs = lambda b: "".join(f" {x:02X}" for x in b)  # noqa: E731
+    texts = (["SETUP ADDR 0 EP 0", f"DATA0 [{hexs(bytes(gd))} ]"]
+             + [f"DATA{(k // 8 + 1) % 2} [{hexs(desc[k:k + 8])} ]" for k in range(0, len(desc), 8)] + ["DATA1 [ ]"])
+    record("test_sigrok_usb", "usb_ls", [["usb_dp", "ui:1"], ["usb_dm", "ui:2"]],
+           "usb_signalling:dp=usb_dp:dm=usb_dm:signalling=low-speed,usb_packet:signalling=low-speed",
+           {"usb_packet:packet-setup|packet-data0|packet-data1": texts}, t0, t1, "usb_dp",
+           "USB 2.0 host model and the chip as low-speed device: D+ and D- of the bus (VP, VM of the transceiver "
+           "model), logic levels only", forbid=["usb_packet:packet-invalid"])
+
+
+def record_pdi(t0, t1, texts):
     record("test_sigrok_pdi", "pdi", [["pdi_clk", f"drvh:{ho.P_CLK}"], ["pdi_data", f"bus:{ho.P_DAT}"]],
            "avr_pdi:reset=pdi_clk:data=pdi_data", {"avr_pdi:data-prog|data-dev": texts}, t0, t1, "pdi_data",
            "chip as PDI programmer with the XMEGA model; PDI_DATA = chip level when driven, device level when released")

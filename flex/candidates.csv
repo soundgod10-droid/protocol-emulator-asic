@@ -1,0 +1,170 @@
+id,protocol,list,rule,reason,source,document,model,words_est,effort,h_central,h_cons,sigrok,elec,o,r,e,h,last
+dmx512,"DMX512-A controller",C,-,-,sigrok:dmx512; entries,"ANSI E1.11 (ESTA, free)","receiver from E1.11; second oracle: sigrok-dumps dmx512 recordings",35,S,2.0,5.0,dmx512,T,2,2,0,0,no
+dcc,"DCC command station",C,-,-,entries,"NMRA S-9.1 and S-9.2 (free)","decoder from the S-9.1 half-bit limits; second oracle: sigrok-dumps dcc recording",40,S,2.0,5.0,-,T,1,2,0,0,no
+sbus,"S.BUS receiver and transmitter",C,-,-,sigrok:sbus_futaba; entries,"public reverse-engineered notes (no official document)","peer from the notes",70,S,2.0,5.0,sbus_futaba,D,2,0,1,0,no
+hdlc,"HDLC/SDLC transmitter and receiver (flags, zero insertion, FCS-16)",C,-,-,entries,"IETF RFC 1662","peer and FCS-16 check value from RFC 1662",160,M,2.75,6.75,-,D,0,2,1,0,no
+lin,"LIN 2.2A commander and responder",C,-,-,sigrok:lin; entries,"LIN Specification Package 2.2A (LIN consortium, free)","node from the specification; second oracle: sigrok-dumps uart/lin recording",200,L,4.0,9.0,lin,T,2,2,0,1,no
+ds1302,"DS1302 3-wire host",C,-,"scope read against microwire (separate DI/DO lines, start bit, MSB first) and sda2506 (commands shifted while CE# is high, executed at its fall): other frame grammar",entries,"Maxim DS1302 data sheet","device model from the data sheet",40,S,2.0,5.0,-,D,0,1,1,0,no
+hd44780,"HD44780 4-bit writer with busy read",C,-,-,entries,"Hitachi HD44780U data sheet","controller model; second oracle: sigrok-dumps display/hd44780 recording",50,S,2.0,5.0,-,L5,1,1,0,0,no
+hx711,"HX711 reader",C,-,-,entries,"Avia HX711 data sheet","ADC model from the data sheet",30,S,2.0,5.0,-,D,0,1,1,0,no
+irda,"IrDA SIR transmitter and receiver",C,-,-,entries,"IrDA Serial Infrared Physical Layer Specification (public copy)","peer from the specification (3/16 pulse)",70,S,2.0,5.0,-,A,0,2,0,0,no
+oregon,"Oregon Scientific v2.1 sensor transmitter",C,-,"scope read against em4100 (64-bit Manchester code with 9-bit header and row parities): other frame grammar",sigrok:ook_oregon,"public reverse-engineered notes","receiver from the notes; second oracle: sigrok-dumps ook/oregon recording",50,S,2.0,5.0,ook_oregon (on ook),A,2,0,0,0,no
+snes,"SNES pad host",C,-,-,sigrok:nes_gamepad; entries,"public notes and the CD4021B shift register data sheet","pad model; second oracle: sigrok-dumps spi/nes_gamepad recording",30,S,2.0,5.0,nes_gamepad (on spi),L5,2,0,0,0,no
+ssi,"SSI absolute encoder controller",C,-,"scope read against caliper (the device drives clock and data): the SSI controller drives the clock, with a monoflop time-out",sigrok:ssi32; entries,"public encoder notes (multi-vendor de facto interface)","encoder model with monoflop; second oracle: sigrok-dumps spi/ssi32 recording",30,S,2.0,5.0,ssi32 (on spi),T,2,0,0,0,no
+tm1637,"TM1637 display driver",C,-,-,entries,"Titan Micro TM1637 data sheet","driver model from the data sheet",50,S,2.0,5.0,-,D,0,1,1,0,no
+biss,"BiSS-C controller",C,-,-,entries,"iC-Haus BiSS C protocol description (free; open multi-vendor protocol)","slave model and CRC-6",60,M,2.75,6.75,-,T,0,2,0,0,no
+mdb,"MDB controller (9-bit)",C,-,-,entries,"NAMA MDB/ICP 4.2 (free)","peripheral model",70,M,2.75,6.75,-,T,0,2,0,0,no
+pocsag,"POCSAG baseband transmitter",C,-,-,entries,"ITU-R M.584 (free)","receiver and BCH(31,21) vectors",80,M,2.75,6.75,-,A,0,2,0,0,no
+psi5,"PSI5 sensor (Manchester)",C,-,"scope read against dali and dsi (forward frame: 1 start bit, 16 or 8 bits, 2 stop bits): PSI5 has 2 start bits, parity or CRC-3 and synchronous time slots",entries,"psi5.org PSI5 specification 2.x (free)","ECU model with parity and CRC-3",50,M,2.75,6.75,-,T,0,2,0,0,no
+tlc5940,"TLC5940 LED driver (2 threads)",C,-,"scope read against tlc5620 (11-bit DAC word and LOAD pulse): the TLC5940 needs a 192-bit shift, XLAT, and a continuous GSCLK with BLANK every 4096 pulses",entries,"TI TLC5940 data sheet","device model from the data sheet",60,M,2.75,6.75,-,D,0,1,1,0,no
+unio,"UNI/O bus master",C,-,"scope read against dali and dsi: UNI/O has a standby pulse, a start header and MAK/SAK acknowledge bits after each byte",entries,"Microchip DS22076 (11XX UNI/O EEPROM data sheet)","EEPROM model from the data sheet",80,M,2.75,6.75,-,D,0,1,1,0,no
+i3c,"I3C SDR controller (subset)",C,-,-,entries,"MIPI I3C Basic 1.1.1 (free)","target model with open-drain and push-pull phases",150,L,4.0,9.0,-,D,0,2,1,1,no
+iso7816,"ISO 7816-3 T=0 reader (2 threads)",C,-,"scope read against sle44xx (SLE 4418/28/32/42 synchronous memory cards: one bit per CLK): T=0 is an asynchronous character protocol (start bit, parity, guard time, error signal, etu of 372 CLK)",entries,"EMVCo Integrated Circuit Card Specifications Book 1, contact interface (free)","card model and ATR vectors",130,L,4.0,9.0,-,D,0,2,1,1,no
+magstripe,"Magstripe reader output (ISO 7811 track 2)",C,-,"scope read against caliper (24-bit words): other frame grammar (5-bit characters with odd parity, sentinels and LRC)",entries,"Magtek reader module manuals (public; ISO 7811 is paid)","host model with LRC",40,S,2.0,5.0,-,D,0,0,1,0,no
+sent,"SENT transmitter",C,-,"scope read against sae_j1850_vpw (variable pulse width bytes with SOF, EOD and CRC-8): SENT sends 4-bit nibbles as falling-edge periods after a 56-tick sync pulse",entries,"public application notes (SAE J2716 is paid)","receiver and CRC-4; second oracle: sigrok-dumps sent recording",50,S,2.0,5.0,-,L5,1,0,0,0,no
+adb,"ADB host",C,-,"scope read against sdq and pjdl: other frame grammar (attention, sync, command byte, stop-to-start time)",entries,"Apple Guide to the Macintosh Family Hardware","device model",80,M,2.75,6.75,-,L5,0,1,0,0,no
+hub75,"HUB75 LED panel (frame buffer in data memory)",C,-,-,entries,"de facto interface (no official document)","panel model; second oracle: sigrok-dumps led/hub75 recording",80,M,2.75,6.75,-,L5,1,0,0,0,no
+joybus,"Joybus host (N64 pad)",C,-,"scope read against sdq (TI bq26100: break, presence and 1-Wire-like ROM commands): Joybus has no reset or presence, 4 us bit cells, a stop bit after the command and the reply",entries,"public reverse-engineered notes","pad model",60,M,2.75,6.75,-,D,0,0,1,0,no
+x10,"X10 via TW523",C,-,-,entries,"X10 TW523 technical note","TW523 model (417 ms a command: shortest case at gate level)",60,M,2.75,6.75,-,T,0,1,0,0,no
+endat,"EnDat 2.2 master",C,-,-,entries,"Heidenhain EnDat 2.2 technical information (free)","encoder model and CRC-5",120,L,4.0,9.0,-,T,0,1,0,1,no
+iolink,"IO-Link device (COM2)",C,-,-,entries,"IO-Link Interface and System Specification 1.1.3 (free)","master model and checksum",150,L,4.0,9.0,-,T,0,2,0,1,no
+mil1553,"MIL-STD-1553B bus controller transmitter and remote terminal receiver",C,-,-,entries,"MIL-STD-1553B (public)","terminal model; 1 Mbit/s receive by timed sampling after the sync edge: feasibility not verified",150,L,4.0,9.0,-,T,0,2,0,1,no
+sdi12,"SDI-12 v1.4 recorder",C,-,-,entries,"SDI-12 Specification v1.4 (sdi-12.org, free)","sensor model (break 12 ms, 1200 bit/s 7E1)",120,L,4.0,9.0,-,L5,0,2,0,1,no
+centronics,"Centronics host",C,-,"scope read against ieee488 (GPIB: three-wire DAV/NRFD/NDAC interlocked handshake and ATN commands): Centronics uses STROBE, BUSY and ACK",entries,"public descriptions (IEEE 1284 is paid)","printer model",35,S,2.0,5.0,-,L5,0,0,0,0,no
+sega6,"Sega Mega Drive 6-button pad host",C,-,"from an entry's pad program (SNES and 6-button pad), read on 2026-11-17; no pool decoder has this scope",entries,"public reverse-engineered notes","pad model (select-line phases and the pad's time-out)",30,S,2.0,5.0,-,L5,0,0,0,0,no
+arinc429,"ARINC 429 transmitter and receiver",C,-,-,entries,"Holt HI-8585 and HI-8282A data sheets (ARINC 429 is paid)","receiver and transmitter model",100,M,2.75,6.75,-,T,0,0,0,0,no
+asi,"AS-Interface (logic level)",C,-,-,entries,"public AS-i IC data sheets","slave model",80,M,2.75,6.75,-,T,0,0,0,0,no
+j1708,"SAE J1708 node",C,-,-,entries,"public application notes (SAE J1708 is paid)","bus model with access time",60,M,2.75,6.75,-,T,0,0,0,0,no
+kline,"K-line ISO 9141-2 / ISO 14230 tester",C,-,-,entries,"public application notes (ISO 9141 and 14230 are paid)","ECU model (fast init)",100,M,2.75,6.75,-,T,0,0,0,0,no
+lanc,"LANC controller",C,-,-,entries,"public reverse-engineered notes","camera model",70,M,2.75,6.75,-,L5,0,0,0,0,no
+mbp,"MBP (IEC 61158-2, 31.25 kbit/s)",C,-,-,entries,"public MAU application notes (IEC 61158-2 is paid)","peer model",80,M,2.75,6.75,-,T,0,0,0,0,no
+knx,"KNX TP1 device",C,-,-,entries,"onsemi NCN5120 data sheet","bus model (35 us pulse)",100,L,4.0,9.0,-,T,0,0,0,1,no
+ata,"ATA PIO 8-bit subset",C,-,"predicted PARTIAL: 24 lines needed, 20 processor pins",entries,"T13 ATA-3 draft (free)","device model",80,M,2.75,6.75,-,D,0,2,1,0,yes
+avr_tpi,"AVR TPI programmer",R,-,-,reserve,"Atmel ATtiny4/5/9/10 data sheet, Tiny Programming Interface section","device model",50,S,2.0,5.0,-,D,0,1,1,0,no
+updi,"AVR UPDI programmer",R,-,-,reserve,"Microchip ATtiny417/817 data sheet, UPDI section","device model",60,S,2.0,5.0,-,D,0,1,1,0,no
+sht1x,"SHT1x sensor reader",R,-,-,reserve,"Sensirion SHT1x data sheet","sensor model",40,S,2.0,5.0,-,D,0,1,1,0,no
+psx_pad,"PlayStation pad host",R,-,-,reserve,"public reverse-engineered notes","pad model with ACK line",50,S,2.0,5.0,-,L5,0,0,0,0,no
+uart,UART,removed,N1,named on the competition page,entries,,,,,,,,,,,,,
+baudot,Baudot (5-bit UART),removed,N5,a configuration of UART (5 data bits),entries,,,,,,,,,,,,,
+spi,"SPI (controller and target)",removed,N1,named on the competition page,entries,,,,,,,,,,,,,
+i2c,"I2C (controller and target)",removed,N1,named on the competition page,entries,,,,,,,,,,,,,
+smbus,SMBus,removed,N5,a configuration of I2C,entries,,,,,,,,,,,,,
+ps2,PS/2,removed,N1,named on the competition page,entries,,,,,,,,,,,,,
+jtag,JTAG,removed,N1,named on the competition page,entries,,,,,,,,,,,,,
+swd,SWD,removed,N1,named on the competition page,entries,,,,,,,,,,,,,
+can,CAN,removed,N1,named on the competition page,entries,,,,,,,,,,,,,
+usb,USB low speed,removed,N1,named on the competition page,entries,,,,,,,,,,,,,
+usb_packet,USB packets,removed,N1,a layer of USB (named on the competition page),sigrok:usb_packet,,,,,,,,,,,,,
+usb_request,USB requests,removed,N1,a layer of USB (named on the competition page),sigrok:usb_request,,,,,,,,,,,,,
+tenbaset,"10BASE-T (transmitter, link pulses)",removed,N1,named on the competition page,entries,,,,,,,,,,,,,
+udp,UDP over 10BASE-T,removed,N1,rides on 10BASE-T (named on the competition page),entries,,,,,,,,,,,,,
+ws2812,WS281x LED,removed,pool,in the census pool (rgb_led_ws281x),entries,,,,,,,,,,,,,
+ir_nec,NEC infrared,removed,pool,in the census pool (ir_nec),entries,,,,,,,,,,,,,
+ir_rc5_rc6,RC-5 and RC-6 infrared,removed,pool,in the census pool (ir_rc5 and ir_rc6),entries,,,,,,,,,,,,,
+ir_sirc,Sony SIRC infrared,removed,pool,in the census pool (ir_sirc),entries,,,,,,,,,,,,,
+wiegand,Wiegand,removed,pool,in the census pool (wiegand),entries,,,,,,,,,,,,,
+dali,DALI,removed,pool,in the census pool (dali),entries,,,,,,,,,,,,,
+mdio,MDIO,removed,pool,in the census pool (mdio),entries,,,,,,,,,,,,,
+i2s,I2S audio,removed,pool,in the census pool (i2s),entries,,,,,,,,,,,,,
+cec,HDMI-CEC,removed,pool,in the census pool (cec),entries,,,,,,,,,,,,,
+microwire,Microwire,removed,pool,in the census pool (microwire),entries,,,,,,,,,,,,,
+em4100,EM4100,removed,pool,in the census pool (em4100),entries,,,,,,,,,,,,,
+swim,SWIM,removed,pool,in the census pool (swim),entries,,,,,,,,,,,,,
+gpib,GPIB,removed,pool,in the census pool (ieee488),entries,,,,,,,,,,,,,
+dcf77,DCF77,removed,pool,in the census pool (dcf77),entries,,,,,,,,,,,,,
+spdif,S/PDIF,removed,pool,in the census pool (spdif),entries,,,,,,,,,,,,,
+xy2_100,XY2-100,removed,pool,in the census pool (xy2-100),entries,,,,,,,,,,,,,
+stepper,step and direction,removed,pool,in the census pool (stepper_motor),entries,,,,,,,,,,,,,
+seven_segment,seven-segment display,removed,pool,in the census pool (seven_segment),entries,,,,,,,,,,,,,
+usb_pd,USB Power Delivery,removed,pool,in the census pool (usb_power_delivery),entries,,,,,,,,,,,,,
+qi,Qi,removed,pool,in the census pool (qi),entries,,,,,,,,,,,,,
+cbm_iec,Commodore serial IEC bus,removed,N2,"inside the scope of the pool decoder ieee488 (longname ""IEEE-488 GPIB/HPIB/IEC""; the serial IEC bus is decoded)",entries,,,,,,,,,,,,,
+ev1527,EV1527 remote encoder,removed,N2,"inside the scope of the pool decoder rc_encode (""PT22x2/HX22x2/SC52x2 and xx1527"")",entries,,,,,,,,,,,,,
+jvc_ir,JVC and Samsung infrared,removed,N3,near-copy of ir_nec (pulse-distance code with the same frame grammar; constants differ),entries,,,,,,,,,,,,,
+lego_pf,LEGO Power Functions infrared,removed,N3,near-copy of the pulse-distance infrared pool protocols (ir_nec and ir_sirc),entries,,,,,,,,,,,,,
+j1850_pwm,SAE J1850 PWM,removed,N3,near-copy of sae_j1850_vpw (same frame grammar),entries,,,,,,,,,,,,,
+hdq,TI HDQ,removed,N3,near-copy of sdq (single-wire break and pulse-width bits),entries,,,,,,,,,,,,,
+ltc,SMPTE LTC,removed,N3,"near-copy of pool time-code and biphase-mark protocols (dcf77, spdif)",entries,,,,,,,,,,,,,
+irig_b,IRIG-B (DC level shift),removed,N3,near-copy of dcf77 (pulse-width time code),entries,,,,,,,,,,,,,
+wwvb_msf,WWVB and MSF time codes,removed,N3,near-copy of dcf77 (pulse-width time code),entries,,,,,,,,,,,,,
+dshot,DShot,removed,N3,near-copy of rgb_led_ws281x (duty-cycle bits on one line),entries,,,,,,,,,,,,,
+sd_spi,SD card in SPI mode,removed,N3,near-copy of sdcard_sd (same command set and CRC7),entries; sigrok:sdcard_spi,,,,,,,,,,,,,
+onewire,1-Wire,removed,N4,already in fw/ (onewire.s),entries,,,,,,,,,,,,,
+dht22,AM2302 / DHT22,removed,N4,already in fw/ (am2302.s),entries,,,,,,,,,,,,,
+avr_pdi,AVR PDI,removed,N4,already in fw/ (pdi.s),entries,,,,,,,,,,,,,
+manchester,own Manchester frame format,removed,N6,not a protocol (a line code with a program's own framing),entries,,,,,,,,,,,,,
+quadrature,quadrature encoder signals,removed,N6,not a protocol (signal format with no framing),entries,,,,,,,,,,,,,
+servo_cppm,servo pulses and CPPM,removed,N6,not a protocol (signal format with no framing),entries,,,,,,,,,,,,,
+bldc,BLDC commutation,removed,N6,not a protocol (signal format),entries,,,,,,,,,,,,,
+vga_composite,VGA and composite video,removed,N6,not a protocol (video signal formats),entries,,,,,,,,,,,,,
+audio_modem,"audio-modem and tape formats (Bell 202, DTMF, PSK31, SSTV, WSPR, KCS, ZX tape, Hellschreiber)",removed,N6,not a protocol (audio-modem formats),entries,,,,,,,,,,,,,
+morse,Morse,removed,N6,not a protocol (a code; tag Encoding),entries; sigrok:morse,,,,,,,,,,,,,
+tools,"tools and demos (logic analyser, frequency meter, replay, chime and game demos, board builds)",removed,N6,"not a protocol (tools, demos)",entries,,,,,,,,,,,,,
+bridges,protocol bridges and combinations,removed,N6,"not a protocol (bridges, several protocols at once, reload demos)",entries,,,,,,,,,,,,,
+generators,generated second versions of a program,removed,N6,not a protocol (a second program of a protocol counted elsewhere),entries,,,,,,,,,,,,,
+layered_entries,"Modbus RTU, MIDI, NMEA 0183, BACnet MS/TP, AX.25, IEC 62056, Caller ID, DMX RDM, AVR ISP, SPI flash, MAX7219, nRF24L01, SSD1306",removed,N7,layered: a message format or device command set carried on another protocol's pin waveform (layered column),entries,,,,,,,,,,,,,
+ad5626,AD5626,removed,N7,layered on SPI (device command set),sigrok:ad5626,,,,,,,,,,,,,
+ad79x0,AD79x0,removed,N7,layered on SPI (device command set),sigrok:ad79x0,,,,,,,,,,,,,
+ade77xx,ADE77xx,removed,N7,layered on SPI (device command set),sigrok:ade77xx,,,,,,,,,,,,,
+adf435x,ADF435x,removed,N7,layered on SPI (device command set),sigrok:adf435x,,,,,,,,,,,,,
+adns5020,ADNS-5020,removed,N7,layered on SPI (device command set),sigrok:adns5020,,,,,,,,,,,,,
+adxl345,ADXL345,removed,N7,layered on SPI (device command set),sigrok:adxl345,,,,,,,,,,,,,
+amulet_ascii,Amulet ASCII,removed,N7,layered on UART (message format),sigrok:amulet_ascii,,,,,,,,,,,,,
+arm_etmv3,ARM ETMv3,removed,N7,layered on UART (trace packet format),sigrok:arm_etmv3,,,,,,,,,,,,,
+arm_itm,ARM ITM,removed,N7,layered on UART (trace packet format),sigrok:arm_itm,,,,,,,,,,,,,
+arm_tpiu,ARM TPIU,removed,N7,layered on UART (trace frame format),sigrok:arm_tpiu,,,,,,,,,,,,,
+atsha204a,ATSHA204A,removed,N7,layered on I2C (device command set),sigrok:atsha204a,,,,,,,,,,,,,
+avr_isp,AVR ISP,removed,N7,layered on SPI (device command set),sigrok:avr_isp,,,,,,,,,,,,,
+cc1101,CC1101,removed,N7,layered on SPI (device command set),sigrok:cc1101,,,,,,,,,,,,,
+cfp,CFP,removed,N7,layered on MDIO (register map),sigrok:cfp,,,,,,,,,,,,,
+ds1307,DS1307,removed,N7,layered on I2C (device register map),sigrok:ds1307,,,,,,,,,,,,,
+ds2408,DS2408,removed,N7,layered on 1-Wire (device command set),sigrok:ds2408,,,,,,,,,,,,,
+ds243x,DS243x,removed,N7,layered on 1-Wire (device command set),sigrok:ds243x,,,,,,,,,,,,,
+ds28ea00,DS28EA00,removed,N7,layered on 1-Wire (device command set),sigrok:ds28ea00,,,,,,,,,,,,,
+edid,EDID,removed,N7,layered on I2C (data structure),sigrok:edid,,,,,,,,,,,,,
+eeprom24xx,24xx EEPROM,removed,N7,layered on I2C (device command set),sigrok:eeprom24xx,,,,,,,,,,,,,
+eeprom93xx,93xx EEPROM,removed,N7,layered on Microwire (device command set),sigrok:eeprom93xx,,,,,,,,,,,,,
+enc28j60,ENC28J60,removed,N7,layered on SPI (device command set),sigrok:enc28j60,,,,,,,,,,,,,
+hdcp,HDCP,removed,N7,layered on I2C (protocol messages),sigrok:hdcp,,,,,,,,,,,,,
+i2cdemux,I2C demultiplexer,removed,N6,not a protocol (a tool on I2C),sigrok:i2cdemux,,,,,,,,,,,,,
+i2cfilter,I2C filter,removed,N6,not a protocol (a tool on I2C),sigrok:i2cfilter,,,,,,,,,,,,,
+jtag_ejtag,EJTAG,removed,N7,layered on JTAG (debug command set),sigrok:jtag_ejtag,,,,,,,,,,,,,
+jtag_stm32,STM32 JTAG,removed,N7,layered on JTAG (device command set),sigrok:jtag_stm32,,,,,,,,,,,,,
+lm75,LM75,removed,N7,layered on I2C (device register map),sigrok:lm75,,,,,,,,,,,,,
+ltc242x,LTC242x,removed,N7,layered on SPI (device command set),sigrok:ltc242x,,,,,,,,,,,,,
+ltc26x7,LTC26x7,removed,N7,layered on I2C (device command set),sigrok:ltc26x7,,,,,,,,,,,,,
+max72xx,MAX72xx,removed,N7,layered on SPI (device command set),sigrok:max72xx,,,,,,,,,,,,,
+mcp230xx,MCP230xx,removed,N7,layered on I2C (device register map),sigrok:mcp230xx,,,,,,,,,,,,,
+midi,MIDI,removed,N7,layered on UART (message format),sigrok:midi,,,,,,,,,,,,,
+mlx90614,MLX90614,removed,N7,layered on I2C (device command set),sigrok:mlx90614,,,,,,,,,,,,,
+modbus,Modbus RTU,removed,N7,layered on UART (message format),sigrok:modbus,,,,,,,,,,,,,
+mrf24j40,MRF24J40,removed,N7,layered on SPI (device command set),sigrok:mrf24j40,,,,,,,,,,,,,
+mxc6225xu,MXC6225XU,removed,N7,layered on I2C (device register map),sigrok:mxc6225xu,,,,,,,,,,,,,
+nrf24l01,nRF24L01,removed,N7,layered on SPI (device command set),sigrok:nrf24l01,,,,,,,,,,,,,
+nrf905,nRF905,removed,N7,layered on SPI (device command set),sigrok:nrf905,,,,,,,,,,,,,
+nunchuk,Wii Nunchuk,removed,N7,layered on I2C (device register map),sigrok:nunchuk,,,,,,,,,,,,,
+onewire_network,1-Wire network layer,removed,N7,layered on 1-Wire (ROM commands),sigrok:onewire_network,,,,,,,,,,,,,
+ook_vis,OOK visualisation,removed,N6,not a protocol (a display aid on OOK),sigrok:ook_vis,,,,,,,,,,,,,
+pan1321,PAN1321,removed,N7,layered on UART (command set),sigrok:pan1321,,,,,,,,,,,,,
+pca9571,PCA9571,removed,N7,layered on I2C (device register map),sigrok:pca9571,,,,,,,,,,,,,
+pjon,PJON,removed,N7,layered on PJDL (pool decoder pjdl),sigrok:pjon,,,,,,,,,,,,,
+rfm12,RFM12,removed,N7,layered on SPI (device command set),sigrok:rfm12,,,,,,,,,,,,,
+rgb_led_spi,RGB LED over SPI,removed,N7,layered on SPI (pixel format),sigrok:rgb_led_spi,,,,,,,,,,,,,
+rtc8564,RTC-8564,removed,N7,layered on I2C (device register map),sigrok:rtc8564,,,,,,,,,,,,,
+sipi,SIPI,removed,N7,layered on LFAST (pool decoder lfast),sigrok:sipi,,,,,,,,,,,,,
+spiflash,SPI flash,removed,N7,layered on SPI (device command set),sigrok:spiflash,,,,,,,,,,,,,
+st25r39xx_spi,ST25R39xx,removed,N7,layered on SPI (device command set),sigrok:st25r39xx_spi,,,,,,,,,,,,,
+tca6408a,TCA6408A,removed,N7,layered on I2C (device register map),sigrok:tca6408a,,,,,,,,,,,,,
+x2444m,X2444M,removed,N7,layered on SPI (device command set),sigrok:x2444m,,,,,,,,,,,,,
+xfp,XFP,removed,N7,layered on I2C (register map),sigrok:xfp,,,,,,,,,,,,,
+counter,counter,removed,N6,not a protocol (tag Util),sigrok:counter,,,,,,,,,,,,,
+graycode,Gray code,removed,N6,not a protocol (tag Encoding),sigrok:graycode,,,,,,,,,,,,,
+guess_bitrate,bit rate guess,removed,N6,not a protocol (tag Util),sigrok:guess_bitrate,,,,,,,,,,,,,
+jitter,jitter,removed,N6,not a protocol (tag Util),sigrok:jitter,,,,,,,,,,,,,
+miller,Miller code,removed,N6,not a protocol (tag Encoding),sigrok:miller,,,,,,,,,,,,,
+numbers_and_state,numbers and state,removed,N6,not a protocol (tags Encoding and Util),sigrok:numbers_and_state,,,,,,,,,,,,,
+ook,on-off keying,removed,N6,not a protocol (tag Encoding),sigrok:ook,,,,,,,,,,,,,
+parallel,parallel bus view,removed,N6,not a protocol (tag Util),sigrok:parallel,,,,,,,,,,,,,
+pwm,PWM,removed,N6,not a protocol (tag Encoding),sigrok:pwm,,,,,,,,,,,,,
+signature,signature analysis,removed,N6,not a protocol (tags Util and Encoding),sigrok:signature,,,,,,,,,,,,,
+timing,timing,removed,N6,not a protocol (tag Util),sigrok:timing,,,,,,,,,,,,,

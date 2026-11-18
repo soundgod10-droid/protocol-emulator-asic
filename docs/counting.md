@@ -18,7 +18,7 @@ A protocol is in the **strict count** when at least one of its programs meets al
 
 | | Condition | How it is checked |
 |---|---|---|
-| (a) | The firmware assembles with `asm/pe_asm.py` and fits the memory alone: 512 program words (and 1,024 data words for a data image). | the assembler, on every program of the registry |
+| (a) | The firmware assembles with `asm/pe_asm.py` and fits the 512-word program memory alone. (The USB and 10BASE-T programs also load a data image; its addresses are checked where their tests build it.) | the assembler, on every program of the registry |
 | (b) | In its test, the other side of the link is a model written from a named public document. The registry gives the document, its issue, its address and the SHA-256 of the file that was read. Where the publisher refuses an automatic download, or the copy is personal, the document number and revision fix the text and the SHA-256 cell is `-`. The model uses nothing from `fw/`, `asm/` or `model/`. | the model named in the column `model` and every function and class that it calls in the test files must not use the assembler, the reference model or a firmware file |
 | (c) | The tests of the row pass on the RTL at the declared clock (60 MHz, `info.yaml`), at a rate inside the range of the standard. | `results.xml` of a named test run |
 | (d) | The same tests pass on the gate-level netlist of a named layout run (functional cell models, no delays). | `results.xml` of the gate-level jobs of a named run |

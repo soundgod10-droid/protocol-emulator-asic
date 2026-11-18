@@ -77,7 +77,7 @@ The census pool (44 protocols, [flex/PREREG.md](../flex/PREREG.md) section 2) st
 | N6 | it is not a protocol (section 1, item 3) |
 | N7 | it is layered (section 1, item 4) |
 
-**Result:** list C (column `list` = `C`), and a reserve R of 4 rows chosen by us, reported apart and used only when C runs out. The scope check of N2 and N3 was done in two ways: a script searched the id, name, long name, description and documentation of each of the 44 pool decoders at `71f4514` for every candidate's names (5 hits: 4 were words in addresses or common words; 1, "3-wire" in `microwire`, was read), and every candidate that shares a line code with a pool protocol was read against it. The result of each reading is in the column `reason` (for example ISO 7816-3 T=0 against `sle44xx`, Joybus against `sdq`).
+**Result:** list C (column `list` = `C`), and a reserve R of 4 rows chosen by us, reported apart and used only when C runs out. The scope check of N2 and N3 was done in two ways: a script searched the id, name, long name, description and documentation of each of the 44 pool decoders at `71f4514` for every candidate's names (5 hits: 2 were "3-wire" in `microwire`, read against DS1302; the other 3 were a word inside an address, a part of the word "asynchronous" and the common word "fieldbus"), and every candidate that shares a line code with a pool protocol was read against it. The result of each reading is in the column `reason` (for example ISO 7816-3 T=0 against `sle44xx`, Joybus against `sdq`).
 
 **Order.** Score V = O + R + E - H, fixed before any row is written:
 

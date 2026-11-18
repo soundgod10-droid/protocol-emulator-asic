@@ -187,8 +187,14 @@ module proc_fv (
   endgenerate
 
   // The properties are not empty: an event is written on time, one is written late, and a thread pin changes.
-  reg [14:0] pv_q;
-  always @(posedge clk) pv_q <= pin_v;
+  // The pin must be a thread pin in both cycles, so that the change comes from its slot, not from the helper
+  // multiplexer.
+  reg [14:0] pv_q, hdrv_q;
+  always @(posedge clk) begin
+    pv_q   <= pin_v;
+    hdrv_q <= pin_hdrv;
+  end
+  wire [14:0] th_pin = ~pin_hdrv & ~hdrv_q;
   always @* begin
 `ifndef CORE_IF
     cover (rst_n && (mon_load != 15'd0) && mon_ontime);

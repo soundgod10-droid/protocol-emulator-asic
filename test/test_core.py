@@ -671,6 +671,29 @@ async def test_core_horizon(dut):
     assert changes == 2, changes
 
 
+@cocotb.test()
+async def test_core_wait_far_expired(dut):
+    """WAIT with TO and d = T - now of 32,768 to 32,771 at the start: T counts as past (isa 6.3: d = 0 or
+    d >= 32,768), so the WAIT times out at once with E = 0, although UI0 has edges in every slot."""
+    blocks = []
+    for k in range(4):
+        blocks += [
+            "NOW r0",                 # slot s
+            "ADD r0, r1",             # s + 4
+            f"ADDI r0, {16 + k}",     # s + 8
+            "TSET r0",                # s + 12: T = s + 32,768 + 16 + k
+            "WAIT UI0, ANY, r2, TO",  # s + 16: d = 32,768 + k
+            "IOR r3, FLAGS",
+            "PUSH r3",
+        ]
+    src = "\n".join(["LDI r1, 1", "SHL r1, 15"] + blocks + ["HALT"])
+    scn = Scenario("wait_far_expired", asm((src, 0)), cycles=1600, host=pop_round_robin([0]),
+                   stimulus=lambda c: ((c // 3) & 1, 0))
+    m, popped, _ = await run_lockstep(dut, scn)
+    assert_ended(m, popped, min_words=4)
+    assert [w & 8 for w in popped[0]] == [0, 0, 0, 0], f"FLAGS after each WAIT {popped[0]} (E is bit 3)"
+
+
 def sample_wait_stimulus(cycles):
     """UI0: period 22 cycles; UI3: a new random level every 17 cycles; UI4: 0; uio: random every 13."""
     rng = random.Random(2026)

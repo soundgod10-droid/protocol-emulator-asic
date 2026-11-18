@@ -12,6 +12,7 @@ on:
       - 'info.yaml'
       - 'docs/info.md'
       - 'test/**'
+      - '!test/test_sigrok.py'
       - 'fw/**'
       - 'asm/**'
       - 'model/**'

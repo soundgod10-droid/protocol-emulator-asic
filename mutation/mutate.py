@@ -447,16 +447,17 @@ def call(args, timeout):
         return -9, time.time() - t0, True, (out or "")[-3000:]
 
 
-def do_build(src, build):
+def do_build(src, build, always=True):
     from cocotb_tools.runner import get_runner
     r = get_runner("icarus")
     r.build(sources=[os.path.join(src, f) for f in sim_sources()] + [os.path.join(TEST, "tb.v")],
-            hdl_toplevel="tb", includes=[src], build_dir=build, defines={"PIN_VCD": 1}, always=True)
+            hdl_toplevel="tb", includes=[src], build_dir=build, defines={"PIN_VCD": 1}, always=always)
+    return r
 
 
-def do_test(build, run, modules, filt):
-    from cocotb_tools.runner import get_runner
-    r = get_runner("icarus")
+def do_test(src, build, run, modules, filt):
+    # The runner's test step needs the state of its build step; with always=False the build is reused.
+    r = do_build(src, build, always=False)
     os.makedirs(run, exist_ok=True)
     xml = os.path.join(run, "results.xml")
     if os.path.exists(xml):

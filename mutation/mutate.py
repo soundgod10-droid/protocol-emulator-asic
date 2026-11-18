@@ -696,7 +696,9 @@ def equiv_checks(p, ids, work):
     Both copies are elaborated with the same parameters, flattened and optimized (constant configuration registers
     of the chip's helper forms fold away), then compared by Yosys sequential equivalence: equiv_make matches the
     ports and the named signals, equiv_simple and equiv_induct prove each match. Every $equiv cell proven means the
-    two copies have the same port behaviour after a reset, for every input sequence."""
+    two copies have the same port behaviour after a reset, for every input sequence. A partial result is no proof:
+    equiv_induct assumes every match in the earlier steps, also the ones it fails to prove, so with a register left
+    unproven the port matches can show proven although the ports differ (seen with the USB stuffing mutant)."""
     os.makedirs(work, exist_ok=True)
     muts = {m["id"]: m for m in p["mutants"]}
     allf = info_sources()

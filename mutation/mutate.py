@@ -753,7 +753,8 @@ def equiv(p, ids, work, sby=None):
             st = os.path.join(work, f"check{k}.txt")
             with open(sf, "w") as fh:
                 fh.write(equiv_script(ps, gold, gate, top) + f"tee -o {st.replace(chr(92), '/')} equiv_status\n")
-            r = subprocess.run([ys, "-q", "-s", sf], capture_output=True, text=True)
+            env = {k: v for k, v in os.environ.items() if k not in ("PYTHONHOME", "PYTHONPATH")}
+            r = subprocess.run([ys, "-q", "-s", sf], capture_output=True, text=True, env=env)
             text = open(st).read() if os.path.exists(st) else r.stdout[-2000:] + r.stderr[-2000:]
             status, note = equiv_parse(text) if r.returncode == 0 else ("error", (r.stdout + r.stderr)[-300:])
             res.append({"id": mid, "params": ps, "status": status, "note": note})

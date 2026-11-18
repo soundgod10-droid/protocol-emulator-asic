@@ -120,8 +120,10 @@ module proc_fv (
   wire [14:0] mon_load;    // u_proc.ev_load: event write strobes of the core
   wire [14:0] mon_ready;   // u_proc.ev_ready: slot empty
   wire [15:0] mon_time;    // u_proc.ev_time
+`ifndef CORE_IF
   wire        mon_ontime;  // u_proc.u_core.f_ontime: the OUT's lead is 4 to 32,767
   wire [15:0] mon_ft;      // u_proc.u_core.f_t: the OUT's time T + offset
+`endif
   wire [14:0] mon_pv;      // u_proc.g_out[p].u_slot.m_pv: the slot's expected pin value (pe_timed_out T1)
   wire [14:0] mon_pe;      // u_proc.g_out[p].u_slot.m_pe: the slot's expected output enable
 

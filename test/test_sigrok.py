@@ -90,7 +90,7 @@ async def test_sigrok_uart_rx(dut):
         t += round(len(bits) * b_tx)
     line = ff.uart_line(frames, b_tx)
     label = f"sigrok uart_rx_full {rate} bit/s 8N1"
-    bench = rf.RtlBench(dut, ff.assemble("uart_rx_full.s", ND1=8).words,
+    bench = rf.RtlBench(dut, ff.assemble("uart_rx_full.s", ND1=9).words,
                         inputs=lambda c, uo, uio, oe: (ff.value_at(line, c) << ff.UI_RX, 0), label=label)
     bench.send(0, b, ff.rx_h(b))
     await bench.run(100)

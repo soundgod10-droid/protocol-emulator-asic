@@ -1193,10 +1193,10 @@ class ChipSpiPins:
         import test_slu_clk as sc
         while True:
             await Edge(self.dut.uio_out)
-            v = self.dut.uio_out.value
-            if not v.is_resolvable:
+            s = str(self.dut.uio_out.value)[-3:]                # uio2..uio0; the unused pins may be X or Z
+            if any(c not in "01" for c in s):
                 continue
-            v = v.to_unsigned() & 7
+            v = int(s, 2)
             ch = v ^ (self.last if self.last is not None else v ^ 7)
             self.last = v
             if ch & 4:

@@ -271,9 +271,12 @@ CORNERS = {
 START = 6000  # cycles from the thread start to the first START: the firmware clears 258 words first
 
 
-def assemble():
+def assemble(**equ):
     with open(os.path.join(ROOT, "fw", "i2c_tgt.s"), encoding="utf-8") as f:
-        return pe_asm.assemble(f.read(), "i2c_tgt.s", 0)
+        text = f.read()
+    for key, val in equ.items():
+        text = text.replace(f".equ    {key}, ", f".equ    {key}, {val} ; was ", 1)
+    return pe_asm.assemble(text, "i2c_tgt.s", 0)
 
 
 def stretch_text(ctl):

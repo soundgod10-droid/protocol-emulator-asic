@@ -1183,6 +1183,7 @@ class ChipSpiPins:
     def __init__(self, dut, dev, d_out):
         self.dut, self.dev, self.d_out = dut, dev, d_out
         self.last = None
+        self.seen = []
         self.task = cocotb.start_soon(self.run())
 
     def set_pin(self, pin, level):

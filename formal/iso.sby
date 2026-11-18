@@ -1,0 +1,48 @@
+# iso: thread isolation of the barrel core, a two-copy miter (formal/iso_fv.v I1 to I5): thread 0's state and
+# every side effect of its slot are the same in two cores whose other threads run any different programs on
+# any different data, given the same words in thread 0's own slots. The properties of pe_core (B, E, W, I,
+# proved for every input by core.sby) are assumed in both copies. The monitor wires are connected to the
+# copies' internal nets after flattening, so the RTL stays unchanged.
+
+[options]
+mode prove
+depth 5
+
+[engines]
+smtbmc z3
+
+[script]
+read -formal pe_cycle_counter.v pe_core.v iso_fv.v
+prep -top iso_fv
+chformal -assert2assume pe_core
+flatten
+cd iso_fv
+connect -set a_st0 \u_a.st0
+connect -set a_st1 \u_a.st1
+connect -set a_st2 \u_a.st2
+connect -set a_st3 \u_a.st3
+connect -set b_st0 \u_b.st0
+connect -set b_st1 \u_b.st1
+connect -set b_st2 \u_b.st2
+connect -set b_st3 \u_b.st3
+connect -set a_ir \u_a.ir
+connect -set b_ir \u_b.ir
+connect -set a_sa \u_a.sa
+connect -set b_sa \u_b.sa
+connect -set a_sb \u_a.sb
+connect -set b_sb \u_b.sb
+connect -set a_stpend \u_a.st_pend
+connect -set b_stpend \u_b.st_pend
+connect -set a_staddr \u_a.st_addr
+connect -set b_staddr \u_b.st_addr
+connect -set a_stdata \u_a.st_data
+connect -set b_stdata \u_b.st_data
+cd ..
+# The job stops with an error if a property was removed: 14 asserts, 6 assumes and 2 covers in the wrapper,
+# 42 properties in each core copy (assumed here).
+select -assert-min 106 t:$check t:$assert t:$assume
+
+[files]
+../src/pe_cycle_counter.v
+../src/pe_core.v
+iso_fv.v

@@ -69,6 +69,9 @@ module slu_fv #(
   localparam [2:0] K_STUFF = 3'd1, K_DATA = 3'd2, K_LOAD = 3'd3, K_CRC = 3'd4, K_JAM = 3'd5, K_END = 3'd6;
 
   initial assume (!rst_n);
+  // The receiver gives a start pattern (R_HUNT) and data bits (R_DATA) in different states, never in the
+  // same cycle; the free strobes of the receive-CRC teeth keep that rule.
+  always @* assume (!(sop_free && rdv_free));
 
   reg [15:0] now;
   always @(posedge clk) now <= now + 16'd1;

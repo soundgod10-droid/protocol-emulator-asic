@@ -447,6 +447,15 @@ module pe_slu #(
       // ---------------- configuration and control ----------------
       if (p_we && p_addr == 4'd12) cfg_adr <= p_wdata[4:0];
       if (p_we && p_addr == 4'd13 && SPEC != 0 && cfg_adr == 5'd8) c_sel <= p_wdata;
+      // SPEC 1: the bits that select the clocked and NRZ modes; every other bit keeps its USB value.
+      if (p_we && p_addr == 4'd13 && SPEC == 1) begin
+        case (cfg_adr)
+          5'd0:  c_mode  <= (F_MODE & ~16'h021B) | (p_wdata & 16'h021B);
+          5'd1:  c_txper <= {8'd0, p_wdata[7:0]};
+          5'd18: c_ltc   <= (F_LTC & ~16'h1F00) | (p_wdata & 16'h1F00);
+          default: ;
+        endcase
+      end
       if (p_we && p_addr == 4'd13) cfg_adr <= cfg_adr + 5'd1;
       if (p_we && p_addr == 4'd13 && SPEC == 0) begin
         case (cfg_adr)

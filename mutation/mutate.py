@@ -68,6 +68,7 @@ RUNGS = {
                  r"squelch_after_idle|ports_after_reset|rxinfo_words|txtime_lead_limit|eth_frame_end|"
                  r"tx_write_at_take|tstamp_hold|crca_after_frame|link_pulse_width)$"),           # 109 s
     "slu_loop": (["test_slu"], T + r"test_slu_loop_(equiv|window_edge|acq_window|acq_end)$"),    # 70 s
+    "slu_clk": (["test_slu_clk"], T + r"test_slc_\w+$"),                                         # 398 s (local)
     "slu_chip": (["test_slu"], T + r"test_slu_chip_\w+$"),                                       # 12 s
     "dev_fast": (["test_usb_dev", "test_eth_dev"], T + r"test_(usb_dev_(enumerate|errors|hid)|"
                  r"eth_dev_(rx|tx|collision))$"),                                                # 332 s

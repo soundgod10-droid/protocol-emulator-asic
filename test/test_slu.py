@@ -331,7 +331,10 @@ async def test_slu_loop_acq_end(dut):
     before = {j: loop_nacc_before(TENBASET, base_xs, edges0[j]) for j in (25, 26)}
     assert before == {25: 23, 26: 24}, f"test fault: accepted edges before edges 25, 26: {before}"
     log = [f"no move: {base} edges accepted"]
-    for j, d, refused in ((25, 4, False), (25, -4, False), (26, 4, True), (26, -4, True)):
+    # After acquisition every edge of this stream has phase error 0 (no correction, integrator 0), so an edge moved by
+    # exactly 3 samples has the error +3 or -3 samples: the window limit, accepted (|eps| <= window); 4: refused.
+    for j, d, refused in ((25, 4, False), (25, -4, False), (26, 4, True), (26, -4, True),
+                          (30, 3, False), (30, -3, False), (30, 4, True)):
         xs = stream(j, d)
         na = loop_nacc(TENBASET, xs)
         assert na == base - (1 if refused else 0), f"edge {j} moved by {d}: model accepted {na}, {base} unmoved"

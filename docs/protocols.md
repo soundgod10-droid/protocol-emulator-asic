@@ -38,6 +38,19 @@ The RTL and gate-level column gives what `test/test_rtl_fw.py` runs at 60 MHz. T
 
 Which programs fit together in the 512-word program memory, and the host words of each program: [host_port.md](host_port.md) section 14.
 
+### Clocked and NRZ buses on the USB helper
+
+The rates above are firmware rates: one instruction every 4 cycles per thread. The USB helper can also make a clock and shift data at up to 15 MHz, or send and receive NRZ frames, while a thread feeds and takes 16-bit words ([helpers.md](helpers.md) section 6). Only the bits that select these modes are writable; with none of them written the helper is the USB helper, proved by an equivalence check ([decisions.md](decisions.md) entry 18, addition).
+
+| Bus | Rate on the helper | Test | Level |
+|---|---|---|---|
+| SPI controller (serial-flash read, W25Q128JV data sheet times) | 15 MHz in modes 0 to 3, 30 MHz in mode 0 | `test_slc_spi_flash_15mhz`, `test_slc_spi_flash_7m5_30mhz`; `test_slu_chip_spi_flash`: two threads read 256 bytes from the flash model at 15 MHz through the chip pins | chip level (RTL and gate level) for 15 MHz; unit level for 30 MHz |
+| JTAG controller (two TAPs: IDCODE, BYPASS, a 1,000-bit scan through Pause-DR) | 15 MHz shift | `test_slc_jtag` | unit level: the test plays the thread's port accesses |
+| SWD host (connection, DPIDR, SELECT, AP write, posted read) | 7.5 MHz SWCLK | `test_slc_swd` | unit level |
+| UART | 15 Mbaud transmit; 15 and 7.5 Mbaud receive with the sender at -2.5 % and +2.5 % | `test_slc_uart_tx`, `test_slc_uart_rx` | unit level |
+
+Conditions: logic simulation; the pads (SPICE delays, [verification.md](verification.md) section 9) and the board multiplexer (0 to 10 ns each way, not measured; the shuttle's published estimate is about 10 ns round trip through pads and multiplexer) are delay parameters of the tests. One helper serves USB and all of these buses, so one of them runs at a time. After START the helper's first output is the USB idle level until the thread writes MODE ([helpers.md](helpers.md) section 6, row "After START").
+
 ## Line helpers: USB low speed and 10BASE-Te
 
 | Protocol layer | Helper | Chip test on the RTL at 60 MHz (`test/test_slu.py`) |

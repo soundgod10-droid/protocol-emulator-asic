@@ -500,6 +500,10 @@ async def test_slu_usb_tx(dut):
     assert j == 40, "J %d cycles" % j
     assert (start_now - t0) & 0xFFFF == 0, "first symbol on tx_v in cycle TXTIME"
     assert oe[eop + se0 + j] == 0
+    # While idle (OE off) the outputs stay at J, before and after the frame (docs/helpers.md: idle level J).
+    idle_after = lines[eop + se0 + j:eop + se0 + j + 20]
+    assert first > 0 and set(lines[:first]) == {2} and set(idle_after) == {2}, \
+        f"idle level before / after the frame not J (VMO 1, VPO 0): {set(lines[:first])}, {set(idle_after)}"
     dut._log.info("USB TX: first K/J at now %d for TXTIME %d (offset %d cycles); %d line bits incl. %d "
                   "stuff bits; SE0 %d cycles, J %d cycles, then OE off" %
                   (start_now, t0, (start_now - t0) & 0xFFFF, len(exp_line),

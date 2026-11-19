@@ -27,7 +27,7 @@ jobs:
         with:
           name: GDS_logs
           path: logs
-          run-id: ${{ inputs.run_id }}
+          run-id: ${{ inputs.run_id || '44583568390' }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Magic facts

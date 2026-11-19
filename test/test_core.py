@@ -788,6 +788,32 @@ async def test_core_sample_wait(dut):
     assert_ended(m, popped, want_status=(1, 0, 0, 0), threads=(0, 1), min_words=40)
 
 
+@cocotb.test()
+async def test_core_sample_input15(dut):
+    """SAMPLE of input 15 reads 0 (isa 5.1: input 15 is no pin), on time with r<< and late with r>>, while every
+    input pin is 1 (a wrong input would read 1). Expected from the isa, not only from the model: r0 = 0x3FF, then
+    0x7FE (bit 0 = 0) and 0x3FF (bit 15 = 0), E = 0 after each; the late SAMPLE sets LATE."""
+    src = "\n".join([
+        "        TNOW 20",
+        "        LDI r0, 0x3FF",
+        "        .word 0xCF38",          # SAMPLE input 15, r0<< (on time)
+        "        PUSH r0",
+        "        IOR r1, FLAGS",
+        "        PUSH r1",
+        "        TNOW 2",
+        "        .word 0xCF30",          # SAMPLE input 15, r0>> (lead -2: late)
+        "        PUSH r0",
+        "        IOR r1, FLAGS",
+        "        PUSH r1",
+        "        HALT",
+    ])
+    scn = Scenario("sample_input15", asm((src, 0)), cycles=1600, host=pop_round_robin([0]),
+                   stimulus=lambda c: (0x1F, 0xFF))
+    m, popped, _ = await run_lockstep(dut, scn)
+    assert_ended(m, popped, want_status=(1, 0, 0, 0), min_words=4)
+    assert popped[0] == [0x07FE, 0, 0x03FF, 0], f"host words {[f'{w:04X}' for w in popped[0]]}, expected 07FE 0000 03FF 0000"
+
+
 FILTER_PULSES = {6: (100, [1, 2, 3, 4, 5, 3, 7, 2]), 7: (175, [3, 4, 1, 5, 2, 8])}  # pin: (first start, widths)
 FILTER_GAP = 150  # cycles from one pulse start to the next
 

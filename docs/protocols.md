@@ -85,7 +85,7 @@ The instruction set ([isa.md](isa.md) section 13) was designed from UART, SPI an
 | Protocol | What the instruction set lacked (workaround) |
 |---|---|
 | CAN 2.0A node | instruction rate (about 31 instructions of receive work per bit), so 500 kbit/s and 1 Mbit/s do not fit; one owner per pin (two open-drain pins joined on the board); the host makes the bit stuffing and the CRC for sending; one thread would need 171 words |
-| JTAG controller | `SAMPLE` takes 2 thread slots, so the loop is 40 cycles, not 32 |
+| JTAG controller | an on-time `SAMPLE` holds its thread for 3 slots, so the bit loop of `fw/jtag.s` is 40 cycles (10 slots); a one-slot `SAMPLE` would give 32 cycles ([decisions.md](decisions.md) entry 16) |
 | SWD host | no parity instruction (the host makes the parity); a write fills the 4-word host FIFO |
 | PS/2 host and device | a thread cannot wait for an edge and a host word at the same time (the host polls in 4 us windows) |
 

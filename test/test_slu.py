@@ -306,7 +306,8 @@ async def test_slu_loop_acq_end(dut):
     """10BASE-T loop: the acquisition window of 5 samples holds for exactly the first 24 accepted edges after the
     initial sync, the window of 3 samples from the 25th on (LOOP2, LOOP3: acq_n = 24). Manchester of alternating
     bits (one edge a bit, at mid-bit). The 24th accepted edge moved by 4 samples is accepted, the 25th moved by 4
-    (either way) is refused; the model count before each moved edge is checked first. RTL = model in every cycle."""
+    (either way) is refused; the model count before each moved edge is checked first. After acquisition an edge moved
+    by exactly 3 samples (the window limit) is accepted, by 4 refused. RTL = model in every cycle."""
     cocotb.start_soon(Clock(dut.clk, 10, unit="ns").start())
     dut.slu_ut_rst_n.value = 0
     await RisingEdge(dut.clk)

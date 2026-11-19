@@ -57,7 +57,7 @@ GROUPS = {"pe_slu.v": "slu", "pe_slu_loop.v": "slu",
 T = r"(^|\.)"
 RUNGS = {
     "core_dir": (["test_core"], T + r"test_core_(alu_flags|start_top|shifts|branches_memory|time|out_events|horizon|"
-                 r"sample_wait|spike_filter|host_io|illegal_halt|barrel|wait_far_expired)$"),      # 52 s
+                 r"sample_wait|spike_filter|host_io|illegal_halt|barrel|wait_far_expired|sample_input15)$"),  # 52 s
     "host": (["test"], T + r"test_(reset_keeps_line_idle|reset_during_frame|fixed_patterns|host_id_status_rules|"
              r"host_load_readback|host_sck_limit|stop_start|r2_stop_pins|host_status_reserved_bits|"
              r"host_partial_byte|host_default_start|helper_pin_stopped_level)$"),                # 49 s

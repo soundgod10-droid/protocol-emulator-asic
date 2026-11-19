@@ -508,6 +508,48 @@ async def test_helper_pin_stopped_level(dut):
 
 
 @cocotb.test()
+async def test_host_reset_clears_config(dut):
+    """A chip reset clears the configuration but keeps the memory (docs/isa.md 2.4): no thread runs and no pin has an
+    owner until the host writes them again. A program that drives UART_TX (pin 12) low is loaded, the RUN mask and pin
+    12 (owner thread 0) are written, then the chip is reset before any START. START with nothing written again: no
+    thread runs and the line stays high. Then only the RUN mask is written: thread 0 runs, its OUT to the pin that has
+    no owner sets ERR (docs/isa.md 5.2), the HALT stops it, and the line stays high."""
+    mon, host = await start(dut)
+    prog = pe_asm.assemble("""
+            TNOW    24
+            OUT     UO4, 0
+            HALT
+    """)
+    await host.write_mem(0, prog.image()[:8])
+    owner = [None] * 15
+    owner[P_TX] = 0
+    _, pins = hs.config_words((0, 0, 0, 0), (True, False, False, False), owner, [False] * 15)
+    await host.write_cfg(4, [0b0001])
+    await host.write_cfg(16, pins)
+    dut.rst_n.value = 0
+    await ClockCycles(dut.clk, 10)
+    dut.rst_n.value = 1
+    await ClockCycles(dut.clk, 5)
+    t0 = now_ps()
+    await host.start()
+    await ClockCycles(dut.clk, 200)
+    st_reset = await host.read_status()
+    await host.stop()
+    await host.write_cfg(4, [0b0001])                # RUN mask only: pin 12 keeps its reset value (no owner)
+    await host.start()
+    await ClockCycles(dut.clk, 200)
+    st_mask = await host.read_status()
+    changes = mon.after(t0)
+    dut._log.info(f"after a chip reset: START with no configuration written: status {st_reset}; START with only the "
+                  f"RUN mask written: status {st_mask}; UART_TX changes {changes}")
+    assert st_reset["run"] == [0, 0, 0, 0] and st_reset["err"] == [0, 0, 0, 0], \
+        f"a thread ran after a chip reset with no RUN mask written: {st_reset}"
+    assert st_mask["err"] == [1, 0, 0, 0] and st_mask["run"] == [0, 0, 0, 0], \
+        f"thread 0 did not find pin 12 without owner after the chip reset: {st_mask}"
+    assert changes == [], f"UART_TX changed after the chip reset: {changes}"
+
+
+@cocotb.test()
 async def test_host_load_readback(dut):
     """WRITE_MEM of 128 random words, READ_MEM in one transaction; words across the program/data
     boundary (511 -> 512), at the top of the data memory, the alias 1,536-2,047 = 512-1,023 and

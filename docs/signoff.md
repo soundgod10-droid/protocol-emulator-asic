@@ -45,7 +45,7 @@ Reset tree:
 - Chip reset `rst_n_int` (from `pe_reset_sync`): every flip-flop with a reset, including the input synchronizers, the host port and the SRAM read-select flip-flop.
 - Processor reset `run_rst_n = rst_n_int & running`: the core, the host FIFOs, the event slots, the pin registers and the two line helpers. Both inputs are flip-flop outputs, so the AND has no glitch and its release is at a clock edge. STOP asserts it; START releases it at a known cycle ([host_port.md](host_port.md) section 8). A helper pin is an output only while the threads run.
 - No reset: the SRAM contents (the host loads them after every power-up and select, host rule 6), and the FIFO latches and their write-data flip-flops ([decisions.md](decisions.md) entry 7; `formal/mem_full_reset.sby`).
-- Gated clocks: only through the integrated clock-gate cells of the FIFO latch arrays (`pe_cg`); their enables come from flip-flops of the same domain and are checked by the clock-gating setup check (+9.448 ns at the slow corner).
+- Gated clocks: only through the integrated clock-gate cells of the FIFO latch arrays (`pe_cg`); their enables come from flip-flops of the same domain and are checked by the clock-gating setup check (+8.304 ns at the slow corner, run [44557589283]).
 
 ## 3 SRAM macros
 

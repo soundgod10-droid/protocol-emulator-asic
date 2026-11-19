@@ -427,8 +427,9 @@ async def test_host_status_reserved_bits(dut):
     await host.start()
     for n in range(4):
         await host.push(n, list(range(1, n + 2)))
-    raw = await host.transaction([hs.READ_STATUS] + [0] * hs.STATUS_BYTES)
+    raw = await host.transaction([hs.READ_STATUS] + [0] * (hs.STATUS_BYTES + 2))
     status = raw[1:1 + hs.STATUS_BYTES]
+    assert raw[1 + hs.STATUS_BYTES:] == [0, 0], f"bytes after the status bytes: {raw[1 + hs.STATUS_BYTES:]}"
     dut._log.info("READ_STATUS bytes with in-FIFO counts 1, 2, 3, 4: " + " ".join(f"{b:02X}" for b in status))
     assert [b & 0x07 for b in status[3:7]] == [1, 2, 3, 4], f"in-FIFO counts {status}"
     assert all(b & 0x88 == 0 for b in status[3:7]), f"reserved bits 7 and 3 of status bytes 3 to 6: {status}"

@@ -117,7 +117,7 @@ Conditions: timing values are static timing of the routed layout at the three co
 |---|---|---|---|---|
 | `PL_TARGET_DENSITY_PCT` | 60 | Template default; placement converges in one routability iteration | 40 or 80: **open**, not run | runs of entry 2 |
 | `CLOCK_PERIOD` | 16.667 | 60 MHz (section 1) | entry 4 | entry 4 |
-| `PL_RESIZER_HOLD_SLACK_MARGIN` 0.1, `GRT_RESIZER_HOLD_SLACK_MARGIN` 0.05 | template defaults | Hold +0.099 ns at the fast corner, 0 violations | Larger margins: **open**, not run (no hold violation to fix) | run 44005215480 |
+| `PL_RESIZER_HOLD_SLACK_MARGIN` 0.1, `GRT_RESIZER_HOLD_SLACK_MARGIN` 0.05 | template defaults | Hold +0.101 ns at the fast corner, 0 violations | Larger margins: **open**, not run (no hold violation to fix) | run 44557589283 |
 | `PL_RESIZER_SETUP_SLACK_MARGIN` | 1.5 | The hold repair otherwise delays the core's register-select net and takes the setup margin to +0.487 ns | Margin 0: +0.487 ns (run 43989356298); 1.5: +1.682 ns on the same RTL (run 43998187307); a margin above 0 with the latch endpoints in the checks looped for hours (run 40793488418) | entry 21 |
 | `OPENROAD_THREADS` | 4 | Unset gives one thread in detailed routing | The default flow took 5 h 52 min and timed out at 6 h 01 min (runs 40793488418, 40846505319) | entry 6 |
 | `RUN_MAGIC_DRC` | 0 | With the SRAM macros Magic reports about 173,000 rule-exception shapes inside the IHP macro layout | The precheck's KLayout deck (the DRC signoff) passes on the same layout (runs 43941919810, 43962985880) | entry 20 |

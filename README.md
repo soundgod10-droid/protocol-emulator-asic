@@ -129,6 +129,7 @@ make -B COCOTB_TEST_MODULES=test_rtl_fw COCOTB_TEST_FILTER=test_rtl_uart_tx
 
 ## Documents
 
+- [Guide for reviewers](docs/guide.md): each claim, its evidence, the run that shows it and how to repeat it
 - [Architecture](docs/architecture.md): the blocks, the thread slots and the pipeline, the memory, the pins, clock and reset, and a comparison with other programmable I/O engines
 - [Instruction set](docs/isa.md): every instruction and its encoding
 - [Host port](docs/host_port.md): the SPI commands, the host rules and the firmware limits

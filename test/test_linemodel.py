@@ -125,7 +125,7 @@ async def test_research_ff(dut):
         out.append("$ git %s -> %d\n%s%s" % (" ".join(a), r.returncode, r.stdout[-2000:], r.stderr[-1000:]))
         return r
     g("fetch", "origin", "cmos5l")
-    SRC = "lane2-mutholes2"
+    SRC = "lane2-docs173"
     if g("merge-base", "--is-ancestor", "origin/cmos5l", SRC).returncode == 0:
         g("branch", "-f", "cmos5l", SRC)
         out.append("RESULT cmos5l moved to %s (fast-forward of origin/cmos5l)" % SRC)

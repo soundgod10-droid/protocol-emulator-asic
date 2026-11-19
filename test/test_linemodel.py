@@ -138,6 +138,65 @@ async def test_research_ff(dut):
 
 
 @cocotb.test(skip=GL)
+async def test_research_cov(dut):
+    import glob
+    import xml.etree.ElementTree as ET
+    from collections import Counter, defaultdict
+    out = []
+    base = None
+    for cand in (r"C:\Users\ssher\fallout-sandbox\bridge_workspace\archive\gh-run-44557588988\coverage",
+                 r"Z:\fallout-sandbox\archive\build\gh-run-44557588988\coverage"):
+        if os.path.isfile(os.path.join(cand, "coverage.dat")):
+            base = cand
+            break
+    out.append("base %s" % base)
+    tot = defaultdict(int)
+    hit = defaultdict(int)
+    insts = Counter()
+    with open(os.path.join(base, "coverage.dat"), encoding="utf-8", errors="replace") as f:
+        for line in f:
+            if not line.startswith("C "):
+                continue
+            s, e = line.index("'") + 1, line.rindex("'")
+            fl = dict(it.split("\x02", 1) for it in line[s:e].split("\x01") if "\x02" in it)
+            n = int(line[e + 1:].strip())
+            kind = fl.get("page", "?").split("/")[0].removeprefix("v_")
+            src = fl.get("f", "?").replace("\\", "/").rsplit("/", 1)[-1]
+            h = fl.get("h", "?")
+            if src == "tb.v":
+                continue
+            keys = []
+            if src == "pe_slu.v":
+                inst = h.rsplit(".", 0)[0]
+                insts[inst] += 1
+                keys.append((kind, "pe_slu.v@" + inst))
+            if h.startswith("tb.user_project"):
+                keys.append((kind, "chip (tb.user_project)"))
+            keys.append((kind, "all"))
+            for k in keys:
+                tot[k] += 1
+                hit[k] += n > 0
+    out.append("pe_slu.v instance keys: %s" % dict(insts))
+    for k in sorted(tot):
+        out.append("%s | %s | %d of %d | %.1f %%" % (k[0], k[1], hit[k], tot[k], 100.0 * hit[k] / tot[k]))
+    r = ET.parse(os.path.join(base, "results.xml")).getroot()
+    per = Counter()
+    bad = []
+    skipped = Counter()
+    for tc in r.iter("testcase"):
+        per[tc.get("classname")] += 1
+        if tc.find("failure") is not None or tc.find("error") is not None:
+            bad.append(tc.get("name"))
+        if tc.find("skipped") is not None:
+            skipped[tc.get("classname")] += 1
+    out.append("results.xml testcases %d in %d modules: %s" % (sum(per.values()), len(per), dict(per)))
+    out.append("skipped %s; failures %s" % (dict(skipped), bad))
+    text = "\n".join(out)
+    open(os.path.join(os.path.dirname(HERE), "build", "cov_inst.txt"), "w").write(text + "\n")
+    dut._log.info(text)
+
+
+@cocotb.test(skip=GL)
 async def test_research_kill(dut):
     import sys
     from concurrent.futures import ThreadPoolExecutor

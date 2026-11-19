@@ -1066,7 +1066,7 @@ async def test_slu_line_cond_exact(dut):
     shows J. Two runs from reset with the same stimulus: one reads LINE in every cycle, one reads STATUS."""
     res = {}
     for port in (P_LINE, P_STATUS):
-        s = await slu_reset(dut)
+        s = await (slu_reset(dut) if port == P_LINE else slu_reset_again(dut))
         await s.cfg({18: (1 << 6), 17: 7})           # LTC: prescale 0, condition A SE0, condition B J; LTB 7
         dut.slu_pins.value = 1 << AUX1               # J: VP (AUX0) 0, VM (AUX1) 1
         await s.wr(P_CFGADR, 8)

@@ -18,7 +18,7 @@ Each method below gives what it checks, what it does not check, and its latest r
 
 ## 1. RTL tests
 
-`test/Makefile` runs twelve cocotb modules on the RTL in `src/`: the eight below and `test_usb_dev.py`, `test_eth_dev.py`, `test_linemodel.py` and `test_i2c_tgt.py` ([protocols.md](protocols.md)). The test job of every push runs them.
+`test/Makefile` runs fourteen cocotb modules on the RTL in `src/`: the nine below and `test_usb_dev.py`, `test_eth_dev.py`, `test_linemodel.py`, `test_i2c_tgt.py` ([protocols.md](protocols.md)) and `test_slu_clk.py` (the clocked and NRZ modes of the USB helper, [helpers.md](helpers.md) section 6). The test job of every push runs them.
 
 - `test/test_slu.py` (15 tests): the line helpers ([helpers.md](helpers.md)). `test_slu_loop_equiv`: the receive loop RTL against its bit-exact model in every cycle (50 10BASE-T frames, 50 USB packets). Unit tests of the helper RTL through its ports at 60 MHz against references written from USB 2.0 and IEEE 802.3 (`test/slu_ref.py`): USB transmit and receive (NRZI, stuffing, CRC5 and CRC16, EOP, +/-1.5 %), 10BASE-Te transmit and receive (Manchester, CRC-32, TP_IDL, link pulses, 13.5 ns jitter, +/-100 ppm), the transmit start rules (late start, underflow), collision with its 32-bit jam, jabber after 2^22 cycles, the USB bus-reset and suspend timers. Chip tests in which a thread drives a helper through the I/O ports, the pins and the data memory: 10BASE-Te and USB transmit and receive, and the helper event inputs 13 and 14 with WAIT. The collision test found a 31-bit jam (fixed), the event test found that the assembler rejected inputs 13 and 14 (fixed).
 

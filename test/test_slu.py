@@ -998,6 +998,20 @@ async def test_slu_link_pulse_width(dut):
     assert res == {1: 0, 2: 1, 12: 1, 13: 0}, res
 
 
+async def slu_reset_again(dut):
+    """Reset of the unit inside a test whose clock already runs (slu_reset starts the clock)."""
+    await FallingEdge(dut.clk)
+    dut.slu_ut_rst_n.value = 0
+    dut.slu_we.value = 0
+    dut.slu_re.value = 0
+    dut.slu_pins.value = 0
+    for _ in range(3):
+        await RisingEdge(dut.clk)
+    dut.slu_ut_rst_n.value = 1
+    await RisingEdge(dut.clk)
+    return Slu(dut)
+
+
 @cocotb.test(skip=GL)
 async def test_slu_sel_last_pin(dut):
     """SEL[3:0] chooses DIN among inputs 0 to 12; 13 to 15 are none (docs/helpers.md section 2). Input 12, the last

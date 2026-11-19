@@ -2196,7 +2196,14 @@ UART_HRX_FW = """
         IOW     r0, E+13        ; LTC[10]: a frame starts at a falling edge of DIN (the start bit)
         LDI     r0, 10
         IOW     r0, E+4         ; TXCTRL: 10 samples a frame (start, 8 data, stop)
-        LDI     r1, 768         ; received words to the data memory from 768
+        TNOW    100             ; in the clocked code the receiver starts a frame when RX is switched on,
+        TWAIT                   ; before any start bit: let it end (10 samples x 4 cycles), then drop its word
+drain:  IOR     r0, E+6
+        ANDI    r0, 0x60
+        BEQ     go
+        IOR     r0, E+1
+        JMP     drain
+go:     LDI     r1, 768         ; received words to the data memory from 768
 rx:     IOR     r0, E+6         ; RXINFO [6:5]: words in the RX buffer
         ANDI    r0, 0x60
         BEQ     rx

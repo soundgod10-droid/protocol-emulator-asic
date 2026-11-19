@@ -123,7 +123,7 @@ async def test_research_ff(dut):
     g("fetch", "origin", "cmos5l")
     SRC = "lane2-formal27"
     if g("merge-base", "--is-ancestor", "origin/cmos5l", SRC).returncode == 0:
-        g("branch", "-f", "cmos5l", "lane2-int")
+        g("branch", "-f", "cmos5l", SRC)
         out.append("RESULT cmos5l moved to lane2-int (fast-forward of origin/cmos5l)")
     else:
         out.append("RESULT origin/cmos5l is not an ancestor of lane2-int: not moved")

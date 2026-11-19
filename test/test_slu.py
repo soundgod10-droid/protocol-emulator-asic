@@ -2157,7 +2157,15 @@ async def test_slu_chip_uart_tx(dut):
             await FallingEdge(dut.clk)
             caps.append(int(dut.uio_out.value) & 1)
     task = cocotb.start_soon(cap(4 * len(bits) + 1500))
+    dump = getattr(dut, "dump_off", None)                            # not in the coverage build (test/tb.v)
+    if dump is not None:                                             # waveform: START and the first 6 us
+        dump.value = 1
     await host.start()
+    if dump is not None:
+        dump.value = 0
+        dut._log.info("waveform: review window from %.1f ns (START) for 6 us" % get_sim_time("ns"))
+        import test_slu_clk as sc2
+        cocotb.start_soon(sc2.later(6000.0, setattr, dump, "value", 1))
     await task
     # after START the helper shows the USB idle (TXA 0) until MODE is written (docs/helpers.md section 6, After START)
     low0 = next(i for i in range(len(caps)) if caps[i] == 0)

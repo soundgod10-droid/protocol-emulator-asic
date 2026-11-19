@@ -121,7 +121,8 @@ async def test_research_ff(dut):
         out.append("$ git %s -> %d\n%s%s" % (" ".join(a), r.returncode, r.stdout[-2000:], r.stderr[-1000:]))
         return r
     g("fetch", "origin", "cmos5l")
-    if g("merge-base", "--is-ancestor", "origin/cmos5l", "lane2-int").returncode == 0:
+    SRC = "lane2-formal27"
+    if g("merge-base", "--is-ancestor", "origin/cmos5l", SRC).returncode == 0:
         g("branch", "-f", "cmos5l", "lane2-int")
         out.append("RESULT cmos5l moved to lane2-int (fast-forward of origin/cmos5l)")
     else:

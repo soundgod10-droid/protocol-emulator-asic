@@ -1298,6 +1298,8 @@ async def test_slu_tx_late_underflow(dut):
         oe_cycles += int(dut.slu_txoe.value)
     st = await s.rd(P_STATUS)
     assert st & 0x4 and st & 0x1, "TXUNDER and TXDONE after a word with no next word, status %04x" % st
+    # the underflow ends the frame with the full tail: 16 bits of 6 cycles, then TP_IDL for TAIL = 16 cycles
+    assert oe_cycles == 16 * 6 + 16, "OE for %d cycles after an underflow, expected 112" % oe_cycles
     dut._log.info("TX start rules: late TXTIME -> TXLATE and start at write + 4 (TXUNDER with no word); late with "
                   "TXCTRL bit 6 -> TXLATE, no start; underflow after one word -> TXUNDER, tail, TXDONE "
                   "(OE for %d cycles: 16 bits x 6 + TP_IDL)" % oe_cycles)

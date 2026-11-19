@@ -186,7 +186,8 @@ The record below is the earlier decision (6x4, before the rule change).
 - **Question:** the tape-out checklist turned Magic DRC on for the submitted run. Does Magic DRC work with the SRAM macros?
 - **Evidence:** with the macros, Magic reports 173,163 and 173,165 errors (runs [43925649736], [43941919810]); the listed shapes are of the rule "N-Diffusion spacing to N-well in SRAM < 54 (NW.d exception)" at the macro edges, inside the IHP macro layout. The precheck's KLayout DRC with the PDK deck (sg13cmos5l, table main) passes on the same layout (run [43941919810], precheck log) and on the later smoke layout (run [43962985880]).
 - **Decision:** the KLayout DRC of the layout precheck is the DRC signoff; Magic DRC stays off ([docs/tapeout_checklist.md](tapeout_checklist.md)).
-- **Would change it:** a Magic rule set that reads the SRAM exception layers.
+- **Measured again on the submitted RTL (November 2026):** the same layout with Magic DRC on the full GDS (research run [44583568390], errors not fatal) reports 173,164 errors, and every one of their boxes lies inside the two SRAM macros (115,241 in the data macro, 57,923 in the program macro, 0 outside; summary of the report by run [44602608133]). By rule: Metal2 minimum area 92,160, "can't overlap those layers" 77,606, tie-diffusion extension 1,716, abutment between subcells 824, the SRAM exceptions of NW.d (686) and Cnt.c (124), and Cnt.c 48. So Magic finds no error in the standard cells, the routing or the macro surroundings, and the errors inside the macros are the IHP macro layout read without its exception layers; the precheck's KLayout deck passes the whole GDS including the macros.
+- **Would change it:** a Magic rule set that reads the SRAM exception layers, or a Magic error outside the macro boxes.
 
 ## 21. Setup margin of the resizer with the SRAM layout
 

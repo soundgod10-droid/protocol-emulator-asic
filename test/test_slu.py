@@ -1042,7 +1042,7 @@ async def test_slu_port_rules(dut):
     await s.wr(P_CFGDAT, mode(0, rx=1))              # no CFGADR write since reset: index 0 = MODE
     await ClockCycles(dut.clk, 2)
     st_first = (await s.rd(P_LINE)) >> 4
-    s = await slu_reset(dut)
+    s = await slu_reset_again(dut)
     await s.wr(P_CFGADR, 0)
     await s.wr(P_TXDATA, 0x0001)                     # not a CFGADR write: the index stays 0
     await s.wr(P_CFGDAT, mode(0, rx=1))

@@ -1,0 +1,43 @@
+# Guide for reviewers
+
+Each row gives one claim of this project, the conditions it holds under, the evidence, the CI run that shows it, and how to repeat it. Run pages are public: the values named here are in each run's summary or annotations, which GitHub shows without signing in. Commands run from the repository root unless they start with `cd`. The design under review is branch `cmos5l`; its RTL is that of layout run [44557589283] (commit b89bd94).
+
+All results are from simulation, formal proofs and static timing of the layout. No chip has been made; the board parts (transceivers, line network, pull-ups) are listed in [info.md](info.md) and are not in any simulation unless a row says so.
+
+## Claims
+
+| Claim | Conditions | Evidence | Run | Repeat |
+|---|---|---|---|---|
+| Protocols are firmware: 12 protocols (18 programs) meet the strict counting rule | rule fixed in [counting.md](counting.md) before counting; logic simulation at 60 MHz; RTL and layout netlist with functional cells | [flex/protocols.csv](../flex/protocols.csv), `flex/count.py`; every row's test passes on the RTL and at gate level | [count 44560694321], annotation "protocol count table" | open the run; or `python flex/count.py --rtl <results.xml> --gl <results.xml ...>` with the files the summary names |
+| Every pin change of a thread happens in the cycle its event names, or 4 cycles after the instruction with LATE set; the timing of one thread does not depend on the others | proved on the RTL logic; the clock as a step (latch windows are a static-timing check) | `formal/proc.sby` (timing contract C1-C4, for every program), `formal/core.sby` (barrel order), `formal/iso.sby` (two-core miter; `iso_mut_io.sby` is the planted fault that must fail) | [formal 44421405029] (27 of 27) | `sby -f formal/proc.sby`, `sby -f formal/iso.sby` |
+| The RTL equals the cycle-exact reference model on every pin and host word in every cycle | directed and 24 seeded random programs; line helpers not in the model | `test/test_core.py` | [test 44557589083] | `cd test; make COCOTB_TEST_MODULES=test_core` |
+| USB low-speed device on the chip: enumeration (23 chapter 9 and HID requests, STALL for the rest), host at -500, 0, +500 ppm, no answer to 6 damaged packets, suspend and resume; reply 5.65 to 5.68 bit times after the host's end of packet (limit 6.5) | logic simulation at 60 MHz, ideal transceiver: 0.82 bit times (about 550 ns) are left for the transceiver and the board; bus reset, recovery and resume shortened in the tests | `test/test_usb_dev.py` against a USB 2.0 host model written from chapters 7 to 9 (`test/linemodel/`) | RTL [test 44557589083]; gate level: part 4 of [gds 44557589283] | `cd test; make COCOTB_TEST_MODULES=test_usb_dev` |
+| 10BASE-T station on the chip: link test pulses every 16 ms, the link integrity test of IEEE 802.3 Figure 14-6, frames received at -100 and +100 ppm with 13.5 ns jitter, FCS and runt checks, collision backoff | half duplex; 10BASE-Te levels with the board network; logic simulation with ideal slicer and squelch | `test/test_eth_dev.py` against an IEEE 802.3 link-partner model (`test/linemodel/`) | RTL [test 44557589083]; gate level: part 5 of [gds 44557589283] | `cd test; make COCOTB_TEST_MODULES=test_eth_dev` |
+| The USB helper also runs clocked and NRZ buses: SPI 15 MHz (modes 0 to 3) through the chip pins; JTAG 15 MHz, SWD 7.5 MHz, UART 15 Mbaud | logic simulation with pad delays (SPICE) and 0 to 10 ns of board multiplexer delay each way as parameters; JTAG, SWD and UART at unit level | `test/test_slu_clk.py`, `test_slu_chip_spi_flash` in `test/test_slu.py`; device models from the W25Q128JV data sheet, TI SSYA002C and Arm IHI0031H | [test 44557589083] | `cd test; make COCOTB_TEST_MODULES=test_slu_clk` |
+| Timing at 60 MHz with no violation at any corner: flip-flop setup +2.31 / +3.27 / +3.81 ns (slow / typical / fast), hold +0.59 / +0.28 / +0.10 ns; no max-slew, max-capacitance or max-fanout violation | static timing of the routed layout at the flow's three corners (1.08 V 125 C, 1.20 V 25 C, 1.32 V -40 C); every checker stops the run at any corner (`tt_submission/resolved.json`) | annotations "gds summary.rpt" and "gds nom_*" of the gds job; `checks.rpt` in the `GDS_logs` artifact | [gds 44557589283] | read the annotations; [signoff.md](signoff.md) says where each value is |
+| The layout passes the shuttle's precheck, LVS, routing DRC, antenna and power-grid checks | KLayout SG13CMOS5L deck with the SRAM macros is the DRC signoff ([decisions.md](decisions.md) entry 20) | precheck job; annotation "gds metrics.csv" | [gds 44557589283] | read the precheck job summary |
+| Outside decoders agree with the chip pins | sigrok decoders of a pinned build; each scenario has a negative control that must fail; logic levels only | `test/test_sigrok.py`, `flex/sigrok_judge.py`, `.github/workflows/sigrok.yaml` | [sigrok 44557588966] (19 of 19) | read the annotation "sigrok judge" |
+| Code coverage of the RTL tests 80.4 % line, 83.7 % branch, 79.6 % toggle | raw figure, no point excluded; missed points by helper copy and their reasons in [signoff.md](signoff.md) section 4 | `.github/workflows/coverage.yaml`, `test/coverage_summary.py` | [coverage 44557588988] | read the annotation "coverage summary" |
+| The I/O pads meet I2C Standard-mode and Fast-mode output levels at every corner; not Fast-mode Plus; not 5 V tolerant | schematic pad cells, IHP models, three corners, no layout parasitics | `spice/pad_*.sp` | local ngspice ([verification.md](verification.md) section 9) | `ngspice -b spice/pad_ss.sp` with the IHP-Open-PDK models |
+| Input synchronizers: metastability time constant about 101 ps at the slow corner; MTBF above 10^59 s | SPICE of the flip-flop at one sample per corner; MTBF by calculation, T0 not measured | `spice/m2c_sync_tau*.sp`; [signoff.md](signoff.md) section 1 | local ngspice | `ngspice -b spice/m2c_sync_tau_ss.sp` |
+| Flexibility is measured by a census of 44 outside protocols on the frozen chip | pre-registered order (drand round 34763812, 2026-12-12 17:00 UTC), separate writers, time box, stop 2027-01-08; nothing for the 44 is written before the `rtl-freeze` tag | [flex/PREREG.md](../flex/PREREG.md), `flex/pool.csv` | the census results commit by commit after the tag | follow PREREG section 4 to compute the order from the beacon |
+
+## What is not claimed
+
+- No silicon or FPGA result. The pads and the board multiplexer are modelled by delays; no board has run the chip.
+- Firmware rates are set by one instruction per thread every 4 cycles: CAN 250 kbit/s, SPI target 1.2 MHz, JTAG 1.5 MHz and SWD 1.875 MHz in firmware (the helper rates above are the faster path for clocked buses).
+- I2C Fast-mode Plus and full 10BASE-T levels (2.2 to 2.8 V) are not claimed; the chip needs a buffer and a 10BASE-Te line network ([info.md](info.md)).
+- The SDF simulation applies cell delays only: the SRAM read time and the wire delays are checked by static timing ([verification.md](verification.md) section 5).
+- The USB and 10BASE-T programs each nearly fill the 512-word program memory, so they are loaded one at a time; one helper serves USB and the clocked buses.
+
+## How the work was done
+
+The decisions with their compared options and evidence are in [decisions.md](decisions.md), the reason for every module, parameter and instruction in [rationale.md](rationale.md), and the use of AI tools and how each result was checked in [verification.md](verification.md) (section "How AI tools were used").
+
+[44557589283]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44557589283
+[test 44557589083]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44557589083
+[gds 44557589283]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44557589283
+[formal 44421405029]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44421405029
+[count 44560694321]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44560694321
+[sigrok 44557588966]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44557588966
+[coverage 44557588988]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44557588988

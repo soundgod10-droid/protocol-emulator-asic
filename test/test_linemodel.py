@@ -40,13 +40,14 @@ async def test_research_rebase(dut):
         out.append("working tree not clean: stop")
     else:
         g("fetch", "origin", "cmos5l")
-        g("log", "--oneline", "67f2fe0..origin/cmos5l")
-        g("diff", "--stat", "67f2fe0", "origin/cmos5l")
-        r = g(*ident, "rebase", "origin/cmos5l", "lane2-mutholes2")
+        g("log", "--oneline", "b89bd94..origin/cmos5l")
+        g("diff", "--stat", "b89bd94", "origin/cmos5l")
+        r = g(*ident, "rebase", "origin/cmos5l", "lane2-docs173")
         if r.returncode != 0:
             g("diff", "--name-only", "--diff-filter=U")
             g("rebase", "--abort")
-        g("rev-list", "--count", "origin/cmos5l..lane2-mutholes2")
+        g("rev-list", "--count", "origin/cmos5l..lane2-docs173")
+        g("diff", "--stat", "origin/cmos5l", "lane2-docs173")
         g("log", "--oneline", "-5")
         g("status", "--short", "--branch", "--untracked-files=no")
     text = "\n".join(out)

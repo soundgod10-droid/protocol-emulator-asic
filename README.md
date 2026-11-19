@@ -54,17 +54,20 @@ These 7 programs written after the instruction set (the four page-named protocol
 
 | Check | Result | Run |
 |---|---|---|
-| Timing at 60 MHz, setup slack of the flip-flop paths, slow / typical / fast corner | +1.68 / +4.31 / +4.49 ns | [gds 44116299456][gds] |
-| Hold slack, slow / typical / fast corner | +0.58 / +0.27 / +0.10 ns | [gds 44116299456][gds] |
-| Setup, hold, max-slew, max-capacitance and max-fanout violations | 0 at all 3 corners | [gds 44116299456][gds] |
-| Routing DRC, LVS, antenna, power grid | 0 / 0 / 0 / 0 errors | [gds 44116299456][gds] |
-| Layout precheck of the shuttle (KLayout DRC with the SRAM macros) | 10 of 10 checks pass | [gds 44116299456][gds] |
-| RTL tests (cocotb, Icarus Verilog) | 116 tests, job success | [test 44116299449][test] |
-| Line helpers: USB low speed and 10BASE-Te on the RTL / on the gate-level netlist | 15 tests (9 unit, 6 chip) / the 6 chip tests pass | [test 44116299449][test], [gds 44116299456][gds] |
-| USB low-speed device (HID keyboard) and 10BASE-T station firmware with standard-based host and partner models, on the RTL / on the gate-level netlist | 5 + 5 tests / the same 10 tests pass. USB: enumeration with the host at -500, 0 and +500 ppm, reply 5.65 to 5.68 bit times after the host's end of packet (limit 6.5), no reply to 6 damaged packets. 10BASE-T: frames received at -100 and +100 ppm, link test pulses every 16.01 ms (8 to 24 ms), link integrity test, collision backoff | [test 44116299449][test], [gds 44116299456][gds] |
+| Timing at 60 MHz, setup slack of the flip-flop paths, slow / typical / fast corner | +2.31 / +3.27 / +3.81 ns | [gds 44557589283][gds] |
+| Hold slack, slow / typical / fast corner | +0.59 / +0.28 / +0.10 ns | [gds 44557589283][gds] |
+| Setup, hold, max-slew, max-capacitance and max-fanout violations | 0 at all 3 corners (each of these checks stops the layout run at any corner) | [gds 44557589283][gds] |
+| Routing DRC, LVS, antenna, power grid | 0 / 0 / 0 / 0 errors | [gds 44557589283][gds] |
+| Layout precheck of the shuttle (KLayout DRC with the SRAM macros) | pass | [gds 44557589283][gds] |
+| Protocols in the strict count ([counting rule](docs/counting.md)) | 12 protocols (18 programs), each on the RTL and on the layout netlist against a model from a named public document | [count 44560694321][count] |
+| RTL tests (cocotb, Icarus Verilog) | 173 testcases in 14 modules, no failure | [test 44557589083][test] |
+| Gate-level tests (layout netlist, functional cell models, no delays) | template test, the protocol programs, the line-helper chip tests, the USB device and the 10BASE-T station tests pass | [gds 44557589283][gds] |
+| USB low-speed device (HID keyboard) and 10BASE-T station firmware with standard-based host and partner models, on the RTL / on the gate-level netlist | 5 + 5 tests / the same 10 tests pass. USB: enumeration with the host at -500, 0 and +500 ppm, reply 5.65 to 5.68 bit times after the host's end of packet (limit 6.5), no reply to 6 damaged packets. 10BASE-T: frames received at -100 and +100 ppm, link test pulses every 16.01 ms (8 to 24 ms), link integrity test, collision backoff | [test 44557589083][test], [gds 44557589283][gds] |
+| Clocked and NRZ buses on the USB helper (logic simulation with pad and multiplexer delays as parameters) | SPI controller 15 MHz in modes 0 to 3 through the chip pins (RTL and gate level), 30 MHz in mode 0; JTAG 15 MHz, SWD 7.5 MHz, UART 15 Mbaud at unit level | [test 44557589083][test], [protocols](docs/protocols.md) |
 | 10BASE-T receive margin of the helper's loop (1,000 frames of 1,518 bytes per case, model) | 1,000 of 1,000 at the 13.5 ns jitter limit, +1.34 ns margin with up to 3 ns pattern-dependent jitter | [helpers](docs/helpers.md) |
-| Code coverage of the RTL tests: line / branch / toggle | 75.6 % / 81.3 % / 77.1 % (every file 100 % line except the helpers, [signoff](docs/signoff.md)) | [coverage 44005215379][cov] |
-| Formal proofs and covers (SymbiYosys) | 27 of 27 jobs pass | [formal 44421405029][formal] |
+| Outside decoders (sigrok, pinned build) on the RTL pins | 19 of 19 scenarios agree, each with a control that must fail | [sigrok 44557588966][sigrok] |
+| Code coverage of the RTL tests: line / branch / toggle | 80.4 % / 83.7 % / 79.6 % (every file 100 % line except the helpers; the missed points by helper copy in [signoff](docs/signoff.md) section 4) | [coverage 44557588988][cov] |
+| Formal proofs and covers (SymbiYosys) | 27 of 27 jobs give their expected result (12 unbounded proofs, 15 planted faults found) | [formal 44421405029][formal] |
 
 Conditions: static timing of the routed layout at the three corners of the flow (slow 1.08 V 125 °C, typical 1.20 V 25 °C, fast 1.32 V -40 °C). The tests are logic simulations. The gate-level tests use the netlist of the layout with functional cell models and no delays. There is no silicon result yet. The [Results](https://soundgod10-droid.github.io/protocol-emulator-asic/results/) page is made again from the newest runs on every push, with every value and its run.
 

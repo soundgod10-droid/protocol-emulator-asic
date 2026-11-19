@@ -1115,6 +1115,51 @@ async def test_slu_runt_crc(dut):
 
 
 @cocotb.test(skip=GL)
+async def test_slu_rx_overflow(dut):
+    """The receive buffer holds 2 words (docs/helpers.md section 2): a USB DATA0 packet with 8 bytes (5 words with the
+    PID and CRC16) that nobody reads keeps its first two words; the third word sets RXOVER (STATUS bit 9, word
+    lost) and RXINFO[6:5] stays 2."""
+    s = await slu_reset(dut)
+    await s.cfg(USB_CFG_RX)
+    data = bytes([0x12, 0xFF, 0xFF, 0x00, 0xA5, 0x7F, 0xFE, 0x80])
+    line = ref.nrzi(ref.stuff(ref.usb_packet_bits(0xC3, data, "16")))
+    sch, t_end = usb_host_schedule(line, 1000.0 / 1.5, 2000.0)
+    await s.wr(P_STATUS, 0xFFFF)
+    cocotb.start_soon(drive_levels(dut, sch))
+    await Timer(round((t_end + 2000.0) * 1000), unit="ps")
+    st = await s.rd(P_STATUS)
+    info = await s.rd(P_RXINFO)
+    w0 = await s.rd(P_RXDATA, pop=True)
+    w1 = await s.rd(P_RXDATA, pop=True)
+    exp = bytes([0xC3]) + data
+    dut._log.info(f"unread packet: status {st:04x}, RXINFO {info:04x}, words {w0:04x} {w1:04x}")
+    assert st & (1 << 5), "test fault: no EOP"
+    assert st & (1 << 9) and (info >> 5) & 3 == 2, f"RXOVER / buffer count: status {st:04x}, RXINFO {info:04x}"
+    assert [w0, w1] == [exp[0] | exp[1] << 8, exp[2] | exp[3] << 8], "the buffer does not keep the first two words"
+
+
+@cocotb.test(skip=GL)
+async def test_slu_clk_part_word(dut):
+    """Clocked mode receive (docs/helpers.md section 6): the last word of a frame holds its bits from bit 0 up and 0
+    above them. Frames of 12 and 4 bits sent with TXPER 2 while DIN is high: the received word is 0FFF and 000F."""
+    s = await slu_reset(dut)
+    await s.cfg({0: mode(3, rx=1), 1: 2, 8: DIN | (15 << 4) | (15 << 8) | (2 << 12)})
+    dut.slu_pins.value = 1 << DIN
+    got = {}
+    for n in (12, 4):
+        await s.wr(P_STATUS, 0xFFFF)
+        await s.wr(P_TXCTRL, n)                      # bits in the last word
+        await s.wr(P_TXLAST, 0x0000)
+        await s.wr(P_TXCTRL, n | (1 << 9))           # start now
+        await ClockCycles(dut.clk, 4 * n + 120)
+        info = await s.rd(P_RXINFO)
+        got[n] = (await s.rd(P_RXDATA, pop=True), info & 0x1F, await s.rd(P_STATUS))
+    dut._log.info("clocked receive with DIN high: " + "; ".join(
+        f"{n} bits: word {w:04x}, RXINFO bits {b}, status {st:04x}" for n, (w, b, st) in got.items()))
+    assert got[12][:2] == (0x0FFF, 12) and got[4][:2] == (0x000F, 4), got
+
+
+@cocotb.test(skip=GL)
 async def test_slu_eth_tx(dut):
     """10BASE-Te transmit: preamble and SFD from the thread, 46-byte payload, CRC-32 appended by the
     unit, Manchester at 3 cycles per half bit on TD+ (TXA) and TD- (TXB), tap B one cycle later,

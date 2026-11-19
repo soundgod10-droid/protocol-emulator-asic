@@ -107,7 +107,7 @@ Does not check: wire delays (Icarus Verilog stops on the interconnect lines, so 
 
 ## 6. Static timing at all corners
 
-The layout flow reports timing at `nom_slow_1p08V_125C`, `nom_typ_1p20V_25C` and `nom_fast_1p32V_m40C`. The flow fails only on violations at the typical corner, so every run is read in `55-openroad-stapostpnr/summary.rpt` and in `checks.rpt` of each corner (artifact `GDS_logs`), not from the job status. [src/signoff.sdc](../src/signoff.sdc) puts flip-flop paths and latch paths in separate groups: latch paths borrow time and report a slack of 0.000, which would hide the flip-flop margin.
+The layout flow reports timing at `nom_slow_1p08V_125C`, `nom_typ_1p20V_25C` and `nom_fast_1p32V_m40C`. The flow stops the layout job on a setup or hold violation at any of the three corners (`TIMING_VIOLATION_CORNERS` and `HOLD_VIOLATION_CORNERS` are `*` in the flow's resolved configuration, `tt_submission/resolved.json` of the run; LibreLane 3.1.0.dev4 with the CMOS5L flow settings) and on a max-slew or max-capacitance violation at any corner (`MAX_SLEW_VIOLATION_CORNERS`, `MAX_CAP_VIOLATION_CORNERS` in [src/config.json](../src/config.json)). The margins themselves are read in `55-openroad-stapostpnr/summary.rpt` and in `checks.rpt` of each corner (artifact `GDS_logs`); the layout job prints them as annotations (step `Signoff facts`). [src/signoff.sdc](../src/signoff.sdc) puts flip-flop paths and latch paths in separate groups: latch paths borrow time and report a slack of 0.000, which would hide the flip-flop margin.
 
 Result, present layout, run [44005215480], 60 MHz (16.667 ns):
 

@@ -72,9 +72,9 @@ These 7 programs written after the instruction set (the four page-named protocol
 Conditions: static timing of the routed layout at the three corners of the flow (slow 1.08 V 125 °C, typical 1.20 V 25 °C, fast 1.32 V -40 °C). The tests are logic simulations. The gate-level tests use the netlist of the layout with functional cell models and no delays. There is no silicon result yet. The [Results](https://soundgod10-droid.github.io/protocol-emulator-asic/results/) page is made again from the newest runs on every push, with every value and its run.
 
 [gds]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44557589283
-[test]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44557589083
-[cov]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44557588988
-[count]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44560694321
+[test]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44589189363
+[cov]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44589189245
+[count]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44589189363
 [sigrok]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44557588966
 [formal]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44421405029
 

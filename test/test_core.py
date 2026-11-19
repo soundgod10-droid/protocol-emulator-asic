@@ -797,13 +797,13 @@ async def test_core_sample_input15(dut):
         "        TNOW 20",
         "        LDI r0, 0x3FF",
         "        .word 0xCF38",          # SAMPLE input 15, r0<< (on time)
+        "        IOR r1, FLAGS",         # before the PUSH, which sets E
         "        PUSH r0",
-        "        IOR r1, FLAGS",
         "        PUSH r1",
         "        TNOW 2",
         "        .word 0xCF30",          # SAMPLE input 15, r0>> (lead -2: late)
-        "        PUSH r0",
         "        IOR r1, FLAGS",
+        "        PUSH r0",
         "        PUSH r1",
         "        HALT",
     ])

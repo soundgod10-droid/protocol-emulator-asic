@@ -80,7 +80,7 @@ Conditions: timing values are static timing of the routed layout at the three co
 | `CHIP_ID` | 0x5045_0203 ("PE", version bytes) | Bring-up reads it first to prove the SPI path | A 16-bit ID: no metric depends on it | `formal/host_port_mut_id.sby` |
 | Cycle counter `WIDTH` | 32 | section 2 | 16: same netlist | - |
 
-### 3.2 Line helpers (fixed configuration, src/pe_slu.v `F_*`)
+### 3.2 Line helpers (configuration constants `F_*` of src/pe_slu.v; the writable bits of the USB helper in the second row)
 
 | Parameter | Value | Why (standard and page) | Alternative compared and its numbers | Evidence |
 |---|---|---|---|---|

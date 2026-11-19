@@ -42,7 +42,8 @@ jobs:
           pdk: ihp-sg13cmos5l
 
       # Signoff STA at all corners, fanout violators and key metrics in the run summary and as
-      # annotations (the flow fails only on typical-corner timing; docs/signoff.md).
+      # annotations (the flow stops on a violation at any corner, but the job status does not show the margins;
+      # docs/signoff.md).
       - name: Signoff facts
         if: always()
         continue-on-error: true

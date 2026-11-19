@@ -40,7 +40,7 @@ Port p of a helper is I/O port 16 + p (USB) or 32 + p (10BASE-Te).
 
 STATUS flags: 0 TXDONE, 1 TXLATE, 2 TXUNDER (buffer empty in a frame), 3 RXWORD (a word is waiting), 4 RXSOP, 5 RXEOP, 6 CRCA_OK (last frame), 7 CRCB_OK, 8 STUFFERR, 9 RXOVER (word lost), 10 LINEA (USB bus reset), 11 LINEB (USB suspend), 12 CARRIER, 13 LINKPULSE, 14 COLLISION, 15 JABBER. Flags 3, 6, 7, 12 and 15 show a level; the others stay set until cleared.
 
-Transmit timing: a frame armed with TXTIME = t has its first symbol on the helper output in cycle t and, after the pin flip-flop, on the pad from cycle t + 1, as an OUT event at time t (docs/isa.md 4.4). The buffer holds 2 words; the thread adds the next word while a word is sent (one 16-bit word lasts 1,600 ns at 10 Mbit/s and 10,667 ns at 1.5 Mbit/s).
+Transmit timing: a frame armed with TXTIME = t has its first symbol on the helper output in cycle t and, after the pin flip-flop, on the pad from cycle t + 1, as an OUT event at time t (docs/isa.md 4.4). A link test pulse (TXCTRL bit 7) armed with TXTIME = t starts one cycle earlier: on the helper output in cycle t - 1, on the pad from cycle t. The output stage holds only the first cycle of a frame, the cycle in which the first bit is loaded; a pulse has no bit to load. The pulse width (6 cycles) does not change, and 16.7 ns is far inside the 16 ms +/- 8 ms link-pulse spacing of IEEE 802.3 14.2.1.1 (test_slu_link_pulse_start). The buffer holds 2 words; the thread adds the next word while a word is sent (one 16-bit word lasts 1,600 ns at 10 Mbit/s and 10,667 ns at 1.5 Mbit/s).
 
 ## 3 Pins
 

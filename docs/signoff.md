@@ -59,7 +59,7 @@ Reset tree:
 
 ## 4 Code coverage
 
-The coverage job builds the cocotb test bench with Verilator (`SIM=verilator`, line, branch and toggle coverage; [test/coverage_summary.py](../test/coverage_summary.py)) and runs every test module. Run [44265588374] (commit f147d6c; `src/` the same as the reviewed layout's): line 425 of 550 (77.3 %), branch 909 of 1,096 (82.9 %), toggle 14,564 of 18,540 (78.6 %). Every RTL file has 100 % line coverage except `src/pe_slu.v` (214 of 336) and `src/pe_slu_loop.v` (13 of 16). Earlier: line 416 of 550 (75.6 %) in run [44005215379] (commit 33e087b), 73.6 % before the helper tests (run [43966684440]).
+The coverage job builds the cocotb test bench with Verilator (`SIM=verilator`, line, branch and toggle coverage; [test/coverage_summary.py](../test/coverage_summary.py)) and runs every test module. Run [44557588988] (commit b89bd94, the RTL with the USB helper's clocked and NRZ modes): line 459 of 571 (80.4 %), branch 958 of 1,144 (83.7 %), toggle 14,818 of 18,624 (79.6 %). Every RTL file has 100 % line coverage except `src/pe_slu.v` (248 of 357) and `src/pe_slu_loop.v` (13 of 16). Earlier: line 425 of 550 (77.3 %) in run [44265588374] (commit f147d6c, before those modes), line 416 of 550 (75.6 %) in run [44005215379] (commit 33e087b), 73.6 % before the helper tests (run [43966684440]).
 
 **Where the missed points are.** Verilator counts each parameter set of a module as a separate copy, and `coverage.dat` records the instance of every point (key `h`). The same run, counted per instance with the parser of `test/coverage_summary.py`:
 

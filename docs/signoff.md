@@ -76,7 +76,7 @@ So 97 of the 112 missed line points are in the two SPEC 1 and SPEC 2 copies, 12 
 ## 5 Open items
 
 1. **Slow-corner setup margin** (closed). Three layout runs of nearly the same netlist gave +1.308 ns (run [43966684593]), +0.740 ns and +0.487 ns (run [43989356298]); in each, the worst path started at the core's register select `sa` with a 0.69 ns hold-repair delay cell right after it. The post-CTS setup margin of 1.5 ns, with the FIFO latches taken out of the placement timing, gives +1.682 ns in research run [43998187307] and again in run [44005215480] ([decisions.md](decisions.md) entry 21), above the +1.1 ns target of entry 4.
-2. **Lint** (closed): run [44005215480] reports 0 warnings.
+2. **Lint** (closed): run [44557589283] reports 0 warnings (also run [44005215480], before the clocked-mode helper).
 3. **IR drop** is a tile-level estimate without voltage-source locations.
 4. **SDF simulation** on the SRAM layout (closed, with limits). SDF run [44055275323] passes at three corners. Its first run on this layout ([44038072461]) showed two faults of the test set-up, both fixed in the tests:
    - vvp's SDF parser stopped at the first SRAM macro entry (bus-bit path names, `IOPATH A_CLK A_DOUT[0]`), so the 3,642 cells after it in the file had no delay while the tests passed. `test/sdf_names.py` now leaves the macro entries out, and the job fails on more than the 4 header annotation errors.

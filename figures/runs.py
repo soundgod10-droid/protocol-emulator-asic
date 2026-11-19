@@ -30,12 +30,24 @@ WORKFLOWS = {
 }
 
 
-def gh(*args):
-    return subprocess.run(["gh", *args], check=True, capture_output=True, text=True).stdout
+def gh(*args, tries=1):
+    """Run gh; on failure retry (tries > 1, for API reads that can fail for a moment) and print gh's error text as
+    an annotation, so that a failed step shows its cause on the public run page (the job log needs sign-in)."""
+    for attempt in range(1, tries + 1):
+        r = subprocess.run(["gh", *args], capture_output=True, text=True)
+        if r.returncode == 0:
+            return r.stdout
+        err = " ".join(r.stderr.split())[:300]
+        if attempt < tries:
+            print(f"::warning title=gh retry {attempt}::gh {' '.join(args[:4])}: {err}")
+            time.sleep(20 * attempt)
+    if tries > 1:
+        print(f"::error title=gh failed::gh {' '.join(args[:4])}: {err}")
+    raise subprocess.CalledProcessError(r.returncode, ["gh", *args], r.stdout, r.stderr)
 
 
 def api(path):
-    return json.loads(gh("api", "-H", "Accept: application/vnd.github+json", path))
+    return json.loads(gh("api", "-H", "Accept: application/vnd.github+json", path, tries=3))
 
 
 def newest_run(workflow, branch, success_only=False):

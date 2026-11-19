@@ -1,6 +1,6 @@
 # Verification
 
-Each method below gives what it checks, what it does not check, and its latest result. A reader can open each run link or re-run each job. The present design has the SRAM memory and the two line helpers, the USB helper with its clocked and NRZ modes: 8x4 tiles, 60 MHz, layout run [44557589283], test run [44557589083], coverage run [44557588988] (all commit b89bd94) and formal run [44421405029] (commit 82082a1; `src/` and `formal/` unchanged since). The signoff checks of the layout at all corners are in [signoff.md](signoff.md); the sections below that name older runs describe the method and keep their results for comparison.
+Each method below gives what it checks, what it does not check, and its latest result. A reader can open each run link or re-run each job. The present design has the SRAM memory and the two line helpers, the USB helper with its clocked and NRZ modes: 8x4 tiles, 60 MHz, layout run [44557589283] (commit b89bd94), test run [44589189363] and coverage run [44589189245] (commit e3e1377, same `src/` as b89bd94) and formal run [44421405029] (commit 82082a1; `src/` and `formal/` unchanged since). The signoff checks of the layout at all corners are in [signoff.md](signoff.md); the sections below that name older runs describe the method and keep their results for comparison.
 
 ## Summary
 

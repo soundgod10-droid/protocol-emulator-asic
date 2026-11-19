@@ -1198,6 +1198,10 @@ async def test_slu_reset_in_frame(dut):
     assert in_frame[1] == 1, "test fault: the frame is not on the outputs"
     assert held == [(0, 0)] * 4, f"outputs while the reset is held: {held}"
     assert after == [0] * 4, f"OE after the release: {after}"
+
+
+@cocotb.test(skip=GL)
+async def test_slu_clk_part_word(dut):
     """Clocked mode receive (docs/helpers.md section 6): the last word of a frame holds its bits from bit 0 up and 0
     above them. Frames of 12 and 4 bits sent with TXPER 2 while DIN is high: the received word is 0FFF and 000F."""
     s = await slu_reset(dut)

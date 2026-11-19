@@ -1080,8 +1080,10 @@ async def test_slu_line_cond_exact(dut):
         dut.slu_we.value = 0
         dut.slu_addr.value = port
         t0 = int(dut.slu_now.value)                  # cycles counted from the SEL write in each run
-        first = None
-        for _ in range(40):
+        await Timer(1, unit="ns")                    # the first cycle after the write edge is read too
+        v = int(dut.slu_rdata.value)
+        first = 0 if ((v & 3) == 2 if port == P_LINE else bool(v & (1 << 11))) else None
+        for _ in range(0 if first == 0 else 40):
             await RisingEdge(dut.clk)
             await ReadOnly()
             v = int(dut.slu_rdata.value)

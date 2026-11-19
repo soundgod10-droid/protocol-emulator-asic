@@ -999,6 +999,107 @@ async def test_slu_link_pulse_width(dut):
 
 
 @cocotb.test(skip=GL)
+async def test_slu_sel_last_pin(dut):
+    """SEL[3:0] chooses DIN among inputs 0 to 12; 13 to 15 are none (docs/helpers.md section 2). Input 12, the last
+    one, reaches LINE[2] (DIN): 1 with input 12 high, 0 with input 12 low and every other input high; with SEL 13
+    LINE[2] stays 0 while every input is high."""
+    s = await slu_reset(dut)
+    every = (1 << 13) - 1
+    res = {}
+    for sel, pins in ((12, every), (12, every & ~(1 << 12)), (13, every)):
+        await s.cfg({8: sel | (15 << 4) | (15 << 8)})
+        dut.slu_pins.value = pins
+        await ClockCycles(dut.clk, 4)
+        res[(sel, pins == every)] = ((await s.rd(P_LINE)) >> 2) & 1
+    dut._log.info(f"LINE[2] (DIN) for (SEL, all inputs high): {res}")
+    assert res == {(12, True): 1, (12, False): 0, (13, True): 0}, res
+
+
+@cocotb.test(skip=GL)
+async def test_slu_port_rules(dut):
+    """Port rules of docs/helpers.md section 2 that no other test reads: EVMASK reads back what was written; CFGADR is
+    0 after reset, so a first CFGDAT write goes to MODE; only a write to CFGADR sets the index (a TXDATA write between
+    CFGADR and CFGDAT leaves it); RXDATA reads 0 when the receive buffer is empty, also after a frame. A MODE word
+    with receive on (NRZ) moves the receive state from 0 (off) to 1 (hunt) in LINE[7:4]."""
+    s = await slu_reset(dut)
+    await s.wr(P_EVMASK, 0x5A5A)
+    evm = await s.rd(P_EVMASK)
+    await s.wr(P_EVMASK, 0)
+    await s.wr(P_CFGDAT, mode(0, rx=1))              # no CFGADR write since reset: index 0 = MODE
+    await ClockCycles(dut.clk, 2)
+    st_first = (await s.rd(P_LINE)) >> 4
+    s = await slu_reset(dut)
+    await s.wr(P_CFGADR, 0)
+    await s.wr(P_TXDATA, 0x0001)                     # not a CFGADR write: the index stays 0
+    await s.wr(P_CFGDAT, mode(0, rx=1))
+    await ClockCycles(dut.clk, 2)
+    st_after_tx = (await s.rd(P_LINE)) >> 4
+    s = await slu_reset(dut)
+    await s.cfg(USB_CFG_RX)
+    words, info, st, _ = await usb_rx_packet(dut, s, 0xC3, bytes([0x12, 0x34]), "16")
+    empty = await s.rd(P_RXDATA, pop=True)
+    dut._log.info(f"EVMASK read back {evm:04x}; RX state after a first CFGDAT (MODE, RX on) {st_first}, after "
+                  f"CFGADR 0, TXDATA, CFGDAT {st_after_tx}; {len(words)} words popped, then RXDATA {empty:04x}")
+    assert evm == 0x5A5A, f"EVMASK read back {evm:04x}"
+    assert st_first == 1 and st_after_tx == 1, f"MODE write did not reach index 0: RX state {st_first}, {st_after_tx}"
+    assert words and empty == 0, f"RXDATA with an empty buffer read {empty:04x}"
+
+
+@cocotb.test(skip=GL)
+async def test_slu_line_cond_exact(dut):
+    """Line condition B (LTC[7:6] = 1, J) sets LINEB when its timer reaches LTB ticks: with one tick per cycle (LTC
+    prescale 0) and LTB 7, STATUS bit 11 is set from exactly LTB + 1 = 8 cycles after the first cycle in which LINE
+    shows J. Two runs from reset with the same stimulus: one reads LINE in every cycle, one reads STATUS."""
+    res = {}
+    for port in (P_LINE, P_STATUS):
+        s = await slu_reset(dut)
+        await s.cfg({18: (1 << 6), 17: 7})           # LTC: prescale 0, condition A SE0, condition B J; LTB 7
+        dut.slu_pins.value = 1 << AUX1               # J: VP (AUX0) 0, VM (AUX1) 1
+        await s.wr(P_CFGADR, 8)
+        await FallingEdge(dut.clk)
+        dut.slu_addr.value = P_CFGDAT
+        dut.slu_wdata.value = DIN | (AUX0 << 4) | (AUX1 << 8)
+        dut.slu_we.value = 1
+        await FallingEdge(dut.clk)
+        dut.slu_we.value = 0
+        dut.slu_addr.value = port
+        first = None
+        for _ in range(40):
+            await RisingEdge(dut.clk)
+            await ReadOnly()
+            v = int(dut.slu_rdata.value)
+            hit = (v & 3) == 2 if port == P_LINE else bool(v & (1 << 11))
+            if hit:
+                first = int(dut.slu_now.value)
+                break
+        res[port] = first
+        await FallingEdge(dut.clk)
+    dut._log.info(f"first cycle (now) with LINE = J: {res[P_LINE]}; first cycle with LINEB: {res[P_STATUS]}")
+    assert None not in res.values(), res
+    assert res[P_STATUS] - res[P_LINE] == 8, f"LINEB {res[P_STATUS] - res[P_LINE]} cycles after J, expected 8"
+
+
+@cocotb.test(skip=GL)
+async def test_slu_runt_crc(dut):
+    """CRCA_OK (STATUS bit 6) belongs to the last frame: after a good 10BASE-Te frame (CRCA_OK 1), a runt of SFD and
+    5 data bits, which ends before its first octet boundary, gives CRCA_OK 0."""
+    s = await slu_reset(dut)
+    await s.cfg(ETH_CFG)
+    _, _, st_good = await eth_rx_one(dut, s, bytes(range(46)))
+    bits = [1, 0] * 28 + [1, 0, 1, 0, 1, 0, 1, 1] + [1, 0, 1, 1, 0]
+    sch, t_end = eth_rx_schedule(bits, 0.0, 0.0, random.Random(2), 1000.0)
+    await s.wr(P_STATUS, 0xFFFF)
+    cocotb.start_soon(drive_levels(dut, sch))
+    await Timer(round((t_end + 2000.0) * 1000), unit="ps")
+    st_runt = await s.rd(P_STATUS)
+    info = await s.rd(P_RXINFO)
+    dut._log.info(f"status after the good frame {st_good:04x}, after the runt {st_runt:04x} (RXINFO {info:04x})")
+    assert st_good & (1 << 6), "test fault: the good frame has no CRCA_OK"
+    assert st_runt & (1 << 4) and st_runt & (1 << 5), "test fault: the runt gave no SOP or EOP"
+    assert not st_runt & (1 << 6), "CRCA_OK of the runt shows the previous frame"
+
+
+@cocotb.test(skip=GL)
 async def test_slu_eth_tx(dut):
     """10BASE-Te transmit: preamble and SFD from the thread, 46-byte payload, CRC-32 appended by the
     unit, Manchester at 3 cycles per half bit on TD+ (TXA) and TD- (TXB), tap B one cycle later,

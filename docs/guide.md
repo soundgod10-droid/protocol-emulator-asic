@@ -38,6 +38,7 @@ The decisions with their compared options and evidence are in [decisions.md](dec
 [test 44557589083]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44557589083
 [test 44589189363]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44589189363
 [gds 44589189324]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44589189324
+[sdf 44625083557]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44625083557
 [gds 44557589283]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44557589283
 [formal 44421405029]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44421405029
 [count 44560694321]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44560694321

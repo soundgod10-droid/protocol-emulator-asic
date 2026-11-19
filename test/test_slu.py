@@ -290,6 +290,57 @@ async def test_slu_loop_acq_window(dut):
     dut._log.info("10BASE-T loop acquisition window: " + "; ".join(log))
 
 
+def loop_nacc_before(cfg, xs, e):
+    """Accepted-edge count of the model before the sample pair that starts at sample e (ddr streams)."""
+    lp = Loop(cfg)
+    lp.xprev = xs[0]
+    k = 1
+    while k + 1 < e:
+        lp.step_pair(xs[k], xs[k + 1])
+        k += 2
+    return lp.nacc
+
+
+@cocotb.test(skip=GL)
+async def test_slu_loop_acq_end(dut):
+    """10BASE-T loop: the acquisition window of 5 samples holds for exactly the first 24 accepted edges after the
+    initial sync, the window of 3 samples from the 25th on (LOOP2, LOOP3: acq_n = 24). Manchester of alternating
+    bits (one edge a bit, at mid-bit). The 24th accepted edge moved by 4 samples is accepted, the 25th moved by 4
+    (either way) is refused; the model count before each moved edge is checked first. RTL = model in every cycle."""
+    cocotb.start_soon(Clock(dut.clk, 10, unit="ns").start())
+    dut.slu_ut_rst_n.value = 0
+    await RisingEdge(dut.clk)
+    await RisingEdge(dut.clk)
+    dut.slu_ut_rst_n.value = 1
+    assert (TENBASET.wina, TENBASET.win, TENBASET.acq_n) == (5, 3, 24), "test fault: loop configuration"
+    await configure(dut, TENBASET)
+    edges0 = [31 + 12 * i for i in range(40)]        # odd sample numbers: each edge starts a sample pair
+
+    def stream(j, d):
+        edges = list(edges0)
+        edges[j] += d
+        xs, lv = [], 1
+        for k in range(525):
+            if k in edges:
+                lv = 1 - lv
+            xs.append(lv)
+        return xs
+
+    base_xs = stream(0, 0)
+    base = loop_nacc(TENBASET, base_xs)
+    before = {j: loop_nacc_before(TENBASET, base_xs, edges0[j]) for j in (25, 26)}
+    assert before == {25: 23, 26: 24}, f"test fault: accepted edges before edges 25, 26: {before}"
+    log = [f"no move: {base} edges accepted"]
+    for j, d, refused in ((25, 4, False), (25, -4, False), (26, 4, True), (26, -4, True)):
+        xs = stream(j, d)
+        na = loop_nacc(TENBASET, xs)
+        assert na == base - (1 if refused else 0), f"edge {j} moved by {d}: model accepted {na}, {base} unmoved"
+        cyc, got, err = await run_stream(dut, TENBASET, xs)
+        assert err is None, f"edge {j} moved by {d} samples: {err}"
+        log.append(f"accepted edge {before[j] + 1} moved {d:+d}: {na} accepted, {cyc} cycles, {len(got)} bits, RTL = model")
+    dut._log.info("10BASE-T loop end of acquisition: " + "; ".join(log))
+
+
 # --------------------------------------------------------------------------------------------------
 # The whole unit (tb.u_slu_ut, FULL build) through its ports, at 60 MHz.
 # --------------------------------------------------------------------------------------------------

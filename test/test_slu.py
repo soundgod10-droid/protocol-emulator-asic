@@ -2196,14 +2196,6 @@ UART_HRX_FW = """
         IOW     r0, E+13        ; LTC[10]: a frame starts at a falling edge of DIN (the start bit)
         LDI     r0, 10
         IOW     r0, E+4         ; TXCTRL: 10 samples a frame (start, 8 data, stop)
-        LDI     r0, 0
-        IOW     r0, E+12        ; CFGADR 0
-        LDI     r0, 0x003
-        IOW     r0, E+13        ; MODE: clocked code, RX off (the receiver leaves the USB hunt state) ...
-        LDI     r0, 0
-        IOW     r0, E+12
-        LDI     r0, 0x00B
-        IOW     r0, E+13        ; ... and RX on again: the receive state starts from off
         TNOW    100             ; in the clocked code the receiver starts a frame when RX is switched on,
         TWAIT                   ; before any start bit: let it end (10 samples x 4 cycles), then drop its word
 drain:  IOR     r0, E+6

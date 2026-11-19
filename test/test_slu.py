@@ -1048,7 +1048,7 @@ async def test_slu_port_rules(dut):
     await s.wr(P_CFGDAT, mode(0, rx=1))
     await ClockCycles(dut.clk, 2)
     st_after_tx = (await s.rd(P_LINE)) >> 4
-    s = await slu_reset(dut)
+    s = await slu_reset_again(dut)
     await s.cfg(USB_CFG_RX)
     words, info, st, _ = await usb_rx_packet(dut, s, 0xC3, bytes([0x12, 0x34]), "16")
     empty = await s.rd(P_RXDATA, pop=True)

@@ -1145,7 +1145,38 @@ async def test_slu_rx_overflow(dut):
 
 
 @cocotb.test(skip=GL)
-async def test_slu_clk_part_word(dut):
+async def test_slu_reset_in_frame(dut):
+    """A reset in a frame (the processor reset that STOP holds) releases the outputs at once: OE 0 and every TX
+    output 0 while the reset is held, and still after its release, until the next frame. 10BASE-Te frame of four
+    words; the reset comes 20 bits into it."""
+    s = await slu_reset(dut)
+    await s.cfg(ETH_CFG)
+    await s.wr(P_TXCTRL, 0)
+    for w in (0x5555, 0x5555, 0xA5A5):
+        await s.wr(P_TXDATA, w)
+    await s.wr(P_TXCTRL, 1 << 9)                     # start now
+    while not int(dut.slu_txoe.value):
+        await RisingEdge(dut.clk)
+    await ClockCycles(dut.clk, 20 * 6)
+    in_frame = (int(dut.slu_txv.value), int(dut.slu_txoe.value))
+    await FallingEdge(dut.clk)
+    dut.slu_ut_rst_n.value = 0
+    await Timer(1, unit="ns")
+    held = [(int(dut.slu_txv.value), int(dut.slu_txoe.value))]
+    for _ in range(3):
+        await RisingEdge(dut.clk)
+        await Timer(1, unit="ns")
+        held.append((int(dut.slu_txv.value), int(dut.slu_txoe.value)))
+    dut.slu_ut_rst_n.value = 1
+    after = []
+    for _ in range(4):
+        await RisingEdge(dut.clk)
+        await Timer(1, unit="ns")
+        after.append(int(dut.slu_txoe.value))
+    dut._log.info(f"in the frame (tx_v, OE) {in_frame}; reset held {held}; OE after the release {after}")
+    assert in_frame[1] == 1, "test fault: the frame is not on the outputs"
+    assert held == [(0, 0)] * 4, f"outputs while the reset is held: {held}"
+    assert after == [0] * 4, f"OE after the release: {after}"
     """Clocked mode receive (docs/helpers.md section 6): the last word of a frame holds its bits from bit 0 up and 0
     above them. Frames of 12 and 4 bits sent with TXPER 2 while DIN is high: the received word is 0FFF and 000F."""
     s = await slu_reset(dut)

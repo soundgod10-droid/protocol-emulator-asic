@@ -81,7 +81,7 @@ RUNGS = {
 LADDERS = {
     "core": ["core_dir", "host", "fw_fast", "slu_chip", "core_rand", "fw_slow", "dev_fast", "dev_slow"],
     "host": ["host", "core_dir", "fw_fast", "slu_chip", "fw_slow", "core_rand", "dev_fast", "dev_slow"],
-    "slu": ["slu_unit", "slu_loop", "slu_chip", "dev_fast", "dev_slow"],
+    "slu": ["slu_unit", "slu_loop", "slu_clk", "slu_chip", "dev_fast", "dev_slow"],
 }
 # Canary per group: a mutant that rung 1 must kill: the cycle counter does not count; the host port state machine
 # never enters its response state; the helper's data input synchronizer stops at its first stage.

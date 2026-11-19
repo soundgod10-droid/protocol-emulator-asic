@@ -18,6 +18,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 
 REPO = os.environ.get("GITHUB_REPOSITORY", "soundgod10-droid/protocol-emulator-asic")
 DEFAULT = "cmos5l"  # the branch whose site is deployed (.github/workflows/docs.yaml)

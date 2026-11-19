@@ -179,18 +179,24 @@ async def test_research_cov(dut):
     out.append("pe_slu.v instance keys: %s" % dict(insts))
     for k in sorted(tot):
         out.append("%s | %s | %d of %d | %.1f %%" % (k[0], k[1], hit[k], tot[k], 100.0 * hit[k] / tot[k]))
-    r = ET.parse(os.path.join(base, "results.xml")).getroot()
-    per = Counter()
-    bad = []
-    skipped = Counter()
-    for tc in r.iter("testcase"):
-        per[tc.get("classname")] += 1
-        if tc.find("failure") is not None or tc.find("error") is not None:
-            bad.append(tc.get("name"))
-        if tc.find("skipped") is not None:
-            skipped[tc.get("classname")] += 1
-    out.append("results.xml testcases %d in %d modules: %s" % (sum(per.values()), len(per), dict(per)))
-    out.append("skipped %s; failures %s" % (dict(skipped), bad))
+    for rx in (os.path.join(base, "results.xml"),
+               os.path.join(os.path.dirname(os.path.dirname(base)), "gh-run-44557589083", "test-results", "results.xml")):
+        if not os.path.isfile(rx):
+            out.append("missing %s" % rx)
+            continue
+        r = ET.parse(rx).getroot()
+        per = Counter()
+        bad = []
+        skipped = Counter()
+        seed = [p.get("value") for p in r.iter("property") if p.get("name") == "random_seed"]
+        for tc in r.iter("testcase"):
+            per[tc.get("classname")] += 1
+            if tc.find("failure") is not None or tc.find("error") is not None:
+                bad.append(tc.get("name"))
+            if tc.find("skipped") is not None:
+                skipped[tc.get("classname")] += 1
+        out.append("%s: testcases %d in %d modules: %s" % (rx, sum(per.values()), len(per), dict(per)))
+        out.append("seed %s; skipped %s; failures %s" % (seed, dict(skipped), bad))
     text = "\n".join(out)
     open(os.path.join(os.path.dirname(HERE), "build", "cov_inst.txt"), "w").write(text + "\n")
     dut._log.info(text)

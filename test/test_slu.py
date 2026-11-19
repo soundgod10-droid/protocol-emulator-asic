@@ -2196,8 +2196,8 @@ UART_HRX_FW = """
         IOW     r0, E+13        ; LTC[10]: a frame starts at a falling edge of DIN (the start bit)
         LDI     r0, 10
         IOW     r0, E+4         ; TXCTRL: 10 samples a frame (start, 8 data, stop)
-        TNOW    100             ; in the clocked code the receiver starts a frame when RX is switched on,
-        TWAIT                   ; before any start bit: let it end (10 samples x 4 cycles), then drop its word
+        TNOW    100             ; drop any word received before the line settles (as test_slc_uart_rx empties
+        TWAIT                   ; the RX buffer before its first byte)
 drain:  IOR     r0, E+6
         ANDI    r0, 0x60
         BEQ     go

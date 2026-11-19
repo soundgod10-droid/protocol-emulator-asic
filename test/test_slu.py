@@ -989,6 +989,47 @@ async def test_slu_eth_tx(dut):
     assert w == 6
 
 
+@cocotb.test(skip=GL)
+async def test_slu_link_pulse_start(dut):
+    """Start cycle of a link test pulse against a frame (docs/helpers.md section 2, transmit timing), 10BASE-Te
+    configuration: a frame armed with TXTIME = t has its first symbol on the helper output in cycle t; a link test
+    pulse (TXCTRL bit 7) armed with TXTIME = t starts in cycle t - 1, because the output stage holds only the first
+    cycle of a frame (the cycle that loads its first bit). The pulse is 6 cycles wide. Capture convention as
+    test_slu_usb_tx: tx_v, tx_oe and now after each rising edge."""
+    s = await slu_reset(dut)
+    await s.cfg(ETH_CFG)
+    res = {}
+    for kind in ("frame", "pulse"):
+        for _ in range(300):
+            if (await s.rd(P_TXCTRL)) & 0xF == 0:
+                break
+        await s.wr(P_STATUS, 0xFFFF)
+        if kind == "frame":
+            await s.wr(P_TXCTRL, 0)                              # last word 16 bits, no CRC
+            await s.wr(P_TXLAST, 0x5555)
+        else:
+            await s.wr(P_TXCTRL, 1 << 7)                         # link test pulse instead of a frame
+        t = (await s.now() + 50) & 0xFFFF
+        await s.wr(P_TXTIME, t)
+        caps = []
+        for _ in range(200):
+            await RisingEdge(dut.clk)
+            await ReadOnly()
+            caps.append((int(dut.slu_txv.value), int(dut.slu_txoe.value), int(dut.slu_now.value),
+                         get_sim_time("ns")))
+        first = next(i for i, c in enumerate(caps) if c[1])
+        off = ((caps[first][2] - t + 0x8000) & 0xFFFF) - 0x8000
+        width = 0
+        while caps[first + width][1] and caps[first + width][0] & 1:
+            width += 1
+        res[kind] = (t, caps[first][2], off, width, caps[first][3])
+        dut._log.info("%s: TXTIME %d, first helper output cycle now %d (offset %+d), %.3f ns; TD+ high with OE for "
+                      "%d cycles from there" % (kind, t, caps[first][2], off, caps[first][3], width))
+    assert res["frame"][2] == 0, "frame: first symbol in cycle TXTIME %+d" % res["frame"][2]
+    assert res["pulse"][2] == -1, "link test pulse: start in cycle TXTIME %+d, documented TXTIME - 1" % res["pulse"][2]
+    assert res["pulse"][3] == 6, "link test pulse %d cycles wide" % res["pulse"][3]
+
+
 def eth_rx_schedule(bits, jit, ppm, rng, t0):
     """TD+ after the slicer (DIN) with the squelch comparator (AUX0) active during the frame."""
     lv0, ev = manchester_edges(bits, 100.0, ppm, jit, rng, t0=t0)

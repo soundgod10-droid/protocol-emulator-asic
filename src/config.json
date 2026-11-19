@@ -35,7 +35,10 @@
 
   "//": "No Magic DRC: with the SRAM macros it reports about 173,000 rule-exception shapes inside the macro",
   "//": "layout; the DRC signoff is the precheck's SG13CMOS5L KLayout deck on every push (docs/decisions.md 20).",
-  "RUN_MAGIC_DRC": 0,
+  "//": \"Research run only (not for merge): Magic DRC on the full GDS, not fatal, to locate every error.\",
+  "RUN_MAGIC_DRC": 1,
+  "ERROR_ON_MAGIC_DRC": false,
+  "MAGIC_DRC_USE_GDS": true,
 
   "//": "Reserve of docs/decisions.md entry 5 (d): timing-driven placement, 1.2 ns max transition in PnR.",
   "PL_TIMING_DRIVEN": 1,

@@ -49,7 +49,7 @@ The rates above are firmware rates: one instruction every 4 cycles per thread. T
 | SWD host (connection, DPIDR, SELECT, AP write, posted read) | 7.5 MHz SWCLK | `test_slc_swd` | unit level |
 | UART | 15 Mbaud transmit; 15 and 7.5 Mbaud receive with the sender at -2.5 % and +2.5 % | `test_slc_uart_tx`, `test_slc_uart_rx` | unit level |
 
-Conditions: logic simulation; the pads (SPICE delays, [verification.md](verification.md) section 9) and the board multiplexer (0 to 10 ns each way, not measured; the shuttle's published estimate is about 10 ns round trip through pads and multiplexer) are delay parameters of the tests. One helper serves USB and all of these buses, so one of them runs at a time. After START the helper's first output is the USB idle level until the thread writes MODE ([helpers.md](helpers.md) section 6, row "After START").
+Conditions: logic simulation; the pads (SPICE delays, [verification.md](verification.md) section 9) and the board multiplexer (0 to 10 ns each way, not measured; the [competition FAQ](https://blog.janestreet.com/protocol-emulator-asic-competition/) gives an estimate of about 10 ns round trip through the pads and the multiplexer, also not measured) are delay parameters of the tests. One helper serves USB and all of these buses, so one of them runs at a time. After START the helper's first output is the USB idle level until the thread writes MODE ([helpers.md](helpers.md) section 6, row "After START").
 
 ## Line helpers: USB low speed and 10BASE-Te
 

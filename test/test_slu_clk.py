@@ -956,3 +956,69 @@ async def test_slc_spi_flash_7m5_30mhz(dut):
     """T1 at TXPER 4 (7.5 MHz) in modes 0 to 3 and at TXPER 1 (30 MHz) in mode 0, with the control that must fail
     (see spi_flash_run)."""
     await spi_flash_run(dut, ((4, (0, 1, 2, 3)), (1, (0,))))
+
+
+# ----- Helper pin levels at START (chip level) -----
+
+START_FW = """
+        LDI     r0, 0
+        IOW     r0, 16+13       ; CFGDAT: MODE = 0 (NRZ, receive off); CFGADR is 0 after reset
+idle:   JMP     idle
+"""
+
+
+@cocotb.test(skip=GL)
+async def test_slc_chip_start_levels(dut):
+    """Chip level: the USB helper's pins from START until the thread's first configuration write. The helper pins
+    are pads in output mode from the first cycle after START (pe_proc hrun) and show the helper outputs through the
+    pin flip-flop. In that first cycle the helper still has its reset output (tx_v = 0), then the USB idle J (TXA = 0,
+    TXB = 1) until the thread writes MODE; after MODE = 0 (NRZ) both are 1. So a UART sent on TXA starts with its line
+    low for the cycles before the MODE write, and TXB is 0 for one cycle. The helper OE signal stays 0 throughout, so a
+    USB transceiver does not drive the bus. Pins: uio0 = TXA, uio1 = TXB, uio2 = OE signal."""
+    import test_slu as ts
+    prog = ts.pe_asm.assemble(START_FW, "start_levels")
+    pins = [0] * 15
+    pins[0], pins[1], pins[2] = ts.helper_pin(0, 0), ts.helper_pin(0, 1), ts.helper_pin(0, 4)
+    dump_on(dut, False)
+    host = await ts.chip_start(dut, prog, [], pins)
+    caps = []
+
+    def bit(v, i):
+        s = str(v)
+        return s[len(s) - 1 - i]
+
+    async def cap(n):
+        for _ in range(n):
+            await FallingEdge(dut.clk)
+            caps.append(("".join(bit(dut.uio_out.value, i) for i in range(3)),
+                         "".join(bit(dut.uio_oe.value, i) for i in range(3)), now_ns()))
+    dump_on(dut, True)
+    task = cocotb.start_soon(cap(2500))
+    await host.start()
+    await task
+    dump_on(dut, False)
+    first = next(i for i, c in enumerate(caps) if c[1] == "111")
+    assert all(c[1] == "000" for c in caps[:first]), "helper pins are inputs while the threads stop"
+    seq = caps[first:first + 200]
+    rle, prev, cnt = [], None, 0
+    for c in seq:
+        if c[0] == prev:
+            cnt += 1
+        else:
+            if prev is not None:
+                rle.append("%s x%d" % (prev, cnt))
+            prev, cnt = c[0], 1
+    rle.append("%s x%d" % (prev, cnt))
+    dut._log.info("from the first running cycle (%.1f ns), levels TXA TXB OE (uio0 uio1 uio2) per cycle: %s" % (
+        seq[0][2], ", ".join(rle)))
+    txb_low = next(i for i, c in enumerate(seq) if c[0][1] == "1")
+    txa_low = next(i for i, c in enumerate(seq) if c[0][0] == "1")
+    dut._log.info("TXB low for %d cycle(s) after START; TXA low for %d cycles (%.1f ns), until the MODE write of the "
+                  "thread's second instruction takes effect; OE signal 0 in all %d cycles" % (
+                      txb_low, txa_low, txa_low * T_NS, len(seq)))
+    assert seq[0][0] == "000", "first running cycle: helper reset output (tx_v = 0)"
+    assert txb_low == 1, "TXB low for %d cycles after START" % txb_low
+    assert all(c[0][1] == "1" for c in seq[1:]), "TXB stays at 1 (J, then NRZ idle) after the first cycle"
+    assert 1 < txa_low <= 40, "TXA low for %d cycles after START" % txa_low
+    assert all(c[0][0] == "1" for c in seq[txa_low:]), "TXA stays at 1 after the MODE write"
+    assert all(c[0][2] == "0" for c in seq), "helper OE signal stays 0 without a frame"

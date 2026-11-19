@@ -2236,6 +2236,13 @@ async def test_slu_chip_uart_rx(dut):
     await host.start()
     dut.ui_in.value = ui | 1                                         # line idle high (the host port drives all of ui_in)
     await ClockCycles(dut.clk, 300)
+    dump = getattr(dut, "dump_off", None)                            # not in the coverage build (test/tb.v)
+    if dump is not None:                                             # waveform: the first 4 us of the first run
+        dump.value = 0
+        t_rev = get_sim_time("ns")
+        cocotb.start_soon(sc.later(4000.0, setattr, dump, "value", 1))
+        dut._log.info("waveform: review window %.1f to %.1f ns, first bytes %s" % (
+            t_rev, t_rev + 4000.0, ["%02X" % b for b in sent[:6]]))
     for err, d_in, data in plan:
         bt = 4 * sc.T_NS * (1 + err)
         sch = []

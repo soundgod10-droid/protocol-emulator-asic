@@ -6,6 +6,9 @@ name: magic_facts
 # and the extraction's illegal-overlap messages.
 
 on:
+  push:
+    branches: [rc1-magic]
+    paths: ['.github/workflows/magic_facts.yaml']
   workflow_dispatch:
     inputs:
       run_id:

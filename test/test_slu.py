@@ -1145,6 +1145,27 @@ async def test_slu_rx_overflow(dut):
 
 
 @cocotb.test(skip=GL)
+async def test_slu_txctrl_after_reset(dut):
+    """TXCTRL after reset is 0 (docs/helpers.md section 5: a word can be put in the buffer with TXLAST while TXCTRL is
+    0: 16 bits, no CRC). With no TXCTRL write since reset, a frame of one TXLAST word started by TXTIME has 16 bits.
+    NRZ, 4 cycles a bit."""
+    s = await slu_reset(dut)
+    await s.cfg({0: mode(0), 1: 4})
+    await s.wr(P_TXLAST, 0x8001)
+    caps = []
+    cocotb.start_soon(capture(dut, 4 * 30, caps))
+    await s.wr(P_TXTIME, (await s.now() + 20) & 0xFFFF)
+    while len(caps) < 4 * 30:
+        await RisingEdge(dut.clk)
+    oe = [c[1] for c in caps]
+    first = oe.index(1)
+    nbits = (sum(oe) + 2) // 4
+    got = [caps[first + 4 * i + 2][0] & 1 for i in range(16)]
+    dut._log.info(f"frame with no TXCTRL write: OE for {sum(oe)} cycles, bits {''.join(map(str, got))}")
+    assert nbits == 16 and got == [(0x8001 >> i) & 1 for i in range(16)], f"{sum(oe)} OE cycles, bits {got}"
+
+
+@cocotb.test(skip=GL)
 async def test_slu_reset_in_frame(dut):
     """A reset in a frame (the processor reset that STOP holds) releases the outputs at once: OE 0 and every TX
     output 0 while the reset is held, and still after its release, until the next frame. 10BASE-Te frame of four

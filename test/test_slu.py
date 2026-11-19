@@ -1067,7 +1067,9 @@ async def test_slu_line_cond_exact(dut):
     res = {}
     for port in (P_LINE, P_STATUS):
         s = await (slu_reset(dut) if port == P_LINE else slu_reset_again(dut))
-        await s.cfg({18: (1 << 6), 17: 7})           # LTC: prescale 0, condition A SE0, condition B J; LTB 7
+        await s.cfg({18: (1 << 6)})                  # LTC first: prescale 0, condition A SE0, condition B J
+        await s.cfg({17: 7})                         # then LTB 7 (before LTC, condition B is SE0, the input now)
+        await s.wr(P_STATUS, 0xFFFF)
         dut.slu_pins.value = 1 << AUX1               # J: VP (AUX0) 0, VM (AUX1) 1
         await s.wr(P_CFGADR, 8)
         await FallingEdge(dut.clk)

@@ -2233,8 +2233,8 @@ async def test_slu_chip_uart_rx(dut):
     prog = pe_asm.assemble(UART_HRX_FW, "uart_hrx")
     host = await chip_start(dut, prog, [(768, [0xFFFF] * (len(sent) + 8))], [0] * 15)
     ui = 1 << hs.CS_N_BIT
-    dut.ui_in.value = ui | 1                                         # line idle high before START
     await host.start()
+    dut.ui_in.value = ui | 1                                         # line idle high (the host port drives all of ui_in)
     await ClockCycles(dut.clk, 300)
     for err, d_in, data in plan:
         bt = 4 * sc.T_NS * (1 + err)

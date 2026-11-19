@@ -1135,8 +1135,10 @@ async def test_slu_rx_overflow(dut):
     info = await s.rd(P_RXINFO)
     w0 = await s.rd(P_RXDATA, pop=True)
     w1 = await s.rd(P_RXDATA, pop=True)
+    empty = await s.rd(P_RXDATA, pop=True)           # buffer empty (its second slot still holds FFFF): reads 0
     exp = bytes([0xC3]) + data
-    dut._log.info(f"unread packet: status {st:04x}, RXINFO {info:04x}, words {w0:04x} {w1:04x}")
+    dut._log.info(f"unread packet: status {st:04x}, RXINFO {info:04x}, words {w0:04x} {w1:04x}, then {empty:04x}")
+    assert empty == 0, f"RXDATA with an empty buffer read {empty:04x}"
     assert st & (1 << 5), "test fault: no EOP"
     assert st & (1 << 9) and (info >> 5) & 3 == 2, f"RXOVER / buffer count: status {st:04x}, RXINFO {info:04x}"
     assert [w0, w1] == [exp[0] | exp[1] << 8, exp[2] | exp[3] << 8], "the buffer does not keep the first two words"

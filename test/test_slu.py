@@ -1089,7 +1089,7 @@ async def test_slu_line_cond_exact(dut):
                 break
         res[port] = first
         await FallingEdge(dut.clk)
-    dut._log.info(f"first cycle (now) with LINE = J: {res[P_LINE]}; first cycle with LINEB: {res[P_STATUS]}")
+    dut._log.info(f"cycles from the SEL write to the first LINE = J: {res[P_LINE]}; to the first LINEB: {res[P_STATUS]}")
     assert None not in res.values(), res
     assert res[P_STATUS] - res[P_LINE] == 8, f"LINEB {res[P_STATUS] - res[P_LINE]} cycles after J, expected 8"
 

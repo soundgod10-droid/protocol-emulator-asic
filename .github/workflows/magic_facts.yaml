@@ -1,0 +1,105 @@
+name: magic_facts
+
+# Research branch only (not for merge): reads the Magic DRC and Magic extraction reports in the GDS_logs artifact of a
+# finished gds run and prints a summary as annotations, so that the result can be read without the 200 MB artifact:
+# the error count, the count per rule, how many error boxes lie inside the two SRAM macro boxes and how many outside,
+# and the extraction's illegal-overlap messages.
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "id of the gds workflow run"
+        required: true
+
+jobs:
+  facts:
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: GDS_logs of the run
+        uses: actions/download-artifact@v7
+        with:
+          name: GDS_logs
+          path: logs
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Magic facts
+        shell: python
+        run: |
+          import collections, glob, os, re
+
+          def notice(title, text):
+              text = text.replace("%", "%25").replace("\r", "").replace("\n", "%0A")
+              print(f"::notice title={title}::{text}")
+
+          runs = sorted(glob.glob("logs/runs/*/"))
+          r = runs[0] if runs else "logs/"
+          steps = sorted(os.path.basename(p.rstrip("/")) for p in glob.glob(r + "*/"))
+          notice("steps", "\n".join(s for s in steps if "magic" in s or "klayout" in s or "final" in s) or "none")
+
+          # metrics
+          lines = []
+          for f in glob.glob(r + "final/metrics.csv"):
+              lines += [l.strip() for l in open(f, encoding="utf-8", errors="replace") if "magic" in l or "drc" in l]
+          notice("magic metrics", "\n".join(lines) or "no final/metrics.csv")
+
+          # Magic DRC report: rule lines, then boxes "x1 y1 x2 y2"
+          # Macro boxes in um (src/config.json MACROS, FS, sizes from the macro LEF): program and data memory.
+          macros = {"program 512x16": (11.04, 39.78, 247.84, 231.34), "data 1024x16": (348.24, 39.78, 585.04, 376.46)}
+          num = re.compile(r"^\s*(-?[0-9.]+)(?:um)?\s+(-?[0-9.]+)(?:um)?\s+(-?[0-9.]+)(?:um)?\s+(-?[0-9.]+)(?:um)?\s*$")
+          for rpt in glob.glob(r + "*-magic-drc/reports/*.rpt"):
+              rule, per_rule, boxes = None, collections.Counter(), []
+              raw = []
+              for line in open(rpt, encoding="utf-8", errors="replace"):
+                  m = num.match(line)
+                  if m:
+                      b = tuple(float(v) for v in m.groups())
+                      boxes.append((rule, b))
+                      per_rule[rule] += 1
+                      if len(raw) < 5:
+                          raw.append(line.strip())
+                  elif line.strip() and not line.startswith("---"):
+                      rule = line.strip()[:160]
+              head = [l.rstrip() for l in open(rpt, encoding="utf-8", errors="replace")][:6]
+              if not boxes:
+                  notice("magic drc report", f"{rpt}: no boxes; first lines:\n" + "\n".join(head))
+                  continue
+              mx = max(max(abs(v) for v in b) for _, b in boxes)
+              scale = 1.0 if mx < 5000 else (1000.0 if mx < 5e6 else 10000.0)
+              inside = collections.Counter()
+              outside_rules = collections.Counter()
+              outside_examples = []
+              for rl, (x1, y1, x2, y2) in boxes:
+                  cx, cy = (x1 + x2) / 2 / scale, (y1 + y2) / 2 / scale
+                  where = None
+                  for name, (a, b2, c, d) in macros.items():
+                      if a - 2 <= cx <= c + 2 and b2 - 2 <= cy <= d + 2:
+                          where = name
+                  if where:
+                      inside[where] += 1
+                  else:
+                      outside_rules[rl] += 1
+                      if len(outside_examples) < 10:
+                          outside_examples.append(f"{cx:.2f} {cy:.2f} um: {rl}")
+              notice("magic drc summary", f"{rpt}\nboxes {len(boxes)}, coordinate scale 1/{scale:g} (max raw value {mx:g})\n"
+                     f"inside macro boxes: {dict(inside)}\noutside: {sum(outside_rules.values())}\nfirst raw lines:\n" + "\n".join(raw))
+              notice("magic drc per rule", "\n".join(f"{n}  {rl}" for rl, n in per_rule.most_common(30)))
+              notice("magic drc outside the macros", "\n".join(f"{n}  {rl}" for rl, n in outside_rules.most_common(30))
+                     + "\n" + "\n".join(outside_examples) if outside_rules else "none")
+          for log in glob.glob(r + "*-magic-drc/*.log"):
+              keep = [l.rstrip() for l in open(log, encoding="utf-8", errors="replace")
+                      if re.search(r"COUNT|DRC style|error|Error|No errors", l)]
+              notice("magic drc log", f"{log}\n" + "\n".join(keep[-30:]))
+
+          # Extraction: illegal overlaps (metric magic__illegal_overlap__count)
+          hits = []
+          for f in glob.glob(r + "*-magic-spiceextraction/*") + glob.glob(r + "*-magic-spiceextraction/*/*"):
+              if os.path.isfile(f):
+                  for i, l in enumerate(open(f, encoding="utf-8", errors="replace")):
+                      if "llegal" in l and len(hits) < 40:
+                          hits.append(f"{os.path.basename(f)}:{i + 1}: {l.strip()[:200]}")
+          notice("magic extraction illegal overlaps", "\n".join(hits) or "no line with 'illegal'")

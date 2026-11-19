@@ -34,6 +34,22 @@ Simulator in the browser: **<https://soundgod10-droid.github.io/protocol-emulato
 - **Memory and host port.** Two SRAM macros: 512 words of 16 bits for the programs of all threads, 1,024 words for frames and tables. The host SPI port (mode 0, up to 10 MHz) loads the memory, starts and stops the threads, and moves data through a 4-word FIFO in each direction for each thread.
 - **Status.** The layout passes all checks of the shuttle's layout precheck. No chip is made yet.
 
+## Flexibility
+
+Can the chip be reprogrammed for protocols it was not designed for? The evidence, and how it will grow:
+
+| Evidence | What | Where |
+|---|---|---|
+| Counting rule | one protocol per specification (roles, rates and outline programs are not counted again); the strict count needs a program that fits the memory alone, a test model written from a named public document, and a pass on the RTL at 60 MHz and on the layout netlist | [counting.md](docs/counting.md) |
+| Count today | 12 protocols in the strict count (18 programs): UART, SPI, I2C, CAN 2.0A, JTAG, SWD, PS/2, 1-Wire, AM2302, AVR PDI, USB low speed, 10BASE-T | [count run 44560694321][count], annotation "protocol count table" |
+| Written after the instruction set was fixed | CAN, JTAG, SWD, PS/2: named on the competition page, so known when the instruction set was made; each with what the instruction set lacked | [protocols.md](docs/protocols.md), Flexibility |
+| Hold-out trials | 1-Wire, AM2302, AVR XMEGA PDI: not named on the page or in the design documents; AM2302 and PDI chosen by a rule a reader can repeat (the first two eligible entries of the sigrok decoder list); written on the unchanged chip | [protocols.md](docs/protocols.md), Hold-out trials |
+| Outside decoders | sigrok decoders of a pinned build read the chip pins of the RTL tests: 19 of 19 scenarios agree, each with a negative control that must fail | [sigrok run 44557588966][sigrok] |
+| Census on the frozen chip | every one of the 44 pin-level protocols of an outside catalogue (sigrok decoders minus stated exclusions), in an order set by a public random beacon (drand round 34763812, 2026-12-12 17:00 UTC), after the `rtl-freeze` tag (due 2026-12-11), with separate writers for the limits, the device model and the firmware, a 2 h time box per protocol, and a prediction written in advance (32 to 40 of 44 PASS) | [flex/PREREG.md](flex/PREREG.md) |
+| Clocked buses without new RTL | the USB helper's clocked and NRZ modes run SPI, JTAG, the SWD clock and UART at up to 15 MHz under firmware control | [protocols.md](docs/protocols.md), Clocked and NRZ buses |
+
+These 7 programs written after the instruction set (the four page-named protocols and the three hold-outs) are "tier 0" of the census (PREREG section 3): they run again, unchanged, on the frozen chip. Limits: one instruction per thread every 4 cycles, so firmware-only rates are modest (CAN 250 kbit/s, SPI target 1.2 MHz); 512 program words, so the USB device (476 words) and the 10BASE-T station (433 words) are loaded one at a time.
+
 ## Key results
 
 | Check | Result | Run |

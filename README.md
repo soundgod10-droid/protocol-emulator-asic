@@ -7,6 +7,10 @@
 
 This chip is a small 4-thread processor that makes serial protocols (UART, SPI, I2C, CAN, JTAG and more) in firmware, with each pin change at an exact clock cycle. Two line helpers do the bit-level work of USB low speed and 10BASE-T at line rate, so a thread can send and receive their packets and frames. It is a design for the TTIHP27a shuttle on the IHP SG13CMOS5L 130 nm process: 8x4 tiles, 60 MHz.
 
+**In short:** every protocol is firmware on four threads whose pin changes happen at exact clock cycles; with its two line helpers the same chip is a USB low-speed device that enumerates on its own and a half-duplex 10BASE-T station with link pulses and the link integrity test, at its declared 60 MHz. The layout has no timing or design-rule violation at any corner, and every protocol is checked on the RTL and on the layout netlist against a model written from the standard, not from the design (logic simulation; the transceivers and line parts are board items, [info.md](docs/info.md)).
+
+**Start here:** the [guide for reviewers](docs/guide.md) maps each claim to its evidence, the CI run that shows it and the command that repeats it.
+
 Documentation site: **<https://soundgod10-droid.github.io/protocol-emulator-asic/>**
 
 Simulator in the browser: **<https://soundgod10-droid.github.io/protocol-emulator-asic/sim/>**. It runs 23 example setups (UART, SPI, I2C, CAN, JTAG, SWD, PS/2, 1-Wire, AM2302, PDI, four protocols at once) on the chip's reference model, the Python model that the RTL is checked against in every clock cycle, with the device models of the tests. Edit the firmware, step through the four threads, and see the pins and the decoded waveforms. CI checks that every example gives the same trace in the browser as in the test environment. The recorded pins of the RTL and gate-level tests are on the [waveforms page](https://soundgod10-droid.github.io/protocol-emulator-asic/sim/wave/demo.html).

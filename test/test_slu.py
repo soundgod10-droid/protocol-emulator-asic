@@ -1077,6 +1077,7 @@ async def test_slu_line_cond_exact(dut):
         await FallingEdge(dut.clk)
         dut.slu_we.value = 0
         dut.slu_addr.value = port
+        t0 = int(dut.slu_now.value)                  # cycles counted from the SEL write in each run
         first = None
         for _ in range(40):
             await RisingEdge(dut.clk)
@@ -1084,7 +1085,7 @@ async def test_slu_line_cond_exact(dut):
             v = int(dut.slu_rdata.value)
             hit = (v & 3) == 2 if port == P_LINE else bool(v & (1 << 11))
             if hit:
-                first = int(dut.slu_now.value)
+                first = (int(dut.slu_now.value) - t0) & 0xFFFF
                 break
         res[port] = first
         await FallingEdge(dut.clk)

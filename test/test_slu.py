@@ -2092,3 +2092,166 @@ async def test_slu_chip_usb_events(dut):
     assert len(words_out) == 1 and words_out[0] & 1, "thread 0 waited for TXDONE on input 13: %s" % words_out
     dut._log.info("chip USB events: the thread woke on event input 13 after the packet and pushed status %04x"
                   % words_out[0])
+
+
+UART_HTX_FW = """
+        .equ    E, 16           ; USB helper ports 16-31
+        LDI     r0, 0
+        IOW     r0, E+12        ; CFGADR 0
+        LDI     r0, 0
+        IOW     r0, E+13        ; MODE: NRZ code, RX off, no stuffing, not the USB line
+        LDI     r0, 4
+        IOW     r0, E+13        ; TXPER 4: 4 cycles a bit (15 Mbaud at 60 MHz)
+        LDI     r2, 512         ; frame: bit count N at 512, then the words (first bit in bit 0)
+        LDX     r3, [r2]
+        MOV     r0, r3
+        ANDI    r0, 15
+        IOW     r0, E+4         ; TXCTRL: bits in the last word
+        ADDI    r3, 15
+        SHR     r3, 4           ; words
+        ADDI    r2, 1
+        TNOW    40
+        TGET    r0
+        ADDI    r0, 100
+        IOW     r0, E+5         ; TXTIME = T + 100: the loop fills the TX buffer first
+tx:     IOR     r0, E+0         ; TX buffer free words
+        CMPI    r0, 0
+        BEQ     tx
+        LDX     r0, [r2]
+        ADDI    r2, 1
+        CMPI    r3, 1
+        BEQ     last
+        IOW     r0, E+0         ; TXDATA
+        ADDI    r3, -1
+        JMP     tx
+last:   IOW     r0, E+14        ; TXLAST
+done:   IOR     r1, E+2         ; STATUS: TXDONE
+        ANDI    r1, 1
+        BEQ     done
+        IOR     r1, E+2
+        PUSH    r1
+        HALT
+"""
+
+
+@cocotb.test()
+async def test_slu_chip_uart_tx(dut):
+    """USB helper in the chip as a UART transmitter (NRZ code, TXPER 4 = 15 Mbaud at 60 MHz; docs/helpers.md section
+    6): thread 0 configures the helper and feeds 64 back-to-back 8N1 bytes from the data memory (the host packed the
+    start and stop bits into the words); TXA on uio0. An independent receiver decodes uio0 at each bit middle, every
+    edge must lie on the 4-cycle grid of the first start bit, and the thread must see TXDONE without TXUNDER. Logic
+    simulation at the pin flip-flop (the pad adds a constant delay to every edge)."""
+    import test_slu_clk as sc
+    rng = random.Random(1119)
+    data = [0x55, 0x00, 0xFF, 0x0F] + [rng.randrange(256) for _ in range(60)]
+    bits = sc.uart_bits(data)
+    words = sc.words_of(bits)
+    prog = pe_asm.assemble(UART_HTX_FW, "uart_htx")
+    pins = [0] * 15
+    pins[0] = helper_pin(0, 0)                                       # uio0 = USB helper TXA (data)
+    host = await chip_start(dut, prog, [(512, [len(bits)] + words)], pins)
+    caps = []
+
+    async def cap(n):
+        for _ in range(n):
+            await FallingEdge(dut.clk)
+            caps.append(int(dut.uio_out.value) & 1)
+    task = cocotb.start_soon(cap(4 * len(bits) + 1500))
+    await host.start()
+    await task
+    # after START the helper shows the USB idle (TXA 0) until MODE is written (docs/helpers.md section 6, After START)
+    low0 = next(i for i in range(len(caps)) if caps[i] == 0)
+    low_n = next(i for i in range(low0, len(caps)) if caps[i] == 1) - low0
+    start = next(i for i in range(low0 + low_n + 40, len(caps)) if caps[i] == 0 and all(caps[i - 40:i]))
+    got, nedges, off = sc.uart_decode(caps[start:], 4, len(data))
+    words_out, _ = await host.pull(0)
+    assert len(words_out) == 1, "thread 0 pushed its status: %s" % words_out
+    status = words_out[0]
+    dut._log.info("chip UART TX on the USB helper at TXPER 4 (15 Mbaud): %d bytes back to back, %d line bits, %d edges, "
+                  "%d off the 4-cycle grid, decoded %s; START level: TXA low for %d cycles before MODE; status %04x" % (
+                      len(data), len(bits), nedges, len(off), "equal" if got == data else "DIFFERENT", low_n, status))
+    assert got == data, "decoded %s" % ["%02X" % b for b in got[:8]]
+    assert not off, "edges off the bit grid at cycles %s" % off[:8]
+    assert status & 1 and not status & 4, "status %04x: TXDONE without TXUNDER expected" % status
+
+
+UART_HRX_FW = """
+        .equ    E, 16           ; USB helper ports 16-31
+        LDI     r0, 0
+        IOW     r0, E+12        ; CFGADR 0
+        LDI     r0, 0x00B
+        IOW     r0, E+13        ; MODE: clocked code, RX on
+        LDI     r0, 2
+        IOW     r0, E+13        ; TXPER 2: 4 cycles a bit (15 Mbaud at 60 MHz)
+        LDI     r0, 8
+        IOW     r0, E+12
+        LDI     r0, 0xFF
+        SHL     r0, 4
+        ORI     r0, 8
+        IOW     r0, E+13        ; SEL 0x0FF8: DIN = input 8 (ui_in[0]), sample delay 0
+        LDI     r0, 18
+        IOW     r0, E+12
+        LDI     r0, 1
+        SHL     r0, 10
+        IOW     r0, E+13        ; LTC[10]: a frame starts at a falling edge of DIN (the start bit)
+        LDI     r0, 10
+        IOW     r0, E+4         ; TXCTRL: 10 samples a frame (start, 8 data, stop)
+        LDI     r1, 768         ; received words to the data memory from 768
+rx:     IOR     r0, E+6         ; RXINFO [6:5]: words in the RX buffer
+        ANDI    r0, 0x60
+        BEQ     rx
+        IOR     r0, E+1         ; RXDATA (pop)
+        STX     r0, [r1]
+        ADDI    r1, 1
+        JMP     rx
+"""
+
+
+@cocotb.test()
+async def test_slu_chip_uart_rx(dut):
+    """USB helper in the chip as a UART receiver (edge-started frames, LTC[10], 4 cycles a bit = 15 Mbaud at 60 MHz;
+    docs/helpers.md section 6): a sender drives ui_in[0] with back-to-back 8N1 bytes at -2.5 % and +2.5 % of the bit
+    time, with the fast input pad and with the slow input pad plus 10 ns of board multiplexer; thread 0 configures the
+    helper and stores every received word in the data memory (one word a byte: data in bits 7 to 14, start bit 6, stop
+    bit 15); the host reads them after STOP. Logic simulation with the input path as a delay."""
+    import test_slu_clk as sc
+    rng = random.Random(1120)
+    runs = [(err, d_in) for err in (-0.025, 0.025) for d_in in (sc.IN_PAD[0], sc.IN_PAD[1] + sc.MUX_MAX)]
+    sent = []
+    plan = []
+    for err, d_in in runs:
+        data = [rng.randrange(256) for _ in range(32)]
+        sent += data
+        plan.append((err, d_in, data))
+    prog = pe_asm.assemble(UART_HRX_FW, "uart_hrx")
+    host = await chip_start(dut, prog, [(768, [0xFFFF] * (len(sent) + 8))], [0] * 15)
+    ui = 1 << hs.CS_N_BIT
+    dut.ui_in.value = ui | 1                                         # line idle high before START
+    await host.start()
+    await ClockCycles(dut.clk, 300)
+    for err, d_in, data in plan:
+        bt = 4 * sc.T_NS * (1 + err)
+        sch = []
+        t = 100.0 + d_in + rng.random() * sc.T_NS
+        for b in data:
+            for k, lv in enumerate([0] + [(b >> i) & 1 for i in range(8)] + [1]):
+                sch.append((t + k * bt, lv))
+            t += 10 * bt
+        base = get_sim_time("ns")
+        for tt, lv in sch:
+            dt = base + tt - get_sim_time("ns")
+            if dt > 0:
+                await Timer(max(1, round(dt * 1000)), unit="ps")
+            dut.ui_in.value = ui | lv
+        await Timer(round(600 * 1000), unit="ps")                    # idle between the runs
+    await host.stop()
+    got_words = await host.read_mem(768, len(sent) + 8)
+    n = next((i for i, w in enumerate(got_words) if w == 0xFFFF), len(got_words))
+    rx = [((w >> 7) & 0xFF, (w >> 6) & 1, (w >> 15) & 1) for w in got_words[:n]]
+    good = sum(1 for (b, s, p), d in zip(rx, sent) if b == d and s == 0 and p == 1)
+    dut._log.info("chip UART RX on the USB helper, 15 Mbaud: %d words stored for %d bytes sent (sender -2.5 %% and "
+                  "+2.5 %%, input %.2f and %.2f ns); %d equal with start 0 and stop 1" % (
+                      n, len(sent), sc.IN_PAD[0], sc.IN_PAD[1] + sc.MUX_MAX, good))
+    assert n == len(sent), "%d words stored, %d bytes sent" % (n, len(sent))
+    assert good == len(sent), "first bad byte %s" % next(
+        (i, rx[i], sent[i]) for i in range(n) if rx[i] != (sent[i], 0, 1))

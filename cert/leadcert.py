@@ -397,6 +397,7 @@ def step(prog, pc, st, res, assume, bugs):
                 a = s.copy()
                 a.L = in_win
                 a.advance(Iv(1, in_win.hi + 4))
+                a.L = Iv(-4, in_win.hi - 1)  # completes after c0 and by the first slot after T
                 if f["ct"]:
                     a.move_t(Iv(-4, -1))
                 a.r[rd] = join_reg(a.r[rd], ("n", Iv(-4, -1)))

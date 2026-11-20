@@ -202,7 +202,8 @@ async def tx_rules(dut, eth):
         assert n == 3 * len(exp) + 16, "OE for %d cycles, expected %d bits of 6 cycles + the 16-cycle tail" % (
             n, len(exp) // 2)
     dut._log.info("10BASE-Te pins: frame (e) = 0111, 0222 (the third write was dropped), %d OE cycles; frame (f) = 0055 "
-                  "and 8 bits of 00AB with no CRC, %d OE cycles" % (win[0][1], win[1][1]))
+                  "and 8 bits of 00AB with no CRC, %d OE cycles; OE windows (falling-edge samples) %s" % (
+                      win[0][1], win[1][1], window_times(meta, win)))
 
 
 @cocotb.test(skip=GL)

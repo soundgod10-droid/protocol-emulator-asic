@@ -159,7 +159,7 @@ jobs:
             shmoo)
               for p in 16666 15000 14500 14000 13500 13000 12500 12000 11000 10000; do
                 rm -f results.xml
-                CLK_PS=$p run make $sdf COCOTB_TEST_MODULES=test_r3_sdf
+                export CLK_PS=$p; run make $sdf COCOTB_TEST_MODULES=test_r3_sdf
                 if [ -f results.xml ] && ! grep -q "<failure" results.xml; then r=pass; else r=fail; fi
                 cp results.xml "results_$p.xml" 2>/dev/null || true
                 echo "$p ps ($(python -c "print(round(1e6/$p, 2))") MHz): $r" | tee -a shmoo.txt

@@ -36,7 +36,8 @@ connect -set mon_tmr \u_slu.tx_tmr
 connect -set mon_half \u_slu.tx_half
 opt_clean
 cd ..
-select -assert-min 2 t:$cover
+# 15 asserts and 2 covers (both $check cells here) and 4 assumes
+select -assert-min 21 t:$check t:$assert t:$assume
 
 [files]
 ../src/pe_slu_loop.v

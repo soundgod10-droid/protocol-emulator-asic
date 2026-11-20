@@ -617,10 +617,9 @@ USB_LINEB_FW = """
         .equ    E, 16
         LDI     r0, 8
         IOW     r0, E+12
-        LDI     r0, 0xA9
-        SHL     r0, 4
-        ORI     r0, 8
-        IOW     r0, E+13        ; SEL 0xA98: AUX0 = VP (input 9), AUX1 = VM (input 10)
+        LDI     r0, 0x210
+        IOW     r0, E+13        ; SEL 0x210: DIN input 0, AUX0 = VP input 1, AUX1 = VM input 2 (uio_in; the host
+                                ; port writes ui_in)
         LDI     r3, 0
         ADDI    r3, -1
         IOW     r3, E+2

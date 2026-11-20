@@ -20,6 +20,9 @@ read_liberty -ignore_redef -ignore_miss_func @LIB@
 read_verilog @NL@
 prep -top tt_um_soundgod10_droid_protocol_emulator
 flatten
+# Flattening a library cell leaves its pin wires as public aliases of the nets (_19785_.A0 beside
+# u_proc...u_lat.q), which eqy reads as a second match for the same gold bit: the pin names are hidden.
+rename -hide w:*.[A-Z]*
 opt_clean
 
 [strategy sby]

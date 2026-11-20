@@ -365,8 +365,9 @@ def step(prog, pc, st, res, assume, bugs):
             leads.append(le + off)
             done.append(le)
         if full:
-            leads.append(Iv(off - d.hi - 4, off - d.lo - 1))
-            done.append(Iv(-d.hi - 4, -d.lo - 1))
+            df = d.clip(-s.L.hi, INF) or d   # a full slot holds an event with t >= c, so D >= -L
+            leads.append(Iv(off - df.hi - 4, off - df.lo - 1))
+            done.append(Iv(-df.hi - 4, -df.lo - 1))
         lead = leads[0] if len(leads) == 1 else leads[0].join(leads[1])
         L_done = done[0] if len(done) == 1 else done[0].join(done[1])
         record(res, pc, lead, bugs)

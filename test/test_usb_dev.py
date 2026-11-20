@@ -302,7 +302,11 @@ async def dump(dut, s, bus, glue, prog):
         "%.2f %s" % ((t_end - (t - glue.t0)) / 1e6, lv) for t, lv in bus.dev[-24:]))
     if prog is None:
         return
-    core, usb = dut.user_project.u_proc.u_core, dut.user_project.u_proc.u_usb
+    try:
+        core, usb = dut.user_project.u_proc.u_core, dut.user_project.u_proc.u_usb
+    except AttributeError:                    # gate level: the netlist has no RTL names
+        dut._log.info("no RTL state at gate level")
+        return
     pcs = []
     for _ in range(64):                       # thread 0 state is st0 in the cycles with now mod 4 = 0
         await RisingEdge(dut.clk)

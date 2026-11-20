@@ -253,6 +253,7 @@ module slc_fv #(
   wire        on     = (st_q == 4'd2) && !lead_q;
   wire        first  = on && !on_q;
   wire [8:0]  ph_cur = first ? 9'd0 : ph;
+  wire [8:0]  qq     = (ph_cur + 9'd2 >= bitlen) ? ph_cur + 9'd2 - bitlen : ph_cur + 9'd2;
 
   // receive monitor
   reg  [14:0] m_q;                  // a sample is taken in i cycles

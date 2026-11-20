@@ -401,9 +401,9 @@ def place(src, edits, kind, comment, line, col, cond, label, flags):
             if src.toks[k][1] != line:
                 continue
             if rec["else"]:
-                edits.open_branch(rec["else"], label)
+                edits.open_branch(rec["else"], S(k))
                 return "else branch of the if at line %d column %d" % (src.toks[k][1], col - 1)
-            edits.add_else(rec, label)
+            edits.add_else(rec, S(k))
             return "added else of the if at line %d column %d" % (src.toks[k][1], col - 1)
         raise ValueError("no if at column %d for this else" % (col - 1))
     k = src.at(line, col)

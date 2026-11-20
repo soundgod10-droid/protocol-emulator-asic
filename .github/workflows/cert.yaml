@@ -10,6 +10,8 @@ on:
       - 'fw/**'
       - 'asm/**'
       - 'model/**'
+      - 'formal/fwlate/**'
+      - 'src/**'
       - '.github/workflows/cert.yaml'
   workflow_dispatch:
 jobs:

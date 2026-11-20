@@ -142,10 +142,11 @@ class Source:
         if t in ("case", "casez", "casex"):
             j = self.match(i + 1, "(", ")")
             while self.t(j) != "endcase":
-                label = j
+                label, colon = j, None
                 if self.t(j) == "default":
                     j += 1
                     if self.t(j) == ":":
+                        colon = j
                         j += 1
                 else:
                     depth = 0
@@ -153,9 +154,10 @@ class Source:
                         depth += self.t(j) in "([{"
                         depth -= self.t(j) in ")]}"
                         j += 1
+                    colon = j
                     j += 1
                 end = self.stmt(j)
-                self.items.append({"label": label, "stmt": (j, end)})
+                self.items.append({"label": label, "colon": colon, "stmt": (j, end)})
                 j = end
             return j + 1
         if t == "for":

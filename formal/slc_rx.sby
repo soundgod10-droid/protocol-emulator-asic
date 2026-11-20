@@ -17,7 +17,6 @@ read -formal pe_slu_loop.v pe_slu.v slc_fv.v
 prep -top slc_fv
 flatten
 cd slc_fv
-tee -o names.txt select -list w:*din*
 connect -set \u_slu.din_f1 din_f1_free
 connect -set \u_slu.c_mode k_mode
 connect -set \u_slu.c_txper k_txper

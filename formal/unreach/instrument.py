@@ -86,6 +86,7 @@ class Source:
                 end = "end" + t
                 while self.toks[j][0] != end:
                     j = self.stmt(j)
+                self.functions.append((self.toks[i][1], self.toks[j][1]))
                 i = j + 1
             else:
                 i += 1

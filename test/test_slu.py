@@ -2566,6 +2566,31 @@ rx:     IOR     r0, E+6
         ADDI    r1, 1
         ST      r1, 500
         JMP     rx
+        .org    170
+t2:     LDI     r2, 508         ; thread 2: the helper data words (0) of both frames; [508] = words of frame 1
+        LDX     r3, [r2]
+f1:     IOR     r0, E+0
+        CMPI    r0, 0
+        BEQ     f1
+        LDI     r0, 0
+        CMPI    r3, 1
+        BEQ     f1l
+        IOW     r0, E+0
+        ADDI    r3, -1
+        JMP     f1
+f1l:    IOW     r0, E+14        ; TXLAST of the connection frame
+        LDI     r3, 3           ; frame 2: 46 bits = 3 words
+f2:     IOR     r0, E+0
+        CMPI    r0, 0
+        BEQ     f2
+        LDI     r0, 0
+        CMPI    r3, 1
+        BEQ     f2l
+        IOW     r0, E+0
+        ADDI    r3, -1
+        JMP     f2
+f2l:    IOW     r0, E+14
+        HALT
 """
 
 

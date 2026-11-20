@@ -16,6 +16,7 @@ from v1_runner import Log, run_test_function  # first: it puts the chip folders 
 import pe_model  # noqa: E402
 import test_flex as fx  # noqa: E402
 import test_fw_full as ff  # noqa: E402
+import test_helpers_model as hm  # noqa: E402
 import test_holdout as ho  # noqa: E402
 import test_isa as isa  # noqa: E402
 
@@ -102,7 +103,7 @@ def e7b(s):
     s.arm("i2c_run")
     ok = ff.i2c_spike_run(60, "SCL", 148, 3)
     return ok, ("test_fw_full.i2c_spike_run: transfer correct with a 3-sample spike on SCL inside the clock stretch "
-                "(the spike filter of uio6 needs 4 samples)" if ok else "transfer broken by the spike"), []
+                f"(the spike filter of uio6 needs {pe_model.FILTER_K} samples)" if ok else "transfer broken by the spike"), []
 
 
 def e8(s):
@@ -272,6 +273,21 @@ def e17(s):
                 f"replies {[hex(w) for w in got]}, faults {dev.faults[:2]}"), []
 
 
+def e19(s):
+    s.arm("model_bench")
+    return True, "test_helpers_model.usb_enum_proc: " + hm.usb_enum_run(), []
+
+
+def e20(s):
+    s.arm("model_bench")
+    return True, "test_helpers_model.eth_rxtx_proc: " + hm.eth_rxtx_run(), []
+
+
+HELPER_NOTE = ("The helper runs as test/slu_model.py, a model of the RTL helper port by port, compared with the RTL "
+               "register by register in every clock cycle on the same procedure (test/test_helpers_rtl.py).")
+USB_PINS = [["uio0", "VPO"], ["uio1", "VMO"], ["uio2", "OE#"], ["ui0", "RCV"], ["ui1", "D+ (VP)"], ["ui2", "D- (VM)"]]
+ETH_PINS = [["uio0", "TD+"], ["uio1", "TD-"], ["uio2", "OE"], ["ui0", "RX slicer"], ["ui1", "RX squelch"]]
+
 UART_TX_PINS = [["uo4", "TX"]]
 SPI_PINS = [["uio0", "CS"], ["uio3", "SCK"], ["uio1", "MOSI"], ["uio2", "MISO"]]
 I2C_PINS = [["uio6", "SCL"], ["uio7", "SDA"]]
@@ -341,7 +357,8 @@ EXAMPLES = [
          source="test_fw_full.i2c_spike_run",
          pins=I2C_PINS, decoders=[I2C_DEC],
          text="A 3-sample high spike on SCL comes during the clock stretch after the data byte. The input filter "
-              "of uio6 and uio7 changes only after 4 samples in a row, so the transfer is not disturbed."),
+              f"of uio6 and uio7 changes only after {pe_model.FILTER_K} samples in a row (isa 6.1), so the transfer is "
+              "not disturbed."),
     dict(id="E8", title="I2C target characterization", clock_hz=50e6, proc=e8,
          source="test_flex.i2c_char_run, test_flex.test_flex_i2c_char",
          pins=I2C_PINS, decoders=[I2C_DEC],
@@ -424,6 +441,34 @@ EXAMPLES = [
          source="test_fw_full.tx_run, test_fw_full.check_tx",
          pins=UART_TX_PINS, decoders=[_uart_dec("uo4 TX", 434)],
          text="The same file at 50 MHz: bit time 434 cycles from the host words."),
+    dict(id="E19", title="USB low-speed device: enumeration", clock_hz=60e6, proc=e19,
+         source="test_helpers_model.usb_enum_proc (the host session of test_usb_dev.enumerate_once), "
+                "test/linemodel UsbHostPort, test/slu_model.py",
+         pins=USB_PINS,
+         decoders=[{"name": "USB", "protocol": "usb", "pins": {"dp": "ui1 D+ (VP)", "dm": "ui2 D- (VM)"},
+                    "options": {"speed": "low"}}],
+         text="fw/usb_dev.s on thread 0 is a low-speed HID keyboard. The USB helper (I/O ports 16 to 31) does the "
+              "line work: NRZI, bit stuffing, SYNC and EOP, CRC5 and CRC16, and the start of each reply at a set time "
+              "after the host's EOP; the firmware handles the packets, the control transfers and the requests. The "
+              "host model, written from USB 2.0 chapters 7 to 9, resets the bus, reads the device descriptor at "
+              "address 0, sets address 5, reads the configuration and the strings, and sets configuration 1; it "
+              "checks every chip packet against the USB 2.0 limits. The chip drives a low-speed transceiver (VPO, "
+              "VMO, OE#) and reads it back (RCV, VP, VM). Bus reset 20 us and reset recovery 100 us are shortened "
+              "for the simulation. " + HELPER_NOTE),
+    dict(id="E20", title="10BASE-T station: a frame received, a frame sent", clock_hz=60e6, proc=e20,
+         source="test_helpers_model.eth_rxtx_proc (test_eth_dev rx and tx), test/linemodel TenBaseTPort, "
+                "test/slu_model.py",
+         pins=ETH_PINS,
+         decoders=[{"name": "10BASE-T RX", "protocol": "eth10", "pins": {"rx": "ui0 RX slicer", "sq": "ui1 RX squelch"},
+                    "options": {}},
+                   {"name": "10BASE-T TX", "protocol": "eth10", "pins": {"p": "uio0 TD+", "n": "uio1 TD-",
+                                                                         "oe": "uio2 OE"}, "options": {}}],
+         text="fw/eth_10bt.s on thread 0 with the 10BASE-Te helper (I/O ports 32 to 47): Manchester code at 3 cycles "
+              "a half bit, clock recovery on both clock edges, SFD detection and CRC-32. The link partner model, "
+              "written from IEEE 802.3 clauses 3, 7 and 14, sends a 64-octet frame on the receive slicer and squelch "
+              "inputs; the firmware gives it to the host without its FCS. The host then gives a 60-octet frame: it "
+              "goes out on TD+ and TD- with preamble, SFD, FCS and TP_IDL and the partner model decodes it with no "
+              "violation. " + HELPER_NOTE),
 ]
 
 BY_ID = {e["id"]: e for e in EXAMPLES}
@@ -446,6 +491,10 @@ THREADS = {
            "are not needed for one CAN node."),
     "E9b": ("fw/can.s runs on two threads: thread 0 sends, thread 1 receives every frame on the bus. Threads 2 and 3 "
             "are not needed for one CAN node."),
+    "E19": ("Thread 0 runs the whole device and reads the USB helper's ports; the helper does the line work. Threads 1 "
+            "to 3 are not needed and stay stopped (RUN = 0)."),
+    "E20": ("Thread 0 runs the whole station; the 10BASE-Te helper does the line work. Threads 1 to 3 are not needed "
+            "and stay stopped (RUN = 0)."),
 }
 
 

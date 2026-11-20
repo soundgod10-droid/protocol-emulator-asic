@@ -19,7 +19,8 @@ view.setCursor(cycle);                         // cursor A at a cycle (the shell
 - `values[i]` in `append`: a number (bit: 0 or 1; bus: the integer value), or `'z'` (released, not driven),
   or `'x'` (unknown); `null` or `undefined` count as unknown. Cycles must not go backwards; a value is stored only when it changes.
 - `addDecoder(name, { protocol, pins, options })`: `protocol` is one of `uart`, `spi`, `i2c`, `can`, `jtag`,
-  `swd`, `ps2`, `onewire`. `pins` maps each role of the protocol to a signal name, for example
+  `swd`, `ps2`, `onewire`, `usb` (pins `dp`, `dm`; option `speed` `low` or `full`), `eth10` (pins `p`, `n` and
+  optional `oe` of a transmit pair, or `rx`, `sq` of a receive slicer and squelch). `pins` maps each role of the protocol to a signal name, for example
   `{ protocol: 'i2c', pins: { scl: 'scl', sda: 'sda' } }`. `options` is optional (for example
   `{ baud: 115200 }` for UART; `{ cpol: 0, cpha: 0 }` for SPI; `{ bitrate: 250000 }` for CAN). The roles and
   options of each protocol are listed in `wave/decoders/index.js` (`PROTOCOLS`).

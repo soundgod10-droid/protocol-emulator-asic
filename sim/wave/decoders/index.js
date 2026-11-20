@@ -11,9 +11,11 @@ import { jtag } from './jtag.js';
 import { swd } from './swd.js';
 import { ps2 } from './ps2.js';
 import { onewire } from './onewire.js';
+import { usb } from './usb.js';
+import { eth10 } from './eth10.js';
 import { Line } from './lines.js';
 
-export const PROTOCOLS = { uart, spi, i2c, can, jtag, swd, ps2, onewire };
+export const PROTOCOLS = { uart, spi, i2c, can, jtag, swd, ps2, onewire, usb, eth10 };
 export { Line };
 
 // lines: { role: Line }; returns the decoder result, or { error } when a required pin is missing

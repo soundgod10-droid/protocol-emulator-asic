@@ -8,7 +8,9 @@ What it does:
   SAMPLES_DIR/manifest.json, sigrok-cli decodes the same VCD as a separate program (-I vcd:downsample=8334: 8,334 ps is
   half the 16,668 ps test clock and every value change of the samples is on that grid, so the samples are exact), and
   both outputs are turned into the same lists and compared element by element: UART bytes, SPI MOSI and MISO words, I2C
-  events, CAN frames, JTAG scans and TAP states, SWD transfers, PS/2 device frames, 1-Wire link symbols and bytes.
+  events, CAN frames, JTAG scans and TAP states, SWD transfers, PS/2 device frames, 1-Wire link symbols and bytes, USB
+  packets (usb_signalling and usb_packet). sigrok-cli 0.7.2 has no 10BASE-T decoder: the page's 10BASE-T decoder is
+  compared with the repository's 802.3 partner model (test/linemodel/tenbaset.py decode_tx) on the same lines.
   Three differences come from sigrok-cli 0.7.2 itself; each is shown in sigrok's decoder source and applied here as a
   stated rule, and the comparison after the rule must be equal:
     CAN: a remote frame has no data field (Bosch CAN 2.0), but can/pd.py reads DLC data bytes after it;
@@ -353,6 +355,92 @@ def do_onewire(vcd, d, rec):
                 sample_values=[f"{b:02X}" for b in p_bytes[:14]], cmd=cmd)
 
 
+USB_TOKEN = re.compile(r"^(OUT|IN|SETUP|PING) ADDR (\d+) EP (\d+)$")
+USB_DATA = re.compile(r"^(DATA0|DATA1|DATA2|MDATA) \[((?: [0-9A-F]{2})*) \]$")
+USB_HS = re.compile(r"^(ACK|NAK|STALL|NYET|PRE|ERR)$")
+
+
+def do_usb(vcd, d, rec):
+    o = d.get("options", {})
+    sp = "low-speed" if o.get("speed", "low") == "low" else "full-speed"
+    pd = f"usb_signalling:{pins(d, ('dp', 'dp'), ('dm', 'dm'))}:signalling={sp},usb_packet:signalling={sp}"
+    rows, cmd = sigrok(vcd, pd, "usb_packet=packet:fields")
+    rows.sort(key=lambda r: r[0])
+    packets, crcs = [], []
+    for a, b, t in rows:
+        m = USB_TOKEN.match(t)
+        if m:
+            packets.append([a, b, [m.group(1), int(m.group(2)), int(m.group(3)), None, None]])
+            continue
+        m = USB_DATA.match(t)
+        if m:
+            data = [int(x, 16) for x in m.group(2).split()]
+            packets.append([a, b, [m.group(1), None, None, data, None]])
+            continue
+        if USB_HS.match(t):
+            packets.append([a, b, [t, None, None, None, None]])
+            continue
+        m = re.match(r"(CRC5|CRC16)( ERROR)?: 0x", t)
+        if m:
+            crcs.append((a, m.group(2) is None))
+    for a, b, p in packets:   # the CRC field of a packet lies inside it
+        for t, ok in crcs:
+            if a <= t <= b:
+                p[4] = ok
+    s = [p for _, _, p in packets]
+    page = [[r["name"], r["addr"], r["endp"], r["data"], r["crcOk"]] for r in rec]
+    ok, diffs = cmp_lists(page, s)
+    bad = sum(1 for r in rec if not r["syncOk"] or not r["pidOk"] or r["crcOk"] is False or r["stuffErr"] or not r["eopOk"])
+    return dict(compared="packets (PID, address, endpoint, data bytes, CRC5 or CRC16 valid)", n_page=len(page),
+                n_sigrok=len(s), equal=ok, diffs=diffs, page_errors=bad, cmd=cmd,
+                sample_values=[" ".join(str(x) for x in p[:3] if x is not None) +
+                               (f" {len(p[3])} bytes" if p[3] is not None else "") for p in page[:12]])
+
+
+def do_eth10(vcd, d, rec):
+    """sigrok-cli 0.7.2 has no 10BASE-T decoder: the comparison is with the repository's 802.3 partner model
+    (test/linemodel/tenbaset.py decode_tx, written from IEEE 802.3 clauses 3, 7 and 14, not from the page)."""
+    root = os.path.dirname(os.path.dirname(HERE))
+    for p in (HERE, os.path.join(root, "test")):
+        if p not in sys.path:
+            sys.path.insert(0, p)
+    import trim_vcd
+    from linemodel import tenbaset
+    from linemodel.wave import Wave
+    raw, end = trim_vcd.read_raw(os.path.join(SAMPLES, vcd))
+    roles = {r: raw[n] for r, n in d["pins"].items()}
+    times = sorted({t for ch in roles.values() for t, _ in ch})
+    cur = {r: "x" for r in roles}
+    idx = {r: 0 for r in roles}
+
+    def level():
+        if "p" in roles:
+            if "oe" in roles and cur["oe"] == "0":
+                return 0
+            p, n = cur["p"] == "1", cur["n"] == "1"
+            return 1 if p and not n else (-1 if n and not p else 0)
+        return (1 if cur["rx"] == "1" else -1) if cur["sq"] == "1" else 0
+    edges, init = [], None
+    for t in times:
+        for r, ch in roles.items():
+            while idx[r] < len(ch) and ch[idx[r]][0] <= t:
+                cur[r] = ch[idx[r]][1]
+                idx[r] += 1
+        lv = level()
+        if init is None:
+            init = lv
+        elif lv != (edges[-1][1] if edges else init):
+            edges.append((t, lv))
+    evs = tenbaset.decode_tx(Wave(init or 0, edges, end=end))
+    s = [["pulse"] if e.kind == "pulse" else ["packet", list(e.frame), tenbaset.eth_fcs_ok(e.frame)] for e in evs]
+    page = [["pulse"] if r["kind"] == "pulse" else ["packet", r["bytes"], r["fcsOk"]] for r in rec]
+    ok, diffs = cmp_lists(page, s)
+    return dict(compared="packets (every octet with the FCS, FCS valid) and link test pulses, against the repository's "
+                "802.3 partner model decoder (sigrok-cli 0.7.2 has no 10BASE-T decoder)", n_page=len(page), n_sigrok=len(s),
+                equal=ok, diffs=diffs[:3], cmd="test/linemodel/tenbaset.py decode_tx",
+                sample_values=[f"{r['kind']} {len(r.get('bytes', []))} octets" for r in rec[:6]])
+
+
 def main(samples, dump_path, out_path):
     global SAMPLES
     SAMPLES = os.path.abspath(samples)
@@ -383,6 +471,10 @@ def main(samples, dump_path, out_path):
                 r = do_ps2(s["file"], d, rec)
             elif fn == "onewire":
                 r = do_onewire(s["file"], d, rec)
+            elif fn == "usb":
+                r = do_usb(s["file"], d, rec)
+            elif fn == "eth10":
+                r = do_eth10(s["file"], d, rec)
             r.update(sample=s["file"], decoder=d["name"], protocol=fn, page_decode_ms=got["ms"])
             n = r.get("n_page", 0)
             r["expect"] = d.get("expect")

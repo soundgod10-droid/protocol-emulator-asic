@@ -124,7 +124,9 @@
 
 <footer class="foot" id="foot">
   <p>What runs here: <span class="mono">model/pe_model.py</span> (the reference model the RTL is checked against cycle by cycle in
-  <span class="mono">test/test_core.py</span>), <span class="mono">asm/pe_asm.py</span> and the device models of the model tests, unchanged,
+  <span class="mono">test/test_core.py</span>), for the USB and 10BASE-T examples with <span class="mono">test/slu_model.py</span> (a model of
+  the two line helpers, checked against the RTL helpers register by register in every cycle in <span class="mono">test/test_helpers_rtl.py</span>),
+  <span class="mono">asm/pe_asm.py</span> and the device models of the model tests, unchanged,
   under Pyodide in a web worker. Not shown: the SPI bit timing of the host port, analog levels, the RTL itself.
   Times are clock cycles of an ideal clock and pins are logic levels (no pad delays).</p>
   <p>Recorded pins of the RTL and gate-level protocol tests: <a href="wave/demo.html">waveforms</a>.

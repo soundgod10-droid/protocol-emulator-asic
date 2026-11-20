@@ -1,9 +1,12 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Waveform samples of the simulator site, from the pin dumps of the protocol tests in test/test_rtl_fw.py.
+"""Waveform samples of the simulator site, from the pin dumps of the protocol tests in test/test_rtl_fw.py and of the
+USB and 10BASE-T procedures in test/test_helpers_rtl.py.
 
 Use:
   python -I sim/tools/wave_samples.py tests rtl|gl
       the tests that give samples at that level, as a JSON list (the CI matrix)
+  python -I sim/tools/wave_samples.py module TEST
+      the test module of TEST
   python -I sim/tools/wave_samples.py trim rtl|gl TEST RAW.vcd OUT_DIR SIMULATOR COMMIT RUN_URL
       writes the samples of TEST at that level and OUT_DIR/part_<level>_<test>.json
   python -I sim/tools/wave_samples.py manifest PARTS_DIR OUT_DIR [--require-gl-equal]
@@ -45,6 +48,12 @@ JTAG = {"name": "jtag", "lines": [["jtag_tck", "uo:0"], ["jtag_tms", "uo:1"], ["
 SWD = {"name": "swd", "lines": [["swd_swclk", "uo:3"], ["swd_swdio", "in:4"]]}
 PS2 = {"name": "ps2", "lines": [["ps2_clk", "in:4"], ["ps2_data", "in:5"]]}
 OW = {"name": "onewire", "lines": [["ow_bus", "in:4"], ["ow_drive", "pull:4"]]}
+# USB low-speed bus as the transceiver gives it to the chip (D+ = VP on ui_in[1], D- = VM on ui_in[2], RCV on ui_in[0])
+# and the chip's transceiver controls (VPO, VMO, OE#); 10BASE-T transmit pair with OE, receive slicer and squelch.
+USB = {"name": "usb", "lines": [["usb_dp", "ui:1"], ["usb_dm", "ui:2"], ["usb_rcv", "ui:0"], ["usb_vpo", "drv:0"],
+                                ["usb_vmo", "drv:1"], ["usb_oen", "drv:2"]]}
+ETH = {"name": "eth", "lines": [["eth_tdp", "drv:0"], ["eth_tdm", "drv:1"], ["eth_oe", "drv:2"], ["eth_rx", "ui:0"],
+                                ["eth_sq", "ui:1"]]}
 
 
 def dec(name, protocol, pins, options=None, expect=None):
@@ -64,10 +73,10 @@ JTAG_DEC = dec("JTAG", "jtag", {"tck": "jtag_tck", "tms": "jtag_tms", "tdi": "jt
 SPI0_DEC = dec("SPI", "spi", SPI_PINS, {"cpol": 0, "cpha": 0}, expect=4)
 
 
-def sample(key, test, title, groups, decoders, window_us, note, timing=None, levels=("rtl",)):
+def sample(key, test, title, groups, decoders, window_us, note, timing=None, levels=("rtl",), module="test_rtl_fw"):
     return {"key": key, "test": test, "title": title, "groups": groups, "decoders": decoders,
             "window_ps": [round(window_us[0] * US), None if window_us[1] is None else round(window_us[1] * US)],
-            "note": note, "timing": timing, "levels": levels}
+            "note": note, "timing": timing, "levels": levels, "module": module}
 
 
 BOTH = ("rtl", "gl")
@@ -110,6 +119,20 @@ SAMPLES = [
            [dec("1-Wire", "onewire", {"owr": "ow_bus", "drive": "ow_drive"}, expect=206)], (103, 17560.1),
            "first part, from just after the bus model has set the bus to idle: DS18B20 model at its slowest sample time",
            "1-Wire"),
+    # The procedures of the simulator's USB and 10BASE-T examples on the chip (test/test_helpers_rtl.py, the reference
+    # model with the helper model in lockstep). Windows: test time = 158,346 ps + (load cycles + model cycle) x 16,668
+    # ps; the host load takes 129,337 cycles (USB image) and 56,473 cycles (10BASE-T image).
+    sample("usb_enum", "test_helpers_rtl_usb_enum", "USB low speed: GET_DESCRIPTOR and SET_ADDRESS at address 0", [USB],
+           [dec("USB", "usb", {"dp": "usb_dp", "dm": "usb_dm"}, {"speed": "low"}, expect=21)], (2280.95, 2931.0),
+           "model cycles 7,500 to 46,500 of the enumeration: the first 21 bus packets (GET_DESCRIPTOR(device) with "
+           "its data and status stages, then SET_ADDRESS 5), host and chip at 1.5 Mbit/s, the chip's replies 5.675 bit "
+           "times after the host EOP", None, BOTH, "test_helpers_rtl"),
+    sample("eth_rxtx", "test_helpers_rtl_eth", "10BASE-T: a frame received, then a frame sent", [ETH],
+           [dec("10BASE-T RX", "eth10", {"rx": "eth_rx", "sq": "eth_sq"}, expect=1),
+            dec("10BASE-T TX", "eth10", {"p": "eth_tdp", "n": "eth_tdm", "oe": "eth_oe"}, expect=1)], (1039.79, 1604.3),
+           "model cycles 5,900 to 39,768: the partner's 64-octet frame at cycle 6,000 on the slicer and squelch "
+           "inputs, then the 60-octet frame that the host gives, sent on TD+ and TD- with preamble, SFD, FCS and TP_IDL",
+           None, BOTH, "test_helpers_rtl"),
 ]
 LEVEL = {"rtl": "RTL", "gl": "gate level"}
 GL_EQUAL = "the gate-level pin dump of this test equals the RTL pin dump value for value"
@@ -117,6 +140,10 @@ GL_EQUAL = "the gate-level pin dump of this test equals the RTL pin dump value f
 
 def tests(level):
     return sorted({s["test"] for s in SAMPLES if level in s["levels"]})
+
+
+def module(test):
+    return next(s["module"] for s in SAMPLES if s["test"] == test)
 
 
 def digest(raw, end):
@@ -134,7 +161,7 @@ def trim(level, test, raw_path, out, simulator, commit, run_url):
             continue
         lv = "RTL" if level == "rtl" else "GL"
         f = f"{s['key']}_{level}.vcd"
-        comments = [f"test {test} (test/test_rtl_fw.py), commit {commit}", f"{LEVEL[level]}, {simulator}",
+        comments = [f"test {test} (test/{s['module']}.py), commit {commit}", f"{LEVEL[level]}, {simulator}",
                     f"window {s['note']}", f"run {run_url}"]
         t0, t1, size = trim_vcd.write_sample(raw, end, {"window_ps": s["window_ps"], "groups": s["groups"],
                                                         "comments": comments}, os.path.join(out, f))
@@ -194,6 +221,9 @@ def manifest(parts_dir, out, require_gl_equal):
 def main(argv):
     if len(argv) >= 3 and argv[1] == "tests":
         print(json.dumps(tests(argv[2])))
+        return 0
+    if len(argv) == 3 and argv[1] == "module":
+        print(module(argv[2]))
         return 0
     if len(argv) == 9 and argv[1] == "trim":
         trim(*argv[2:9])

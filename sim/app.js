@@ -369,8 +369,20 @@ function renderThreads(st, exact) {
           <span class="fifo" title="host FIFO words: host to thread (waiting in the host), thread to host">in ${fin}${hq ? "+" + hq : ""} / out ${fout}</span></div>
         <div class="waits">${used && th.waits ? "<b>waits:</b> " + escapeHtml(th.waits) : "&nbsp;"}</div></div>`;
     })
-    .join("");
+    .join("") + helperCards(st);
   $("state-hint").textContent = exact ? `state at cycle ${fmt(st.cycle)}` : `nearest recorded state: cycle ${fmt(st.cycle)}`;
+}
+
+// The line helpers of a run with the helper model: transmit and receive state, buffer words, set flags, event.
+function helperCards(st) {
+  if (!st.helpers) return "";
+  const title = { usb: "USB helper (ports 16 to 31)", eth: "10BASE-Te helper (ports 32 to 47)" };
+  return Object.entries(st.helpers)
+    .map(([name, h]) => `<div class="th helper" style="--tc:#7a7a7a"><div class="th-head"><b>${escapeHtml(title[name] || name)}</b>
+        ${h.ev ? `<span class="badge on" title="an enabled flag is set: the event input of this helper is 1">EVENT</span>` : ""}</div>
+        <div class="th-pc">transmit: ${escapeHtml(String(h.tx))}, receive: ${escapeHtml(String(h.rx))}; buffer words: TX ${h.tx_words}, RX ${h.rx_words}</div>
+        <div class="waits"><b>flags:</b> ${h.flag_names.length ? escapeHtml(h.flag_names.join(" ")) : "none"}; TXTIME ${h.tx_time}, TSTAMP ${h.tstamp}</div></div>`)
+    .join("");
 }
 
 function renderPins(st) {
@@ -395,18 +407,28 @@ function renderPins(st) {
       lvl = (i2[0] >> pin.k) & 1;
     }
     const owner = cfg && pin.out !== null ? cfg.owner[pin.out] : null;
+    const helper = cfg && cfg.helper && pin.out !== null ? cfg.helper[pin.out] : null; // a line helper drives the pin
     const od = cfg && pin.out !== null ? cfg.od[pin.out] : false;
     let ev = "";
     if (st && pin.out !== null && st.slot[pin.out]) {
       const [c, v, oe] = st.slot[pin.out];
       ev = `${oe ? v : "Z"} at ${fmt(c)}`;
     }
-    const isUsed = used.has(pin.name) || owner !== null;
+    const isUsed = used.has(pin.name) || owner !== null || !!helper;
     return `<tr class="${isUsed ? "" : "unused"}"><td class="mono">${pin.name}</td><td class="fn">${escapeHtml(used.get(pin.name) || "")}</td>
       <td class="mono">${drive}</td><td><span class="lvl ${lvl ? "h" : "l"}">${lvl}</span></td>
-      <td class="own${owner !== null ? " t" + owner : ""}">${owner !== null ? "T" + owner : ""}</td>
-      <td class="mono">${pin.out === null ? "" : od ? "OD" : "PP"}</td><td class="mono">${ev}</td></tr>`;
+      <td class="own${owner !== null ? " t" + owner : ""}" title="${helper ? "driven by the line helper (no thread owns the pin)" : ""}">${owner !== null ? "T" + owner : helper ? escapeHtml(helper) : ""}</td>
+      <td class="mono">${pin.out === null ? "" : helper ? "helper" : od ? "OD" : "PP"}</td><td class="mono">${ev}</td></tr>`;
   });
+  // Inputs 13 and 14: the events of the line helpers (isa 5.1), level of this cycle before the synchronizer.
+  if (st && st.helpers) {
+    for (const [name, n, title] of [["usb", 13, "USB helper event"], ["eth", 14, "10BASE-Te helper event"]]) {
+      if (!st.helpers[name]) continue;
+      const lvl = (st.level >> n) & 1;
+      rows.push(`<tr><td class="mono">in${n}</td><td class="fn">${title}</td><td class="mono">input</td>
+        <td><span class="lvl ${lvl ? "h" : "l"}">${lvl}</span></td><td class="own"></td><td class="mono"></td><td class="mono"></td></tr>`);
+    }
+  }
   $("pins").innerHTML = `<thead><tr><th>Pin</th><th>Use</th><th>Drive</th><th>Level</th><th>Owner</th><th>Mode</th><th>Next event</th></tr></thead><tbody>${rows.join("")}</tbody>`;
 }
 

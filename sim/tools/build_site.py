@@ -7,7 +7,8 @@ What it does:
   1. Copies the page files of sim/ (everything but sim/tools/) to OUT and lists the SHA-256 of each one.
   2. Copies the files that the page runs, unchanged, from this commit: LICENSE, model/pe_model.py, asm/pe_asm.py, fw/*.s
      and the model test modules that hold the device models (test_fw_full.py, test_flex.py, test_holdout.py,
-     test_isa.py), to OUT/py/pe/, and writes OUT/py/SOURCES.json: repository, branch, commit, and the SHA-256, size and
+     test_isa.py; the line-helper model slu_model.py with test_helpers_model.py, test/linemodel and the USB and
+     10BASE-T data images fw/*_data.py), to OUT/py/pe/, and writes OUT/py/SOURCES.json: repository, branch, commit, and the SHA-256, size and
      git blob id of each file. A file that differs from the commit (a local change, a line-ending conversion) stops the
      build. The page's worker checks every file against this list before it runs it.
   3. Downloads the third-party files named in sim/tools/vendor.json from the npm registry, checks the SHA-256 of each,
@@ -34,7 +35,12 @@ import urllib.request
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 SIM = os.path.join(ROOT, "sim")
 CHIP_FILES = ["LICENSE", "model/pe_model.py", "asm/pe_asm.py", "test/test_fw_full.py", "test/test_flex.py",
-              "test/test_holdout.py", "test/test_isa.py"]
+              "test/test_holdout.py", "test/test_isa.py",
+              # the line-helper model, the USB and 10BASE-T procedures, their device models and data images
+              "test/slu_model.py", "test/test_helpers_model.py", "fw/usb_dev_data.py", "fw/eth_10bt_data.py",
+              "test/linemodel/__init__.py", "test/linemodel/crc.py", "test/linemodel/cycle_devices.py",
+              "test/linemodel/tenbaset.py", "test/linemodel/usb_ch9.py", "test/linemodel/usb_host.py",
+              "test/linemodel/usb_ls.py", "test/linemodel/wave.py"]
 # Budgets (L7). Page code: the HTML, CSS, JavaScript and Python of the page with the editor library, without Pyodide and
 # the samples, gzip-compressed as a server sends it. Samples: one file each, read whole by the waveform page. Site
 # folder: everything under OUT.

@@ -9,14 +9,15 @@ What it does:
   none of that code. While the procedure runs, the test module's Bench class is replaced by a subclass
   that records the run of one bench (the "main" bench of the example): the chip pins of each cycle as
   the tests' watch functions see them, the inputs that the device models give, the host words in both
-  directions, and copies of the model and device state at the start of each run() call and every
-  SNAP cycles. The subclass calls the test's own Bench.run for every cycle; it only splits a run into
-  parts and records.
+  directions, and copies of the model state and the host queues at the start of each run() call and
+  every SNAP cycles. The subclass calls the test's own Bench.run for every cycle; it only splits a run
+  into parts and records.
 
   The page shows any cycle from these copies: it copies the state before that cycle and runs the
-  test's Bench.run up to it. Between two copies only Bench.run changes the state (host words and
-  changes that a procedure makes to a device happen between run() calls, and a copy is taken at the
-  start of each run() call), so the state shown is the state of the procedure's own run.
+  test's Bench.run up to it, with the device inputs of the recording (ReplayInputs) in place of the
+  device model. Between two copies only Bench.run changes the state (host words are given between
+  run() calls, and a copy is taken at the start of each run() call), and the inputs are those that the
+  device model gave in the run, so the state shown is the state of the procedure's own run.
 
   trace_hash() is the SHA-256 of the recorded run (pins, inputs, host words, final model state). The
   same example gives the same hash in CPython and in the browser (Pyodide) if both run it alike.
@@ -26,6 +27,7 @@ Why:
   implementation of them, and anyone must be able to check that the browser run equals the test run.
 """
 
+import bisect
 import copy
 import hashlib
 import json
@@ -111,6 +113,18 @@ class InputRecorder:
         return getattr(self.__dict__["f"], name)
 
 
+class ReplayInputs:
+    """The chip inputs that the device model gave in the recorded run, cycle by cycle (InputRecorder.v1_changes)."""
+
+    def __init__(self, changes):
+        self.c = [x[0] for x in changes]
+        self.v = [(x[1], x[2]) for x in changes]
+
+    def __call__(self, c, uo, uio, oe):
+        k = bisect.bisect_right(self.c, c) - 1
+        return self.v[k] if k >= 0 else (None, None)
+
+
 def _copy_function(f, memo):
     """Deep copy of a function with its closure cells (copy.deepcopy keeps functions as they are)."""
     if f.__closure__ is None:
@@ -179,8 +193,34 @@ def pin_name(p):
 
 
 def in_name(p):
-    """Input pin number (isa 6.1) to its name."""
+    """Input pin number (isa 5.1, 6.1) to its name; 13 and 14 are the line helpers' event inputs."""
+    if p == 13:
+        return "EV13 (USB helper event)"
+    if p == 14:
+        return "EV14 (10BASE-Te helper event)"
     return f"uio{p}" if p < 8 else f"ui{p - 8}"
+
+
+HELPER_SIGNAL = ("TXA", "TXB", "TXC", "TXD", "OE", "not OE")
+HELPER_TX = ("idle", "armed", "data", "CRC", "tail 1", "tail 2", "link pulse", "jam")
+HELPER_RX = ("off", "hunt", "data", "EOP", "reset")
+HELPER_FLAGS = ("TXDONE", "TXLATE", "TXUNDER", "RXWORD", "RXSOP", "RXEOP", "CRCA_OK", "CRCB_OK", "STUFFERR", "RXOVER",
+                "LINEA", "LINEB", "CARRIER", "LINKPULSE", "COLLISION", "JABBER")
+
+
+def helper_state(m):
+    """State of the line helpers of a run with the helper model (test/slu_model.py HelperChip), for the page."""
+    out = {}
+    for name, h in getattr(m, "helpers", {}).items():
+        fl = h.flags()
+        out[name] = {
+            "tx": HELPER_TX[h.tx_st] if h.tx_st < len(HELPER_TX) else h.tx_st,
+            "rx": HELPER_RX[h.rx_st] if h.rx_st < len(HELPER_RX) else h.rx_st,
+            "flags": fl, "flag_names": [HELPER_FLAGS[k] for k in range(16) if (fl >> k) & 1],
+            "evmask": h.evmask, "ev": h.ev(), "tx_words": h.tx_cnt, "rx_words": h.rx_cnt,
+            "tx_time": h.tx_time, "tstamp": h.tstamp,
+        }
+    return out
 
 
 EDGE = {0: "FALL", 1: "RISE", 2: "ANY"}
@@ -246,6 +286,8 @@ def model_state(m, bench=None):
         "fifo_in": [list(q) for q in m.fifo_in], "fifo_out": [list(q) for q in m.fifo_out],
         "mem": list(m.mem),
     }
+    if hasattr(m, "helpers"):
+        st["helpers"] = helper_state(m)
     if bench is not None:
         st["host_queue"] = [len(q) for q in bench.to_thread]
     return st
@@ -263,6 +305,9 @@ class Main:
             "start_pc": [th.pc for th in m.threads], "run": [bool(th.run) for th in m.threads],
             "owner": list(m.owner), "od": [bool(x) for x in m.od], "cycle0": m.cycle,
         }
+        if hasattr(m, "helper_cfg"):  # pins that a line helper drives: helper and signal
+            self.config["helper"] = [None if hc is None else ("ETH " if hc[0] else "USB ") + HELPER_SIGNAL[min(hc[1], 5)]
+                                     for hc in m.helper_cfg]  # signals 5 to 7 are not OE (pe_proc)
         if bench.inputs is not None:
             bench.inputs = InputRecorder(bench.inputs)
         self.pins = bench.watches.setdefault("__v1_pins", [lambda uo, uio, oe: (uo, uio, oe), []])[1]
@@ -284,7 +329,9 @@ class Main:
     def snapshot(self):
         b = self.bench
         c = b.m.cycle
-        snap = deep_copy((b.m, self.device(), b.to_thread))
+        # The model and the host queues; the device inputs come back from the recording (ReplayInputs), so a device
+        # model that cannot be copied (a generator-driven host session) needs no copy.
+        snap = deep_copy((b.m, b.to_thread))
         if self.snaps and self.snaps[-1][0] == c:
             self.snaps[-1] = (c, snap)
         else:
@@ -348,7 +395,8 @@ class Main:
                 hi = mid - 1
         cur = self.cursor
         if cur is None or cur[0] != j or cur[1].m.cycle > cycle:
-            m, dev, queues = deep_copy(self.snaps[j][1])
+            m, queues = deep_copy(self.snaps[j][1])
+            dev = ReplayInputs(self.inputs_list()) if self.bench.inputs is not None else None
             base = type(self.bench).v1_base
             rb = base.__new__(base)
             rb.m, rb.inputs, rb.to_thread = m, dev, queues

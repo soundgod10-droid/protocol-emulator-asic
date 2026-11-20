@@ -240,3 +240,5 @@ table { border-collapse: collapse; width: 100%; }
   .foot { padding: 4px 16px 16px; }
 }
 .th.idle .th-pc { white-space: normal; }
+.th.helper { grid-column: 1 / -1; }
+.th.helper .th-pc, .th.helper .waits { white-space: normal; }

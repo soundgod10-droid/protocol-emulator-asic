@@ -547,7 +547,7 @@ async def test_research_sdf_macro(dut):
     sdfs = []
     for base in (r"C:\Users\ssher\fallout-sandbox\bridge_workspace\archive\gh-run-44121268959",
                  r"Z:\fallout-sandbox\archive\build\gh-run-44121268959"):
-        sdfs = sorted(glob.glob(os.path.join(base, "GDS_logs", "runs", "wokwi", "final", "sdf", "*", "*.sdf")))
+        sdfs = sorted(glob.glob(os.path.join(base, "GDS_logs", "**", "*.sdf"), recursive=True))
         if sdfs:
             break
     out.append("SDF files: %s" % sdfs)

@@ -293,7 +293,7 @@ module slc_fv #(
 
   always @* begin
     if (rst_n) begin
-      if (!f_nrz) begin
+      if (NRZ == 0) begin
         // T1
         if (on) assert (tx_v[1] == ((ph_cur < {1'b0, f_per}) ? (cpol ^ cpha) : (cpol ^ ~cpha)));
         // T5

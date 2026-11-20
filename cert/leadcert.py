@@ -129,10 +129,15 @@ def join_reg(a, b):
 
 def join_state(a, b, widen=False):
     L = a.L.widen(a.L.join(b.L)) if widen else a.L.join(b.L)
-    D = dict(a.D)
+    # A pin with an event on one side only: on the other side its slot holds no event (its last event occurred), which
+    # an unbounded lower D stands for (an event far in the past), so the joined state keeps both cases.
+    D = {p: (Iv(-INF, d.hi) if p not in b.D else d) for p, d in a.D.items()}
     for p, d in b.D.items():
-        j = D[p].join(d) if p in D else d
-        D[p] = D[p].widen(j) if (widen and p in D) else j
+        if p not in a.D:
+            D[p] = Iv(-INF, d.hi)
+            continue
+        j = a.D[p].join(d)
+        D[p] = a.D[p].widen(j) if widen else j
     r = []
     for x, y in zip(a.r, b.r):
         j = join_reg(x, y)

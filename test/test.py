@@ -24,8 +24,9 @@ What it does:
   glitches, X and Z values.
 
 Values:
-  - clock 50 MHz (info.yaml clock_hz), 115,200 bit/s, 434 cycles for each bit
-    (fw/uart_tx.s), our part of the UART clock-error budget +/-1 % (design target).
+  - clock CLK_PS (default 16,666 ps = 60 MHz, info.yaml clock_hz), 115,200 bit/s, BIT_CYCLES = round(f / 115,200)
+    cycles for each bit (521 at 60 MHz; fw/uart_tx.s .equ BIT, set when the file is assembled), our part of the UART
+    clock-error budget +/-1 % (design target).
 """
 
 import os

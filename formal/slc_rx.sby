@@ -1,0 +1,42 @@
+# slc_rx: the USB helper copy of the chip (pe_slu SPEC 1, FULL 0) in its edge-started receive (clocked mode with
+# LTC[10], the UART receive of docs/helpers.md section 6) against formal/slc_fv.v R1 to R4: frame start at the
+# DIN falling edge and back-to-back re-arm, sample time and sample select, one word per frame with the frame in
+# the top bits, RXEOP. TXPER 2 to 4 (15 to 7.5 Mbaud at 60 MHz), every sample delay, DIN pin, sample copy and
+# frame length 1 to 16; pins and the falling-edge DIN sample free in every cycle. The configuration registers
+# are connected to the wrapper's constants after flattening, so the RTL stays unchanged.
+
+[options]
+mode prove
+depth 24
+
+[engines]
+abc pdr
+
+[script]
+read -formal pe_slu_loop.v pe_slu.v slc_fv.v
+prep -top slc_fv
+flatten
+cd slc_fv
+connect -set \u_slu.din_f1 din_f1_free
+connect -set \u_slu.c_mode k_mode
+connect -set \u_slu.c_txper k_txper
+connect -set \u_slu.c_ltc k_ltc
+connect -set \u_slu.c_sel k_sel
+connect -set \u_slu.tx_lastbits k_len
+connect -set mon_x0 \u_slu.x0
+connect -set mon_x1 \u_slu.x1
+connect -set mon_sop \u_slu.rx_sop
+connect -set mon_rdv \u_slu.r_data_v
+connect -set mon_rd \u_slu.r_data
+connect -set mon_push \u_slu.rx_push
+connect -set mon_pushw \u_slu.rx_push_w
+connect -set mon_sticky \u_slu.sticky
+opt_clean
+cd ..
+# The job stops with an error if a property was removed: 7 asserts and 3 assumes of slc_fv.v.
+select -assert-min 10 t:$check t:$assert t:$assume
+
+[files]
+../src/pe_slu_loop.v
+../src/pe_slu.v
+slc_fv.v

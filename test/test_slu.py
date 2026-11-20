@@ -2613,8 +2613,8 @@ async def test_slu_chip_swd_dpidr(dut):
         d = sc.CORNERS[corner]
         pins = [0] * 15
         pins[0] = helper_pin(0, 1)                                    # uio0 SWCLK (helper TXB)
-        host = await chip_start_owned(dut, prog, [(500, [768]), (512, [len(conn)] + cwords), (600, [req])], pins,
-                                      [3], 150)
+        host = await chip_start_owned(dut, prog, [(500, [768]), (508, [len(cwords)]), (512, [len(conn)] + cwords),
+                                                  (600, [req])], pins, [3], 150, 170)
         tgt = fx.SwdTarget(td=td, tsu=2.0, th=2.0, tlow=20.0, thigh=20.0)
 
         class Line:

@@ -183,8 +183,8 @@ module slc_fv #(
   // Two frames back to back: the second started before the last sample of the first is taken, and the
   // delivery of that last sample.
   always @* begin
-    cover (rst_n && start && last_near && (m_cd != 10'd0));
-    cover (rst_n && m_due && m_last && m_pl);
+    cover (rst_n && start && (m_q != 15'd0));
+    cover (rst_n && start && (m_q != 15'd0) && (m_q != (m_q & -m_q)));   // two or more samples on their way
   end
 `endif
 

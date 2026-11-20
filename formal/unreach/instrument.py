@@ -204,6 +204,10 @@ class Source:
                 return k
         return None
 
+    def clocked_at(self, k):
+        """True if token k is inside an always block with a clock edge in its event list."""
+        return any(a <= k < b and c for a, b, c in self.blocks.values())
+
     # ---- the ?: operator -------------------------------------------------------------------------
     def then_range(self, q):
         """Tokens of the then-operand of the ?: whose ? is token q: (q + 1, index of its :)."""

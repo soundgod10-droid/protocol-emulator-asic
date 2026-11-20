@@ -453,8 +453,7 @@ USB_RXSTATE_FW = """
         IOW     r0, E+12
         LDI     r0, 0xFF
         SHL     r0, 4
-        ORI     r0, 8
-        IOW     r0, E+13        ; SEL 0x0FF8: DIN = input 8 (ui_in[0])
+        IOW     r0, E+13        ; SEL 0x0FF0: DIN = input 0 (uio_in[0]; the host port writes ui_in)
         LDI     r0, 18
         IOW     r0, E+12
         LDI     r0, 0x140

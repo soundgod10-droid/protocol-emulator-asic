@@ -315,7 +315,7 @@ module slc_fv #(
         // T5
         if (st_q == 4'd4) assert ((tx_v[1] == cpol) && tx_oe);
       end else begin
-        if (r_q2) assert (tx_v[1] == ~tx_v[0]);
+        if (on) assert (tx_v[1] == ~tx_v[0]);       // in a frame TXB = not TXA (idle: both 1, T4)
       end
       // T2
       if (on && on_q && (ph_cur != 9'd0)) assert (tx_v[0] == v0_q);

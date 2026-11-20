@@ -85,4 +85,5 @@ module pe_sram (
 );
   `include "fwlate_rom.vh"
   always @(posedge clk) if (req && !we) rdata <= fwlate_rom(addr);
+  always @* if (rst_n) assert (!(req && we));     // the program never stores (else this model would not hold)
 endmodule

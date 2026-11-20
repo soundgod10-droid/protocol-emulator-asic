@@ -86,28 +86,32 @@ def read_points(path):
     return points
 
 
+def module_parts(p):
+    """(base module, unit-test copy?, Verilator's parameter suffix): pe_slu_ut__F0_S1 -> (pe_slu, True, __F0_S1)."""
+    name, sep, params = p["module"].partition("__")
+    return name.removesuffix("_ut"), name.endswith("_ut"), sep + params
+
+
 def raw_copy(p):
-    """The copy a build without coverage/split.py has for this point (instances with one parameter set)."""
-    base = p["module"].removesuffix("_ut")
-    if base.startswith("pe_slu_loop"):     # pe_slu_loop, pe_slu_loop_step: no parameters, one copy
-        return base
-    if base == "pe_slu":
-        if p["h"] in PE_SLU_PARAMS:
-            return "pe_slu " + PE_SLU_PARAMS[p["h"]]
-        return "pe_slu " + p["h"]          # a build without the split: Verilator's own merged copy
+    """The copy a build without coverage/split.py has for this point: Verilator keeps one copy per module and
+    parameter set, so the unit-test copy (pe_slu_ut, pe_slu_loop_ut) joins the chip copy with its parameters."""
+    base, _ut, params = module_parts(p)
+    if base == "pe_slu" or base.startswith("pe_slu_loop"):
+        return base + params
     return p["module"] + " " + p["h"]
 
 
 def chip_copy(p, files):
     if not p["h"].startswith("tb.user_project") or p["file"] not in files:
         return None
-    if p["module"].endswith("_ut"):
+    base, ut, _params = module_parts(p)
+    if ut:
         return None
-    if p["module"] == "pe_slu":
+    if base == "pe_slu":
         return CHIP_COPY.get(p["h"])         # None: merged with a unit-test copy (build without the split)
-    if p["module"].startswith("pe_slu_loop"):
+    if base.startswith("pe_slu_loop"):
         return "loop"                         # the chip's two loops (u_usb, u_eth), one Verilator copy
-    return p["module"]
+    return base
 
 
 def point_id(copy, p):

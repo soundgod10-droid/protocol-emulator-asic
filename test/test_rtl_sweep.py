@@ -370,7 +370,7 @@ def _define_tests():
         await bench.finish(dut._log)
 
     run = dict(uart_tx=uart_tx, uart_rx=uart_rx, spi_ctl=spi_ctl, spi_tgt=spi_tgt, i2c=i2c, i2c_arb=i2c_arb, jtag=jtag,
-               can=can)
+               jtag_walk=jtag_walk, can=can)
     shards = int(os.environ.get("SWEEP_SHARDS", "0") or 0)
     shard = int(os.environ.get("SWEEP_SHARD", "0") or 0)
     named = bool(os.environ.get("COCOTB_TEST_FILTER") or os.environ.get("COCOTB_TESTCASE"))

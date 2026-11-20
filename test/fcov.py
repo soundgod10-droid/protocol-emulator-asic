@@ -195,6 +195,7 @@ def attach(model, label=""):
         elif op == 0xC:
             pin, kind = (w >> 8) & 0xF, (w >> 3) & 7
             hit("event.kind_lead", (KINDS[kind], lead_class(((t0 + (w & 7)) - c) & 0xFFFF)))
+            hit("event.kind_thread", (KINDS[kind], n))
             if kind >= 6:
                 hit("sample.pin_dir", (pin, ">>" if kind == 6 else "<<"))
             elif pin < 15 and model.owner[pin] == n and pin not in model.helper_pins:

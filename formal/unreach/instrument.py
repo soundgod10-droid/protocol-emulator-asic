@@ -320,15 +320,15 @@ class Edits:
     def add(self, off, text):
         self.pair(off, off, text, "")
 
-    def open_branch(self, rng, label):
+    def open_branch(self, rng, stmt):
         a, b = rng
         s = self.src
         if s.t(a) == "begin":
-            self.add(s.toks[a][4], " %s: %s" % (label, self.hit))
+            self.add(s.toks[a][4], " " + stmt)
         else:
-            self.pair(s.toks[a][3], s.toks[b - 1][4], "begin %s: %s " % (label, self.hit), " end")
+            self.pair(s.toks[a][3], s.toks[b - 1][4], "begin %s " % stmt, " end")
 
-    def add_else(self, rec, label):
+    def add_else(self, rec, stmt):
         s = self.src
         a, b = rec["then"]
         # the then branch is wrapped (so the new else cannot bind to an inner if), the else follows the wrap

@@ -7,15 +7,16 @@ Usage: python formal/unreach/consts.py gen [--src src] [--out formal/unreach/bui
        python formal/unreach/consts.py triage --toggle-holes coverage_toggle_holes.txt [--out formal/unreach/build]
                                               [--csv candidates.csv]
 
-gen writes two jobs next to the proof jobs of formal/unreach/instrument.py: yconst_usb (SPEC 1, FULL 0, the chip's
-u_usb) and yconst_eth (SPEC 2, FULL 1, u_eth). Each reads src/pe_slu.v and src/pe_slu_loop.v unchanged inside
-formal/unreach/unreach_fv.v (every port access, written word and pin input free in every cycle), flattens the
-design, takes the state after one clock cycle with the reset low as its initial state (Yosys sim -w: every
-register of the helper has an asynchronous reset, so its initial value becomes its reset value; a value that
-depends on a free input stays undefined) and simplifies it with Yosys: opt -full with opt_dff -sat, so a
-flip-flop whose next value always equals its value, from that initial value, becomes a constant, and the
-constants propagate through the logic. The job writes the names of the simplified netlist with their bits (yconst.json in the job's src
-folder) and then runs a one-step check of the empty netlist, which passes. formal/unreach/run.py runs them.
+gen runs Yosys (--yosys, default $YOSYS or yosys) for two netlists next to the proof jobs of
+formal/unreach/instrument.py: yconst_usb (SPEC 1, FULL 0, the chip's u_usb) and yconst_eth (SPEC 2, FULL 1, u_eth).
+Each reads src/pe_slu.v and src/pe_slu_loop.v unchanged inside formal/unreach/unreach_fv.v (every port access,
+written word and pin input free in every cycle) and flattens the design (pre.json). Every flip-flop with an
+asynchronous reset then loses the reset and gets its reset value as its initial value (init.json): the states
+this model reaches from its initial state are the states the helper reaches after a reset, because a reset at
+any later time only returns those flip-flops to the same values (flip-flops without a reset stay free). Yosys
+then simplifies it: opt -full with opt_dff -sat, so a flip-flop whose next value always equals its initial value
+whenever it has that value (every other signal free) becomes a constant, and the constants propagate through the
+logic. The names of the simplified netlist with their bits go to <out>/<job>/yconst.json.
 
 A bit that is a constant ("0" or "1") in yconst.json has one value from the first reset on, for every input
 sequence, so neither of its toggle points can be hit in the chip. The physical condition is the reset at power-up

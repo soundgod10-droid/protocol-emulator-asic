@@ -117,6 +117,7 @@ eth:pe_slu.v:880:17:line:else,unreach_eth,"else if (m_code == C_CLK) tx_v[1:0] <
 eth:pe_slu.v:887:7:branch:if,unreach_eth,if (SPEC == 1) tx_tmr[15:8] <= 8'd0;,
 loop:pe_slu_loop.v:128:35:branch:cond_then,unreach_loop_usb+unreach_loop_eth,ne      = (nedge == 2'd3) ? 2'd3 : nedge + 2'd1;,
 loop:pe_slu_loop.v:88:18:branch:cond_then,unreach_loop_usb+unreach_loop_eth,"r = s[0] ? {r[20], r[20:1]} : r;",
+loop:pe_slu_loop.v:142:7:line:elsif,unreach_loop_usb+unreach_loop_eth,if (a < -half_s) eps = a + none_s;,
 usb:pe_slu.v:172:22:branch:cond_then,unreach_usb,wire x0 = m_loop ? tx_line_q : din_f3;,
 usb:pe_slu.v:173:22:branch:cond_then,unreach_usb,wire x1 = m_loop ? tx_line_q : din_r2;,
 usb:pe_slu.v:195:50:branch:cond_then,unreach_usb,wire       din_edge = m_ddr ? ((x0 ^ din_prev) | (x1 ^ x0)) : (x1 ^ din_prev);,

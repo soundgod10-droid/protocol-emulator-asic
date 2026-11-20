@@ -20,7 +20,9 @@
   "CLOCK_PERIOD": 16.667,
 
   "//": "Hold slack margin - Increase them in case you are getting hold violations.",
-  "PL_RESIZER_HOLD_SLACK_MARGIN": 0.1,
+  "//": "Research layout V4: 0.3 ns hold margin in the post-CTS repair, to cover the hold shift of the later post-GRT",
+  "//": "slew buffers (80 % post-GRT slew margin alone: 2 fast-corner hold violators, -0.122 ns, gds 44772515527).",
+  "PL_RESIZER_HOLD_SLACK_MARGIN": 0.3,
   "GRT_RESIZER_HOLD_SLACK_MARGIN": 0.05,
 
   "//": "Setup slack margin 1.5 ns after CTS, with the FIFO latch D pins out of the PnR setup checks (pnr.sdc):",

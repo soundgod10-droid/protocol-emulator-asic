@@ -125,6 +125,7 @@ module slc_fv #(
   always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
       x1q <= 1'b0; m_fr <= 1'b0; m_k <= 5'd0; m_cd <= 10'd0; m_due <= 1'b0; m_last <= 1'b0; m_eop <= 1'b0;
+      m_sv <= 1'b0; m_w <= 16'd0;
     end else begin
       x1q   <= mon_x1;
       m_due <= 1'b0;

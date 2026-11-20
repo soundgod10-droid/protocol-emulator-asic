@@ -1,0 +1,99 @@
+name: equiv
+
+# Netlist-to-RTL equivalence (C3 WP9, docs/signoff.md): the final netlist of a gds run against the RTL of that run's
+# own commit, with eqy (equiv/chip.eqy). Runs after every successful gds run on cmos5l (workflow_run, from the
+# default branch), by hand with a gds run id, or on a push of the equivalence files (the run id below).
+on:
+  push:
+    paths:
+      - 'equiv/**'
+      - '.github/workflows/equiv.yaml'
+  workflow_dispatch:
+    inputs:
+      gds_run_id:
+        description: 'run id of the gds workflow run'
+        required: false
+  workflow_run:
+    workflows: [gds]
+    types: [completed]
+    branches: [cmos5l]
+
+env:
+  GDS_RUN_ID: ${{ inputs.gds_run_id || github.event.workflow_run.id || '44557589283' }}
+
+jobs:
+  equiv:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    permissions:
+      actions: read
+      contents: read
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PDK_ROOT: /home/runner/pdk
+    steps:
+      - uses: actions/checkout@v6
+      - name: Commit of the gds run
+        shell: bash
+        run: |
+          sha=$(gh run view $GDS_RUN_ID --json headSha -q .headSha)
+          echo "GDS_SHA=$sha" >> $GITHUB_ENV
+          echo "::notice title=equiv source::gds run $GDS_RUN_ID, commit $sha"
+      - name: RTL of that commit
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.GDS_SHA }}
+          path: rtl
+      - name: Final netlist of the gds run
+        shell: bash
+        run: |
+          gh run download $GDS_RUN_ID -n tt_submission -D build/gds
+          ls -la build/gds/tt_submission
+          echo "PDK=$(jq -r '.PDK' build/gds/tt_submission/pdk.json)" >> $GITHUB_ENV
+          echo "PDK_VERSION=$(jq -r '.PDK_VERSION' build/gds/tt_submission/pdk.json)" >> $GITHUB_ENV
+      - name: PDK
+        uses: TinyTapeout/ciel-action@v1
+        with:
+          pdk_name: ${{ env.PDK }}
+          pdk_version: ${{ env.PDK_VERSION }}
+          pdk_root: ${{ env.PDK_ROOT }}
+      - name: OSS CAD Suite
+        uses: YosysHQ/setup-oss-cad-suite@v4
+        with:
+          version: '2026-11-14'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Netlist and configuration
+        shell: bash
+        run: |
+          set -e
+          nl=$(ls build/gds/tt_submission/*.v | head -n 1)
+          echo "netlist: $nl ($(wc -l < $nl) lines)"
+          grep -c "VPWR" "$nl" || true
+          files=$(sed -n '/source_files:/,/^[^ ]/p' rtl/info.yaml | grep -o '"[^"]*\.v"' | tr -d '"' | grep -v sram_bb.v | sed 's|^|'$PWD'/rtl/src/|' | tr '\n' ' ')
+          echo "RTL files: $files"
+          lib=$(ls $PDK_ROOT/$PDK/libs.ref/*_stdcell/lib/*typ*.lib | head -n 1)
+          echo "liberty: $lib"
+          sed -e "s|@ROOT@|$PWD|g" -e "s|@RTL@|$PWD/rtl|g" -e "s|@RTL_FILES@|$files|" -e "s|@LIB@|$lib|" -e "s|@NL@|$PWD/$nl|" \
+              equiv/chip.eqy > run.eqy
+          cat run.eqy
+      - name: eqy
+        shell: bash
+        run: |
+          set +e
+          yosys -V
+          eqy -j 4 -f run.eqy -d eqy_work
+          rc=$?
+          tail -n 40 eqy_work/logfile.txt 2>/dev/null
+          summ=$(grep -h -E "PASS|FAIL|ERROR|partitions|Successfully" eqy_work/logfile.txt 2>/dev/null | tail -n 25 | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')
+          echo "::notice title=eqy gds $GDS_RUN_ID::${summ}"
+          exit $rc
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: equiv-${{ env.GDS_RUN_ID }}
+          path: |
+            run.eqy
+            eqy_work/logfile.txt
+            eqy_work/*.log
+          if-no-files-found: warn

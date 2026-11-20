@@ -1,0 +1,24 @@
+# Guard mode of the equivalence check: the RTL of one commit (gold) against the RTL of another (gate), both read as
+# the netlist check reads the gold side (SYNTHESIS defined, the latch and clock-gate cells and the SRAM macros as
+# matched black boxes). .github/workflows/equiv.yaml (job guard) fills in the paths (@...@).
+
+[gold]
+read_verilog -lib @ROOT@/equiv/cells_bb.v @GOLD@/src/sram_bb.v
+read_verilog -sv -DSYNTHESIS @GOLD_FILES@
+prep -top tt_um_soundgod10_droid_protocol_emulator
+flatten
+memory_map
+opt_clean
+
+[gate]
+read_verilog -lib @ROOT@/equiv/cells_bb.v @GATE@/src/sram_bb.v
+read_verilog -sv -DSYNTHESIS @GATE_FILES@
+prep -top tt_um_soundgod10_droid_protocol_emulator
+flatten
+memory_map
+opt_clean
+
+[strategy sby]
+use sby
+depth 10
+engine smtbmc yices

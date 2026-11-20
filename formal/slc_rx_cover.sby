@@ -1,0 +1,38 @@
+# slc_rx_cover: reachability of the edge-started receive cases that formal/slc_rx.sby checks (so its bounded
+# result is not vacuous): a frame that starts while one sample of the previous frame is still on its way, and while
+# two or more are.
+
+[options]
+mode cover
+depth 28
+
+[engines]
+smtbmc z3
+
+[script]
+read -formal -D SLC_COVER pe_slu_loop.v pe_slu.v slc_fv.v
+prep -top slc_fv
+flatten
+cd slc_fv
+connect -set \u_slu.din_f1 din_f1_free
+connect -set \u_slu.c_mode k_mode
+connect -set \u_slu.c_txper k_txper
+connect -set \u_slu.c_ltc k_ltc
+connect -set \u_slu.c_sel k_sel
+connect -set \u_slu.tx_lastbits k_len
+connect -set mon_x0 \u_slu.x0
+connect -set mon_x1 \u_slu.x1
+connect -set mon_sop \u_slu.ck_estart
+connect -set mon_rdv \u_slu.r_data_v
+connect -set mon_rd \u_slu.r_data
+connect -set mon_push \u_slu.rx_push
+connect -set mon_pushw \u_slu.rx_push_w
+connect -set mon_sticky \u_slu.sticky
+opt_clean
+cd ..
+select -assert-min 2 t:$cover
+
+[files]
+../src/pe_slu_loop.v
+../src/pe_slu.v
+slc_fv.v

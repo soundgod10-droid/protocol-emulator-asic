@@ -2489,8 +2489,8 @@ t0:     TNOW    8
         IOW     r0, E+12
         LDI     r0, 0x00B
         IOW     r0, E+13        ; MODE: clocked code, RX on
-        LDI     r0, 8
-        IOW     r0, E+13        ; TXPER 8: 16 cycles a bit (3.75 MHz) for the connection sequence
+        LDI     r0, 16
+        IOW     r0, E+13        ; TXPER 16: 32 cycles a bit (1.875 MHz) for the connection sequence
         LDI     r0, 8
         IOW     r0, E+12
         LDI     r0, 0x23F
@@ -2505,31 +2505,20 @@ t0:     TNOW    8
         LDX     r3, [r2]
         MOV     r0, r3
         ANDI    r0, 15
-        IOW     r0, E+4         ; TXCTRL: bits in the last word (the helper data output is not used)
-        LDI     r0, 0
-        IOW     r0, E+0
-        IOW     r0, E+0
+        IOW     r0, E+4         ; TXCTRL: bits in the last word; thread 2 feeds the (unused) helper data words
+        ADDI    r3, 15
+        SHR     r3, 4           ; words of SWDIO bits
+        ADDI    r2, 1
         TNOW    120
         TGET    r1
         IOW     r1, E+5         ; TXTIME = T
-        ADDI    r2, 1
 cw:     LDX     r0, [r2]        ; next 16 SWDIO bits
         ADDI    r2, 1
         LDI     r1, 16
-cb:     OUT     SWD, r0>>       ; bit k at T + 16 k (the bit start, the falling SWCLK edge)
-        TADD    16
-        ADDI    r3, -1
-        BEQ     cend
+cb:     OUT     SWD, r0>>       ; bit k at T + 32 k (the bit start, the falling SWCLK edge); the bits after N are 0
+        TADD    32
         DJNZ    r1, cb
-        IOR     r1, E+0         ; keep the TX buffer fed (2 free: write 2 words)
-        CMPI    r1, 2
-        BNE     cw
-        LDI     r1, 0
-        IOW     r1, E+0
-        IOW     r1, E+0
-        JMP     cw
-cend:   LDI     r0, 0
-        IOW     r0, E+14        ; TXLAST
+        DJNZ    r3, cw
 wc:     IOR     r0, E+4
         ANDI    r0, 15
         BNE     wc
@@ -2539,20 +2528,28 @@ wc:     IOR     r0, E+4
         IOW     r0, E+13        ; TXPER 4: 8 cycles a bit, 7.5 MHz SWCLK for the transfer
         LDI     r0, 14
         IOW     r0, E+4         ; TXCTRL: 46 bits = 2 words + 14 (request 8, turnaround, ACK 3, data 32, parity,
-        LDI     r0, 0           ; turnaround)
-        IOW     r0, E+0
-        IOW     r0, E+0
-        LD      r0, 600         ; the 8 request bits (first bit in bit 0)
+        LDI     r2, 600         ; turnaround)
+        LDX     r0, [r2]        ; the 8 request bits (first bit in bit 0)
         TNOW    100
         TGET    r1
-        IOW     r1, E+5         ; TXTIME = T
-        LDI     r3, 8
-rq:     OUT     SWD, r0>>
+        IOW     r1, E+5         ; TXTIME = T; the request bits one per 8 cycles (unrolled: 2 slots a bit)
+        OUT     SWD, r0>>
         TADD    8
-        DJNZ    r3, rq
-        OUT     SWD, Z          ; bit 8: turnaround, the target drives ACK, data and parity
-        LDI     r0, 0
-        IOW     r0, E+14        ; TXLAST
+        OUT     SWD, r0>>
+        TADD    8
+        OUT     SWD, r0>>
+        TADD    8
+        OUT     SWD, r0>>
+        TADD    8
+        OUT     SWD, r0>>
+        TADD    8
+        OUT     SWD, r0>>
+        TADD    8
+        OUT     SWD, r0>>
+        TADD    8
+        OUT     SWD, r0>>
+        TADD    8
+        OUT     SWD, Z          ; bit 8: turnaround, then the target drives ACK, data and parity
 wt:     IOR     r0, E+4
         ANDI    r0, 15
         BNE     wt

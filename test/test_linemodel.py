@@ -344,6 +344,8 @@ async def test_research_triage(dut):
             "eth:pe_slu.v:814:10:branch:else", "eth:pe_slu.v:819:11:branch:if", "eth:pe_slu.v:824:11:branch:if",
             "eth:pe_slu.v:824:12:branch:else", "eth:pe_slu.v:825:11:branch:if", "eth:pe_slu.v:825:12:branch:else",
             "eth:pe_slu.v:539:51:branch:cond_then", "usb:pe_slu.v:519:54:branch:cond_then",
+            "eth:pe_slu.v:379:38:branch:cond_else", "usb:pe_slu.v:379:38:branch:cond_else",
+            "eth:pe_slu.v:738:22:line:case", "usb:pe_slu.v:738:22:line:case",
             "loop:pe_slu_loop.v:142:7:line:elsif", "loop:pe_slu_loop.v:165:11:line:elsif",
             "loop:pe_slu_loop.v:166:16:line:if"}
     with open(os.path.join(root, "build", "exclusions_candidate.csv"), "w", encoding="utf-8", newline="") as f:

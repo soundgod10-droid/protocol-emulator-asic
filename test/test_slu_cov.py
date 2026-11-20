@@ -52,8 +52,10 @@ def capture(dut, store, n):
 
 
 def oe_windows(caps, bit):
-    """(start, length) of each run of cycles with uio[bit] high."""
-    out, start = [], None
+    """(start, length) of each run of cycles with uio[bit] high, after the first one: a helper pin shows its reset level
+    (1) while the threads are stopped, so the capture, which starts before START, begins with a high run."""
+    out, start = [], 0 if (caps and (caps[0] >> bit) & 1) else None
+    skip = start == 0
     for i, v in enumerate(caps + [0]):
         on = (v >> bit) & 1
         if on and start is None:

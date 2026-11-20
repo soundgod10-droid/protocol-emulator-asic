@@ -1,0 +1,142 @@
+name: sweep
+# Extended RTL tests and functional coverage.
+#  - sweep-0 .. sweep-7: test/test_rtl_sweep.py, the sweep points of the model tests, one RTL testcase each (about 20
+#    cases of about 1 min per shard).
+#  - core, rtl_fw: test_core.py (lockstep with the model, every instruction group) and test_rtl_fw.py (protocol
+#    firmware), run again here for their functional coverage.
+# Every part runs with FCOV=1 (test/fcov.py); the table job counts the testcases of the sweep shards, prints their trace
+# table, and merges the functional coverage of all parts (test/fcov_report.py: zero-bin rule, trace table).
+on: [push, workflow_dispatch]
+# On cmos5l and tags every run is kept; on other branches a newer push cancels the older run.
+concurrency:
+  group: ${{ (github.ref == 'refs/heads/cmos5l' || startsWith(github.ref, 'refs/tags/')) && format('sweep-run-{0}', github.run_id) || format('sweep-{0}', github.ref) }}
+  cancel-in-progress: true
+jobs:
+  sweep:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {part: sweep-0, modules: test_rtl_sweep, shard: "0"}
+          - {part: sweep-1, modules: test_rtl_sweep, shard: "1"}
+          - {part: sweep-2, modules: test_rtl_sweep, shard: "2"}
+          - {part: sweep-3, modules: test_rtl_sweep, shard: "3"}
+          - {part: sweep-4, modules: test_rtl_sweep, shard: "4"}
+          - {part: sweep-5, modules: test_rtl_sweep, shard: "5"}
+          - {part: sweep-6, modules: test_rtl_sweep, shard: "6"}
+          - {part: sweep-7, modules: test_rtl_sweep, shard: "7"}
+          - {part: core, modules: test_core, shard: none}
+          - {part: rtl_fw, modules: test_rtl_fw, shard: none}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Install iverilog
+        shell: bash
+        run: sudo apt-get update && sudo apt-get install -y iverilog
+
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Install Python packages
+        shell: bash
+        run: pip install -r test/requirements.txt
+
+      - name: Run the part
+        shell: bash
+        env:
+          FCOV: "1"
+          FCOV_JOB: ${{ matrix.part }}
+        run: |
+          if [ "${{ matrix.shard }}" != none ]; then export SWEEP_SHARDS=8 SWEEP_SHARD=${{ matrix.shard }}; fi
+          cd test
+          make clean
+          make COCOTB_TEST_MODULES=${{ matrix.modules }}
+          # make returns success even if tests fail, so check results.xml
+          python -m cocotb_tools.check_results results.xml
+
+      - name: Upload the results
+        if: success() || failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: sweep-results-${{ matrix.part }}
+          path: |
+            test/results.xml
+            test/fcov.yml
+            test/fcov_first.json
+
+  table:
+    needs: sweep
+    if: success() || failure()
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Install Python packages
+        shell: bash
+        run: pip install -r test/requirements.txt
+
+      - name: Download the part results
+        uses: actions/download-artifact@v5
+        with:
+          pattern: sweep-results-*
+          path: sweep
+
+      - name: Count and trace table of the extended RTL tests
+        shell: bash
+        run: |
+          set -o pipefail
+          python - <<'EOF' | tee sweep_summary.md
+          import glob, xml.etree.ElementTree as ET
+          n = fail = skip = 0
+          sim = wall = 0.0
+          files = sorted(glob.glob("sweep/sweep-results-sweep-*/results.xml"))
+          for f in files:
+              for tc in ET.parse(f).getroot().iter("testcase"):
+                  n += 1
+                  fail += tc.find("failure") is not None or tc.find("error") is not None
+                  skip += tc.find("skipped") is not None
+                  sim += float(tc.get("sim_time_ns", 0))
+                  wall += float(tc.get("time", 0))
+          print("## Extended RTL tests (test/test_rtl_sweep.py)\n")
+          print("%d RTL testcases in %d shard result files: %d failed, %d skipped; %.1f ms simulated, %.0f s of test time"
+                % (n, len(files), fail, skip, sim / 1e6, wall))
+          EOF
+          echo >> sweep_summary.md
+          python test/test_rtl_sweep.py --list >> sweep_summary.md
+          cat sweep_summary.md >> "$GITHUB_STEP_SUMMARY"
+          echo "::notice title=extended RTL tests::$(sed -n '3p' sweep_summary.md | sed -e 's/%/%25/g')"
+
+      - name: Functional coverage report
+        if: success() || failure()
+        shell: bash
+        run: |
+          rc=0
+          python test/fcov_report.py sweep --out fcov_report.md > fcov_out.txt || rc=$?
+          tail -n 1 fcov_out.txt
+          cat fcov_report.md >> "$GITHUB_STEP_SUMMARY"
+          echo "::notice title=functional coverage::$(tail -n 1 fcov_out.txt | sed -e 's/%/%25/g')"
+          # the table of groups as an annotation, readable through the public API
+          echo "::notice title=functional coverage groups::$(sed -n '/^| Group | Clause/,/^$/p' fcov_report.md | sed -e 's/%/%25/g' | sed -e ':a;N;$!ba;s/\n/%0A/g')"
+          exit $rc
+
+      - name: Upload the reports
+        if: success() || failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: sweep-report
+          path: |
+            sweep_summary.md
+            fcov_report.md

@@ -392,7 +392,14 @@ def step(prog, pc, st, res, assume, bugs):
         if "sample_no_wait" in bugs:        # planted bug: SAMPLE taken to complete in its slot
             s.r[f["reg"]] = None
             return cont(s)
-        s.advance(Iv(max(0, lead.lo + 1), lead.hi + 4) if lead.lo > -INF else Iv(0, INF))
+        # completes in the first slot after the sample time: T + off when on time, c + 4 when late (isa 4.3, 6.2)
+        on, waits = lead.clip(LEAD_MIN, LEAD_MAX), []
+        if on:
+            waits.append(Iv(on.lo + 1, on.hi + 4))
+        if lead.lo < LEAD_MIN or lead.hi > LEAD_MAX:
+            waits.append(Iv(5, 8))
+        w = waits[0] if len(waits) == 1 else waits[0].join(waits[1])
+        s.advance(w)
         if LEAD_MIN <= lead.lo and lead.hi <= LEAD_MAX:
             s.L = Iv(-off - 4, -off - 1)    # completes in the first slot after its time T + off
         s.r[f["reg"]] = None

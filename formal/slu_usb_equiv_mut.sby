@@ -34,7 +34,7 @@ cd ..
 equiv_simple -seq 8
 equiv_induct -seq 8
 tee -o equiv_status.txt equiv_status
-equiv_remove -proven
+equiv_remove
 select -assert-min 1 t:$equiv
 design -reset
 read_verilog -formal tiny.v

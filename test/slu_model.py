@@ -361,7 +361,8 @@ class SluModel:
         ck_eend = ck_mode and m_estart and half_mid and tx_nb == 0 and tx_lastw
 
         sticky = o["sticky"]
-        nst = sticky
+        # STATUS write first (1 clears a flag); a flag that an event sets in the same cycle stays set
+        nst = (sticky & ~wd & 0xFFFF) if (p_we and p_addr == 2) else sticky
 
         # ---------------- configuration and control ----------------
         if p_we and p_addr == 12:

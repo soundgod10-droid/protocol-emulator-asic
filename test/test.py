@@ -112,7 +112,7 @@ async def start(dut):
     """Starts the clock and the line monitor, then resets the chip. Host pins idle: CS_N high, SCK low."""
     mon = LineMonitor(dut.uart_tx)
     cocotb.start_soon(mon.run())
-    cocotb.start_soon(Clock(dut.clk, CLK_NS, unit="ns").start())
+    cocotb.start_soon(Clock(dut.clk, CLK_PS, unit="ps").start())
     dut.ena.value = 1
     dut.ui_in.value = 1 << hs.CS_N_BIT
     dut.uio_in.value = 0

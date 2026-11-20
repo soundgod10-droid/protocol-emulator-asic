@@ -136,6 +136,21 @@ class State:
         self.D = {p: d + old - new_L for p, d in self.D.items()}
         self.L = new_L
 
+    def parts(self):
+        """Copies of the state with L taken modulo 65,536 into -32,768..32,767 (D shifted with it); with no bound on
+        L, one copy with L = -32,768..32,767 and every slot possibly free or full."""
+        out = []
+        for part, shift in wrap_parts(self.L):
+            s = self.copy()
+            s.L = part
+            if shift is None:
+                s.D = {p: Iv(-INF, INF) for p in self.D}
+            else:
+                s.D = {p: d + shift for p, d in self.D.items()}
+            s.prune()
+            out.append(s)
+        return out
+
 
 def join_reg(a, b):
     if a == b:

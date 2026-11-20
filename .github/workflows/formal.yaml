@@ -14,6 +14,7 @@ on:
     paths:
       - 'src/**'
       - 'formal/**'
+      - 'fpga/pe_latch_ram_fpga.v'
       - '.github/workflows/formal.yaml'
   workflow_dispatch:
 

@@ -140,3 +140,16 @@ Measured results (test/test_slu_clk.py on the helper with the chip pin path as d
 | test_slc_status_clear_same_cycle | STATUS writes in the 5 cycles around the cycle that sets RXEOP | RXEOP stays set except for a clear written after its cycle |
 
 With the USB configuration (no write to MODE, TXPER or LTC) the helper is the same as the USB-only helper at every output in every cycle: an equivalence proof of the two RTL forms (all 3,817 compared signals proven by induction), and a control with MODE writes allowed fails on exactly the writable MODE bits.
+
+### 6.1 Example programs and host calls
+
+The firmware of the chip tests is in fw/helper/ as example programs; the tests assemble these files, so each example runs in the RTL test run and in the gate-level run (part 3, test_slu) of every layout. fw/helper/host_calls.py gives the host side: the words that a host writes into the data memory before START and the reading of the result words after STOP. It is plain Python and uses nothing of the chip's model or assembler.
+
+| Program | What it does | Host calls | Test (RTL and gate level) |
+|---|---|---|---|
+| fw/helper/spi_flash.s | SPI mode 0 at 15 MHz: thread 0 drives /CS and feeds the frame, thread 1 stores the received words | spi_flash_read_frame(addr, n), spi_flash_read_bytes(words, n) | test_slu_chip_spi_flash: 03h read of 256 bytes, flash model at its pins, slow pads + 10 ns each way |
+| fw/helper/jtag_idcode.s | Test-Logic-Reset to Shift-DR at 7.5 MHz, then a 64-bit IDCODE scan of two TAPs at 15 MHz TCK; TMS from thread 0 | jtag_idcode_values(words, 2) | test_slu_chip_jtag_idcode: both IDCODEs at slow pads + 10 ns and at fast pads |
+| fw/helper/uart_tx.s | 8N1 characters back to back at 15 Mbaud (TXPER 4, NRZ) | uart_tx_frame(data) | test_slu_chip_uart_tx: 64 characters, every edge on the 4-cycle grid |
+| fw/helper/uart_rx.s | edge-started frames at 15 Mbaud, one word a character from data address 768 | uart_rx_buffer(n), uart_rx_bytes(words) | test_slu_chip_uart_rx: 128 characters at -2.5 % and +2.5 %, fast pad and slow pad + 10 ns |
+
+The programs are not in the protocol count (docs/counting.md counts the programs of fw/ with a registry row); they show the helper modes, which the rows SPI, JTAG and UART of docs/protocols.md also run in firmware.

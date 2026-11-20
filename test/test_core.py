@@ -1053,7 +1053,7 @@ async def test_core_pins_leads_waits(dut):
             return (CMD_NOP, 0, 0)
         return (CMD_POP, i % 4, 0)
 
-    scn = Scenario("pins_leads_waits", image, start_pc=(0, 64, 128, 192), run=(True, True, True, True), owner=own,
+    scn = Scenario("pins_leads_waits", image, start_pc=(0, 32, 48, 96), run=(True, True, True, True), owner=own,
                    cycles=6800, host=host, stimulus=lambda c: ((c // 7) & 0x1F, (c // 3) & 0xFF))
     m, popped, _ = await run_lockstep(dut, scn)
     assert_ended(m, popped, want_status=(1, 0, 0, 0), threads=(0, 1, 2, 3), min_words=6)

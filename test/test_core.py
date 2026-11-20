@@ -953,6 +953,113 @@ async def test_core_barrel(dut):
         assert popped[n] == [n, n + 8, n], f"thread {n}: {popped[n]}"
 
 
+@cocotb.test()
+async def test_core_pins_leads_waits(dut):
+    """Directed lockstep program for behaviours that the other scenarios do not reach (functional coverage bins of
+    test/fcov.py): OUT r[0], r>>, r<< and Z on pins 3, 6, 7, 9, 10, 12; OE on and off on pins 1, 9, 10; a full event
+    slot on pin 10; leads 2 (late), exactly 4 and above 4,095 for OUT 1, OUT r[0], OUT r<< and SAMPLE r<< (isa 4.2,
+    4.3); SAMPLE of inputs 6, 11, 13, 14 and WAIT on inputs 1, 7, 8, 9, 10, 13, 14, 15 (isa 5.1, 6.2, 6.3; 13 and 14
+    are the idle helper events, 15 is no pin, so those WAITs time out); JR on thread 3; ORI with result 0; in-FIFO
+    levels 3 and 2 after PULL on threads 1 and 3 (isa 2.2); pin 11 owned by thread 1.
+
+    Expected from the isa, not only from the model: thread 0 ends with LATE (one OUT with lead 2), the others with no
+    status bit; thread 1 and thread 3 pull the four host words in order, so their last PULL gives the fourth word."""
+    t0 = "\n".join([
+        "        TNOW 60",
+        "        LDI r0, 0x2A5",
+        "        OUT UIO3, r0<<",
+        "        OUT UIO6, r0",
+        "        OUT UIO7, r0, 1",
+        "        OUT UO1, 1, 2",         # pin 9: OE on
+        "        OUT UO2, r0<<, 3",      # pin 10: OE on
+        "        OUT UO4, r0<<, 4",
+        "        OUT UIO1, 1, 5",        # pin 1: OE on
+        "        TADD 60",
+        "        OUT UIO6, r0>>",
+        "        OUT UO1, Z",            # pin 9: OE off
+        "        OUT UO2, 1, 7",
+        "        OUT UIO1, Z, 1",        # pin 1: OE off
+        "        TADD 20",
+        "        OUT UO2, Z",            # waits for the slot of pin 10 (event at T - 13), then OE off
+        "        OUT UO1, r0<<, 2",
+        "        TNOW 6",
+        "        OUT UIO3, r0<<",        # lead 2: late
+        "        TNOW 8",
+        "        OUT UIO6, r0",          # lead exactly 4
+        "        TNOW 100",
+        "        TADD 4095",
+        "        OUT UO4, 1",            # leads 4,187 to 4,183
+        "        OUT UIO7, r0",
+        "        OUT UIO3, r0<<",
+        "        IOR r1, STATUS",
+        "        PUSH r1",
+        "        HALT",
+    ])
+    fifo = "\n".join([
+        "        LDI r0, 750",
+        "        SHL r0, 2",
+        "        NOW r1",
+        "        ADD r1, r0",
+        "        TSET r1",
+        "        TWAIT",                 # 3,000 cycles: the host has pushed 4 words by then
+        "        PULL r2",               # 3 words left
+        "        PULL r2",               # 2 words left
+        "        PULL r2",
+        "        PULL r2",
+        "        PUSH r2",
+        "        HALT",
+    ])
+    waits = []
+    for pin, edge in ((\"UIO1\", \"FALL\"), (\"UIO1\", \"RISE\"), (\"UIO7\", \"ANY\"), (\"UI0\", \"RISE\"), (\"UI1\", \"RISE\"),
+                      (\"UI2\", \"ANY\")):
+        waits += [\"        TNOW 12\", f\"        WAIT {pin}, {edge}, r2, TO\"]
+    for pin, kind in ((13, 0), (13, 1), (13, 2), (14, 0), (14, 1), (14, 2), (15, 0), (15, 2)):
+        waits += [\"        TNOW 12\", f\"        .word 0x{0xD088 | pin << 8 | kind << 4:04X}\"]  # WAIT pin, kind, r2, TO
+    t2 = "\n".join([
+        "        TNOW 8",
+        "        SAMPLE UIO6, r1>>",
+        "        TNOW 8",
+        "        SAMPLE UI3, r1<<",
+        "        TNOW 8",
+        "        .word 0xCD70",          # SAMPLE input 13, r1>>
+        "        TNOW 8",
+        "        .word 0xCE70",          # SAMPLE input 14, r1>>
+        "        TNOW 8",
+        "        .word 0xCE78",          # SAMPLE input 14, r1<<
+        "        PUSH r1",
+    ] + waits + [
+        "        TNOW 100",
+        "        TADD 4095",
+        "        SAMPLE UI0, r1<<",      # lead about 4,190
+        "        PUSH r1",
+        "        HALT",
+    ])
+    t3 = "\n".join([
+        "        LDI r1, j1",
+        "        JR r1",
+        "        HALT",
+        "j1:     LDI r2, 0",
+        "        ORI r2, 0",             # result 0
+        "        PUSH r2",
+    ]) + "\n" + fifo
+    image = asm((t0, 0), (fifo, 64), (t2, 128), (t3, 192))
+    own = owners({1: 0, 3: 0, 6: 0, 7: 0, 9: 0, 10: 0, 12: 0, 11: 1})
+    words = [0x1000 + i for i in range(8)]
+
+    def host(i):
+        if i < 8:
+            return (CMD_PUSH, 1 if i % 2 == 0 else 3, words[i])
+        if i < 208:
+            return (CMD_NOP, 0, 0)
+        return (CMD_POP, i % 4, 0)
+
+    scn = Scenario("pins_leads_waits", image, start_pc=(0, 64, 128, 192), run=(True, True, True, True), owner=own,
+                   cycles=6800, host=host, stimulus=lambda c: ((c // 7) & 0x1F, (c // 3) & 0xFF))
+    m, popped, _ = await run_lockstep(dut, scn)
+    assert_ended(m, popped, want_status=(1, 0, 0, 0), threads=(0, 1, 2, 3), min_words=6)
+    assert popped[0] == [1] and popped[1] == [words[6]] and popped[3] == [0, words[7]], f"host words {popped}"
+
+
 # ----- random instruction streams -----
 
 KINDS = {

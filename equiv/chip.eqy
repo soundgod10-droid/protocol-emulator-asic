@@ -33,19 +33,6 @@ opt_clean
 gold-nomatch /.+\.clk/
 gate-nomatch /.+\.clk/
 
-[partition *]
-# One piece per block, so that a register that the synthesis stored differently (a reset-to-1 bit held inverted
-# in a reset-to-0 flip-flop, which is the library's only kind; a re-encoded state machine) is in the same piece on
-# both sides and the solver can relate the two (equiv run 44808418000: 195 of 277 small pieces failed this way).
-merge /u_proc\.u_usb\..*/
-merge /u_proc\.u_eth\..*/
-merge /u_proc\.u_core\..*/
-merge /u_proc\.g_out\..*/
-merge /u_proc\.u_in\..*/
-merge /u_proc\.u_fifo\..*/
-merge /u_proc\.u_mem\..*/
-merge /u_host_port\..*/
-
 # k-induction on every piece (a base case from the initial state and an induction step), then PDR for the pieces
 # that k-induction leaves open (PDR finds the invariant that relates two encodings of the same state).
 [strategy ind]

@@ -101,6 +101,7 @@ class RtlBench:
         self.owner = list(owner) if owner is not None else [None] * pe_model.N_OUT
         self.od = [bool(x) for x in od] if od is not None else [False] * pe_model.N_OUT
         self.m = pe_model.PeModel(words, self.start_pc, self.run_mask, self.owner, self.od)
+        fcov.attach(self.m, label)
         self.to_thread = [deque() for _ in range(pe_model.N_THREADS)]  # word groups not yet written
         self.from_thread = [[] for _ in range(pe_model.N_THREADS)]  # (model cycle, word) that the host read
         self.watches = {}

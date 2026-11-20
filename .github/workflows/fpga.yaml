@@ -102,6 +102,8 @@ jobs:
               ecp5_25k_6) nextpnr-ecp5 --25k --package CABGA381 --speed 6 --json fpga_ecp5.json --lpf fpga/ulx3s.lpf --lpf-allow-unconstrained --freq 63 --seed $s --timing-allow-fail --report rep_${t}_$s.json -l pnr_${t}_$s.log ;;
               ecp5_25k_8) nextpnr-ecp5 --25k --package CABGA381 --speed 8 --json fpga_ecp5.json --lpf fpga/ulx3s.lpf --lpf-allow-unconstrained --freq 63 --seed $s --timing-allow-fail --report rep_${t}_$s.json -l pnr_${t}_$s.log ;;
               ecp5r_25k_8) nextpnr-ecp5 --25k --package CABGA381 --speed 8 --json fpga_ecp5r.json --lpf fpga/ulx3s.lpf --lpf-allow-unconstrained --freq 63 --seed $s --timing-allow-fail --report rep_${t}_$s.json -l pnr_${t}_$s.log ;;
+              ecp5n_25k_8) nextpnr-ecp5 --25k --package CABGA381 --speed 8 --json fpga_ecp5n.json --lpf fpga/ulx3s.lpf --lpf-allow-unconstrained --freq 63 --seed $s --timing-allow-fail --tmg-ripup --report rep_${t}_$s.json -l pnr_${t}_$s.log ;;
+              nexus40_9)  nextpnr-nexus --device LIFCL-40-9BG400C --json fpga_nexus.json --freq 63 --seed $s --timing-allow-fail --report rep_${t}_$s.json -l pnr_${t}_$s.log ;;
               gw2a_18c)   nextpnr-himbaechel --device GW2AR-LV18QN88C8/I7 --vopt family=GW2A-18C --vopt cst=fpga/tangnano20k_fmax.cst --json fpga_gw2a.json --freq 63 --seed $s --timing-allow-fail --report rep_${t}_$s.json -l pnr_${t}_$s.log ;;
               gw5a_25a)   nextpnr-himbaechel --device GW5A-LV25MG121NES --vopt family=GW5A-25A --vopt cst=fpga/primer25k_fmax.cst --json fpga_gw5a.json --freq 63 --seed $s --timing-allow-fail --report rep_${t}_$s.json -l pnr_${t}_$s.log ;;
             esac

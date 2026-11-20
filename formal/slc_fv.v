@@ -30,7 +30,8 @@
 //     R4  RXEOP is set after the last sample (unless the thread clears it in the same cycle).
 
 module slc_fv #(
-    parameter PMAX = 4     // largest TXPER of this parameter-reduced proof (the RTL takes 1 to 255)
+    parameter PMAX = 4,    // largest TXPER of this parameter-reduced proof (the RTL takes 1 to 255)
+    parameter NRZ  = 0     // SLC_TX: 1 = NRZ code (UART transmit), 0 = clocked with receive on
 ) (
     input wire        clk,
     input wire        rst_n,

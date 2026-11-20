@@ -451,34 +451,6 @@ def step(prog, pc, st, res, assume, bugs):
             s.move_t(Iv(-4, -1))
         s.r[rd] = ("n", Iv(-4, -1))
         return cont(s)
-    if form == "WAIT_OLD":
-        if f["to"]:
-            in_win = L0.clip(1, LEAD_MAX)
-            outs = []
-            if in_win:          # timeout at T: completes in (c0, T + 4]
-                a = s.copy()
-                a.L = in_win
-                a.advance(Iv(1, in_win.hi + 4))
-                a.L = Iv(-4, in_win.hi - 1)  # completes after c0 and by the first slot after T
-                if f["ct"]:
-                    a.move_t(Iv(-4, -1))
-                a.r[rd] = join_reg(a.r[rd], ("n", Iv(-4, -1)))
-                outs.append(a)
-            rest = [x for x in (L0.clip(-INF, 0), L0.clip(LEAD_MAX + 1, INF)) if x]
-            for part in rest:  # timeout at once: completes in the next slot
-                b = s.copy()
-                b.L = part
-                b.advance(Iv(1, 4))
-                outs.append(b)
-            out = outs[0]
-            for o in outs[1:]:
-                out = join_state(out, o)
-            return cont(out)
-        s.advance(Iv(1, INF))   # no timeout: no bound on the wait
-        if f["ct"]:
-            s.move_t(Iv(-4, -1))
-        s.r[rd] = ("n", Iv(-4, -1))
-        return cont(s)
     if form in ("PULL", "PUSH"):
         if form == "PULL":
             s.r[f["r"]] = assume.get(pc)

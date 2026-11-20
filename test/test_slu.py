@@ -2102,43 +2102,7 @@ async def test_slu_chip_uart_tx(dut):
     assert status & 1 and not status & 4, "status %04x: TXDONE without TXUNDER expected" % status
 
 
-UART_HRX_FW = """
-        .equ    E, 16           ; USB helper ports 16-31
-        LDI     r0, 0
-        IOW     r0, E+12        ; CFGADR 0
-        LDI     r0, 0x00B
-        IOW     r0, E+13        ; MODE: clocked code, RX on
-        LDI     r0, 2
-        IOW     r0, E+13        ; TXPER 2: 4 cycles a bit (15 Mbaud at 60 MHz)
-        LDI     r0, 8
-        IOW     r0, E+12
-        LDI     r0, 0xFF
-        SHL     r0, 4
-        ORI     r0, 8
-        IOW     r0, E+13        ; SEL 0x0FF8: DIN = input 8 (ui_in[0]), sample delay 0
-        LDI     r0, 18
-        IOW     r0, E+12
-        LDI     r0, 1
-        SHL     r0, 10
-        IOW     r0, E+13        ; LTC[10]: a frame starts at a falling edge of DIN (the start bit)
-        LDI     r0, 10
-        IOW     r0, E+4         ; TXCTRL: 10 samples a frame (start, 8 data, stop)
-        TNOW    100             ; drop any word received before the line settles (as test_slc_uart_rx empties
-        TWAIT                   ; the RX buffer before its first byte)
-drain:  IOR     r0, E+6
-        ANDI    r0, 0x60
-        BEQ     go
-        IOR     r0, E+1
-        JMP     drain
-go:     LDI     r1, 768         ; received words to the data memory from 768
-rx:     IOR     r0, E+6         ; RXINFO [6:5]: words in the RX buffer
-        ANDI    r0, 0x60
-        BEQ     rx
-        IOR     r0, E+1         ; RXDATA (pop)
-        STX     r0, [r1]
-        ADDI    r1, 1
-        JMP     rx
-"""
+UART_HRX_FW = helper_fw("uart_rx.s")
 
 
 @cocotb.test()

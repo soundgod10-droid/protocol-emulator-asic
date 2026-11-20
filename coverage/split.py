@@ -45,9 +45,14 @@ def main(root):
     tb = sub_once(tb, r"\bpe_slu(\s*#\(\s*\.FULL\(0\),\s*\.SPEC\(1\)\s*\)\s*u_slc_ut\b)", r"pe_slu_ut\1",
                   "tb.v u_slc_ut")
     tb = sub_once(tb, r"\bpe_slu_loop(\s+u_slu_loop_ut\b)", r"pe_slu_loop_ut\1", "tb.v u_slu_loop_ut")
-    slu_ut = sub_once(slu, r"\bmodule pe_slu\b", "module pe_slu_ut", "pe_slu.v module name")
-    slu_ut = sub_once(slu_ut, r"\bpe_slu_loop(\s+u_loop\b)", r"pe_slu_loop_ut\1", "pe_slu.v loop instance")
-    loop_ut = sub_once(loop, r"\bmodule pe_slu_loop\b", "module pe_slu_loop_ut", "pe_slu_loop.v module name")
+    # Every module defined in the two files gets the suffix _ut in both copies (pe_slu_loop.v also defines
+    # pe_slu_loop_step), so the copies use only each other.
+    names = sorted(set(re.findall(r"^\s*module\s+(\w+)", slu + loop, re.M)), key=len, reverse=True)
+    if "pe_slu" not in names or "pe_slu_loop" not in names:
+        sys.exit("split.py: modules pe_slu and pe_slu_loop not found in src/")
+    word = re.compile(r"\b(%s)\b" % "|".join(names))
+    slu_ut = word.sub(r"\1_ut", slu)
+    loop_ut = word.sub(r"\1_ut", loop)
     if slu_ut.count("\n") != slu.count("\n") or loop_ut.count("\n") != loop.count("\n"):
         sys.exit("split.py: the renamed copies must keep every line number")
 

@@ -1162,17 +1162,18 @@ FW_UART_BYTES = [0x55, 0x00, 0xFF, 0xAA, 0x01, 0x80, 0x0F, 0xF0, 0x3C, 0xC3, 0x1
 async def test_core_fw_uart_tx(dut):
     """fw/uart_tx.s on the RTL: 12 back-to-back frames on UART_TX, decoded by the receiver of test/test.py.
 
-    The firmware runs on thread 0 and owns pin 12 (UO4 = uo_out[4]). The host
-    gives 4 bytes at once (the FIFO depth, 4 PUSH transactions), then one byte
-    every 4,160 cycles (a NOP of 4,026 cycles and a PUSH of 134 cycles; one
-    UART frame is 4,340 cycles), so the FIFO never becomes empty and the
-    frames are back to back. The run is also in lockstep with the model.
+    The firmware runs on thread 0 and owns pin 12 (UO4 = uo_out[4]), assembled with the bit time of the test clock
+    (test/test.py uart_tx_image: BIT = 521 cycles at 60 MHz). The host gives 4 bytes at once (the FIFO depth, 4 PUSH
+    transactions), then one byte every frame time - 180 cycles (a NOP and a PUSH of 134 cycles; one UART frame is
+    10 x BIT cycles), so the FIFO never becomes empty and never overflows, and the frames are back to back. The run
+    is also in lockstep with the model.
     """
     m1 = m1_test_module()
-    prog = pe_asm.assemble_file(os.path.join(ROOT, "fw", "uart_tx.s"))
+    prog, image = m1.uart_tx_image()
+    pace = 10 * m1.BIT_CYCLES - 180
     ops = [(CMD_PUSH, 0, b) for b in FW_UART_BYTES[:4]]
     for b in FW_UART_BYTES[4:]:
-        ops += [(CMD_NOP, 0, 4160 - 134), (CMD_PUSH, 0, b)]
+        ops += [(CMD_NOP, 0, pace - 134), (CMD_PUSH, 0, b)]
 
     def host(i):
         return ops[i] if i < len(ops) else (CMD_NOP, 0, 0)

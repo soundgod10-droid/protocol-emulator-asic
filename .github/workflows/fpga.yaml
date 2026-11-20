@@ -122,6 +122,59 @@ jobs:
             pnr_*.log
             fmax_*.txt
 
+  # C4 W5: Artix-7 35T (xc7a35tcsg324-1, as on the Arty A7-35T) with the openXC7 flow (Yosys synth_xilinx, nextpnr-xilinx
+  # with the Project X-Ray database), 5 seeds, the same fmax harness and gate. Timing comes from the X-Ray timing database,
+  # not from the vendor's sign-off.
+  xc7:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v6
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: experimental-features = nix-command flakes
+      - name: Synthesis and place and route, seeds 1 to 5
+        shell: bash
+        run: |
+          set +e
+          cat > xc7.sh <<'EOF'
+          echo "NEXTPNR_XILINX_DIR=$NEXTPNR_XILINX_DIR PRJXRAY_DB_DIR=$PRJXRAY_DB_DIR ARTIX7_CHIPDB=$ARTIX7_CHIPDB"
+          yosys -V
+          files="$(grep -v '^#' fpga/files.f | tr '\n' ' ') fpga/fpga_fmax_top.v"
+          yosys -q -l synth_xc7.log -p "read_verilog $files; synth_xilinx -flatten -abc9 -arch xc7 -top fpga_fmax_top; tee -o stat_xc7.txt stat; write_json fpga_xc7.json"
+          python3 fpga/clock_check.py fpga_xc7.json fpga_fmax_top clk | tee clock_xc7.txt
+          db="$ARTIX7_CHIPDB/xc7a35tcsg324.bin"
+          if [ ! -f "$db" ]; then
+            gen=$NEXTPNR_XILINX_DIR/share/nextpnr/himbaechel/uarch/xilinx/gen/xilinx_gen.py
+            python3 $gen --xray $PRJXRAY_DB_DIR/artix7 --device xc7a50t --bba xc7a35tcsg324.bba
+            bbasm -l xc7a35tcsg324.bba xc7a35tcsg324.bin
+            db=xc7a35tcsg324.bin
+          fi
+          echo "chip database: $db"
+          for s in 1 2 3 4 5; do
+            nextpnr-xilinx --chipdb $db --xdc fpga/arty_a7_fmax.xdc --json fpga_xc7.json --freq 63 --seed $s \
+              --timing-allow-fail --report rep_xc7a35t_1_$s.json -l pnr_xc7a35t_1_$s.log
+            echo "seed $s: nextpnr exit $?"
+            grep -E "Max frequency|ERROR" pnr_xc7a35t_1_$s.log | tail -n 3
+          done
+          EOF
+          nix develop github:openxc7/toolchain-nix --command bash xc7.sh
+          echo "::notice title=fpga clock xc7::$(tail -n 1 clock_xc7.txt)"
+          python3 fpga/fmax.py xc7a35t_1 63 rep_xc7a35t_1_1.json rep_xc7a35t_1_2.json rep_xc7a35t_1_3.json rep_xc7a35t_1_4.json rep_xc7a35t_1_5.json | tee fmax_xc7a35t_1.txt
+          echo "::notice title=fpga fmax xc7a35t_1::$(head -n 1 fmax_xc7a35t_1.txt)%0A$(tail -n +2 fmax_xc7a35t_1.txt | sed ':a;N;$!ba;s/\n/%0A/g')"
+          true
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: pnr-xc7a35t_1
+          path: |
+            stat_xc7.txt
+            clock_xc7.txt
+            synth_xc7.log
+            rep_*.json
+            pnr_*.log
+            fmax_*.txt
+
   # C4 W3: the RTL test suite with the FPGA file set (latch memory model of fpga/pe_latch_ram_fpga.v, no src/pe_cells.v).
   rtl_fpga_files:
     runs-on: ubuntu-24.04

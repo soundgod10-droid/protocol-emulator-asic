@@ -328,6 +328,7 @@ async def test_research_scope(dut):
     run(["iverilog", "-g2012", "-DVERILATOR_SPLIT_TRY", "-I", "src", "-o", "split.vvp", "-s", "tb"] + srcs +
         ["test/tb.v"], work)
     tbl = open(os.path.join(work, "test", "tb.v"), encoding="utf-8").read().splitlines()
+    out += unreach_gen(root)
     out += ["tb.v:%d: %s" % (i + 1, t.strip()[:100]) for i, t in enumerate(tbl)
             if "pe_slu_ut" in t or "pe_slu_loop_ut" in t or t.startswith("`line")]
     text = "\n".join(out)

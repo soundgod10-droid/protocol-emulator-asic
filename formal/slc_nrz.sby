@@ -4,7 +4,7 @@
 # Bounded from reset (depth 24: a TXTIME lead of 4 and 5 bits at TXPER 4).
 
 [options]
-mode bmc
+mode prove
 depth 24
 
 [engines]

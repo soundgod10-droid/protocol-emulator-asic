@@ -43,6 +43,14 @@ jobs:
           version: '2026-11-14'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Reference helper of commit f49819e (USB-only form, before the clocked and NRZ modes)
+        if: startsWith(matrix.job, 'slu_usb_equiv')
+        shell: bash
+        run: |
+          git fetch --depth=1 origin f49819eec57fa4057805b83b926421552a1a7eaa
+          git show FETCH_HEAD:src/pe_slu.v > formal/pe_slu_ref.v
+          sha256sum formal/pe_slu_ref.v
+
       - name: Run formal/${{ matrix.job }}.sby
         shell: bash
         run: |

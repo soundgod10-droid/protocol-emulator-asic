@@ -78,7 +78,11 @@ module slc_fv #(
   (* anyconst *) reg       f_fall;   // LTC[12]
   (* anyconst *) reg [1:0] f_ck;     // LTC[9:8], clock levels
   (* anyconst *) reg [4:0] f_len;    // TXCTRL[4:0], samples a frame (0 = 16)
+`ifndef SLC_TX
   always @* assume ((f_per >= 8'd2) && (f_per <= PMAX) && (f_din < 4'd13) && (f_len <= 5'd16));
+`else
+  always @* assume ((f_per <= PMAX) && (f_din < 4'd13));
+`endif
 
   // The register values (connected to u_slu.c_mode, c_txper, c_ltc, c_sel, tx_lastbits by the .sby): the
   // writable bits of SPEC 1 set as the thread writes them, every other bit at its USB value (F_MODE 03B9,

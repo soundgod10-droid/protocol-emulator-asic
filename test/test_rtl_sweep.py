@@ -112,7 +112,7 @@ def build_cases():
         for h1, h2 in ((6, 14), (8, 20), (10, 24), (16, 32), (20, 40), (24, 24)):
             add(f"jtag_{name[:-2]}_h{h1}_{h2}", "jtag", "IEEE 1149.1 TAP state diagram (TI SSYA002C Figure 3-3)",
                 f"{name} with H1 {h1}, H2 {h2}: IDCODEs after reset, IR scan, DR scan, read-back; TAP models check "
-                f"set-up, hold and TCK times", name=name, h1=h1, h2=h2)
+                f"set-up, hold and TCK times", fw=name, h1=h1, h2=h2)
     # CAN: the asserted rates and sample points of test_flex_can, each part with a node at +/-0.5 % and 10 cycles of
     # transceiver loop delay (the three points of test_rtl_can are left out)
     can_done = {(250_000, "tx", 5000), (250_000, "rx", -5000), (250_000, "arb", 5000)}

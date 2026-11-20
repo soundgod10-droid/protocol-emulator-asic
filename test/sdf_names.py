@@ -47,8 +47,12 @@ def main(netlist, sdf, macro_vh=None, scale=1.0):
         f.write(text)
 
     lines, block, depth, n_cell, n_wire, n_macro = [], None, 0, 0, 0, 0
+    unit_ns, delays = 1.0, {}
     with open(sdf) as f:
         for line in f:
+            ts = re.search(r"\(TIMESCALE\s+([\d.]+)\s*(ps|ns|us)\s*\)", line)
+            if ts:
+                unit_ns = float(ts.group(1)) * UNIT_NS[ts.group(2)]
             if "(INTERCONNECT " in line:
                 n_wire += 1
                 continue

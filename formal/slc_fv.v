@@ -274,7 +274,8 @@ module slc_fv #(
 
   always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
-      st_q <= 4'd0; lead_q <= 1'b0; oe_q <= 1'b0; on_q <= 1'b0; v0_q <= 1'b0; r_q <= 1'b0; ph <= 9'd0;
+      st_q <= 4'd0; lead_q <= 1'b0; oe_q <= 1'b0; on_q <= 1'b0; v0_q <= 1'b0; r_q <= 1'b0; r_q2 <= 1'b0;
+      ph <= 9'd0;
       m_q <= 15'd0; m_due <= 1'b0; m_sv <= 1'b0; m_fa <= 1'b0; m_eop <= 1'b0; m_n <= 4'd0; m_w <= 16'd0;
     end else begin
       st_q   <= mon_txst_w;

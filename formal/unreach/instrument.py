@@ -487,11 +487,11 @@ def main():
         os.makedirs(out, exist_ok=True)
         srcs = {f: Source(t) for f, t in files.items()}
         edits = {f: Edits(s, hit) for f, s in srcs.items()}
-        report, module_level = [], []
+        report, flags = [], {f: [] for f in files}
         for n, (pid, f, line, col, kind, comment, cond) in enumerate(spec["points"]):
             label = "pt_%d" % n
             try:
-                how = place(srcs[f], edits[f], kind, comment, line, col, cond, label, module_level)
+                how = place(srcs[f], edits[f], kind, comment, line, col, cond, label, flags[f])
             except (ValueError, AssertionError, IndexError) as e:
                 errors.append("%s %s: %s" % (job, pid, e))
                 continue

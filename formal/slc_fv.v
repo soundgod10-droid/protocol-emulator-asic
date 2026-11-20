@@ -152,8 +152,10 @@ module slc_fv #(
 
   always @* begin
     if (rst_n) begin
-      // R1
+      // R1 (SLC_NO_R1 leaves it out, to show what R2 to R4 see when a start comes early)
+`ifndef SLC_NO_R1
       assert (mon_sop == start);
+`endif
       // R2
       assert (mon_rdv == m_due);
       if (m_due) assert (mon_rd == m_sv);

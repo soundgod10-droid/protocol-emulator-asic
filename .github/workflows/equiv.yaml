@@ -71,7 +71,8 @@ jobs:
         run: |
           set -o pipefail
           v=$PDK_ROOT/$PDK/libs.ref/sg13cmos5l_stdcell/verilog/sg13cmos5l_stdcell.v
-          iverilog -g2012 -DFUNCTIONAL -o cells_tb rtl/src/pe_cells.v equiv/cells_tb.v "$v"
+          # the cell library first: the `default_nettype none of the project files would apply to it otherwise
+          iverilog -g2012 -DFUNCTIONAL -o cells_tb "$v" rtl/src/pe_cells.v equiv/cells_tb.v
           vvp -n cells_tb | tee cells_tb.log
           echo "::notice title=cell models::$(grep '^cells_tb' cells_tb.log | sed ':a;N;$!ba;s/\n/%0A/g')"
           grep -q "cells_tb: PASS" cells_tb.log

@@ -1,0 +1,6 @@
+point,cond,reason
+eth:pe_slu.v:210:11:line:case,(c_ltc[5:4] == 2'd1) || (c_ltc[7:6] == 2'd1),case item 2'd1 of the function cond_hold; its only calls are ca_hold = cond_hold(c_ltc[5:4] ...) and cb_hold = cond_hold(c_ltc[7:6] ...)
+eth:pe_slu.v:211:11:line:case,(c_ltc[5:4] == 2'd2) || (c_ltc[7:6] == 2'd2),case item 2'd2 of cond_hold; calls as above
+eth:pe_slu.v:212:7:line:case,(c_ltc[5:4] == 2'd3) || (c_ltc[7:6] == 2'd3),default item of cond_hold (c = 3); calls as above
+usb:pe_slu.v:211:11:line:case,(c_ltc[5:4] == 2'd2) || (c_ltc[7:6] == 2'd2),case item 2'd2 of cond_hold; calls as above
+usb:pe_slu.v:212:7:line:case,(c_ltc[5:4] == 2'd3) || (c_ltc[7:6] == 2'd3),default item of cond_hold (c = 3); calls as above

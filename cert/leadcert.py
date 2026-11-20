@@ -379,9 +379,12 @@ def step(prog, pc, st, res, assume, bugs):
         off = f["off"]
         lead = s.L + off
         record(res, pc, lead, bugs)
+        if "sample_no_wait" in bugs:        # planted bug: SAMPLE taken to complete in its slot
+            s.r[f["reg"]] = None
+            return cont(s)
         s.advance(Iv(max(0, lead.lo + 1), lead.hi + 4) if lead.lo > -INF else Iv(0, INF))
-        if "sample_no_wait" in bugs:
-            s.L = s.L
+        if LEAD_MIN <= lead.lo and lead.hi <= LEAD_MAX:
+            s.L = Iv(-off - 4, -off - 1)    # completes in the first slot after its time T + off
         s.r[f["reg"]] = None
         return cont(s)
     if form == "WAIT":

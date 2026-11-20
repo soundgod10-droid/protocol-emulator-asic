@@ -654,6 +654,27 @@ async def test_research_ff_wp14(dut):
 
 
 @cocotb.test(skip=GL)
+async def test_research_cert(dut):
+    """cert/leadcert.py over fw/*.s and cert/selfcheck.py (500 random programs) of lane2-cert, in a worktree."""
+    import subprocess
+    import sys
+    root = os.path.dirname(HERE)
+    wt = os.path.join(os.path.dirname(root), "pe-lane2-certwt")
+    out = []
+    subprocess.run(["git", "worktree", "remove", "--force", wt], cwd=root, capture_output=True)
+    subprocess.run(["git", "worktree", "prune"], cwd=root, capture_output=True)
+    r = subprocess.run(["git", "worktree", "add", "--detach", wt, "lane2-cert"], cwd=root, capture_output=True, text=True)
+    out.append("worktree -> %d %s" % (r.returncode, (r.stdout + r.stderr)[-200:]))
+    for args in (["cert/leadcert.py", "--json", "cert_results.json"], ["cert/selfcheck.py", "--programs", "500"]):
+        p = subprocess.run([sys.executable, "-I"] + args, cwd=wt, capture_output=True, text=True, timeout=1500)
+        out.append("$ %s -> %d\n%s%s" % (" ".join(args), p.returncode, p.stdout[-8000:], p.stderr[-3000:]))
+    subprocess.run(["git", "worktree", "remove", "--force", wt], cwd=root, capture_output=True)
+    text = "\n".join(out)
+    open(os.path.join(root, "build", "cert_try.txt"), "w", encoding="utf-8").write(text + "\n")
+    dut._log.info(text[-6000:])
+
+
+@cocotb.test(skip=GL)
 async def test_research_triage(dut):
     """Reached / not reached per point from the triage cover logs; candidate exclusion rows for the rest."""
     import csv

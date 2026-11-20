@@ -1,0 +1,44 @@
+# slc_tx: the USB helper copy of the chip (pe_slu SPEC 1, FULL 0) in its clocked and NRZ modes with frames started
+# at TXTIME (SPI controller, JTAG, SWD clock, UART transmit; docs/helpers.md section 6) against formal/slc_fv.v
+# T1 to T7 (SLC_TX): clock shape and bit period for every CPOL/CPHA, data changes only at bit starts, first symbol
+# at TXTIME, idle and tail levels, one DIN sample per bit at the set delay, word and partial-word push, RXEOP.
+# TXPER 1 to 4 (30 to 7.5 MHz clocked, 60 to 15 Mbaud NRZ), every sample delay, DIN pin and sample copy; words,
+# TXTIME, TXCTRL (while idle), STATUS and EVMASK writes free; pins free in every cycle. The configuration
+# registers are connected to the wrapper's constants after flattening, so the RTL stays unchanged.
+
+[options]
+mode prove
+depth 20
+
+[engines]
+smtbmc z3
+
+[script]
+read -formal -D SLC_TX pe_slu_loop.v pe_slu.v slc_fv.v
+prep -top slc_fv
+flatten
+cd slc_fv
+connect -set \u_slu.din_f1 din_f1_free
+connect -set \u_slu.c_mode k_mode
+connect -set \u_slu.c_txper k_txper
+connect -set \u_slu.c_ltc k_ltc
+connect -set \u_slu.c_sel k_sel
+connect -set mon_txst_w \u_slu.tx_st
+connect -set mon_x0 \u_slu.x0
+connect -set mon_x1 \u_slu.x1
+connect -set mon_rdv \u_slu.r_data_v
+connect -set mon_rd \u_slu.r_data
+connect -set mon_push \u_slu.rx_push
+connect -set mon_pushw \u_slu.rx_push_w
+connect -set mon_sticky \u_slu.sticky
+connect -set mon_lead \u_slu.tx_lead
+connect -set mon_time \u_slu.tx_time
+opt_clean
+cd ..
+# The job stops with an error if a property was removed: 12 asserts and 4 assumes of slc_fv.v (SLC_TX).
+select -assert-min 16 t:$check t:$assert t:$assume
+
+[files]
+../src/pe_slu_loop.v
+../src/pe_slu.v
+slc_fv.v

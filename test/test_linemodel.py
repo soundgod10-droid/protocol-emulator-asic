@@ -465,6 +465,31 @@ async def test_research_toggle_rows(dut):
 
 
 @cocotb.test(skip=GL)
+async def test_research_sweep_model(dut):
+    """test/test_rtl_sweep.py of lane2-cov: --list and --model in a worktree (each sweep case on the model alone)."""
+    import subprocess
+    import sys
+    root = os.path.dirname(HERE)
+    wt = os.path.join(os.path.dirname(root), "pe-lane2-covwt")
+    out = []
+
+    def g(*a):
+        r = subprocess.run(["git"] + list(a), cwd=root, capture_output=True, text=True)
+        out.append("$ git %s -> %d %s%s" % (" ".join(a), r.returncode, r.stdout[-300:], r.stderr[-300:]))
+    g("worktree", "remove", "--force", wt)
+    g("worktree", "prune")
+    g("worktree", "add", "--detach", wt, "lane2-cov")
+    for arg in ("--list", "--model"):
+        p = subprocess.run([sys.executable, "-I", "test/test_rtl_sweep.py", arg], cwd=wt, capture_output=True, text=True,
+                           timeout=3000)
+        out.append("$ test_rtl_sweep.py %s -> %d\n%s%s" % (arg, p.returncode, p.stdout[-12000:], p.stderr[-3000:]))
+    g("worktree", "remove", "--force", wt)
+    text = "\n".join(out)
+    open(os.path.join(root, "build", "sweep_model.txt"), "w", encoding="utf-8").write(text + "\n")
+    dut._log.info(text[-6000:])
+
+
+@cocotb.test(skip=GL)
 async def test_research_triage(dut):
     """Reached / not reached per point from the triage cover logs; candidate exclusion rows for the rest."""
     import csv

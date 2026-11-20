@@ -59,7 +59,8 @@ import pe_asm  # noqa: E402
 import pe_model  # noqa: E402
 import fcov  # noqa: E402  (functional coverage, FCOV=1 only)
 
-CLK_NS = 20  # 50 MHz (info.yaml clock_hz)
+CLK_PS = int(os.environ.get("CLK_PS", "16666"))  # clock period: 60 MHz (info.yaml clock_hz) unless CLK_PS is set
+CLK_NS = CLK_PS / 1000
 CMD_NOP, CMD_PUSH, CMD_POP = 0, 4, 5  # host operations of a scenario after START
 SCK_PERIOD = 4  # clock cycles for each SCK period in the lockstep tests (2 low, 2 high)
 LOAD_WORDS = 128  # memory words that the host loads for a scenario (addresses 0 to 127)

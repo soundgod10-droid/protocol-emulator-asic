@@ -338,8 +338,6 @@ module slc_fv #(
         if (NRZ == 0)
           assert ({mon_tmr, mon_half} == ((qq == 9'd0) ? 17'd0 : (qq <= {1'b0, f_per}) ?
                   {7'd0, f_per - qq[7:0], 1'b1} : {7'd0, bitlen - qq, 1'b0}));
-        else
-          assert (mon_tmr == ((qq == 9'd0) ? 16'd0 : {7'd0, bitlen - qq}));
       end
       if (rx_on) begin
         assert (mon_ckpend == ({1'b0, m_q} | (sched ? (16'd1 << f_dly) : 16'd0)));

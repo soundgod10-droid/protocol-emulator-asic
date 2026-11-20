@@ -7,8 +7,10 @@
 # registers are connected to the wrapper's constants after flattening, so the RTL stays unchanged.
 
 [options]
-mode prove
-depth 20
+# Bounded from reset: the base case passes but the induction step fails from unreachable states even with the
+# invariants of slc_fv.v; 36 cycles hold a full 16-bit word and a partial word at TXPER 1 after a TXTIME lead of 4.
+mode bmc
+depth 36
 
 [engines]
 smtbmc z3

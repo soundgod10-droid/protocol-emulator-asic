@@ -53,6 +53,8 @@ class Iv(tuple):
 
     def __new__(cls, lo, hi=None):
         hi = lo if hi is None else hi
+        if lo > hi:
+            raise ValueError("empty interval [%s, %s]" % (lo, hi))
         return tuple.__new__(cls, (max(-INF, min(INF, lo)), max(-INF, min(INF, hi))))
 
     lo = property(lambda s: s[0])

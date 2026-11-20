@@ -237,7 +237,7 @@ async def start_chip(dut):
     dut.ui_in.value = 1 << hs.CS_N_BIT
     dut.uio_in.value = 0
     dut.rst_n.value = 0
-    cocotb.start_soon(Clock(dut.clk, CLK_NS, unit="ns").start())
+    cocotb.start_soon(Clock(dut.clk, CLK_PS, unit="ps").start())
     await ClockCycles(dut.clk, 5)
     await FallingEdge(dut.clk)
     dut.rst_n.value = 1

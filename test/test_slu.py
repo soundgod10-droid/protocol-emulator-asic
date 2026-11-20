@@ -1904,70 +1904,21 @@ async def test_slu_chip_eth_events(dut):
                   "event input 14 and pushed status %04x" % (len(exp), words_out[0]))
 
 
-SPI_CLK_FW = """
-        .equ    E, 16           ; USB helper ports 16-31
-        .equ    CS, 2           ; uio2: /CS, a thread pin
-t0:     TNOW    8
-        OUT     CS, 1
-        LDI     r0, 0
-        IOW     r0, E+12        ; CFGADR 0
-        LDI     r0, 0x00B
-        IOW     r0, E+13        ; MODE: clocked code, RX on
-        LDI     r0, 2
-        IOW     r0, E+13        ; TXPER 2: 4 cycles a bit (15 MHz at 60 MHz)
-        LDI     r0, 8
-        IOW     r0, E+12
-        LDI     r0, 0x17F
-        SHL     r0, 6
-        ORI     r0, 0x38
-        IOW     r0, E+13        ; SEL 0x5FF8: DIN = input 8 (ui_in[0]), sample delay 5
-        LDI     r0, 18
-        IOW     r0, E+12
-        LDI     r0, 0
-        IOW     r0, E+13        ; LTC: clock idle low, data at the trailing edge (SPI mode 0)
-        LDI     r2, 512         ; frame: bit count N at 512, then the words (first bit in bit 0)
-        LDX     r3, [r2]
-        MOV     r0, r3
-        ANDI    r0, 15
-        IOW     r0, E+4         ; TXCTRL: bits in the last word
-        ADDI    r3, 15
-        SHR     r3, 4           ; words
-        ADDI    r2, 1
-        TNOW    40
-        OUT     CS, 0           ; /CS low at T
-        TGET    r0
-        ADDI    r0, 100
-        IOW     r0, E+5         ; TXTIME = T + 100: the loop fills the TX buffer first
-tx:     IOR     r0, E+0         ; TX buffer free words
-        CMPI    r0, 0
-        BEQ     tx
-        LDX     r0, [r2]
-        ADDI    r2, 1
-        CMPI    r3, 1
-        BEQ     last
-        IOW     r0, E+0         ; TXDATA
-        ADDI    r3, -1
-        JMP     tx
-last:   IOW     r0, E+14        ; TXLAST
-done:   IOR     r1, E+2         ; STATUS: RXEOP
-        ANDI    r1, 0x20
-        BEQ     done
-        TNOW    20
-        OUT     CS, 1
-        IOR     r1, E+2
-        PUSH    r1
-        HALT
-        .org    120
-t1:     LDI     r1, 768         ; thread 1 (starts at 120): received words to the data memory from 768
-rx:     IOR     r0, E+6         ; RXINFO [6:5]: words in the RX buffer
-        ANDI    r0, 0x60
-        BEQ     rx
-        IOR     r0, E+1         ; RXDATA (pop)
-        STX     r0, [r1]
-        ADDI    r1, 1
-        ST      r1, 500         ; next free address, for the host
-        JMP     rx
-"""
+# The helper firmware of the chip tests below is the example code of fw/helper/ (C2-4), with its host calls
+# (fw/helper/host_calls.py): the tests run exactly those files, at RTL and at gate level.
+HELPER_FW_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "fw", "helper")
+if HELPER_FW_DIR not in sys.path:
+    sys.path.insert(0, HELPER_FW_DIR)
+import host_calls as hc  # noqa: E402
+
+
+def helper_fw(name):
+    """Source text of an example program of fw/helper/."""
+    with open(os.path.join(HELPER_FW_DIR, name), encoding="utf-8") as f:
+        return f.read()
+
+
+SPI_CLK_FW = helper_fw("spi_flash.s")
 
 
 class ChipSpiPins:

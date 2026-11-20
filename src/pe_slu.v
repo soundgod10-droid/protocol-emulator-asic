@@ -838,7 +838,7 @@ module pe_slu #(
       end
 
       // ---------------- status ----------------
-      if (rx_sop) begin
+      if (rx_sop || ck_estart) begin
         sticky[4] <= 1'b1;
         if (m_tsel == 2'd1) tstamp <= now;
       end

@@ -11,6 +11,7 @@ check of the stimulus (the margin study is a separate test).
 
 import os
 import random
+import sys
 
 import cocotb
 from cocotb.clock import Clock

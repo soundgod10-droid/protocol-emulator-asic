@@ -365,6 +365,33 @@ async def test_research_triage(dut):
 
 
 @cocotb.test(skip=GL)
+async def test_research_toggle(dut):
+    """Group the chip toggle holes (build/toggle_split.txt) by copy and signal."""
+    import re
+    from collections import Counter, defaultdict
+    root = os.path.dirname(HERE)
+    grp = Counter()
+    dirs = defaultdict(set)
+    per_copy = Counter()
+    for ln in open(os.path.join(root, "build", "toggle_split.txt"), encoding="utf-8"):
+        ln = ln.strip()
+        if not ln:
+            continue
+        parts = ln.split(":")
+        copy, f, sig = parts[0], parts[1], ":".join(parts[5:-1])
+        base = re.sub(r"\[\d+\]$", "", sig)
+        m = re.search(r"\[(\d+)\]$", sig)
+        grp[(copy, f, base)] += 1
+        dirs[(copy, f, base)].add((m.group(1) if m else "-") + parts[-1])
+        per_copy[copy] += 1
+    out = ["copies %s" % dict(per_copy), "groups %d" % len(grp)]
+    for k, n in sorted(grp.items(), key=lambda kv: (-kv[1], kv[0])):
+        out.append("%5d %s %s %s" % (n, k[0], k[1], k[2]))
+    open(os.path.join(root, "build", "toggle_groups.txt"), "w", encoding="utf-8").write("\n".join(out) + "\n")
+    dut._log.info("\n".join(out[:70]))
+
+
+@cocotb.test(skip=GL)
 async def test_research_unreach(dut):
     root = os.path.dirname(HERE)
     text = "\n".join(unreach_gen(root))

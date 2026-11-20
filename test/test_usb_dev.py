@@ -45,6 +45,7 @@ CHIP_CLK_PS = 16666                       # 60 MHz
 PIN_HDRV = 1 << 4
 RESET_PS, RECOVERY_PS = 20e6, 100e6       # simulation speed, see the module text
 LEVEL_PINS = {"J": (0, 1), "K": (1, 0), "SE0": (0, 0), "SE1": (1, 1)}   # (VP, VM)
+TLST_PS = 210_000                         # USB 2.0 Table 7-10: SE0 in a low-speed differential transition, max
 EV_RESET, EV_SUSPEND, EV_RESUME, EV_CONFIG, EV_LED, EV_EP1, EV_ADDR = 1, 2, 3, 4, 5, 6, 7
 
 

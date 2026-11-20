@@ -78,7 +78,8 @@ jobs:
       fail-fast: false
       matrix:
         # iCE40UP5K: synthesis only; it does not fit (8,014 of 5,280 logic cells, run 44768229505)
-        target: [ecp5_25k_6, ecp5_25k_8, ecp5r_25k_8, gw2a_18c, gw5a_25a]
+        # W5: ecp5n_25k_8 adds the timing-driven router rip-up; nexus40_9 is the LIFCL-40 at speed grade 9
+        target: [ecp5_25k_6, ecp5_25k_8, ecp5r_25k_8, ecp5n_25k_8, nexus40_9, gw2a_18c, gw5a_25a]
     steps:
       - uses: actions/checkout@v6
       - name: OSS CAD Suite

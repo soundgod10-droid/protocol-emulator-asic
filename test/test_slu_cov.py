@@ -487,17 +487,18 @@ async def test_slu_cov_usb_clocked_states(dut):
     """USB helper in the chip, clocked mode receive states (docs/helpers.md section 6): RX off moves the receive state to
     0 (off); RX on in the clocked code moves it from 0 straight to 2 (data, no start pattern); RX off in state 2 moves it
     back to 0. Then an edge-started frame (LTC[10]) with TXPER 1 and the falling-edge DIN copy (LTC[12]): a DIN falling
-    edge on ui_in[0] starts a frame of 8 bits, which ends with RXEOP and one word of 8 bits."""
+    edge on uio_in[0] starts a frame of 8 bits, which ends with RXEOP and one word of 8 bits."""
     prog = pe_asm.assemble(USB_RXSTATE_FW, "usb_rxstate")
     host = await ts.chip_start(dut, prog, [], [0] * 15)
-    dut.ui_in.value = (1 << hs.CS_N_BIT) | 1                       # DIN idle high
+    dut.uio_in.value = 1                                           # DIN idle high (uio0 is an input)
     await host.start()
     l_off, l_on, l_off2, _ready = await pull_words(dut, host, 4)
     await ClockCycles(dut.clk, 20)
     await FallingEdge(dut.clk)
-    dut.ui_in.value = 1 << hs.CS_N_BIT                             # the start edge, then DIN low for the frame
+    dut.uio_in.value = 0                                           # the start edge, then DIN low for the frame
     await ClockCycles(dut.clk, 40)
-    dut.ui_in.value = (1 << hs.CS_N_BIT) | 1
+    dut.uio_in.value = 1
+    await ClockCycles(dut.clk, 200)
     info, word = await pull_words(dut, host, 2)
     dut._log.info("RX state after RX off %d, after clocked RX on %d, after RX off in data %d; edge-started frame: "
                   "RXINFO %04x, word %04x" % ((l_off >> 4) & 15, (l_on >> 4) & 15, (l_off2 >> 4) & 15, info, word))

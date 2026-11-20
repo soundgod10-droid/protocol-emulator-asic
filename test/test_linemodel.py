@@ -354,6 +354,57 @@ async def test_research_consts(dut):
 
 
 @cocotb.test(skip=GL)
+async def test_research_consts2(dut):
+    """consts.py of lane2-cov (reset values as initial values, Yosys run directly): gen, triage of the chip toggle
+    holes, check of the candidate rows; the toggle holes that stay, grouped by signal."""
+    import shutil
+    import subprocess
+    import sys
+    from collections import Counter
+    import csv as _csv
+    root = os.path.dirname(HERE)
+    work = os.path.join(root, "build", "unreach_try")
+    shutil.rmtree(work, ignore_errors=True)
+    r = subprocess.run(["git", "ls-tree", "-r", "--name-only", "lane2-cov", "src/", "formal/unreach/", "coverage/"],
+                       cwd=root, capture_output=True, text=True)
+    for path in r.stdout.split():
+        dst = os.path.join(work, path)
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        with open(dst, "wb") as fh:
+            fh.write(subprocess.run(["git", "show", "lane2-cov:" + path], cwd=root, capture_output=True).stdout)
+    yosys = r"C:\Users\ssher\chip-tools\venv\Scripts\yowasp-yosys.exe"
+    out = []
+    cand = os.path.join(root, "build", "toggle_candidates.csv")
+    for args in (["gen", "--yosys", yosys],
+                 ["triage", "--toggle-holes", os.path.join(root, "build", "toggle_split.txt"), "--csv", cand],
+                 ["check", "--exclusions", cand, "--results", os.path.join(root, "build", "yconst_results.json")]):
+        p = subprocess.run([sys.executable, "-I", "formal/unreach/consts.py"] + args, cwd=work, capture_output=True,
+                           text=True)
+        out.append("$ consts.py %s -> %d\n%s%s" % (args[0], p.returncode, p.stdout[-3000:], p.stderr[-3000:]))
+    for job in ("yconst_usb", "yconst_eth"):
+        for f in ("prep.log", "simplify.log"):
+            path = os.path.join(work, "formal", "unreach", "build", job, f)
+            if os.path.isfile(path):
+                t = open(path, encoding="utf-8", errors="replace").read()
+                out.append("%s/%s: %d chars; tail: %s" % (job, f, len(t), t[-600:]))
+    if os.path.isfile(cand):
+        rows = {r["point"] for r in _csv.DictReader(open(cand, encoding="utf-8"))}
+        per, rest = Counter(), Counter()
+        for ln in open(os.path.join(root, "build", "toggle_split.txt"), encoding="utf-8"):
+            pid = ln.strip()
+            if pid:
+                parts = pid.split(":")
+                (per if pid in rows else rest)[(parts[0], parts[5].split("[")[0])] += 1
+        out.append("constant: %d in %d signals; not constant: %d in %d signals" % (
+            sum(per.values()), len(per), sum(rest.values()), len(rest)))
+        out += ["const %5d %s %s" % (n, k[0], k[1]) for k, n in per.most_common(40)]
+        out += ["rest  %5d %s %s" % (n, k[0], k[1]) for k, n in rest.most_common(60)]
+    text = "\n".join(out)
+    open(os.path.join(root, "build", "consts_try2.txt"), "w", encoding="utf-8").write(text + "\n")
+    dut._log.info(text[-9000:])
+
+
+@cocotb.test(skip=GL)
 async def test_research_triage(dut):
     """Reached / not reached per point from the triage cover logs; candidate exclusion rows for the rest."""
     import csv

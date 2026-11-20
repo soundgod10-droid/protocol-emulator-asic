@@ -209,5 +209,122 @@ module slc_fv #(
     cover (rst_n && start && (m_q != 15'd0) && (m_q != (m_q & -m_q)));   // two or more samples on their way
   end
 `endif
+`else
+  // ---------------------------------------------------------------------------------------------------
+  // SLC_TX: frames started at TXTIME (docs/helpers.md section 6)
+  //   T1  Clocked: while a frame's bits are on the outputs, each bit lasts 2 * TXPER cycles; the clock output
+  //       (TXB, tx_v[1]) is CPOL ^ CPHA for the first TXPER cycles of a bit and CPOL ^ ~CPHA for the second
+  //       TXPER (LTC[8] = CPOL, LTC[9] = CPHA: data out with the leading edge).
+  //   T2  The data output (TXA, tx_v[0]) changes only at the start of a bit (clocked: every 2 * TXPER cycles;
+  //       NRZ: every TXPER cycles), counted from the frame's first symbol.
+  //   T3  A frame's first symbol is on the outputs in the cycle with now = TXTIME (pad one cycle later).
+  //   T4  Idle levels (no frame, OE 0): clocked: clock at CPOL, data 0; NRZ: line 1 (TXB = not TXA).
+  //   T5  After the last bit (tail): clocked: clock at CPOL, OE still 1.
+  //   T6  Clocked with receive on: one DIN sample per bit, taken D cycles after the cycle before the sampling
+  //       clock edge (the second edge of the bit) reaches the outputs, i.e. D - 4 cycles after that edge leaves
+  //       the pad when the pin flip-flop and the two synchronizer stages are counted (D = SEL[15:12]); delivered
+  //       in the next cycle as a data bit, and no data bit at any other time.
+  //   T7  Every 16 delivered bits push one word (first bit in bit 0); at the frame end (all samples in, the
+  //       transmitter past its last bit) a partial last word is pushed with its n bits in bits n-1:0, and RXEOP
+  //       is set (partial-word push).
+  // ---------------------------------------------------------------------------------------------------
+  (* keep *) wire        mon_x0;      // x0
+  (* keep *) wire        mon_x1;      // x1
+  (* keep *) wire        mon_rdv;     // r_data_v
+  (* keep *) wire        mon_rd;      // r_data
+  (* keep *) wire        mon_push;    // rx_push
+  (* keep *) wire [15:0] mon_pushw;   // rx_push_w
+  (* keep *) wire [15:0] mon_sticky;  // sticky
+  (* keep *) wire        mon_lead;    // tx_lead
+  (* keep *) wire [15:0] mon_time;    // tx_time
+
+  wire        cpol   = f_ck[0];
+  wire        cpha   = f_ck[1];
+  wire        smp    = f_fall ? mon_x0 : mon_x1;
+  wire [8:0]  bitlen = f_nrz ? {1'b0, f_per} : {f_per, 1'b0};
+  reg  [3:0]  st_q;                 // tx_st one cycle earlier: the state the registered outputs show now
+  reg         lead_q, oe_q, on_q, v0_q, r_q;
+  reg  [8:0]  ph;                   // position in the bit for the next cycle
+  wire        on     = (st_q == 4'd2) && !lead_q;
+  wire        first  = on && !on_q;
+  wire [8:0]  ph_cur = first ? 9'd0 : ph;
+
+  // receive monitor
+  reg  [14:0] m_q;                  // a sample is taken in i cycles
+  reg         m_due, m_sv, m_fa, m_eop;
+  reg  [3:0]  m_n;                  // bits delivered since the last pushed word
+  reg  [15:0] m_w;                  // delivered bits, newest in bit 15
+  wire        rx_on  = !f_nrz && f_rx;
+  wire        sched  = rx_on && on && (ph_cur == {1'b0, f_per} - 9'd1);
+  wire        take   = m_q[0] || (sched && (f_dly == 4'd0));
+  wire [15:0] w_new  = {m_sv, m_w[15:1]};
+  wire        fend   = rx_on && m_fa && (mon_txst_w != 4'd2) && (mon_txst_w != 4'd1) && (m_q == 15'd0) && !m_due;
+
+  always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+      st_q <= 4'd0; lead_q <= 1'b0; oe_q <= 1'b0; on_q <= 1'b0; v0_q <= 1'b0; r_q <= 1'b0; ph <= 9'd0;
+      m_q <= 15'd0; m_due <= 1'b0; m_sv <= 1'b0; m_fa <= 1'b0; m_eop <= 1'b0; m_n <= 4'd0; m_w <= 16'd0;
+    end else begin
+      st_q   <= mon_txst_w;
+      lead_q <= mon_lead;
+      oe_q   <= tx_oe;
+      on_q   <= on;
+      v0_q   <= tx_v[0];
+      r_q    <= 1'b1;
+      ph     <= (ph_cur + 9'd1 == bitlen) ? 9'd0 : ph_cur + 9'd1;
+      m_q    <= {1'b0, m_q[14:1]};
+      if (sched && (f_dly != 4'd0)) m_q[f_dly - 4'd1] <= 1'b1;
+      m_due  <= take;
+      if (take) m_sv <= smp;
+      if (m_due) begin
+        m_w <= w_new;
+        m_n <= m_n + 4'd1;
+      end
+      m_eop <= fend;
+      if (first) begin
+        m_fa <= 1'b1;
+        m_n  <= 4'd0;
+      end
+      if (fend) begin
+        m_fa <= 1'b0;
+        m_n  <= 4'd0;
+      end
+    end
+  end
+
+  always @* begin
+    if (rst_n) begin
+      if (!f_nrz) begin
+        // T1
+        if (on) assert (tx_v[1] == ((ph_cur < {1'b0, f_per}) ? (cpol ^ cpha) : (cpol ^ ~cpha)));
+        // T5
+        if (st_q == 4'd4) assert ((tx_v[1] == cpol) && tx_oe);
+      end else begin
+        if (r_q) assert (tx_v[1] == ~tx_v[0]);
+      end
+      // T2
+      if (on && on_q && (ph_cur != 9'd0)) assert (tx_v[0] == v0_q);
+      // T3
+      if (first) assert (now == mon_time);
+      // T4
+      if (r_q && !tx_oe) assert (tx_v[1:0] == (f_nrz ? 2'b11 : {cpol, 1'b0}));
+      // T6
+      assert (mon_rdv == m_due);
+      if (m_due) assert (mon_rd == m_sv);
+      // T7
+      assert (mon_push == ((m_due && (m_n == 4'd15)) || (fend && (m_n != 4'd0))));
+      if (m_due && (m_n == 4'd15)) assert (mon_pushw == w_new);
+      if (fend && (m_n != 4'd0)) assert (mon_pushw == (m_w >> (5'd16 - {1'b0, m_n})));
+      if (m_eop) assert (mon_sticky[5]);
+    end
+  end
+
+`ifdef SLC_COVER
+  always @* begin
+    cover (rst_n && rx_on && fend && (m_n == 4'd3));               // a frame of 3 bits ends with a partial word
+    cover (rst_n && !f_nrz && on && (ph_cur == {1'b0, f_per}));     // a sampling edge on the clock output
+  end
+`endif
+`endif
 
 endmodule

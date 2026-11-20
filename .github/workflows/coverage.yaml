@@ -51,6 +51,10 @@ jobs:
         shell: bash
         run: pip install -r test/requirements.txt
 
+      - name: Keep the unit-test copies of the line helper apart (this job's checkout only)
+        shell: bash
+        run: python coverage/split.py .
+
       - name: Run tests with coverage
         id: tests
         continue-on-error: true

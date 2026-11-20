@@ -303,7 +303,7 @@ class RtlBench:
                         ch.append((c, v))
             else:
                 ui = uin = 0
-                exp = RESET_PINS
+                exp = self.load_pins(t)
             ui_v = (sck << hs.SCK_BIT) | (cs_n << hs.CS_N_BIT) | (mosi << hs.MOSI_BIT) | (ui & 0x1F)
             if ui_v != last_ui:
                 ui_h.value = last_ui = ui_v
@@ -316,6 +316,10 @@ class RtlBench:
                     f"model {exp[0]:07b} {exp[1]:08b} {exp[2]:08b} (model PCs {[th.pc for th in m.threads]})")
             self.stats["compared"] += 1
             self.t = t + 1
+
+    def load_pins(self, t):
+        """Chip pins expected in load cycle t (before model cycle 0): the reset levels (isa 2.4)."""
+        return RESET_PINS
 
     def diag(self):
         """State for a fault message: model cycle, PCs, FIFOs, the last status the host read, the host queues."""

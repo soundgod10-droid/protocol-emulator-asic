@@ -307,10 +307,13 @@ class Edits:
     def __init__(self, src, hit):
         self.src = src
         self.hit = hit
-        self.ins = []          # (offset, sequence, text)
+        self.pairs = []        # (start offset, end offset, open text, close text, tail after the close, sequence)
+
+    def pair(self, start, end, open_text, close_text, tail=""):
+        self.pairs.append((start, end, open_text, close_text, tail, len(self.pairs)))
 
     def add(self, off, text):
-        self.ins.append((off, len(self.ins), text))
+        self.pair(off, off, text, "")
 
     def open_branch(self, rng, label):
         a, b = rng

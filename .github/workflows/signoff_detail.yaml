@@ -4,11 +4,18 @@ name: signoff_detail
 # capacitance and fanout violators (report_check_types section of the signoff checks.rpt) and the disconnected-pin
 # report. Input: the run id of the gds run.
 on:
+  push:
+    paths:
+      - '.github/workflows/signoff_detail.yaml'
   workflow_dispatch:
     inputs:
       gds_run_id:
         description: 'run id of the gds workflow run'
-        required: true
+        required: false
+
+env:
+  # the run to read when the workflow starts from a push of this file
+  GDS_RUN_ID: ${{ inputs.gds_run_id || '44759516967' }}
 
 jobs:
   detail:

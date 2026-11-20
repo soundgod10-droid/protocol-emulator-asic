@@ -849,7 +849,6 @@ module pe_slu #(
         sticky[13] <= 1'b1;
         if (m_tsel == 2'd2) tstamp <= now;
       end
-      if (p_we && p_addr == 4'd2) sticky <= sticky & ~p_wdata;
 
       // ---------------- outputs (registered) ----------------
       tx_line_q <= tx_line;

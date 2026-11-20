@@ -23,6 +23,9 @@ flatten
 # Flattening a library cell leaves its pin wires as public aliases of the nets (_19785_.A0 beside
 # u_proc...u_lat.q), which eqy reads as a second match for the same gold bit: the pin names are hidden.
 rename -hide w:*.[A-Z]*
+# Nets that the layout flow named after a design net (clock tree clknet_..._<net>, repair buffers) are a second
+# match for that net's gold bit: the flow's generated net names are hidden too.
+rename -hide w:clknet_* w:clkload* w:delaynet* w:net* w:wire* w:rebuffer* w:split* w:fanout* w:max_length* w:max_cap* w:hold* w:place*
 opt_clean
 
 [strategy sby]

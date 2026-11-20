@@ -9,10 +9,12 @@ are left out: vvp cannot load them.
 The CELL entries of the SRAM macros are left out too. Their paths name bus bits (IOPATH A_CLK A_DOUT[0]),
 which the SDF parser of vvp does not accept: it stops with "Too many errors" at the first macro entry, so
 the about 3,600 cells after it in the file got no delay (sdf run 44045660470, notices). The macros are
-simulated by the functional models of src/sram_sim.v, which have no specify paths, so their delays cannot
-be applied in any case; the macro read time is checked by the static timing of the layout.
+simulated by the functional models of src/sram_sim.v, which have no specify paths. With --macro-vh the script
+writes the largest value of the IOPATH entries of each macro (all bits, rise and fall, min:typ:max, in ns) to that
+file as `define SRAM_512_DLY / SRAM_1024_DLY, for the macro models of test/sram_sdf.v, which put A_DOUT that long
+after the clock edge; --macro-scale multiplies it (the control run of the SDF job inflates it beyond a clock period).
 
-Usage: sdf_names.py netlist.v delays.sdf
+Usage: sdf_names.py netlist.v delays.sdf [--macro-vh sram_delay.vh] [--macro-scale 1.0]
 """
 
 import re

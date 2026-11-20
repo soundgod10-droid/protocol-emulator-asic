@@ -490,6 +490,54 @@ async def test_research_sweep_model(dut):
 
 
 @cocotb.test(skip=GL)
+async def test_research_fcov(dut):
+    """test/fcov.py and test/fcov_report.py of lane2-cov on a model run (no simulator): install cocotb-coverage 2.0,
+    attach to a PeModel running fw/uart_tx_full.s, export, report."""
+    import subprocess
+    import sys
+    root = os.path.dirname(HERE)
+    wt = os.path.join(os.path.dirname(root), "pe-lane2-covwt")
+    out = []
+    p = subprocess.run([sys.executable, "-m", "pip", "install", "cocotb-coverage==2.0"], capture_output=True, text=True)
+    out.append("pip -> %d %s %s" % (p.returncode, p.stdout[-600:], p.stderr[-600:]))
+    subprocess.run(["git", "worktree", "remove", "--force", wt], cwd=root, capture_output=True)
+    subprocess.run(["git", "worktree", "prune"], cwd=root, capture_output=True)
+    r = subprocess.run(["git", "worktree", "add", "--detach", wt, "lane2-cov"], cwd=root, capture_output=True, text=True)
+    out.append("worktree -> %d %s" % (r.returncode, r.stdout[-200:] + r.stderr[-200:]))
+    script = r'''
+import os, sys
+sys.path[:0] = ["test", "model", "asm"]
+import fcov, pe_model, test_fw_full as ff
+print("ENABLED", fcov.ENABLED, "groups", len(fcov.GROUPS), "bins", sum(len(b) for b, _ in fcov.GROUPS.values()))
+prog = ff.assemble("uart_tx_full.s")
+k, c, b = ff.uart_cfg(60e6, 1_000_000)
+m = pe_model.PeModel(prog.words, owner=ff.owners({ff.P_TX: 0}))
+fcov.attach(m, "research uart_tx 1M")
+bench = ff.Bench(m)
+frames = [ff.frame_bits(x, "8N1") for x in (0x55, 0x00, 0xFF)]
+bench.send(0, c, k, *[ff.frame_word(f) for f in frames])
+bench.run(4000)
+fcov.export()
+print("seen", len(fcov._seen))
+'''
+    env = dict(os.environ, FCOV="1", FCOV_JOB="research")
+    p = subprocess.run([sys.executable, "-c", script], cwd=wt, capture_output=True, text=True, env=env, timeout=600)
+    out.append("model run -> %d\n%s%s" % (p.returncode, p.stdout[-3000:], p.stderr[-3000:]))
+    os.makedirs(os.path.join(wt, "fc", "research"), exist_ok=True)
+    for f in ("fcov.yml", "fcov_first.json"):
+        src = os.path.join(wt, "test", f)
+        if os.path.isfile(src):
+            os.replace(src, os.path.join(wt, "fc", "research", f))
+    p = subprocess.run([sys.executable, "test/fcov_report.py", "fc", "--out", "fc/report.md"], cwd=wt,
+                       capture_output=True, text=True, timeout=600)
+    out.append("report -> %d\n%s%s" % (p.returncode, p.stdout[:2500] + "\n...\n" + p.stdout[-1500:], p.stderr[-2000:]))
+    subprocess.run(["git", "worktree", "remove", "--force", wt], cwd=root, capture_output=True)
+    text = "\n".join(out)
+    open(os.path.join(root, "build", "fcov_try.txt"), "w", encoding="utf-8").write(text + "\n")
+    dut._log.info(text[-7000:])
+
+
+@cocotb.test(skip=GL)
 async def test_research_triage(dut):
     """Reached / not reached per point from the triage cover logs; candidate exclusion rows for the rest."""
     import csv

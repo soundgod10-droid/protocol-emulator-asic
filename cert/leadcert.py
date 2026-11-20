@@ -381,22 +381,21 @@ def step(prog, pc, st, res, assume, bugs):
                 outs.append(b)
         return cont(merge(outs))
     if form == "TWAIT":
-        parts = []
-        fut, past = s.L.clip(0, INF), s.L.clip(-INF, -1)
-        if fut:
-            a = s.copy()
-            a.L = fut
-            a.advance(Iv(fut.lo + 1, fut.hi + 4))   # completes in the first slot after T
-            a.L = Iv(-4, -1)
-            parts.append(a)
-        if past:
-            b = s.copy()
-            b.L = past
-            parts.append(b)
-        out = parts[0]
-        for p in parts[1:]:
-            out = join_state(out, p)
-        return cont(out)
+        outs = []
+        for ps in s.parts():   # waits while (T - now) mod 65,536 < 32,768 (isa 7)
+            fut, past = ps.L.clip(0, LEAD_MAX), ps.L.clip(-32768, -1)
+            if fut:
+                a = ps.copy()
+                a.L = fut
+                a.advance(Iv(fut.lo + 1, fut.hi + 4))   # completes in the first slot after T
+                a.L = Iv(-4, -1)
+                outs.append(a)
+            if past:
+                b = ps.copy()
+                b.L = past
+                b.prune()
+                outs.append(b)
+        return cont(merge(outs))
     if form == "OUT":
         pin, off = f["pin"], f["off"]
         if f["kind"] in (4, 5):

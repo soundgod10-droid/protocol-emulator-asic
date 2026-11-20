@@ -70,6 +70,9 @@ def build_cases():
                     f"divider error within 1 %", rate=rate, fmt=fmt)
     # UART receiver: rates x sender bit-time error x formats (the points of test_rtl_uart_rx are left out)
     rx_done = {(1_000_000, "8N1", -TOL), (1_000_000, "8N1", TOL), (115_200, "8E1", -TOL), (115_200, "8E1", TOL)}
+    # beyond the receiver's tolerance on the model alone (firmware limit, --model): 2 Mbit/s at +/-3.3 %, 1.5 Mbit/s
+    # at -3.3 %
+    rx_done |= {(2_000_000, "8N1", -TOL), (2_000_000, "8N1", TOL), (1_500_000, "8N1", -TOL)}
     pts = [(r, "8N1", e) for r in (2_000_000, 1_500_000, 1_000_000, 500_000, 460_800, 230_400, 115_200, 57_600,
                                    19_200, 9_600) for e in (-TOL, 0.0, TOL)]
     pts += [(r, f, e) for r in (1_000_000, 230_400, 115_200, 57_600) for f in ("8E1", "8N2") for e in (-TOL, TOL)]

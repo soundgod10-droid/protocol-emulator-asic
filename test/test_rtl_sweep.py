@@ -138,6 +138,38 @@ def build_cases():
 
 CASES = build_cases()
 
+# TAP state diagram (TI SSYA002C Figure 3-3): state -> (next state with TMS 0, next state with TMS 1)
+TAP_NEXT = {
+    "TLR": ("RTI", "TLR"), "RTI": ("RTI", "SELDR"), "SELDR": ("CAPDR", "SELIR"), "CAPDR": ("SHDR", "EX1DR"),
+    "SHDR": ("SHDR", "EX1DR"), "EX1DR": ("PADR", "UPDR"), "PADR": ("PADR", "EX2DR"), "EX2DR": ("SHDR", "UPDR"),
+    "UPDR": ("RTI", "SELDR"), "SELIR": ("CAPIR", "TLR"), "CAPIR": ("SHIR", "EX1IR"), "SHIR": ("SHIR", "EX1IR"),
+    "EX1IR": ("PAIR", "UPIR"), "PAIR": ("PAIR", "EX2IR"), "EX2IR": ("SHIR", "UPIR"), "UPIR": ("RTI", "SELDR"),
+}
+
+
+def tap_walk():
+    """TMS bits: 5 ones (Test-Logic-Reset from any state), then from there the shortest path to a transition not yet
+    taken, that transition, and so on until all 32 are taken, then 5 ones. Returns (bits, transitions taken)."""
+    tms, state, seen = [1] * 5, "TLR", set()
+    while len(seen) < 2 * len(TAP_NEXT):
+        paths, frontier, path = {state: []}, [state], None
+        while path is None:
+            s = frontier.pop(0)
+            free = [b for b in (0, 1) if (s, b) not in seen]
+            if free:
+                path = paths[s] + [free[0]]
+                break
+            for b in (0, 1):
+                t = TAP_NEXT[s][b]
+                if t not in paths:
+                    paths[t] = paths[s] + [b]
+                    frontier.append(t)
+        for b in path:
+            seen.add((state, b))
+            state = TAP_NEXT[state][b]
+            tms.append(b)
+    return tms + [1] * 5, seen
+
 
 # ----- model check of a case (outside the simulator) -----
 

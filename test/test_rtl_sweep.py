@@ -289,8 +289,6 @@ def _define_tests():
         if not ((shards and i % shards == shard) or (not shards and named)):
             continue
         fn, args = run[case["family"]], dict(case["args"])
-        if case["family"] == "jtag":
-            args = dict(h1=args["h1"], h2=args["h2"], fw=args["name"])
 
         def make(fn=fn, args=args, name=case["name"]):
             async def test(dut):

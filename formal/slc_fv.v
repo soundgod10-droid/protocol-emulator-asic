@@ -322,7 +322,7 @@ module slc_fv #(
       // T3
       if (first) assert (now == mon_time);
       // T4
-      if (r_q && !tx_oe) assert (tx_v[1:0] == (NRZ ? 2'b11 : {cpol, 1'b0}));
+      if (r_q2 && !tx_oe) assert (tx_v[1:0] == (NRZ ? 2'b11 : {cpol, 1'b0}));
       // T6
       assert (mon_rdv == m_due);
       if (m_due) assert (mon_rd == m_sv);

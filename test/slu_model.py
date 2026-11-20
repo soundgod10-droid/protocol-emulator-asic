@@ -471,6 +471,7 @@ class SluModel:
             self.rx_lastn = (rx_nb + 1) & 31
             self.rx_nb = 0
             self.rx_bits = 0
+            self.rx_sh = 0
             nst |= 1 << 5
         if rx_pop:
             self.rx_buf0 = o["rx_buf1"]

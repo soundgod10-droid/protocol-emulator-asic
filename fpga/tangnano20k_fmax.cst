@@ -1,0 +1,9 @@
+// Tang Nano 20K (GW2AR-LV18QN88C8/I7), fmax build (fpga/fpga_fmax_top.v): clock on pin 4 (27 MHz oscillator), serial
+// in and out on pins 15 and 16 (LED pins), all from YosysHQ/apicula examples/tangnano20k.cst.
+IO_LOC  "clk" 4;
+IO_PORT "clk" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+CLOCK_LOC "clk" BUFG;
+IO_LOC  "sin" 15;
+IO_PORT "sin" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+IO_LOC  "sout" 16;
+IO_PORT "sout" IO_TYPE=LVCMOS33 PULL_MODE=NONE;

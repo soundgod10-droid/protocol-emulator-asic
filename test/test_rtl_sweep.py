@@ -192,8 +192,30 @@ def _define_tests():
         k, c, b = ff.uart_cfg(F_CLK, rate)
         assert k == 1, "the sweep uses uart_rx_full.s (bit time up to 32,767 cycles)"
         data = [_rng(name).randrange(256) for _ in range(_uart_n(fmt, b))]
-        label = f"rtl uart_rx_full 60 MHz {rate} bit/s {fmt} (B {b}, H {ff.rx_h(b)}), sender {err * 100:+.1f} %"
-        await rf.rtl_rx(dut, b, ff.rx_h(b), fmt, (F_CLK / rate) * (1 + err), data, label=label)
+        h = ff.rx_h(b)
+        label = f"rtl uart_rx_full 60 MHz {rate} bit/s {fmt} (B {b}, H {h}), sender {err * 100:+.1f} %"
+        # As test_fw_full.rx_run: a 3-cycle glitch, then the first frame H cycles after the glitch's start time + 1,000
+        # (the receiver has rejected the glitch by then; with a large H, test_rtl_fw.rtl_rx's fixed 1,000 cycles are
+        # not enough).
+        nd1 = len(ff.frame_bits(0, fmt)) - int(fmt[2])
+        prog = ff.assemble("uart_rx_full.s", ND1=nd1)
+        b_tx = (F_CLK / rate) * (1 + err)
+        frames, t = [], rf.HOST_START + h
+        for x in data:
+            bits = ff.frame_bits(x, fmt)
+            frames.append((t, bits))
+            t += round(len(bits) * b_tx)
+        line = ff.uart_line(frames, b_tx, glitch=rf.HOST_START - 1000)
+        bench = rf.RtlBench(dut, prog.words, inputs=lambda c, uo, uio, oe: (ff.value_at(line, c) << ff.UI_RX, 0),
+                            label=label)
+        bench.send(0, b, h)
+        await bench.run(t + 3 * b)
+        await bench.collect(0, len(frames))
+        words = bench.words(0)
+        assert len(words) == len(frames) and all(ff.rx_bits(w, nd1) == bits[:nd1 + 1]
+                                                 for w, (_, bits) in zip(words, frames)), (
+            f"{label}: words {[hex(w) for w in words]}, sent {[bits for _, bits in frames]}")
+        await bench.finish(dut._log)
         dut._log.info(f"{label}: {len(data)} frames correct, glitch ignored")
 
     async def spi_ctl(dut, name, cpol, cpha, d, extra):

@@ -1,0 +1,28 @@
+# Netlist-to-RTL equivalence of the chip (C3 WP9): the RTL of a commit (gold) against the final netlist of that
+# commit's layout run (gate), with eqy. .github/workflows/equiv.yaml fills in the paths (@...@) and runs it.
+# Gold: the info.yaml sources with SYNTHESIS defined, so src/pe_cells.v instantiates the latch and clock-gate cells
+# as the flow does. Gate: the netlist with the standard cells read from the PDK liberty (their functions); the latch
+# and clock-gate cells (equiv/cells_bb.v) and the SRAM macros (src/sram_bb.v) are the same black boxes on both
+# sides, matched by instance path, so their input signals are compared. Filler, tap, decap and antenna cells carry no
+# logic.
+
+[gold]
+read_verilog -lib @ROOT@/equiv/cells_bb.v @RTL@/src/sram_bb.v
+read_verilog -sv -DSYNTHESIS @RTL_FILES@
+prep -top tt_um_soundgod10_droid_protocol_emulator
+flatten
+memory_map
+opt_clean
+
+[gate]
+read_verilog -lib @ROOT@/equiv/cells_bb.v @RTL@/src/sram_bb.v
+read_liberty -ignore_redef -ignore_miss_func @LIB@
+read_verilog @NL@
+prep -top tt_um_soundgod10_droid_protocol_emulator
+flatten
+opt_clean
+
+[strategy sby]
+use sby
+depth 10
+engine smtbmc yices

@@ -39,7 +39,7 @@ async function load(file, first) {
   if (first && params.get('b')) view.setCursor(Number(params.get('b')) / manifest.ns_per_cycle, 'B');
   const w = s.window_cycles;
   $('info').innerHTML = [
-    ['Test', `${esc(s.test)} (test/test_rtl_fw.py)`],
+    ['Test', `${esc(s.test)} (test/${esc(s.module || 'test_rtl_fw')}.py)`],
     ['Level', esc(s.level)],
     ['Simulator', esc(s.simulator)],
     ['Commit', `<code>${esc(s.commit.slice(0, 12))}</code>`],

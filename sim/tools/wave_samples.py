@@ -165,8 +165,8 @@ def trim(level, test, raw_path, out, simulator, commit, run_url):
                     f"window {s['note']}", f"run {run_url}"]
         t0, t1, size = trim_vcd.write_sample(raw, end, {"window_ps": s["window_ps"], "groups": s["groups"],
                                                         "comments": comments}, os.path.join(out, f))
-        m = {"file": f, "title": f"{s['title']} ({lv})", "test": test, "level": LEVEL[level], "simulator": simulator,
-             "decoders": s["decoders"]}
+        m = {"file": f, "title": f"{s['title']} ({lv})", "test": test, "module": s["module"], "level": LEVEL[level],
+             "simulator": simulator, "decoders": s["decoders"]}
         if s["timing"]:
             m["timing"] = s["timing"]
         m.update(window_ps=[t0, t1], window_cycles=[t0 // CLK_PS, t1 // CLK_PS], window_note=s["note"], bytes=size,

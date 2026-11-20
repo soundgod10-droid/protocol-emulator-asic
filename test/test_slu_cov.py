@@ -174,8 +174,8 @@ async def tx_rules(dut, eth):
     pins[0], pins[1] = ts.helper_pin(eth, 0), ts.helper_pin(eth, 1)
     pins[2] = ts.helper_pin(eth, 4)                                  # uio2: OE
     host = await ts.chip_start(dut, prog, [], pins)
-    caps = []
-    task = capture(dut, caps, 12000 if eth else 20000)
+    caps, meta = [], {}
+    task = capture(dut, caps, 12000 if eth else 20000, meta)
     await host.start()
     st_a, st_b, state_b, state_c1, state_c2, st_c, free_d, st_e, st_f = await pull_words(dut, host, 9)
     await task

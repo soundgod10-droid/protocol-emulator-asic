@@ -250,32 +250,37 @@ def analyse(prog, entries, assume=None, bugs=(), max_steps=200000):
     """Abstract interpretation of prog from each entry (address, thread). Returns Result."""
     assume = assume or {}
     res = Result()
+    # At each address the states are kept apart by the set of pins whose event slot may hold an event (keys), so a path
+    # on which a slot is free is not joined with one on which it holds an event.
     for entry, thread in entries:
         start = State(Iv(-thread))  # T = 0 at model cycle 0; thread n has its first slot at cycle n (isa 3.1)
-        states, visits, work = {entry: start}, {}, [entry]
+        k0 = frozenset(start.D)
+        states, visits, work = {entry: {k0: start}}, {}, [(entry, k0)]
         steps = 0
         while work:
             steps += 1
             if steps > max_steps:
                 res.problems.append("entry %d: no fixpoint after %d steps" % (entry, max_steps))
                 break
-            pc = work.pop()
-            st = states[pc]
+            pc, k = work.pop()
+            st = states[pc][k]
             if pc not in prog.words:
                 res.problems.append("entry %d: control reaches address %d, which holds no word" % (entry, pc))
                 continue
             for nxt, ns in step(prog, pc, st, res, assume, bugs):
                 nxt &= MASK
-                visits[nxt] = visits.get(nxt, 0) + 1
-                if nxt in states:
-                    j = join_state(states[nxt], ns, widen=visits[nxt] > 20)
-                    if j.key() == states[nxt].key():
+                nk = frozenset(ns.D)
+                at = states.setdefault(nxt, {})
+                visits[(nxt, nk)] = visits.get((nxt, nk), 0) + 1
+                if nk in at:
+                    j = join_state(at[nk], ns, widen=visits[(nxt, nk)] > 20)
+                    if j.key() == at[nk].key():
                         continue
-                    states[nxt] = j
+                    at[nk] = j
                 else:
-                    states[nxt] = ns
-                if nxt not in work:
-                    work.append(nxt)
+                    at[nk] = ns
+                if (nxt, nk) not in work:
+                    work.append((nxt, nk))
     return res
 
 

@@ -505,8 +505,15 @@ def main():
             errors.append("pe_slu.v: the din_f1 sample (at a line end), its declaration or endmodule not found once")
             continue
         e.add(m1[0].start() + len("din_f1 <= "), "din_f1_free; // ")
-        e.add(m2[0].end(), " (* anyseq *) wire din_f1_free;")
-        e.add(m3[0], "".join(module_level) + (invariants() if args.mode == "prove" else ""))
+        if flags["pe_slu_loop.v"]:
+            errors.append("%s: a point in a clocked block of pe_slu_loop.v (flag declarations are made in pe_slu.v)"
+                          % job)
+            continue
+        e.add(m2[0].end(), " (* anyseq *) wire din_f1_free;" +
+              "".join(" reg %s_f = 1'b0;" % lab for lab in flags["pe_slu.v"]))
+        check = "always @* %s: assert (!%s_f); " if args.mode == "prove" else "always @* %s: cover (%s_f); "
+        e.add(m3[0], "".join(check % (lab, lab) for lab in flags["pe_slu.v"]) +
+              (invariants() if args.mode == "prove" else ""))
         for f in files:
             new = edits[f].apply()
             if new.count("\n") != files[f].count("\n"):

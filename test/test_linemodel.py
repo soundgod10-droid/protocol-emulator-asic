@@ -305,6 +305,42 @@ def unreach_gen(root, branch="lane2-cov"):
 
 
 @cocotb.test(skip=GL)
+async def test_research_triage(dut):
+    """Reached / not reached per point from the triage cover logs; candidate exclusion rows for the rest."""
+    import csv
+    import re
+    root = os.path.dirname(HERE)
+    fdir = r"C:\Users\ssher\fallout-sandbox\bridge_workspace\build\chiptools2\formal"
+    logs = {"triage_eth": "20261120-073952-triage_eth", "triage_usb": "20261120-080913-triage_usb",
+            "triage_loop_eth": "20261120-081155-triage_loop_eth", "triage_loop_usb": "20261120-081212-triage_loop_usb"}
+    src = {r["point"]: r["source"] for r in csv.DictReader(open(os.path.join(root, "build", "holes_split.csv"),
+                                                                 encoding="utf-8"))}
+    reached, seen = {}, {}
+    for job, d in logs.items():
+        pts = {}
+        for ln in open(os.path.join(root, "build", "unreach_try", "formal", "unreach", "build_triage", job,
+                                    "points.txt"), encoding="utf-8"):
+            m = re.match(r"(pt_\d+) (\S+)", ln)
+            if m:
+                pts[m.group(1)] = m.group(2)
+        hit = set(re.findall(r"Reached cover statement in step \d+ at \S+: (pt_\d+)",
+                             open(os.path.join(fdir, d, "logfile.txt"), encoding="utf-8").read()))
+        for lab, pid in pts.items():
+            seen.setdefault(pid, []).append(job)
+            if lab in hit:
+                reached.setdefault(pid, []).append(job)
+    out = []
+    with open(os.path.join(root, "build", "triage.csv"), "w", encoding="utf-8", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["point", "reached_in", "source"])
+        for pid in sorted(seen):
+            w.writerow([pid, "+".join(reached.get(pid, [])), src.get(pid, "")])
+    out.append("points %d, reached %d: %s" % (len(seen), len(reached), " ".join(sorted(reached))))
+    for ln in out:
+        dut._log.info(ln)
+
+
+@cocotb.test(skip=GL)
 async def test_research_unreach(dut):
     root = os.path.dirname(HERE)
     text = "\n".join(unreach_gen(root))

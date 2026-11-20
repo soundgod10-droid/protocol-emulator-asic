@@ -1,0 +1,58 @@
+# slu_usb_equiv: with the clocked and NRZ modes off (no CFGDAT write to MODE, TXPER or LTC), the chip's USB helper
+# (pe_slu SPEC 1) equals the USB-only helper of commit f49819e (before those modes) at every output and register in
+# every cycle, for every other port access and pin input. STATUS writes are dropped for both (formal/
+# slu_usb_equiv_fv.v explains why). equiv_make pairs every same-named signal of the two flattened units,
+# equiv_induct proves all pairs by induction, equiv_status -assert fails the job if one pair is not proved. The
+# workflow writes formal/pe_slu_ref.v from git (git show f49819e:src/pe_slu.v) before the run.
+
+[options]
+mode prove
+
+[engines]
+smtbmc z3
+
+[script]
+read_verilog -sv pe_slu_ref.v
+rename pe_slu pe_slu_ref
+read_verilog -sv pe_slu_loop.v pe_slu.v
+read_verilog -sv slu_usb_equiv_fv.v
+hierarchy -check
+proc
+flatten
+cd slu_equiv_old
+connect -set uadr u.cfg_adr
+cd slu_equiv_new
+connect -set uadr u.cfg_adr
+cd ..
+check -assert
+async2sync
+opt_clean
+equiv_make slu_equiv_old slu_equiv_new slu_equiv
+hierarchy -top slu_equiv
+# The old unit has no write path to MODE, TXPER and LTC: they hold F_MODE, F_TXPER and F_LTC of SPEC 1. These
+# three extra $equiv cells state it; equiv_induct proves them like every other cell.
+cd slu_equiv
+equiv_add 16'b0000001110111001 u.c_mode_gold
+equiv_add 16'b0000000000101000 u.c_txper_gold
+equiv_add 16'b0000000001000100 u.c_ltc_gold
+cd ..
+equiv_simple -seq 8
+equiv_induct -seq 8
+tee -o equiv_status.txt equiv_status
+equiv_status -assert
+design -reset
+read_verilog -formal tiny.v
+prep -top tiny
+
+[files]
+pe_slu_ref.v
+../src/pe_slu_loop.v
+../src/pe_slu.v
+slu_usb_equiv_fv.v
+
+[file tiny.v]
+module tiny(input clk);
+  reg a = 1'b0;
+  always @(posedge clk) a <= a;
+  always @* assert (!a);
+endmodule

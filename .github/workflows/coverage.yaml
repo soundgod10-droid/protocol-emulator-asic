@@ -108,6 +108,8 @@ jobs:
             test/coverage.dat
             test/coverage.info
             test/coverage_summary.md
+            test/coverage_holes.csv
+            test/coverage_toggle_holes.txt
             test/coverage_annotated/
             test/coverage_sim.log
             test/results.xml

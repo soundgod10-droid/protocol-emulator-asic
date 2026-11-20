@@ -18,9 +18,9 @@
 //
 //   SLC_RX (edge-started receive, LTC[10]; UART receive):
 //     R1  A frame starts exactly at a falling edge of DIN (as seen two cycles behind the pad, the rising-edge
-//         synchronizer copy x1) while no sample of the previous frame is outstanding; such an edge always starts
-//         one. So frames follow back to back: the next edge is taken from the cycle in which the last bit of the
-//         previous frame is delivered.
+//         synchronizer copy x1) when no frame is running or in the cycle of the running frame's last sampling
+//         point; such an edge always starts one. The last samples of the previous frame (D cycles after their
+//         sampling points) may still be on their way: R2 and R3 then require them in the previous frame's word.
 //     R2  Sample k of the frame (k = 0 .. N-1, N = TXCTRL[4:0], 0 = 16) is the selected DIN copy (LTC[12]: the
 //         falling-edge copy x0, half a cycle earlier; else x1) in cycle e + TXPER + D + 2 * TXPER * k, where e is
 //         the start cycle and D = SEL[15:12]; it is delivered as a data bit in the next cycle, and no data bit is

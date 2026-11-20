@@ -12,7 +12,7 @@ For each proof job named in the exclusion file (column proof; several jobs joine
                            Verilog's own rules (the enclosing always block, if, case) give the condition; no
                            condition is written by hand. Verilator names a point by line and column: an if branch
                            by the column of the if keyword (its else by that column + 1; the line point of an else
-                           block sits on the line of the else and also has the column of its if + 1), a case item
+                           block also sits on the line of its if, at the column + 1), a case item
                            by the column of its colon (or of default). The assertion opens that branch (an absent
                            else is added) or that case item's statement.
                            An operator branch (?:, Verilator cond_then / cond_else) has no statement of its own; its

@@ -342,6 +342,7 @@ def step(prog, pc, st, res, assume, bugs):
             a = s.copy()
             a.L = fut
             a.advance(Iv(fut.lo + 1, fut.hi + 4))   # completes in the first slot after T
+            a.L = Iv(-4, -1)
             parts.append(a)
         if past:
             b = s.copy()

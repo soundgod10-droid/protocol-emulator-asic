@@ -28,7 +28,7 @@ jobs:
         uses: actions/download-artifact@v7
         with:
           name: GDS_logs
-          run-id: ${{ inputs.gds_run_id }}
+          run-id: ${{ env.GDS_RUN_ID }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: logs
       - name: Violators per corner

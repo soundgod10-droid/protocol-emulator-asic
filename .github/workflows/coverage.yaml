@@ -145,6 +145,16 @@ jobs:
           python3 formal/unreach/run.py | tee formal/unreach/build/summary.txt
           echo "::notice title=coverage exclusion proofs::$(sed -e 's/%/%25/g' formal/unreach/build/summary.txt | sed -e ':a;N;$!ba;s/\n/%0A/g')"
 
+      # Toggle exclusions: each excluded bit must be a constant of the helper after reset (Yosys simplification
+      # with the reset values as initial values); bits that the tests toggle (teeth) must not be constants.
+      - name: Constant bits behind the toggle exclusions
+        shell: bash
+        run: |
+          set -o pipefail
+          python3 formal/unreach/consts.py gen
+          python3 formal/unreach/consts.py check | tee formal/unreach/build/consts.txt
+          echo "::notice title=toggle exclusion check::$(tail -n 12 formal/unreach/build/consts.txt | sed -e 's/%/%25/g' | sed -e ':a;N;$!ba;s/\n/%0A/g')"
+
       - name: Upload the proof jobs
         if: always()
         uses: actions/upload-artifact@v7

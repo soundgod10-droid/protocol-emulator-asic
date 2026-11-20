@@ -34,7 +34,7 @@ jobs:
               proc, proc_if, proc_cover, slu_usb, slu_eth, slu_cover_usb, slu_cover_eth, slu_teeth,
               iso, iso_cover, iso_mut_io,
               slc_rx, slc_rx_cover, slc_tx, slc_tx_cover, slc_nrz, slc_tooth_dly, slc_tooth_sel, slc_tooth_rearm,
-              slc_tooth_cpha, slc_tooth_part, slu_usb_equiv, slu_usb_equiv_mut]
+              slc_tooth_cpha, slc_tooth_part, slu_usb_equiv, slu_usb_equiv_mut, fpga_latch_ram, fpga_latch_ram_late]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v6

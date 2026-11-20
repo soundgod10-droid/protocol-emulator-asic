@@ -2637,9 +2637,11 @@ async def test_slu_chip_swd_dpidr(dut):
         got_words = await host.read_mem(768, end - 768)
         nc = (len(conn) + 15) // 16
         xfer = sc.bits_of(got_words[nc:nc + 3], 46)
-        ack = xfer[9] | xfer[10] << 1 | xfer[11] << 2                 # request 0-7, turnaround 8, ACK 9-11
-        val = fx.lsb_word(xfer[12:44])
-        par = xfer[44]
+        # the sample of bit k reads the line the target drives after the rising edge of bit k (as test_slc_swd):
+        # ACK in samples 8-10, data 11-42, parity 43
+        ack = xfer[8] | xfer[9] << 1 | xfer[10] << 2
+        val = fx.lsb_word(xfer[11:43])
+        par = xfer[43]
         lines.append("%s, target output %.0f ns: thread 0 status %s, %d words stored, ACK %s, DPIDR %08x (target "
                      "%08x), parity %s, target timing errors %d" % (
                          corner, td, ["%04x" % w for w in words_out], end - 768, bin(ack), val, tgt.dpidr,

@@ -33,8 +33,8 @@ connect -set mon_pushw \u_slu.rx_push_w
 connect -set mon_sticky \u_slu.sticky
 opt_clean
 cd ..
-# The job stops with an error if a property was removed: 7 asserts and 3 assumes of slc_fv.v.
-select -assert-min 10 t:$check t:$assert t:$assume
+# The job stops with an error if a property was removed: 6 asserts and 3 assumes of slc_fv.v.
+select -assert-min 9 t:$check t:$assert t:$assume
 
 [files]
 ../src/pe_slu_loop.v

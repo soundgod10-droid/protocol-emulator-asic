@@ -172,6 +172,10 @@ jobs:
               echo "::notice title=period shmoo ${{ matrix.corner }}::$(sed -e ':a;N;$!ba;s/\n/%0A/g' shmoo.txt)"
               cp results_16666.xml results.xml ;;
           esac
+          # Clock-to-pin delays of the core lockstep tests (part main): pin terms of the firmware timing certificates.
+          if [ -f pin_delays.json ]; then
+            echo "::notice title=clock-to-pin delays ${{ matrix.corner }} (cell delays; wires and pads not included)::$(python3 -c "import json; d = json.load(open('pin_delays.json')); print('%0A'.join('%s %.3f to %.3f ns (%d changes)' % (k, v[0] / 1000, v[1] / 1000, v[2]) for k, v in d.items()))")"
+          fi
           # Annotation errors: 4 is the header count; more means cells without delays.
           if [ "${{ matrix.part }}" != nodelay_control ]; then
             errors=$(grep -c "SDF ERROR" sdf_run.log || true)

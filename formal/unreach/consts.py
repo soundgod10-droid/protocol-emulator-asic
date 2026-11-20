@@ -1,7 +1,7 @@
 """Toggle coverage points that the chip cannot toggle: bits of the line helpers that are constants of their fixed
 configuration, found by Yosys.
 
-Usage: python formal/unreach/consts.py gen [--src src] [--out formal/unreach/build]
+Usage: python formal/unreach/consts.py gen [--src src] [--out formal/unreach/build] [--yosys yosys]
        python formal/unreach/consts.py check [--exclusions coverage/exclusions.csv] [--teeth formal/unreach/teeth.csv]
                                              [--out formal/unreach/build] [--results formal/unreach/build/results.json]
        python formal/unreach/consts.py triage --toggle-holes coverage_toggle_holes.txt [--out formal/unreach/build]

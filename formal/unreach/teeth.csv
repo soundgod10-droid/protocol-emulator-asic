@@ -1,0 +1,3 @@
+point,proof,source
+eth:pe_slu.v:669:11:branch:if,tooth_eth,if (tx_go) begin
+usb:pe_slu.v:669:11:branch:if,tooth_usb,if (tx_go) begin

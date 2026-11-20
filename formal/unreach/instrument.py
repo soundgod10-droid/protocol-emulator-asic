@@ -332,11 +332,22 @@ class Edits:
                   " else begin %s: %s end" % (label, self.hit))
 
     def apply(self):
-        text = self.src.text
-        # from the end of the file; at one offset the later insertion first, so the texts keep their order
-        for off, _seq, ins in sorted(self.ins, key=lambda x: (x[0], x[1]), reverse=True):
-            text = text[:off] + ins + text[off:]
-        return text
+        # Nesting: a pair that starts earlier or ends later is outside; of two pairs on the same range the one
+        # with a tail (an added else) is outside, so its else follows everything inserted in its then branch.
+        order = sorted(self.pairs, key=lambda p: (p[0], -p[1], 0 if p[4] else 1, p[5]))
+        events = []
+        for rank, (start, end, op, cl, tail, _seq) in enumerate(order):
+            if op:
+                events.append((start, 1, rank, op))
+            if cl or tail:
+                events.append((end, 0, -rank, cl + tail))     # at one offset closes come first, inner first
+        text, out, prev = self.src.text, [], 0
+        for off, _kind, _r, ins in sorted(events):
+            out.append(text[prev:off])
+            out.append(ins)
+            prev = off
+        out.append(text[prev:])
+        return "".join(out)
 
 
 def place(src, edits, kind, comment, line, col, cond, label, module_level):

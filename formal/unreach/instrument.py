@@ -334,7 +334,7 @@ class Edits:
         # the then branch is wrapped (so the new else cannot bind to an inner if), the else follows the wrap
         wrap = s.t(a) != "begin"
         self.pair(s.toks[a][3], s.toks[b - 1][4], "begin " if wrap else "", " end" if wrap else "",
-                  " else begin %s: %s end" % (label, self.hit))
+                  " else begin %s end" % stmt)
 
     def apply(self):
         # Nesting: a pair that starts earlier or ends later is outside; of two pairs on the same range the one

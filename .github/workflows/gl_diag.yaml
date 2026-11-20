@@ -84,10 +84,13 @@ jobs:
         shell: bash
         run: |
           set +e
+          sed -i -E 's/\bifnone[[:space:]]+//' "$PDK_ROOT/ihp-sg13cmos5l/libs.ref/sg13cmos5l_stdcell/verilog/sg13cmos5l_stdcell.v"
           cd test
           rm -f tb.fst results.xml
           make clean
-          GATES=yes COCOTB_TEST_FILTER=test_usb_dev_enumerate make COCOTB_TEST_MODULES=test_usb_dev FST= 2>&1 | tail -n 60 | tee gl_diag.log
+          sdf=""
+          [ -n "${{ matrix.corner }}" ] && sdf="SDF_FILE=/tmp/cell_only.sdf"
+          GATES=yes COCOTB_TEST_FILTER=test_usb_dev_enumerate make $sdf COCOTB_TEST_MODULES=test_usb_dev FST= 2>&1 | grep -v "SDF WARNING" | tail -n 60 | tee gl_diag.log
           res=$(grep -c "<failure" results.xml)
           echo "::notice title=gl_diag ${{ matrix.name }} result::failures $res; $(grep -E 'PASS|FAIL|enumerated|no ACK|Error' gl_diag.log | tail -n 8 | sed ':a;N;$!ba;s/\n/%0A/g')"
           true

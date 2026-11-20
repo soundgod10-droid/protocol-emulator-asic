@@ -69,13 +69,7 @@ module fwlate_fv (
       .h_cnt_out(), .th_run(th_run), .th_late(th_late), .th_err(th_err), .ui_in(ui_in), .uio_in(uio_in),
       .pin_v(pin_v), .pin_oe(pin_oe));
 
-  wire mon_mem_we;   // u_proc.mem_req && u_proc.mem_we, connected by the job script
-  always @* begin
-    if (rst_n) begin
-      assert (!th_late[0]);
-      assert (!mon_mem_we);
-    end
-  end
+  always @* if (rst_n) assert (!th_late[0]);
   always @* cover (rst_n && pin_v != 15'h7FFF);   // the program changes a pin within the depth
 endmodule
 

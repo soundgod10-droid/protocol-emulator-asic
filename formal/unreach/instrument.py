@@ -331,7 +331,8 @@ class Edits:
 
     def apply(self):
         text = self.src.text
-        for off, _seq, ins in sorted(self.ins, key=lambda x: (x[0], -x[1]), reverse=True):
+        # from the end of the file; at one offset the later insertion first, so the texts keep their order
+        for off, _seq, ins in sorted(self.ins, key=lambda x: (x[0], x[1]), reverse=True):
             text = text[:off] + ins + text[off:]
         return text
 

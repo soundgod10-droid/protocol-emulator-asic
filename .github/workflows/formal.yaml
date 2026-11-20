@@ -30,7 +30,9 @@ jobs:
         job: [core, core_cover, timed_out, timed_out_cover, host_port, host_port_cover, host_port_mut_id,
               mem, mem_small, mem_cover, mem_reset, mem_full, mem_full_reset, sram, sram_cover, cdc,
               proc, proc_if, proc_cover, slu_usb, slu_eth, slu_cover_usb, slu_cover_eth, slu_teeth,
-              iso, iso_cover, iso_mut_io]
+              iso, iso_cover, iso_mut_io,
+              slc_rx, slc_rx_cover, slc_tx, slc_tx_cover, slc_nrz, slc_tooth_dly, slc_tooth_sel, slc_tooth_rearm,
+              slc_tooth_cpha, slc_tooth_part, slu_usb_equiv, slu_usb_equiv_mut]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v6

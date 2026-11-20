@@ -13,6 +13,8 @@ Why:
   COCOTB_TEST_MODULES, because RTL and the functional gate-level test have no delays.
 """
 
+import os
+
 import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer

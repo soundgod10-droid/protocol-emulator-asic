@@ -408,6 +408,63 @@ async def test_research_consts2(dut):
 
 
 @cocotb.test(skip=GL)
+async def test_research_toggle_rows(dut):
+    """Append the constant toggle holes (build/toggle_candidates.csv of test_research_consts2) to
+    coverage/exclusions.csv of lane2-cov in a worktree and commit them; then run consts.py gen and check on the
+    committed lane2-cov tree (teeth of formal/unreach/teeth.csv included)."""
+    import shutil
+    import subprocess
+    import sys
+    root = os.path.dirname(HERE)
+    wt = os.path.join(os.path.dirname(root), "pe-lane2-covwt")
+    out = []
+
+    def g(*a, cwd=root):
+        r = subprocess.run(["git"] + list(a), cwd=cwd, capture_output=True, text=True)
+        out.append("$ git %s -> %d\n%s%s" % (" ".join(a), r.returncode, r.stdout[-1500:], r.stderr[-1500:]))
+        return r
+    ident = ["-c", "user.name=soundgod10-droid", "-c", "user.email=334736888+soundgod10-droid@users.noreply.github.com"]
+    g("worktree", "remove", "--force", wt)
+    g("worktree", "prune")
+    ok = g("worktree", "add", wt, "lane2-cov").returncode == 0
+    if ok:
+        p = os.path.join(wt, "coverage", "exclusions.csv")
+        old = open(p, encoding="utf-8", newline="").read()
+        have = {ln.split(",", 1)[0] for ln in old.splitlines()}
+        new = [ln for ln in open(os.path.join(root, "build", "toggle_candidates.csv"), encoding="utf-8",
+                                 newline="").read().splitlines()[1:] if ln and ln.split(",", 1)[0] not in have]
+        open(p, "w", encoding="utf-8", newline="").write(old.rstrip("\n") + "\n" + "\n".join(sorted(new)) + "\n")
+        out.append("rows before %d, toggle rows added %d" % (len(old.splitlines()) - 1, len(new)))
+        msg = os.path.join(root, "build", "toggle_msg.txt")
+        open(msg, "w", encoding="utf-8", newline="\n").write(
+            "Coverage exclusions: %d toggle points of the chip helper copies whose bits are constants of their fixed\n"
+            "configuration after reset\n\nEach row is checked on every push by formal/unreach/consts.py (Yosys simplification of\n"
+            "the helper with its reset values as initial values); a row whose bit is not a constant, or whose\n"
+            "declaration line changed, fails the coverage workflow.\n" % len(new))
+        g("add", "coverage/exclusions.csv", cwd=wt)
+        g(*ident, "commit", "-F", msg, cwd=wt)
+        g("log", "--oneline", "-3", cwd=wt)
+    g("worktree", "remove", "--force", wt)
+    work = os.path.join(root, "build", "unreach_try")
+    shutil.rmtree(work, ignore_errors=True)
+    r = subprocess.run(["git", "ls-tree", "-r", "--name-only", "lane2-cov", "src/", "formal/unreach/", "coverage/"],
+                       cwd=root, capture_output=True, text=True)
+    for path in r.stdout.split():
+        dst = os.path.join(work, path)
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        with open(dst, "wb") as fh:
+            fh.write(subprocess.run(["git", "show", "lane2-cov:" + path], cwd=root, capture_output=True).stdout)
+    yosys = r"C:\Users\ssher\chip-tools\venv\Scripts\yowasp-yosys.exe"
+    for args in (["gen", "--yosys", yosys], ["check"]):
+        p = subprocess.run([sys.executable, "-I", "formal/unreach/consts.py"] + args, cwd=work, capture_output=True,
+                           text=True)
+        out.append("$ consts.py %s -> %d\n%s%s" % (args[0], p.returncode, p.stdout[-3000:], p.stderr[-2000:]))
+    text = "\n".join(out)
+    open(os.path.join(root, "build", "toggle_rows.txt"), "w", encoding="utf-8").write(text + "\n")
+    dut._log.info(text[-7000:])
+
+
+@cocotb.test(skip=GL)
 async def test_research_triage(dut):
     """Reached / not reached per point from the triage cover logs; candidate exclusion rows for the rest."""
     import csv

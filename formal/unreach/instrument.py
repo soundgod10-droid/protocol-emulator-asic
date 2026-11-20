@@ -321,16 +321,15 @@ class Edits:
         if s.t(a) == "begin":
             self.add(s.toks[a][4], " %s: %s" % (label, self.hit))
         else:
-            self.add(s.toks[a][3], "begin %s: %s " % (label, self.hit))
-            self.add(s.toks[b - 1][4], " end")
+            self.pair(s.toks[a][3], s.toks[b - 1][4], "begin %s: %s " % (label, self.hit), " end")
 
     def add_else(self, rec, label):
         s = self.src
         a, b = rec["then"]
-        if s.t(a) != "begin":          # wrap the then branch, so the new else cannot bind to an inner if
-            self.add(s.toks[a][3], "begin ")
-            self.add(s.toks[b - 1][4], " end")
-        self.add(s.toks[b - 1][4], " else begin %s: %s end" % (label, self.hit))
+        # the then branch is wrapped (so the new else cannot bind to an inner if), the else follows the wrap
+        wrap = s.t(a) != "begin"
+        self.pair(s.toks[a][3], s.toks[b - 1][4], "begin " if wrap else "", " end" if wrap else "",
+                  " else begin %s: %s end" % (label, self.hit))
 
     def apply(self):
         text = self.src.text

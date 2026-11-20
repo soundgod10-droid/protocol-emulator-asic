@@ -153,7 +153,7 @@ class Netlists:
     def __init__(self, out, src):
         self.nets = {}
         for job in JOBS:
-            path = os.path.join(out, job, job, "src", "yconst.json")
+            path = os.path.join(out, job, "yconst.json")
             if os.path.isfile(path):
                 top = json.load(open(path, encoding="utf-8"))["modules"]["unreach_fv"]
                 self.nets[job] = top["netnames"]

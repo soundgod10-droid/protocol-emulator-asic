@@ -321,7 +321,7 @@ async def test_research_consts(dut):
     out = []
     for job in ("yconst_usb", "yconst_eth"):
         runs = sorted(glob.glob(os.path.join(fdir, "*-" + job)))
-        src = os.path.join(runs[-1], "model", "yconst.json") if runs else ""
+        src = os.path.join(runs[-1], "src", "yconst.json") if runs else ""
         out.append("%s: %s (%s)" % (job, src, os.path.isfile(src)))
         if os.path.isfile(src):
             dst = os.path.join(work, "formal", "unreach", "build", job, job, "model")

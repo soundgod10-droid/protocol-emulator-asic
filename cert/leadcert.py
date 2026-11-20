@@ -464,6 +464,35 @@ def step(prog, pc, st, res, assume, bugs):
     return []
 
 
+def merge(states):
+    out = states[0]
+    for s in states[1:]:
+        out = join_state(out, s)
+    return out
+
+
+def wait_to(ps, f, rd):
+    """WAIT with TO for one part (L within -32,768..32,767): the timeout is T when 1 <= T - c0 <= 32,767, else at
+    once (isa 6.3); the wait ends in the first slot after the edge or the timeout. Returns the completed states."""
+    outs = []
+    in_win, rest = ps.L.clip(1, LEAD_MAX), ps.L.clip(-32768, 0)
+    if in_win:
+        a = ps.copy()
+        a.L = in_win
+        a.advance(Iv(1, in_win.hi + 4))
+        a.L = Iv(-4, in_win.hi - 1)      # completes after c0 and by the first slot after T
+        if f["ct"]:
+            a.move_t(Iv(-4, -1))
+        a.r[rd] = join_reg(a.r[rd], ("n", Iv(-4, -1)))
+        outs.append(a)
+    if rest:                              # timeout at once: completes in the next slot
+        b = ps.copy()
+        b.L = rest
+        b.advance(Iv(1, 4))
+        outs.append(b)
+    return outs
+
+
 def record(res, pc, lead, bugs):
     res.events[pc] = res.events[pc].join(lead) if pc in res.events else lead
 

@@ -32,7 +32,8 @@ DIRECTED = {  # bug -> program text (thread 0 owns UIO0 to UIO3); each is late i
     "tadd_ignored": "TNOW 100\n" + "TADD 4095\n" * 8 + "OUT UIO0, 1\nHALT",            # lead beyond 32,767
     "slot_wait_ignored": "TNOW 40\nOUT UIO0, 1\nOUT UIO0, 0\nHALT",                    # second OUT waits past T
     "two_slot_ld": "TNOW 13\nLD r1, 10\nOUT UIO0, 1\nHALT\n.org 10\n.word 0",         # LD takes 8 cycles: lead 1
-    "tsync_as_tnow": "TNOW 100\n" + "TADD 4095\n" * 8 + "TSYNC 10\nOUT UIO0, 1\nHALT",  # TSYNC keeps T: lead too big
+    # TSYNC keeps T (28,733 ahead, less than 32,768), then the TADD puts the event 32,820 ahead: late
+    "tsync_as_tnow": "TNOW 100\n" + "TADD 4095\n" * 7 + "TSYNC 10\nTADD 4095\nOUT UIO0, 1\nHALT",
     "sample_no_wait": "TNOW 20\nSAMPLE UIO0, r0>>\nOUT UIO1, 1\nHALT",                 # SAMPLE waits to T + 1..4
 }
 OWNER = [0, 0, 0, 0] + [None] * 11

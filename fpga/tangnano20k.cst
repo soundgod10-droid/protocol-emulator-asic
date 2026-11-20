@@ -1,0 +1,6 @@
+// Tang Nano 20K (GW2AR-LV18QN88C8/I7): the clock input on pin 4 (27 MHz oscillator; YosysHQ/apicula
+// examples/tangnano20k.cst "clk" 4, BUFG); the bench drives it at 60 MHz from the host. Other pins are placed by
+// the tool for the fmax build.
+IO_LOC  "clk" 4;
+IO_PORT "clk" IO_TYPE=LVCMOS33 PULL_MODE=NONE;
+CLOCK_LOC "clk" BUFG;

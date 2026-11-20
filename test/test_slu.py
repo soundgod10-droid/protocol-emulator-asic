@@ -2064,10 +2064,11 @@ async def test_slu_chip_uart_tx(dut):
     data = [0x55, 0x00, 0xFF, 0x0F] + [rng.randrange(256) for _ in range(60)]
     bits = sc.uart_bits(data)
     words = sc.words_of(bits)
+    assert hc.uart_tx_frame(data) == {hc.FRAME_ADDR: [len(bits)] + words}, "host call uart_tx_frame differs"
     prog = pe_asm.assemble(UART_HTX_FW, "uart_htx")
     pins = [0] * 15
     pins[0] = helper_pin(0, 0)                                       # uio0 = USB helper TXA (data)
-    host = await chip_start(dut, prog, [(512, [len(bits)] + words)], pins)
+    host = await chip_start(dut, prog, list(hc.uart_tx_frame(data).items()), pins)
     caps = []
 
     async def cap(n):

@@ -1,0 +1,25 @@
+# fpga_latch_ram: the FPGA stand-in of the latch memory (fpga/pe_latch_ram_fpga.v) gives the same read values as the
+# chip's latch memory (src/pe_latch_ram.v with the behavioural cells of src/pe_cells.v) for every word once written,
+# at both clock levels, for every input sequence (formal/fpga_latch_ram_fv.v; 16 x 16 instance). C4 W2.
+
+[options]
+mode prove
+depth 12
+multiclock on
+
+[engines]
+smtbmc z3
+
+[script]
+read_verilog -formal pe_cells.v pe_latch_ram.v
+rename pe_latch_ram pe_latch_ram_lat
+read_verilog -formal pe_latch_ram_fpga.v fpga_latch_ram_fv.v
+prep -top fpga_latch_ram_fv
+# The miter assert and the M1-M4 properties of the latch memory itself must be there.
+select -assert-min 2 t:$check t:$assert
+
+[files]
+../src/pe_cells.v
+../src/pe_latch_ram.v
+../fpga/pe_latch_ram_fpga.v
+fpga_latch_ram_fv.v

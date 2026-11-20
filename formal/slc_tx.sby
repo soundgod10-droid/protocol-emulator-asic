@@ -37,10 +37,12 @@ connect -set mon_rxnb \u_slu.rx_nb
 connect -set mon_rxsh \u_slu.rx_sh
 connect -set mon_ckpend \u_slu.ck_pend
 connect -set mon_ckbv \u_slu.ck_bit_v
+connect -set mon_tmr \u_slu.tx_tmr
+connect -set mon_half \u_slu.tx_half
 opt_clean
 cd ..
-# The job stops with an error if a property was removed: 15 asserts (clocked form) and 4 assumes of slc_fv.v.
-select -assert-min 19 t:$check t:$assert t:$assume
+# The job stops with an error if a property was removed: 16 asserts (clocked form) and 4 assumes of slc_fv.v.
+select -assert-min 20 t:$check t:$assert t:$assume
 
 [files]
 ../src/pe_slu_loop.v

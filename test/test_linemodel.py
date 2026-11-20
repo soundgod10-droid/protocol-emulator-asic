@@ -312,6 +312,14 @@ async def test_research_scope(dut):
         return p
     run([sys.executable, "-I", "coverage/scope.py", dat, "--info", "info.yaml", "--src", "src",
          "--holes", "holes.csv"], work)
+    for cand in (r"C:\Users\ssher\fallout-sandbox\bridge_workspace\archive\gh-run-44754431589\coverage.dat",
+                 r"Z:\fallout-sandbox\archive\build\gh-run-44754431589\coverage.dat"):
+        if os.path.isfile(cand):
+            p = run([sys.executable, "-I", "coverage/scope.py", cand, "--info", "info.yaml", "--src", "src",
+                     "--holes", os.path.join(root, "build", "holes_split.csv"),
+                     "--toggle-holes", os.path.join(root, "build", "toggle_split.txt")], work)
+            open(os.path.join(root, "build", "scope_split.md"), "w", encoding="utf-8").write(p.stdout)
+            break
     run([sys.executable, "-I", "coverage/split.py", "."], work)
     srcs = ["src/%s" % f for f in ("project.v", "pe_sync.v", "pe_cycle_counter.v", "pe_timed_out.v", "pe_cells.v",
                                    "pe_latch_ram.v", "pe_sram.v", "pe_host_fifo.v", "pe_timed_in.v", "pe_config.v",

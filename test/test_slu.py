@@ -2049,44 +2049,7 @@ async def test_slu_chip_usb_events(dut):
                   % words_out[0])
 
 
-UART_HTX_FW = """
-        .equ    E, 16           ; USB helper ports 16-31
-        LDI     r0, 0
-        IOW     r0, E+12        ; CFGADR 0
-        LDI     r0, 0
-        IOW     r0, E+13        ; MODE: NRZ code, RX off, no stuffing, not the USB line
-        LDI     r0, 4
-        IOW     r0, E+13        ; TXPER 4: 4 cycles a bit (15 Mbaud at 60 MHz)
-        LDI     r2, 512         ; frame: bit count N at 512, then the words (first bit in bit 0)
-        LDX     r3, [r2]
-        MOV     r0, r3
-        ANDI    r0, 15
-        IOW     r0, E+4         ; TXCTRL: bits in the last word
-        ADDI    r3, 15
-        SHR     r3, 4           ; words
-        ADDI    r2, 1
-        TNOW    40
-        TGET    r0
-        ADDI    r0, 100
-        IOW     r0, E+5         ; TXTIME = T + 100: the loop fills the TX buffer first
-tx:     IOR     r0, E+0         ; TX buffer free words
-        CMPI    r0, 0
-        BEQ     tx
-        LDX     r0, [r2]
-        ADDI    r2, 1
-        CMPI    r3, 1
-        BEQ     last
-        IOW     r0, E+0         ; TXDATA
-        ADDI    r3, -1
-        JMP     tx
-last:   IOW     r0, E+14        ; TXLAST
-done:   IOR     r1, E+2         ; STATUS: TXDONE
-        ANDI    r1, 1
-        BEQ     done
-        IOR     r1, E+2
-        PUSH    r1
-        HALT
-"""
+UART_HTX_FW = helper_fw("uart_tx.s")
 
 
 @cocotb.test()

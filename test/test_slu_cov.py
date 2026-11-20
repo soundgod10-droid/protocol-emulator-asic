@@ -686,17 +686,21 @@ async def integrator_limit(dut, ppm):
     seen = await eth_integrator(dut, ppm)
     dut._log.info("integrator I at %+.0f ppm: %d..%d" % (ppm, seen["min"], seen["max"]))
     assert -2047 <= seen["min"] and seen["max"] <= 2047, "integrator outside +/-2047"
-    assert 2047 in (seen["max"], -seen["min"]), "the integrator reaches a limit"
+    # a longer bit time (+ppm) makes every edge late, so I goes negative (it slows the bit clock), and the reverse
+    if ppm > 0:
+        assert seen["min"] == -2047, "the integrator reaches -2047"
+    else:
+        assert seen["max"] == 2047, "the integrator reaches +2047"
     return seen
 
 
 @cocotb.test(skip=GL)
 async def test_slu_cov_eth_loop_integrator_fast(dut):
-    """Frame at +5,000 ppm: the integrator of the 10BASE-Te receive loop reaches its limit (see integrator_limit)."""
+    """Frame at +5,000 ppm (longer bits): the integrator of the 10BASE-Te receive loop stops at -2047 (integrator_limit)."""
     await integrator_limit(dut, 5000.0)
 
 
 @cocotb.test(skip=GL)
 async def test_slu_cov_eth_loop_integrator_slow(dut):
-    """Frame at -5,000 ppm: the integrator of the 10BASE-Te receive loop reaches its limit (see integrator_limit)."""
+    """Frame at -5,000 ppm (shorter bits): the integrator stops at +2047 (integrator_limit)."""
     await integrator_limit(dut, -5000.0)

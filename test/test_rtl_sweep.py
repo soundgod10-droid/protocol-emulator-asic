@@ -315,6 +315,33 @@ def _define_tests():
     async def jtag(dut, name, fw, h1, h2):
         await rf.rtl_jtag(dut, fw, h1, h2)
 
+    async def jtag_walk(dut, name, h1, h2):
+        prog = fx.assemble("jtag.s", H1=h1, H2=h2)
+        devs = fx.jtag_devices()
+        label = f"rtl jtag.s TAP walk H1 {h1} H2 {h2}"
+        bench = rf.RtlBench(dut, prog.words, owner=ff.owners({fx.P_TCK: 0, fx.P_TMS: 0, fx.P_TDI: 0}),
+                            inputs=fx.JtagChain(devs), label=label)
+        await bench.run(50)
+        tms, seen = tap_walk()
+        rng = _rng(name)
+        tdi = [rng.randrange(2) for _ in tms]
+        n = len(tms)
+        bench.send(0, n, *[w for g in range(0, n, 16) for w in (fx.lsb_word(tms[g:g + 16]), fx.lsb_word(tdi[g:g + 16]))])
+        need = (n + 15) // 16
+        for _ in range(200):
+            if len(bench.words(0)) >= need:
+                break
+            await bench.run(n * (h1 + h2) // 8 + 400)
+        assert len(bench.words(0)) == need, f"{label}: {len(bench.words(0))} TDO words, expected {need}"
+        await bench.run(400)
+        for i, d in enumerate(devs):
+            assert not d.errors, f"{label}: device {i} errors {d.errors[:3]}"
+            assert d.state == "TLR", f"{label}: device {i} ends in {d.state}"
+        assert len(seen) == 32, seen
+        dut._log.info(f"{label}: {n} TCK cycles, all 32 TAP transitions taken; both TAP models without timing errors, "
+                      f"in Test-Logic-Reset at the end")
+        await bench.finish(dut._log)
+
     async def can(dut, name, rate, frac, part, ppm):
         bt = round(F_CLK / rate)
         sp = round(frac * bt)

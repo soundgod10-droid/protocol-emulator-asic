@@ -573,6 +573,65 @@ async def test_research_sdf_macro(dut):
 
 
 @cocotb.test(skip=GL)
+async def test_research_sdf_bus(dut):
+    """Does Icarus apply an SDF IOPATH A_CLK A_DOUT (bus name, no bit index) to a vector specify path
+    (A_CLK *> A_DOUT) of a macro model? Small standalone bench, iverilog -gspecify, vvp."""
+    import shutil
+    import subprocess
+    root = os.path.dirname(HERE)
+    d = os.path.join(root, "build", "sdf_bus")
+    shutil.rmtree(d, ignore_errors=True)
+    os.makedirs(d)
+    model = """`timescale 1ns/1ps
+module MACRO (input wire A_CLK, input wire [15:0] A_DIN, output reg [15:0] A_DOUT);
+  always @(posedge A_CLK) A_DOUT <= A_DIN;
+  specify
+    (A_CLK *> A_DOUT) = (0.0, 0.0);
+  endspecify
+endmodule
+"""
+    tb = """`timescale 1ns/1ps
+module tb;
+  reg clk = 0; reg [15:0] din = 16'h1234; wire [15:0] dout;
+  MACRO u_m (.A_CLK(clk), .A_DIN(din), .A_DOUT(dout));
+  initial begin
+    $sdf_annotate("bus.sdf", tb);
+    #10 clk = 1;
+    #20 clk = 0; din = 16'hABCD;
+    #10 clk = 1;
+    #20 $finish;
+  end
+  always @(dout) $display("t=%0t dout=%h", $realtime, dout);
+endmodule
+"""
+    sdf = """(DELAYFILE
+ (SDFVERSION "3.0")
+ (DESIGN "tb")
+ (TIMESCALE 1ns)
+ (CELL
+  (CELLTYPE "MACRO")
+  (INSTANCE u_m)
+  (DELAY
+   (ABSOLUTE
+    (IOPATH A_CLK A_DOUT (7.175:7.175:7.175) (7.063:7.063:7.063))
+   )
+  )
+ )
+)
+"""
+    for name, text in (("macro.v", model), ("tb.v", tb), ("bus.sdf", sdf)):
+        open(os.path.join(d, name), "w").write(text)
+    out = []
+    p = subprocess.run(["iverilog", "-gspecify", "-o", "sim.vvp", "tb.v", "macro.v"], cwd=d, capture_output=True, text=True)
+    out.append("iverilog -> %d %s %s" % (p.returncode, p.stdout, p.stderr))
+    p = subprocess.run(["vvp", "sim.vvp"], cwd=d, capture_output=True, text=True, timeout=60)
+    out.append("vvp -> %d\n%s%s" % (p.returncode, p.stdout, p.stderr))
+    text = "\n".join(out)
+    open(os.path.join(root, "build", "sdf_bus.txt"), "w").write(text + "\n")
+    dut._log.info(text)
+
+
+@cocotb.test(skip=GL)
 async def test_research_triage(dut):
     """Reached / not reached per point from the triage cover logs; candidate exclusion rows for the rest."""
     import csv

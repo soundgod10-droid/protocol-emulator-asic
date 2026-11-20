@@ -61,7 +61,9 @@ def oe_windows(caps, bit):
         if on and start is None:
             start = i
         elif not on and start is not None:
-            out.append((start, i - start))
+            if not skip:
+                out.append((start, i - start))
+            skip = False
             start = None
     return out
 

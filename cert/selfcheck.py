@@ -103,7 +103,7 @@ def certified(text, bugs=()):
     prog = pe_asm.assemble(text, "random.s")
     res = lc.analyse(prog, [(0, 0)], {}, bugs)
     lo = lc.lead_min(bugs)
-    ok = res.events and not res.problems and all(lo <= v.lo and v.hi <= lc.LEAD_MAX for v in res.events.values())
+    ok = res.events and not res.problems and all(lc.in_window(v, lo) for v in res.events.values())
     return bool(ok), prog
 
 

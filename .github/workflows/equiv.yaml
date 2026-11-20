@@ -13,6 +13,9 @@ on:
       gds_run_id:
         description: 'run id of the gds workflow run'
         required: false
+      guard_ref:
+        description: 'guard mode: a commit whose RTL is compared with the RTL of this ref (no netlist)'
+        required: false
   workflow_run:
     workflows: [gds]
     types: [completed]

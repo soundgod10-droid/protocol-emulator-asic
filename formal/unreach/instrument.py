@@ -120,6 +120,8 @@ class Source:
         t = self.t(i)
         if t == "begin":
             j = i + 1
+            if self.t(j) == ":":       # named block
+                j += 2
             while self.t(j) != "end":
                 j = self.stmt(j)
             j += 1

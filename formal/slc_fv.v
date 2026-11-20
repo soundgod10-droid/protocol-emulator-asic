@@ -114,10 +114,11 @@ module slc_fv #(
                     (p_addr == 4'd3) || ((p_addr == 4'd4) && (p_wdata[10:5] == 6'd0) && (mon_txst_w == 4'd0)));
 `endif
 
+`ifndef SLC_TX
   // Internal nets of the helper, connected by the .sby after flattening.
   (* keep *) wire        mon_x0;      // x0
   (* keep *) wire        mon_x1;      // x1
-  (* keep *) wire        mon_sop;     // rx_sop
+  (* keep *) wire        mon_sop;     // ck_estart
   (* keep *) wire        mon_rdv;     // r_data_v
   (* keep *) wire        mon_rd;      // r_data
   (* keep *) wire        mon_push;    // rx_push

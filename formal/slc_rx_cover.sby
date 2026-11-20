@@ -30,7 +30,8 @@ connect -set mon_pushw \u_slu.rx_push_w
 connect -set mon_sticky \u_slu.sticky
 opt_clean
 cd ..
-select -assert-min 2 t:$cover
+# 6 asserts and 2 covers (both $check cells here) and 3 assumes
+select -assert-min 11 t:$check t:$assert t:$assume
 
 [files]
 ../src/pe_slu_loop.v

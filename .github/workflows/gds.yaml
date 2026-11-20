@@ -66,6 +66,12 @@ jobs:
             body=$(awk '/^Startpoint/{n++} n==1' "$f" | head -n 110 | sed ':a;N;$!ba;s/\n/%0A/g')
             echo "::notice title=slow worst path::${body}"
           fi
+          for c in nom_fast_1p32V_m40C nom_typ_1p20V_25C; do
+            f=$(ls ${r}*-openroad-stapostpnr/$c/min.rpt 2>/dev/null | head -n 1)
+            [ -n "$f" ] || continue
+            body=$(grep -E "^Startpoint|^Endpoint|slack \(" "$f" | head -n 45 | sed ':a;N;$!ba;s/\n/%0A/g')
+            echo "::notice title=hold paths $c::${body}"
+          done
           body=$(grep -rh -i -B2 -A8 "disconnected" ${r}*-checker-disconnectedpins/*.log ${r}*-odb-checkdisconnectedpins/*.log ${r}*disconnected*/*.rpt 2>/dev/null | head -n 40 | sed ':a;N;$!ba;s/\n/%0A/g')
           echo "::notice title=disconnected pins::${body}"
           true

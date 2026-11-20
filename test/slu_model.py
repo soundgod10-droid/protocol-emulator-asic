@@ -655,7 +655,7 @@ class SluModel:
             self.jab_cnt = njc
 
         # ---------------- status ----------------
-        if rx_sop:
+        if rx_sop or ck_estart:
             nst |= 1 << 4
             if m_tsel == 1:
                 tstamp = now

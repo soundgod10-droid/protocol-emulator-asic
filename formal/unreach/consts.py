@@ -259,6 +259,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("cmd", choices=("gen", "check", "triage"))
     ap.add_argument("--src", default="src")
+    ap.add_argument("--yosys", default=os.environ.get("YOSYS", "yosys"))
     ap.add_argument("--out", default="formal/unreach/build")
     ap.add_argument("--exclusions", default="coverage/exclusions.csv")
     ap.add_argument("--teeth", default="formal/unreach/teeth.csv")

@@ -673,15 +673,24 @@ async def eth_integrator(dut, ppm):
     return seen
 
 
+async def integrator_limit(dut, ppm):
+    """10BASE-Te receive loop in the chip, frequency integrator limit (src/pe_slu_loop.v: I is held within +/-2047): a
+    frame of 200 bytes far outside IEEE 802.3's +/-100 ppm, beyond the integrator's range of about 2,600 ppm, drives I to
+    one limit, and I never goes beyond either limit."""
+    seen = await eth_integrator(dut, ppm)
+    dut._log.info("integrator I at %+.0f ppm: %d..%d" % (ppm, seen["min"], seen["max"]))
+    assert -2047 <= seen["min"] and seen["max"] <= 2047, "integrator outside +/-2047"
+    assert 2047 in (seen["max"], -seen["min"]), "the integrator reaches a limit"
+    return seen
+
+
 @cocotb.test(skip=GL)
-async def test_slu_cov_eth_loop_integrator_limits(dut):
-    """10BASE-Te receive loop in the chip, frequency integrator limits (src/pe_slu_loop.v: I is held within +/-2047):
-    frames of 200 bytes at +5,000 and -5,000 ppm (far outside IEEE 802.3's +/-100 ppm, beyond the integrator's range of
-    about 2,600 ppm) drive I to +2047 and -2047, and it never goes beyond."""
-    up = await eth_integrator(dut, 5000.0)
-    down = await eth_integrator(dut, -5000.0)
-    dut._log.info("integrator I at +5,000 ppm: %d..%d; at -5,000 ppm: %d..%d" % (up["min"], up["max"], down["min"],
-                                                                               down["max"]))
-    ext = sorted([up["max"], up["min"], down["max"], down["min"]])
-    assert -2047 <= ext[0] and ext[-1] <= 2047, "integrator outside +/-2047"
-    assert ext[-1] == 2047 and ext[0] == -2047, "the integrator reaches both limits"
+async def test_slu_cov_eth_loop_integrator_fast(dut):
+    """Frame at +5,000 ppm: the integrator of the 10BASE-Te receive loop reaches its limit (see integrator_limit)."""
+    await integrator_limit(dut, 5000.0)
+
+
+@cocotb.test(skip=GL)
+async def test_slu_cov_eth_loop_integrator_slow(dut):
+    """Frame at -5,000 ppm: the integrator of the 10BASE-Te receive loop reaches its limit (see integrator_limit)."""
+    await integrator_limit(dut, -5000.0)

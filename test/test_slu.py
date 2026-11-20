@@ -2018,6 +2018,7 @@ async def test_slu_chip_spi_flash(dut):
     assert end - 768 == len(words), "thread 1 stored %d words, expected %d" % (end - 768, len(words))
     got_words = await host.read_mem(768, len(words))
     got = sc.bits_to_bytes(sc.bits_of(got_words, len(bits))[32:])
+    assert hc.spi_flash_read_bytes(got_words, 256) == got, "host call spi_flash_read_bytes differs from the bench"
     want = [flash[(addr + k) % len(flash)] for k in range(256)]
     io.task.cancel()
     assert not status & 0x204, "status %04x: TXUNDER or RXOVER" % status

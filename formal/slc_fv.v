@@ -83,6 +83,9 @@ module slc_fv #(
   // The register values (connected to u_slu.c_mode, c_txper, c_ltc, c_sel, tx_lastbits by the .sby): the
   // writable bits of SPEC 1 set as the thread writes them, every other bit at its USB value (F_MODE 03B9,
   // F_LTC 0044).
+  (* anyconst *) reg       f_nrz;    // SLC_TX: MODE code 0 (NRZ) instead of 3 (clocked)
+  (* anyconst *) reg       f_rx;     // SLC_TX: MODE bit 3, receive on (clocked)
+`ifndef SLC_TX
   (* keep *) wire [15:0] k_mode  = 16'h01AB;                          // code 3 (clocked), RX on, no stuffing
   (* keep *) wire [15:0] k_txper = {8'd0, f_per};
   (* keep *) wire [15:0] k_ltc   = 16'h0444 | {3'd0, f_fall, 2'd0, f_ck, 8'd0};   // LTC[10] edge start
@@ -92,6 +95,20 @@ module slc_fv #(
   // Receive only: the thread clears flags (STATUS) and sets the event mask; it writes nothing that starts or
   // stops a transmission and no configuration word while receiving.
   always @* assume (!p_we || (p_addr == 4'd2) || (p_addr == 4'd3));
+`else
+  // SLC_TX: frames started at TXTIME. Clocked (code 3, receive on or off) or NRZ (code 0); TXPER 1 to PMAX.
+  (* keep *) wire [15:0] k_mode  = 16'h01A0 | (f_nrz ? 16'h0000 : {12'd0, f_rx, 3'b011});
+  (* keep *) wire [15:0] k_txper = {8'd0, f_per};
+  (* keep *) wire [15:0] k_ltc   = 16'h0044 | {3'd0, f_fall, 2'd0, f_ck, 8'd0};
+  (* keep *) wire [15:0] k_sel   = {f_dly, 8'hFF, f_din};
+  always @* assume (f_per != 8'd0);
+  // The thread: words to TXDATA/TXLAST at any time (a word to a full buffer is dropped), TXTIME at any time,
+  // STATUS and EVMASK at any time; TXCTRL only while the transmitter is idle and with bits 10:5 = 0 (no CRC,
+  // late drop, link pulse, abort, start-now or flush); RXDATA reads free; no configuration word.
+  (* keep *) wire [3:0] mon_txst_w;   // tx_st
+  always @* assume (!p_we || (p_addr == 4'd0) || (p_addr == 4'd14) || (p_addr == 4'd5) || (p_addr == 4'd2) ||
+                    (p_addr == 4'd3) || ((p_addr == 4'd4) && (p_wdata[10:5] == 6'd0) && (mon_txst_w == 4'd0)));
+`endif
 
   // Internal nets of the helper, connected by the .sby after flattening.
   (* keep *) wire        mon_x0;      // x0

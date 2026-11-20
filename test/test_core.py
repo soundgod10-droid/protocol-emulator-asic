@@ -57,6 +57,7 @@ sys.path.insert(0, os.path.join(ROOT, "test"))
 import host_spi as hs  # noqa: E402
 import pe_asm  # noqa: E402
 import pe_model  # noqa: E402
+import fcov  # noqa: E402  (functional coverage, FCOV=1 only)
 
 CLK_NS = 20  # 50 MHz (info.yaml clock_hz)
 CMD_NOP, CMD_PUSH, CMD_POP = 0, 4, 5  # host operations of a scenario after START

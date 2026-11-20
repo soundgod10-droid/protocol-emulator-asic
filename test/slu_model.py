@@ -674,8 +674,6 @@ class SluModel:
             nst |= 1 << 13
             if m_tsel == 2:
                 tstamp = now
-        if p_we and p_addr == 2:
-            nst = sticky & ~wd & 0xFFFF
         self.sticky = nst
         self.tstamp = tstamp
 

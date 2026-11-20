@@ -10,7 +10,8 @@ Usage: python formal/unreach/consts.py gen [--src src] [--out formal/unreach/bui
 gen runs Yosys (--yosys, default $YOSYS or yosys) for two netlists next to the proof jobs of
 formal/unreach/instrument.py: yconst_usb (SPEC 1, FULL 0, the chip's u_usb) and yconst_eth (SPEC 2, FULL 1, u_eth).
 Each reads src/pe_slu.v and src/pe_slu_loop.v unchanged inside formal/unreach/unreach_fv.v (every port access,
-written word and pin input free in every cycle) and flattens the design (pre.json). Every flip-flop with an
+written word and pin input free in every cycle) and flattens the design with a keep attribute on every wire (the
+wrapper has no outputs, so Yosys would otherwise remove the helper) (pre.json). Every flip-flop with an
 asynchronous reset then loses the reset and gets its reset value as its initial value (init.json): the states
 this model reaches from its initial state are the states the helper reaches after a reset, because a reset at
 any later time only returns those flip-flops to the same values (flip-flops without a reset stay free). Yosys

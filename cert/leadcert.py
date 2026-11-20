@@ -462,6 +462,8 @@ def lead_min(bugs):
 # 0, no assumption.
 PROGRAMS = {
     "can.s": {"entries": [(0, 0), ("rx", 1)]},
+    # header, host word 1: C, chunk time in cycles, 40 to 32,767 (PULL at address 0)
+    "uart_tx_full.s": {"assume": {0: (40, 32767)}},
 }
 
 

@@ -74,7 +74,13 @@ jobs:
         run: |
           set -o pipefail
           cd test
-          python coverage_summary.py coverage.dat | tee coverage_summary.md
+          # Raw (as published), chip and chip-with-exclusions figures, per-file raw table, holes (coverage/scope.py).
+          excl=()
+          if [ -f ../coverage/exclusions.csv ]; then excl=(--exclusions ../coverage/exclusions.csv); fi
+          scope_rc=0
+          python ../coverage/scope.py coverage.dat --info ../info.yaml --src ../src "${excl[@]}" \
+            --holes coverage_holes.csv --toggle-holes coverage_toggle_holes.txt > coverage_summary.md || scope_rc=$?
+          cat coverage_summary.md
           echo "## Coverage of the RTL tests (Verilator $VERILATOR_VERSION)" >> "$GITHUB_STEP_SUMMARY"
           cat coverage_summary.md >> "$GITHUB_STEP_SUMMARY"
           # The same table as an annotation, readable through the public API without sign-in.

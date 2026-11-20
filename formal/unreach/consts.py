@@ -49,7 +49,10 @@ JOBS = {"yconst_usb": 1, "yconst_eth": 2}
 STEP_INSTANCES = ("u_a", "u_a0", "u_b0", "u_b1")
 PREP = """read -formal -sv pe_slu_loop.v pe_slu.v unreach_fv.v
 hierarchy -top unreach_fv -chparam SPEC {spec}
-prep -top unreach_fv -flatten
+proc
+flatten
+setattr -set keep 1 w:*
+prep -top unreach_fv
 delete t:$assert t:$assume t:$cover t:$check
 write_json pre.json
 """

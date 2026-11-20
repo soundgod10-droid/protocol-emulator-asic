@@ -69,15 +69,28 @@ def main():
                 owned |= 1 << ((w >> 8) & 0xF)
         open(os.path.join(d, "fwlate_params.vh"), "w", encoding="utf-8").write(
             "localparam [14:0] OWNED = 15'h%04X;   // output pins of the OUT instructions of %s\n" % (owned, name))
+        if args.engine == "pdr":
+            # The AIGER model allows no x bits: the ROM function stays logic (proc -norom, HALT outside the image),
+            # and every x of the RTL or of techmap (e.g. $shiftx out of range) becomes a free value in each cycle,
+            # which only adds behaviours, so a PASS still holds for the RTL.
+            options = ["mode prove"]
+            engine = "abc pdr"
+            script = ["read -formal %s fwlate_stubs.v fwlate_fv.v" % " ".join(RTL),
+                      "hierarchy -top fwlate_fv", "proc -norom", "prep -top fwlate_fv",
+                      "chformal -assert2assume pe_core *pe_timed_out*",
+                      "select -assert-min 2 fwlate_fv/t:$check fwlate_fv/t:$assert pe_sram/t:$check pe_sram/t:$assert",
+                      "flatten", "techmap", "opt -fast", "setundef -anyseq"]
+        else:
+            options = ["mode %s" % args.mode, "depth %d" % args.depth]
+            engine = "smtbmc z3"
+            script = ["read -formal %s fwlate_stubs.v fwlate_fv.v" % " ".join(RTL),
+                      "prep -top fwlate_fv",
+                      "chformal -assert2assume pe_core *pe_timed_out*",
+                      "select -assert-min 2 fwlate_fv/t:$check fwlate_fv/t:$assert pe_sram/t:$check pe_sram/t:$assert"]
         sby = [
             "# %s: thread 0 runs fw/%s (%d words) from a ROM; LATE is never set and the program never stores "
             "(formal/fwlate/gen.py)." % (job, name, prog.size),
-            "[options]", "mode %s" % args.mode, "depth %d" % args.depth, "", "[engines]", "smtbmc z3", "", "[script]",
-            "read -formal %s fwlate_stubs.v fwlate_fv.v" % " ".join(RTL),
-            "prep -top fwlate_fv",
-            "chformal -assert2assume pe_core *pe_timed_out*",
-            "select -assert-min 2 fwlate_fv/t:$check fwlate_fv/t:$assert pe_sram/t:$check pe_sram/t:$assert",
-            "", "[files]"] + list(RTL) + ["fwlate_stubs.v", "fwlate_fv.v", "fwlate_rom.vh", "fwlate_params.vh", ""]
+            "[options]"] + options + ["", "[engines]", engine, "", "[script]"] + script + ["", "[files]"] + list(RTL) + ["fwlate_stubs.v", "fwlate_fv.v", "fwlate_rom.vh", "fwlate_params.vh", ""]
         open(os.path.join(d, job + ".sby"), "w", encoding="utf-8").write("\n".join(sby))
         print("%s: fw/%s, %d words, owned pins 0x%04X, %s depth %d" % (job, name, prog.size, owned, args.mode,
                                                                         args.depth))

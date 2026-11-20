@@ -533,7 +533,7 @@ def certify(name, cfg=None, bugs=()):
         assume[sym[label] if isinstance(label, str) else label] = ("v", Iv(lo, hi))
     res = analyse(prog, entries, assume, bugs)
     lo_ok = lead_min(bugs)
-    bad = {pc: lead for pc, lead in res.events.items() if lead.lo < lo_ok or lead.hi > LEAD_MAX}
+    bad = {pc: lead for pc, lead in res.events.items() if not in_window(lead, lo_ok)}
     certified = not bad and not res.problems and bool(res.events)
     return {
         "program": name, "words": prog.size, "events": len(res.events), "certified": certified,

@@ -361,6 +361,7 @@ class RtlBench:
                      f"comparisons with the load); host: {s['STATUS']} READ_STATUS, {s['PUSH']} PUSH ({s['pushed']} "
                      f"words), {s['PULL']} PULL ({s['pulled']} words checked on MISO); RUN, LATE, ERR as the model "
                      f"{chip}")
+        fcov.export()
         return st
 
 

@@ -340,6 +340,9 @@ async def run_lockstep(dut, scn, after_reset=None):
         after_reset()
     st0 = state_handle(dut)
     counter = counter_handle(dut)
+    pin_watch = [False]
+    if os.environ.get("SDF_DELAYS") == "1":
+        cocotb.start_soon(watch_pin_delays(dut, pin_watch))
     m = scn.new_model()
     fcov.attach(m, "test_core " + scn.label)
     sched, t0, ops, pulls = build_schedule(scn)

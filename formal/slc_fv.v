@@ -321,7 +321,7 @@ module slc_fv #(
 `ifdef SLC_COVER
   always @* begin
     cover (rst_n && rx_on && fend && (m_n == 4'd3));               // a frame of 3 bits ends with a partial word
-    cover (rst_n && !f_nrz && on && (ph_cur == {1'b0, f_per}));     // a sampling edge on the clock output
+    cover (rst_n && (NRZ == 0) && on && (ph_cur == {1'b0, f_per}));  // a sampling edge on the clock output
   end
 `endif
 `endif

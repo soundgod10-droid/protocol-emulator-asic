@@ -284,6 +284,7 @@ module slc_fv #(
       on_q   <= on;
       v0_q   <= tx_v[0];
       r_q    <= 1'b1;
+      r_q2   <= r_q;
       ph     <= (ph_cur + 9'd1 == bitlen) ? 9'd0 : ph_cur + 9'd1;
       m_q    <= {1'b0, m_q[14:1]};
       if (sched && (f_dly != 4'd0)) m_q[f_dly - 4'd1] <= 1'b1;

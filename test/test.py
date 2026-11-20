@@ -258,7 +258,7 @@ async def test_reset_keeps_line_idle(dut):
     dut.ui_in.value = 1 << hs.CS_N_BIT  # host port idle
     dut.uio_in.value = 0
     dut.rst_n.value = 0
-    cocotb.start_soon(Clock(dut.clk, CLK_NS, unit="ns").start())
+    cocotb.start_soon(Clock(dut.clk, CLK_PS, unit="ps").start())
     t_reset = now_ps()
     await Timer(1, unit="ns")
     assert str(dut.uart_tx.value) == "1", "UART_TX is not high 1 ns after reset"

@@ -50,7 +50,9 @@ module slc_fv #(
   wire [15:0] p_rdata;
   wire [3:0]  tx_v;
   wire        tx_oe, ev;
-  pe_slu #(
+  // keep: the monitors read the helper only through nets connected after flattening, so without it the
+  // instance would look unused and be removed before the connects.
+  (* keep *) pe_slu #(
       .FULL(0),
       .SPEC(1)
   ) u_slu (

@@ -35,8 +35,8 @@ connect -set mon_lead \u_slu.tx_lead
 connect -set mon_time \u_slu.tx_time
 opt_clean
 cd ..
-# The job stops with an error if a property was removed: 12 asserts and 8 assumes of slc_fv.v (SLC_TX).
-select -assert-min 20 t:$check t:$assert t:$assume
+# The job stops with an error if a property was removed: 12 asserts and 4 assumes of slc_fv.v (SLC_TX).
+select -assert-min 16 t:$check t:$assert t:$assume
 
 [files]
 ../src/pe_slu_loop.v

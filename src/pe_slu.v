@@ -612,6 +612,7 @@ module pe_slu #(
         rx_lastn  <= rx_nb + 5'd1;
         rx_nb     <= 5'd0;
         rx_bits   <= 10'd0;
+        rx_sh     <= 16'd0;                                 // the next frame starts from 0, as after rx_sop
         sticky[5] <= 1'b1;
       end
       // RX buffer (2 words)

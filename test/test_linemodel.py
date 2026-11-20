@@ -324,7 +324,7 @@ async def test_research_consts(dut):
         src = os.path.join(runs[-1], "src", "yconst.json") if runs else ""
         out.append("%s: %s (%s)" % (job, src, os.path.isfile(src)))
         if os.path.isfile(src):
-            dst = os.path.join(work, "formal", "unreach", "build", job, job, "model")
+            dst = os.path.join(work, "formal", "unreach", "build", job, job, "src")
             os.makedirs(dst, exist_ok=True)
             shutil.copyfile(src, os.path.join(dst, "yconst.json"))
             out.append("  size %d" % os.path.getsize(src))

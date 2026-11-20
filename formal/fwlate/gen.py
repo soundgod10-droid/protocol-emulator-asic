@@ -43,7 +43,11 @@ def main():
     ap.add_argument("--out", default=os.path.join(HERE, "build"))
     ap.add_argument("--mode", default="prove", choices=("prove", "bmc"))
     ap.add_argument("--depth", type=int, default=24)
+    ap.add_argument("--engine", default="smtbmc", choices=("smtbmc", "pdr"),
+                    help="smtbmc: z3, k-induction to --depth; pdr: ABC PDR (searches an inductive invariant itself)")
     args = ap.parse_args()
+    if args.engine == "pdr" and args.mode != "prove":
+        ap.error("--engine pdr proves only (--mode prove)")
     stubs = open(os.path.join(ROOT, "formal", "proc_stubs.v"), encoding="utf-8").read()
     stubs = re.sub(r"module pe_sram \(.*?endmodule\n", "", stubs, flags=re.S)
     for name in args.programs or small_programs():

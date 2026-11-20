@@ -52,3 +52,43 @@ jobs:
             cert_table.md
             cert_results.json
             cert_selfcheck.txt
+
+  # F3: "LATE is never set" of a firmware image on the processor RTL (formal/fwlate/), unbounded with ABC PDR. The
+  # result (PASS, FAIL, or no result within the limit) is reported as an annotation; a FAIL fails the job.
+  fwlate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 80
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+
+      - name: Install Yosys, SymbiYosys and ABC (OSS CAD Suite)
+        uses: YosysHQ/setup-oss-cad-suite@v4
+        with:
+          version: '2026-11-14'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: PDR proof of fw/uart_tx.s
+        shell: bash
+        run: |
+          python3 formal/fwlate/gen.py --engine pdr uart_tx.s
+          cd formal/fwlate/build/uart_tx
+          rc=0
+          timeout 3600 sby -f uart_tx.sby > sby.txt 2>&1 || rc=$?
+          tail -n 20 sby.txt
+          status=$(cat uart_tx/status 2>/dev/null || echo "no result (sby exit $rc, limit 3600 s)")
+          summary=$(grep "summary:" sby.txt | sed -e 's/.*summary: //' || true)
+          echo "::notice title=F3 uart_tx.s (ABC PDR)::${status}%0A$(printf '%s\n' "$summary" | sed -e 's/%/%25/g' | sed -e ':a;N;$!ba;s/\n/%0A/g')"
+          ! grep -q "^FAIL" uart_tx/status 2>/dev/null
+
+      - name: Upload
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: fwlate
+          path: |
+            formal/fwlate/build/uart_tx/uart_tx.sby
+            formal/fwlate/build/uart_tx/sby.txt
+            formal/fwlate/build/uart_tx/uart_tx/logfile.txt
+            formal/fwlate/build/uart_tx/uart_tx/engine_*/*.vcd
+          if-no-files-found: warn

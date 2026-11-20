@@ -465,6 +465,9 @@ module pe_slu #(
       tx_pulse <= 1'b0; crc_t <= 32'd0; tx_lead <= 1'b0; jab_cnt <= 17'd0; jabber <= 1'b0;
       tx_line_q <= 1'b1; tx_v <= 4'd0; tx_oe <= 1'b0;
     end else begin
+      // STATUS write: 1 clears a sticky flag. It comes first, so that a flag that an event sets in the same
+      // cycle (below) stays set; a clear written last would also clear the flags that are new in that cycle.
+      if (p_we && p_addr == 4'd2) sticky <= sticky & ~p_wdata;
       // ---------------- configuration and control ----------------
       if (p_we && p_addr == 4'd12) cfg_adr <= p_wdata[4:0];
       if (p_we && p_addr == 4'd13 && SPEC != 0 && cfg_adr == 5'd8) c_sel <= p_wdata;

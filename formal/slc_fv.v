@@ -287,6 +287,7 @@ module slc_fv #(
       if (first) begin
         m_fa <= 1'b1;
         m_n  <= 4'd0;
+        m_w  <= 16'd0;
       end
       if (fend) begin
         m_fa <= 1'b0;

@@ -21,7 +21,7 @@ connect -set \u_slu.c_sel k_sel
 connect -set \u_slu.tx_lastbits k_len
 connect -set mon_x0 \u_slu.x0
 connect -set mon_x1 \u_slu.x1
-connect -set mon_sop \u_slu.rx_sop
+connect -set mon_sop \u_slu.ck_estart
 connect -set mon_rdv \u_slu.r_data_v
 connect -set mon_rd \u_slu.r_data
 connect -set mon_push \u_slu.rx_push

@@ -191,8 +191,12 @@ module slc_fv #(
   end
 
 `ifdef SLC_COVER
-  // Two frames back to back, the second started in the cycle that delivers the last bit of the first.
-  always @* cover (rst_n && m_due && m_last && start);
+  // Two frames back to back: the second started before the last sample of the first is taken, and the
+  // delivery of that last sample.
+  always @* begin
+    cover (rst_n && start && last_near && (m_cd != 10'd0));
+    cover (rst_n && m_due && m_last && m_pl);
+  end
 `endif
 
 endmodule

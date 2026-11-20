@@ -295,6 +295,7 @@ async def run_lockstep(dut, scn, after_reset=None):
     st0 = state_handle(dut)
     counter = counter_handle(dut)
     m = scn.new_model()
+    fcov.attach(m, "test_core " + scn.label)
     sched, t0, ops, pulls = build_schedule(scn)
 
     t = 0  # test bench cycle; model cycle c = t - t0

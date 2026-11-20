@@ -331,12 +331,15 @@ def step(prog, pc, st, res, assume, bugs):
             a = s.copy()
             a.L = keep
             parts.append(a)
+        if keep:
+            parts[0].prune()
         if low:
             b = s.copy()
             b.L = low
-            b.move_t(Iv(imm))
-            # D followed T for each L of the low part: t - T_new = D + L - imm (L within the low part)
-            b.D = {p: d + low - imm for p, d in s.D.items()}
+            b.prune()
+            # D follows T for each L of the low part: t - T_new = D + L - imm (L within the low part)
+            b.D = {p: d + low - imm for p, d in b.D.items()}
+            b.L = Iv(imm)
             parts.append(b)
         out = parts[0]
         for p in parts[1:]:

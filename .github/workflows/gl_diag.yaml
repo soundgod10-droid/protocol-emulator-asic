@@ -54,7 +54,11 @@ jobs:
           nl=$(ls build/logs/runs/*/final/nl/*.v | head -n 1)
           cp "$nl" test/gate_level_netlist.v
           sha=$(gh run view ${{ matrix.run }} --json headSha -q .headSha)
-          echo "::notice title=gl_diag ${{ matrix.name }}::gds run ${{ matrix.run }} (commit ${sha:0:7}), netlist $(basename $nl), $(wc -l < $nl) lines, SHA-256 $(sha256sum $nl | cut -c1-16)"
+          echo "::notice title=gl_diag ${{ matrix.name }}::gds run ${{ matrix.run }} (commit ${sha:0:7}), netlist $(basename $nl), $(wc -l < $nl) lines, SHA-256 $(sha256sum $nl | cut -c1-16), hold cells $(grep -c 'sg13cmos5l_dlygate' $nl), buffers $(grep -c 'sg13cmos5l_buf_' $nl)"
+          if [ -n "${{ matrix.corner }}" ]; then
+            cp $(ls build/logs/runs/*/final/sdf/${{ matrix.corner }}/*.sdf | head -n 1) /tmp/cell_only.sdf
+            python test/sdf_names.py test/gate_level_netlist.v /tmp/cell_only.sdf | tail -n 5
+          fi
           rm -rf build/logs
       - name: PDK (revision of the candidate)
         shell: bash

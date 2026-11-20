@@ -84,6 +84,12 @@ module slc_fv #(
 `else
   always @* assume ((f_per <= PMAX) && (f_din < 4'd13));
 `endif
+`ifdef SLC_PIN
+  // Teeth: one fixed configuration (TXPER 2, delay 1, DIN pin 0, rising-edge copy, CPOL 0 CPHA 0, 3-sample frames),
+  // so that a planted fault can be connected as a constant register value next to it.
+  always @* assume ((f_per == 8'd2) && (f_dly == 4'd1) && (f_din == 4'd0) && !f_fall && (f_ck == 2'd0) &&
+                    (f_len == 5'd3));
+`endif
 
   // The register values (connected to u_slu.c_mode, c_txper, c_ltc, c_sel, tx_lastbits by the .sby): the
   // writable bits of SPEC 1 set as the thread writes them, every other bit at its USB value (F_MODE 03B9,

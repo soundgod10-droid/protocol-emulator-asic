@@ -538,6 +538,41 @@ print("seen", len(fcov._seen))
 
 
 @cocotb.test(skip=GL)
+async def test_research_sdf_macro(dut):
+    """The SRAM macro CELL entries of a layout SDF (format of the IOPATH lines) and the macro ports of src/sram_sim.v."""
+    import glob
+    import re
+    root = os.path.dirname(HERE)
+    out = []
+    sdfs = []
+    for base in (r"C:\Users\ssher\fallout-sandbox\bridge_workspace\archive\gh-run-44121268959",
+                 r"Z:\fallout-sandbox\archive\build\gh-run-44121268959"):
+        sdfs = sorted(glob.glob(os.path.join(base, "GDS_logs", "runs", "wokwi", "final", "sdf", "*", "*.sdf")))
+        if sdfs:
+            break
+    out.append("SDF files: %s" % sdfs)
+    for sdf in [s for s in sdfs if "slow" in s][:1]:
+        text = open(sdf, encoding="utf-8", errors="replace").read()
+        out.append("%s: %d chars, %d INTERCONNECT lines" % (os.path.basename(sdf), len(text), text.count("(INTERCONNECT ")))
+        starts = [m.start() for m in re.finditer(r"\(CELLTYPE\s+\"RM_IHPSG13", text)]
+        out.append("macro CELLTYPE lines: %d" % len(starts))
+        for s in starts[:2]:
+            chunk = text[max(0, s - 20):s + 6000]
+            lines = chunk.splitlines()
+            out.append("--- first 60 lines of the block:")
+            out += lines[:60]
+            kinds = sorted({re.sub(r"\[\d+\]", "[k]", " ".join(ln.split()[:3])) for ln in lines[:400]
+                            if any(k in ln for k in ("IOPATH", "SETUP", "HOLD", "WIDTH", "PERIOD"))})
+            out.append("kinds: %s" % kinds[:40])
+    sim = open(os.path.join(root, "src", "sram_sim.v"), encoding="utf-8").read()
+    out.append("sram_sim.v modules: %s" % re.findall(r"module\s+(\w+)", sim))
+    out.append(sim[:3000])
+    text = "\n".join(out)
+    open(os.path.join(root, "build", "sdf_macro.txt"), "w", encoding="utf-8").write(text + "\n")
+    dut._log.info(text[-2000:])
+
+
+@cocotb.test(skip=GL)
 async def test_research_triage(dut):
     """Reached / not reached per point from the triage cover logs; candidate exclusion rows for the rest."""
     import csv

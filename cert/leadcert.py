@@ -99,9 +99,10 @@ def wrap_parts(iv):
     return [(Iv(lo, 32767), k * WRAP), (Iv(-32768, hi - WRAP), (k + 1) * WRAP)]
 
 
-def in_window(lead):
+def in_window(lead, lo=None):
     """True if every value of the lead interval is on time (4 to 32,767 modulo 65,536, isa 4.2)."""
-    return all(LEAD_MIN <= p.lo and p.hi <= LEAD_MAX for p, _ in wrap_parts(lead))
+    lo = LEAD_MIN if lo is None else lo
+    return all(lo <= p.lo and p.hi <= LEAD_MAX for p, _ in wrap_parts(lead))
 
 
 class State:

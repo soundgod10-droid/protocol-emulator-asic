@@ -1180,7 +1180,7 @@ async def test_core_fw_uart_tx(dut):
 
     frame_cycles = 10 * m1.BIT_CYCLES
     cycles = (len(FW_UART_BYTES) + 1) * frame_cycles + 600
-    scn = Scenario("fw uart_tx", prog.image(), owner=owners({12: 0}), cycles=cycles, host=host)
+    scn = Scenario("fw uart_tx", image, owner=owners({12: 0}), cycles=cycles, host=host)
     mon = m1.LineMonitor(dut.uart_tx)
     rx = m1.UartRx(dut.uart_tx)
 

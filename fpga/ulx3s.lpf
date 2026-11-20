@@ -1,0 +1,7 @@
+# ULX3S (LFE5U-25F/85F, CABGA381): the clock input on the 25 MHz oscillator pin G2 (emard/ulx3s
+# doc/constraints/ulx3s_v20.lpf, "clk_25mhz" SITE "G2"); the bench drives this net at 60 MHz from the host instead
+# (wiring in docs/bench.md). The timing target is 63 MHz (60 MHz + 5 %, gate G1). The other pins are placed by the
+# tool for the fmax build; the bench wiring constraints follow in the wiring step.
+LOCATE COMP "clk" SITE "G2";
+IOBUF  PORT "clk" PULLMODE=NONE IO_TYPE=LVCMOS33;
+FREQUENCY PORT "clk" 63 MHZ;

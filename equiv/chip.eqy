@@ -20,15 +20,40 @@ read_liberty -ignore_redef -ignore_miss_func @LIB@
 read_verilog @NL@
 prep -top tt_um_soundgod10_droid_protocol_emulator
 flatten
-# Flattening a library cell leaves its pin wires as public aliases of the nets (_19785_.A0 beside
-# u_proc...u_lat.q), which eqy reads as a second match for the same gold bit: the pin names are hidden.
-rename -hide w:*.[A-Z]*
-# Nets that the layout flow named after a design net (clock tree clknet_..._<net>, repair buffers) are a second
-# match for that net's gold bit: the flow's generated net names are hidden too.
-rename -hide w:clknet_* w:clkload* w:delaynet* w:net* w:wire* w:rebuffer* w:split* w:fanout* w:max_length* w:max_cap* w:hold* w:place*
+# Every name that can match the RTL is inside one of its instances (u_*) or a port. Flattening names the cells'
+# pin wires after the cells (_19785_.A0 beside u_proc...u_lat.q) and the layout adds nets (net5288, clknet_*,
+# clknet_..._<design net>): eqy read them as second matches for the same gold bit (equiv runs 44773718663,
+# 44802852152). All of them are made private; ports keep their names (rename -hide skips ports). With the buffers'
+# function X = A each net then keeps only its synthesis name.
+rename -hide w:* w:u_* %d
 opt_clean
 
-[strategy sby]
+[match *]
+# The clock port wires of the instances: only the chip's clock pin is matched.
+gold-nomatch /.+\.clk/
+gate-nomatch /.+\.clk/
+
+[partition *]
+# One piece per block, so that a register that the synthesis stored differently (a reset-to-1 bit held inverted
+# in a reset-to-0 flip-flop, which is the library's only kind; a re-encoded state machine) is in the same piece on
+# both sides and the solver can relate the two (equiv run 44808418000: 195 of 277 small pieces failed this way).
+merge /u_proc\.u_usb\..*/
+merge /u_proc\.u_eth\..*/
+merge /u_proc\.u_core\..*/
+merge /u_proc\.g_out\..*/
+merge /u_proc\.u_in\..*/
+merge /u_proc\.u_fifo\..*/
+merge /u_proc\.u_mem\..*/
+merge /u_host_port\..*/
+
+# k-induction on every piece (a base case from the initial state and an induction step), then PDR for the pieces
+# that k-induction leaves open (PDR finds the invariant that relates two encodings of the same state).
+[strategy ind]
 use sby
-depth 10
+depth 3
 engine smtbmc yices
+
+[strategy pdr]
+use sby
+engine abc pdr
+timeout 2400

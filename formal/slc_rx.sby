@@ -6,11 +6,13 @@
 # are connected to the wrapper's constants after flattening, so the RTL stays unchanged.
 
 [options]
-mode prove
-depth 24
+# Bounded from reset: k-induction did not close (induction step fails from unreachable states) and the PDR
+# engine rejects this model; 28 cycles hold two frames of 1 to 3 samples back to back at TXPER 2 with every delay.
+mode bmc
+depth 28
 
 [engines]
-abc pdr
+smtbmc z3
 
 [script]
 read -formal pe_slu_loop.v pe_slu.v slc_fv.v

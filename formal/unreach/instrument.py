@@ -464,6 +464,8 @@ def main():
     else:
         for path, tooth in ((args.exclusions, False), (args.teeth, True)):
             for r in read_rows(path):
+                if r["point"].split(":")[4:5] == ["toggle"]:
+                    continue        # toggle points: formal/unreach/consts.py
                 rows.append((r["point"], r["proof"], r.get("source", ""), r.get("cond", ""), tooth))
     jobs, errors = {}, []
     for pid, proof, source, cond, tooth in rows:

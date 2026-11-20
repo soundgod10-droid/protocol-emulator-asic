@@ -287,6 +287,8 @@ async def watch_pin_delays(dut, done):
     prev = {n: str(s.value) for n, s in sigs}
     while not done[0]:
         await First(*[Edge(s) for _, s in sigs])
+        if done[0]:
+            break  # the scenario ended: a change now belongs to the next one (its reset)
         t = get_sim_time("ps")
         for n, s in sigs:
             v = str(s.value)

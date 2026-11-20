@@ -204,3 +204,4 @@ jobs:
             test/sdf_source.log
             test/sram_delay.vh
             test/shmoo.txt
+            test/pin_delays.json

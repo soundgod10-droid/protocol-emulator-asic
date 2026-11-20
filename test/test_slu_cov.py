@@ -642,16 +642,17 @@ async def test_slu_cov_usb_lineb_saturates(dut):
     reaches 65,535 and stays there."""
     prog = pe_asm.assemble(USB_LINEB_FW, "usb_lineb")
     host = await ts.chip_start(dut, prog, [], [0] * 15)
-    dut.ui_in.value = (1 << hs.CS_N_BIT) | (1 << AUX1)              # J: VP 0, VM 1
+    dut.uio_in.value = 1 << AUX1                                    # J: VP (uio1) 0, VM (uio2) 1
     await host.start()
     await pull_words(dut, host, 1)
+    await ClockCycles(dut.clk, 40)
     usb = dut.user_project.u_proc.u_usb
     usb.lt_b.value = 0xFFF0                                         # register write: 16 ticks before the limit
-    (st,) = await pull_words(dut, host, 1)
     await ClockCycles(dut.clk, 20 * 16)
     v1 = int(usb.lt_b.value)
     await ClockCycles(dut.clk, 10 * 16)
     v2 = int(usb.lt_b.value)
+    (st,) = await pull_words(dut, host, 1)
     dut._log.info("line timer B after the write and 20 ticks: %d, 10 ticks later: %d; status %04x" % (v1, v2, st))
     assert st & LINEB, "LINEB (suspend) set"
     assert v1 == 0xFFFF and v2 == 0xFFFF, "line timer B stops at 65,535"

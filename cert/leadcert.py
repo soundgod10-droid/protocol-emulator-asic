@@ -98,17 +98,22 @@ class State:
     def key(self):
         return (self.L, tuple(sorted(self.D.items())), tuple(self.r))
 
+    def prune(self):
+        """Drops the slots whose event time is before c in every case (D + L < 0): the event occurred."""
+        for p in list(self.D):
+            if (self.D[p] + self.L).hi < 0:
+                del self.D[p]
+
     def advance(self, x):
         """The next instruction starts x cycles later (x an interval of cycles >= 0)."""
         x = x if isinstance(x, Iv) else Iv(x)
         self.L = self.L - x
         self.r = [("n", v[1] - x) if v and v[0] == "n" else v for v in self.r]
-        for p in list(self.D):
-            if (self.D[p] + self.L).hi < 0:  # the event time is before c: it occurred, the slot is free
-                del self.D[p]
+        self.prune()
 
     def move_t(self, new_L):
         """T changes; T - c becomes new_L (same c); every D follows (t - T_new = D + L_old - L_new)."""
+        self.prune()
         old = self.L
         self.D = {p: d + old - new_L for p, d in self.D.items()}
         self.L = new_L

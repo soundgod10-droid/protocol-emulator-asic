@@ -277,3 +277,51 @@ async def test_research_points(dut):
         "\n".join(out + ["", "# line and branch points not hit"] + miss + ["", "# toggle points not hit"] + tmiss) + "\n")
     for ln in out:
         dut._log.info(ln)
+
+
+@cocotb.test(skip=GL)
+async def test_research_scope(dut):
+    import shutil
+    import subprocess
+    import sys
+    root = os.path.dirname(HERE)
+    work = os.path.join(root, "build", "scope_try")
+    shutil.rmtree(work, ignore_errors=True)
+    for d in ("coverage", "src", "test"):
+        os.makedirs(os.path.join(work, d))
+    branch = os.environ.get("SCOPE_BRANCH", "lane2-cov")
+    out = []
+
+    def show(path):
+        r = subprocess.run(["git", "show", "%s:%s" % (branch, path)], cwd=root, capture_output=True)
+        open(os.path.join(work, path), "wb").write(r.stdout)
+    r = subprocess.run(["git", "ls-tree", "--name-only", branch, "src/", "coverage/"], cwd=root,
+                       capture_output=True, text=True)
+    for path in r.stdout.split() + ["test/tb.v", "info.yaml"]:
+        show(path)
+    dat = None
+    for cand in (r"C:\Users\ssher\fallout-sandbox\bridge_workspace\archive\gh-run-44665173136\coverage.dat",
+                 r"Z:\fallout-sandbox\archive\build\gh-run-44665173136\coverage.dat"):
+        if os.path.isfile(cand):
+            dat = cand
+            break
+
+    def run(cmd, cwd):
+        p = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
+        out.append("$ %s -> %d\n%s%s" % (" ".join(cmd), p.returncode, p.stdout[-6000:], p.stderr[-3000:]))
+        return p
+    run([sys.executable, "-I", "coverage/scope.py", dat, "--info", "info.yaml", "--src", "src",
+         "--holes", "holes.csv"], work)
+    run([sys.executable, "-I", "coverage/split.py", "."], work)
+    srcs = ["src/%s" % f for f in ("project.v", "pe_sync.v", "pe_cycle_counter.v", "pe_timed_out.v", "pe_cells.v",
+                                   "pe_latch_ram.v", "pe_sram.v", "pe_host_fifo.v", "pe_timed_in.v", "pe_config.v",
+                                   "pe_host_port.v", "pe_core.v", "pe_proc.v", "pe_slu_loop.v", "pe_slu.v",
+                                   "sram_sim.v")]
+    run(["iverilog", "-g2012", "-DVERILATOR_SPLIT_TRY", "-I", "src", "-o", "split.vvp", "-s", "tb"] + srcs +
+        ["test/tb.v"], work)
+    p = subprocess.run(["grep", "-n", "pe_slu_ut\\|pe_slu_loop_ut\\|^`line", "test/tb.v"], cwd=work,
+                       capture_output=True, text=True)
+    out.append(p.stdout[-3000:])
+    text = "\n".join(out)
+    open(os.path.join(root, "build", "scope_try.txt"), "w", encoding="utf-8").write(text + "\n")
+    dut._log.info(text[-9000:])

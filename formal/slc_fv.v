@@ -156,7 +156,7 @@ module slc_fv #(
       m_sv <= 1'b0; m_last <= 1'b0; m_w <= 16'd0; m_eop <= 1'b0;
     end else begin
       x1q   <= mon_x1;
-      m_eop <= m_due && m_last && !(p_we && (p_addr == 4'd2) && p_wdata[5]);
+      m_eop <= m_due && m_last;                // set wins over a STATUS clear in the same cycle (CV1-F1)
       m_q   <= {1'b0, m_q[14:1]};
       m_qt  <= {1'b0, m_qt[14:1]};
       if (sched && (f_dly != 4'd0)) begin

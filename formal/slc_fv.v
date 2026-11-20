@@ -240,7 +240,7 @@ module slc_fv #(
   wire        cpol   = f_ck[0];
   wire        cpha   = f_ck[1];
   wire        smp    = f_fall ? mon_x0 : mon_x1;
-  wire [8:0]  bitlen = f_nrz ? {1'b0, f_per} : {f_per, 1'b0};
+  wire [8:0]  bitlen = NRZ ? {1'b0, f_per} : {f_per, 1'b0};
   reg  [3:0]  st_q;                 // tx_st one cycle earlier: the state the registered outputs show now
   reg         lead_q, oe_q, on_q, v0_q, r_q;
   reg  [8:0]  ph;                   // position in the bit for the next cycle

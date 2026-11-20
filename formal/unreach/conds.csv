@@ -4,3 +4,4 @@ eth:pe_slu.v:211:11:line:case,(c_ltc[5:4] == 2'd2) || (c_ltc[7:6] == 2'd2),case 
 eth:pe_slu.v:212:7:line:case,(c_ltc[5:4] == 2'd3) || (c_ltc[7:6] == 2'd3),default item of cond_hold (c = 3); calls as above
 usb:pe_slu.v:211:11:line:case,(c_ltc[5:4] == 2'd2) || (c_ltc[7:6] == 2'd2),case item 2'd2 of cond_hold; calls as above
 usb:pe_slu.v:212:7:line:case,(c_ltc[5:4] == 2'd3) || (c_ltc[7:6] == 2'd3),default item of cond_hold (c = 3); calls as above
+loop:pe_slu_loop.v:88:18:branch:cond_then,kp0[0] || kp1[0] || kp2[0] || ki_sh[0],then arm of s[0] in f_rsra of pe_slu_loop_step; its calls are f_rsra(eps; {1'b0; kp}) with kp one of kp0 kp1 kp2 and f_rsra(eps; ki_sh): s[0] = 1 needs one of these bits (a necessary condition: proving it never holds proves the arm unreachable)

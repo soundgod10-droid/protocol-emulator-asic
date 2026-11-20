@@ -84,6 +84,24 @@ class Iv(tuple):
 
 
 TOP = Iv(-INF, INF)
+WRAP = 65536
+
+
+def wrap_parts(iv):
+    """[(part, shift)]: iv taken modulo 65,536 into -32,768..32,767 (one or two parts); shift is the multiple of 65,536
+    subtracted. T - now is a 16-bit difference (isa 4.2, 7): TSYNC, TWAIT, the WAIT timeout and the lead use it."""
+    if iv.lo <= -INF or iv.hi >= INF or iv.hi - iv.lo >= WRAP - 1:
+        return [(Iv(-32768, 32767), None)]
+    k = (iv.lo + 32768) // WRAP
+    lo, hi = iv.lo - k * WRAP, iv.hi - k * WRAP
+    if hi <= 32767:
+        return [(Iv(lo, hi), k * WRAP)]
+    return [(Iv(lo, 32767), k * WRAP), (Iv(-32768, hi - WRAP), (k + 1) * WRAP)]
+
+
+def in_window(lead):
+    """True if every value of the lead interval is on time (4 to 32,767 modulo 65,536, isa 4.2)."""
+    return all(LEAD_MIN <= p.lo and p.hi <= LEAD_MAX for p, _ in wrap_parts(lead))
 
 
 class State:

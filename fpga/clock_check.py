@@ -22,7 +22,12 @@ def main(path, top, port):
     with open(path) as f:
         net = json.load(f)
     mod = net["modules"][top]
-    clk_bits = mod["ports"][port]["bits"]
+    clk_bits = list(mod["ports"][port]["bits"])
+    # Gowin synthesis puts an input buffer (IBUF) on the clock: its output is the clock net of the flip-flops.
+    for cell in mod["cells"].values():
+        conn = cell["connections"]
+        if cell["type"].upper() in ("IBUF", "IB") and conn.get("I", [None])[0] in clk_bits:
+            clk_bits += conn.get("O", [])
     names = {}
     for name, n in mod["netnames"].items():
         for b in n["bits"]:

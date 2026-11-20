@@ -239,8 +239,9 @@ async def test_research_points(dut):
 
     def text(f, n):
         if f not in src:
-            p = os.path.join(root, "src", f)
-            src[f] = open(p, encoding="utf-8", errors="replace").read().splitlines() if os.path.isfile(p) else []
+            import subprocess
+            r = subprocess.run(["git", "show", "cmos5l:src/" + f], cwd=root, capture_output=True, text=True)
+            src[f] = r.stdout.splitlines() if r.returncode == 0 else []
         lines_ = src[f]
         return lines_[n - 1].strip()[:110] if 0 < n <= len(lines_) else "?"
     raw, miss, tmiss = [], [], []

@@ -442,6 +442,17 @@ def step(prog, pc, st, res, assume, bugs):
         rd = f["rd"]
         L0 = s.L
         if f["to"]:
+            outs = []
+            for ps in s.parts():
+                outs += wait_to(ps, f, rd)
+            return cont(merge(outs))
+        s.advance(Iv(1, INF))   # no timeout: no bound on the wait
+        if f["ct"]:
+            s.move_t(Iv(-4, -1))
+        s.r[rd] = ("n", Iv(-4, -1))
+        return cont(s)
+    if form == "WAIT_OLD":
+        if f["to"]:
             in_win = L0.clip(1, LEAD_MAX)
             outs = []
             if in_win:          # timeout at T: completes in (c0, T + 4]

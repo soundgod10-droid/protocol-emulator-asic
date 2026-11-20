@@ -253,7 +253,7 @@ module slc_fv #(
   reg         m_due, m_sv, m_fa, m_eop;
   reg  [3:0]  m_n;                  // bits delivered since the last pushed word
   reg  [15:0] m_w;                  // delivered bits, newest in bit 15
-  wire        rx_on  = !f_nrz && f_rx;
+  wire        rx_on  = (NRZ == 0);
   wire        sched  = rx_on && on && (ph_cur == {1'b0, f_per} - 9'd1);
   wire        take   = m_q[0] || (sched && (f_dly == 4'd0));
   wire [15:0] w_new  = {m_sv, m_w[15:1]};

@@ -46,16 +46,43 @@ import sys
 
 JOBS = {"yconst_usb": 1, "yconst_eth": 2}
 STEP_INSTANCES = ("u_a", "u_a0", "u_b0", "u_b1")
-SCRIPT = """read -formal -sv pe_slu_loop.v pe_slu.v unreach_fv.v
+PREP = """read -formal -sv pe_slu_loop.v pe_slu.v unreach_fv.v
 hierarchy -top unreach_fv -chparam SPEC {spec}
 prep -top unreach_fv -flatten
 delete t:$assert t:$assume t:$cover t:$check
-sim -clock clk -resetn rst_n -rstlen 1 -n 1 -w unreach_fv
+write_json pre.json
+"""
+SIMPLIFY = """read_json init.json
 opt -full -sat
 opt -full -sat
 opt -full -sat
 delete t:*
-write_json yconst.json"""
+write_json yconst.json
+"""
+ARST = {"$adff": "$dff", "$adffe": "$dffe"}
+
+
+def reset_as_init(pre, out):
+    """init.json from pre.json: each flip-flop with an asynchronous reset becomes one without it, initialised to
+    its reset value. Returns (flip-flops changed, {other flip-flop types left as they are: count})."""
+    design = json.load(open(pre, encoding="utf-8"))
+    top = design["modules"]["unreach_fv"]
+    changed, other = 0, {}
+    for name, cell in sorted(top["cells"].items()):
+        kind = cell["type"]
+        if kind in ARST:
+            value = cell["parameters"].pop("ARST_VALUE")
+            cell["parameters"].pop("ARST_POLARITY")
+            cell["connections"].pop("ARST")
+            cell["port_directions"].pop("ARST", None)
+            cell["type"] = ARST[kind]
+            top["netnames"]["$reset_init$%d" % changed] = {"hide_name": 1, "bits": cell["connections"]["Q"],
+                                                           "attributes": {"init": value}}
+            changed += 1
+        elif "ff" in kind or "dlatch" in kind:
+            other[kind] = other.get(kind, 0) + 1
+    json.dump(design, open(out, "w", encoding="utf-8"))
+    return changed, other
 
 
 def gen(args):
@@ -65,13 +92,17 @@ def gen(args):
         os.makedirs(out, exist_ok=True)
         for f in ("pe_slu.v", "pe_slu_loop.v"):
             shutil.copyfile(os.path.join(args.src, f), os.path.join(out, f))
-        wrapper = os.path.relpath(os.path.join(here, "unreach_fv.v"), out).replace("\\", "/")
-        sby = "\n".join(["# %s: constant bits of the helper with SPEC %d after Yosys simplification "
-                         "(formal/unreach/consts.py)." % (job, spec),
-                         "[options]", "mode bmc", "depth 1", "", "[engines]", "smtbmc z3", "", "[script]",
-                         SCRIPT.format(spec=spec), "", "[files]", "pe_slu_loop.v", "pe_slu.v", wrapper, ""])
-        open(os.path.join(out, job + ".sby"), "w", encoding="utf-8").write(sby)
-        print("%s: SPEC %d, constant bits of the simplified netlist" % (job, spec))
+        shutil.copyfile(os.path.join(here, "unreach_fv.v"), os.path.join(out, "unreach_fv.v"))
+        for f in ("pre.json", "init.json", "yconst.json"):
+            if os.path.isfile(os.path.join(out, f)):
+                os.remove(os.path.join(out, f))
+        open(os.path.join(out, "prep.ys"), "w", encoding="utf-8").write(PREP.format(spec=spec))
+        open(os.path.join(out, "simplify.ys"), "w", encoding="utf-8").write(SIMPLIFY)
+        subprocess.run([args.yosys, "-q", "-l", "prep.log", "-s", "prep.ys"], cwd=out, check=True)
+        changed, other = reset_as_init(os.path.join(out, "pre.json"), os.path.join(out, "init.json"))
+        subprocess.run([args.yosys, "-q", "-l", "simplify.log", "-s", "simplify.ys"], cwd=out, check=True)
+        print("%s: SPEC %d, %d flip-flop cells with a reset value as initial value; other flip-flop cells %s"
+              % (job, spec, changed, other or "none"))
     return 0
 
 

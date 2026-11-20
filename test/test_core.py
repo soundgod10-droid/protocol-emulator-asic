@@ -434,6 +434,9 @@ async def run_lockstep(dut, scn, after_reset=None):
         f"threads run {[th.run for th in m.threads]}, status {[th.status for th in m.threads]}, "
         f"PC {[th.pc for th in m.threads]}")
     log.info(f"{scn.label}: instruction groups executed {dict(sorted(m.coverage.items()))}")
+    if os.environ.get("SDF_DELAYS") == "1":
+        pin_watch[0] = True
+        write_pin_delays()
     fcov.export()
     return m, popped, pin_changes
 

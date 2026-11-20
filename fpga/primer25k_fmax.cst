@@ -1,0 +1,8 @@
+// Tang Primer 25K (GW5A-LV25MG121), fmax build (fpga/fpga_fmax_top.v): clock on E2 (50 MHz oscillator), serial in and
+// out on G5 and F5 (PMOD pins), from sipeed/TangPrimer-25K-example pmod_led/src/pmod_led.cst.
+IO_LOC  "clk" E2;
+IO_PORT "clk" PULL_MODE=NONE DRIVE=OFF BANK_VCCIO=3.3;
+IO_LOC  "sin" G5;
+IO_PORT "sin" PULL_MODE=NONE BANK_VCCIO=3.3;
+IO_LOC  "sout" F5;
+IO_PORT "sout" PULL_MODE=NONE DRIVE=8 BANK_VCCIO=3.3;

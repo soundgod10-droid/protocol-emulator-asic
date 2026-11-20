@@ -336,6 +336,26 @@ async def test_research_triage(dut):
         for pid in sorted(seen):
             w.writerow([pid, "+".join(reached.get(pid, [])), src.get(pid, "")])
     out.append("points %d, reached %d: %s" % (len(seen), len(reached), " ".join(sorted(reached))))
+    # Reachable by reasoning but deeper than the cover depth (tests needed): jabber (2^22 cycles), RX overflow,
+    # link-pulse width counter at its limit, line-condition counter B at its limit, loop wrap and limits.
+    deep = {"eth:pe_slu.v:613:9:line:elsif", "eth:pe_slu.v:672:13:line:elsif", "eth:pe_slu.v:760:11:branch:if",
+            "eth:pe_slu.v:814:10:branch:else", "eth:pe_slu.v:819:11:branch:if", "eth:pe_slu.v:824:11:branch:if",
+            "eth:pe_slu.v:824:12:branch:else", "eth:pe_slu.v:825:11:branch:if", "eth:pe_slu.v:825:12:branch:else",
+            "eth:pe_slu.v:539:51:branch:cond_then", "usb:pe_slu.v:519:54:branch:cond_then",
+            "loop:pe_slu_loop.v:142:7:line:elsif", "loop:pe_slu_loop.v:165:11:line:elsif",
+            "loop:pe_slu_loop.v:166:16:line:if"}
+    with open(os.path.join(root, "build", "exclusions_candidate.csv"), "w", encoding="utf-8", newline="") as f:
+        w = csv.writer(f, lineterminator="\n")
+        w.writerow(["point", "proof", "source", "reason"])
+        n = 0
+        for pid in sorted(seen):
+            if pid in reached or pid in deep:
+                continue
+            copy = pid.split(":")[0]
+            proof = "unreach_loop_usb+unreach_loop_eth" if copy == "loop" else "unreach_" + copy
+            w.writerow([pid, proof, src.get(pid, ""), ""])
+            n += 1
+    out.append("candidates %d (deep, left as holes: %d)" % (n, len(deep)))
     for ln in out:
         dut._log.info(ln)
 

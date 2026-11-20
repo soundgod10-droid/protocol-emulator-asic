@@ -105,8 +105,8 @@ def chip_copy(p, files):
         return None
     if p["module"] == "pe_slu":
         return CHIP_COPY.get(p["h"])         # None: merged with a unit-test copy (build without the split)
-    if p["module"] == "pe_slu_loop":
-        return "loop" if p["h"].startswith("tb.user_project") and "*" not in p["h"].split("user_project")[0] else None
+    if p["module"].startswith("pe_slu_loop"):
+        return "loop"                         # the chip's two loops (u_usb, u_eth), one Verilator copy
     return p["module"]
 
 

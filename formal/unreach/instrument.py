@@ -410,14 +410,15 @@ def place(src, edits, kind, comment, line, col, cond, label, flags):
     if k is None:
         raise ValueError("no token at line %d column %s" % (line, col))
     if k in src.ifs and kind in ("branch", "line"):
-        edits.open_branch(src.ifs[k]["then"], label)
+        edits.open_branch(src.ifs[k]["then"], S(k))
         return "then branch of the if"
     if k in src.blocks:
-        edits.open_branch(src.blocks[k], label)
+        a, b, clocked = src.blocks[k]
+        edits.open_branch((a, b), S(k, clocked))
         return "body of the always block"
     for it in src.items:
         if it["colon"] == k or it["label"] == k:
-            edits.open_branch(it["stmt"], label)
+            edits.open_branch(it["stmt"], S(it["stmt"][0]))
             return "statement of the case item"
     raise ValueError("token %r at line %d column %s is no branch, case item or block" % (src.t(k), line, col))
 

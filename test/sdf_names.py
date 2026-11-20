@@ -79,7 +79,15 @@ def main(netlist, sdf, macro_vh=None, scale=1.0):
         f.writelines(lines)
     print(f"names changed: {n_net} in the netlist, {n_cell} SDF instances; SDF wire lines removed: {n_wire}; "
           f"SRAM macro entries removed: {n_macro}")
+    if macro_vh:
+        with open(macro_vh, "w") as f:
+            f.write("// written by test/sdf_names.py from %s (largest macro IOPATH value x %g)\n" % (sdf, scale))
+            for words in ("512", "1024"):
+                f.write("`define SRAM_%s_DLY %.3f\n" % (words, delays.get(words, 0.0) * scale))
+        print(f"macro read delay (ns, largest IOPATH value x {scale:g}): " +
+              ", ".join(f"{w} words {delays.get(w, 0.0) * scale:.3f}" for w in ("512", "1024")) + f" -> {macro_vh}")
 
 
 if __name__ == "__main__":
-    main(sys.argv[1], sys.argv[2])
+    opts = dict(zip(sys.argv[3::2], sys.argv[4::2]))
+    main(sys.argv[1], sys.argv[2], opts.get("--macro-vh"), float(opts.get("--macro-scale", "1")))

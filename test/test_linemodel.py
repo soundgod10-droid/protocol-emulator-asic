@@ -223,3 +223,56 @@ async def test_research_kill(dut):
     for ln in lines:
         dut._log.info(ln)
     open(os.path.join(os.path.dirname(HERE), "build", "kill3.txt"), "w").write("\n".join(lines) + "\n")
+
+
+@cocotb.test(skip=GL)
+async def test_research_points(dut):
+    from collections import Counter, defaultdict
+    root = os.path.dirname(HERE)
+    dat = None
+    for cand in (r"C:\Users\ssher\fallout-sandbox\bridge_workspace\archive\gh-run-44665173136\coverage.dat",
+                 r"Z:\fallout-sandbox\archive\build\gh-run-44665173136\coverage.dat"):
+        if os.path.isfile(cand):
+            dat = cand
+            break
+    src = {}
+
+    def text(f, n):
+        if f not in src:
+            p = os.path.join(root, "src", f)
+            src[f] = open(p, encoding="utf-8", errors="replace").read().splitlines() if os.path.isfile(p) else []
+        lines_ = src[f]
+        return lines_[n - 1].strip()[:110] if 0 < n <= len(lines_) else "?"
+    raw, miss, tmiss = [], [], []
+    keys = Counter()
+    per = defaultdict(lambda: [0, 0])
+    with open(dat, encoding="utf-8", errors="replace") as fh:
+        for line in fh:
+            if not line.startswith("C "):
+                continue
+            s, e = line.index("'") + 1, line.rindex("'")
+            fl = dict(it.split("\x02", 1) for it in line[s:e].split("\x01") if "\x02" in it)
+            n = int(line[e + 1:].strip())
+            keys.update(fl.keys())
+            kind = fl.get("page", "?").split("/")[0].removeprefix("v_")
+            if len([r for r in raw if r[0] == kind]) < 4:
+                raw.append((kind, repr(fl) + " " + str(n)))
+            f = fl.get("f", "?").replace("\\", "/").rsplit("/", 1)[-1]
+            if f == "tb.v":
+                continue
+            h = fl.get("h", "?")
+            per[(kind, f, h)][0] += 1
+            per[(kind, f, h)][1] += n > 0
+            if n == 0:
+                ln = int(fl.get("l", "0") or 0)
+                row = "%s | %s | %s:%s | %s | %s" % (kind, h, f, ln, fl.get("o", ""), text(f, ln))
+                (tmiss if kind == "toggle" else miss).append(row)
+    out = ["dat %s" % dat, "keys %s" % dict(keys)]
+    out += ["RAW %s" % r[1] for r in raw]
+    for k in sorted(per):
+        out.append("PER %s | %s | %s | %d of %d" % (k[0], k[1], k[2], per[k][1], per[k][0]))
+    out.append("MISSED line/branch points: %d; toggle: %d" % (len(miss), len(tmiss)))
+    open(os.path.join(root, "build", "cov_points.txt"), "w", encoding="utf-8").write(
+        "\n".join(out + ["", "# line and branch points not hit"] + miss + ["", "# toggle points not hit"] + tmiss) + "\n")
+    for ln in out:
+        dut._log.info(ln)

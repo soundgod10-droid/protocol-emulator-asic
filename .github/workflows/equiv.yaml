@@ -66,6 +66,21 @@ jobs:
         with:
           version: '2026-11-14'
           github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: The submitted netlist is the final netlist (nl = pnl without power)
+        shell: bash
+        run: |
+          set +e
+          gh run download $GDS_RUN_ID -n GDS_logs -D build/logs
+          r=$(ls -d build/logs/runs/*/ 2>/dev/null | head -n 1)
+          nl=$(ls ${r}final/nl/*.v | head -n 1)
+          pnl=$(ls ${r}final/pnl/*.v | head -n 1)
+          sub=$(ls build/gds/tt_submission/*.v | head -n 1)
+          out=$(python3 equiv/teeth.py same "$nl" "$pnl" "$sub")
+          rc=$?
+          echo "$out"
+          echo "::notice title=nl = pnl, gds $GDS_RUN_ID::$(echo "$out" | sed ':a;N;$!ba;s/\n/%0A/g')"
+          rm -rf build/logs
+          exit $rc
       - name: Netlist and configuration
         shell: bash
         run: |

@@ -125,7 +125,10 @@ async def start(dut):
 
 def uart_tx_image():
     """fw/uart_tx.s as a 128-word memory image (words after the program are 0 = HALT)."""
-    prog = pe_asm.assemble_file(os.path.join(ROOT, "fw", "uart_tx.s"))
+    with open(os.path.join(ROOT, "fw", "uart_tx.s"), encoding="utf-8") as f:
+        text, n = re.subn(r"^(\s*\.equ\s+BIT\s*,\s*)\d+", rf"\g<1>{BIT_CYCLES}", f.read(), count=1, flags=re.M)
+    assert n == 1, "fw/uart_tx.s: .equ BIT not found"
+    prog = pe_asm.assemble(text, "uart_tx.s")
     image = list(prog.image())
     return prog, image + [0] * (128 - len(image))
 

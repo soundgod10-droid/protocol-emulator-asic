@@ -89,8 +89,8 @@ def read_points(path):
 def raw_copy(p):
     """The copy a build without coverage/split.py has for this point (instances with one parameter set)."""
     base = p["module"].removesuffix("_ut")
-    if base == "pe_slu_loop":
-        return "pe_slu_loop"
+    if base.startswith("pe_slu_loop"):     # pe_slu_loop, pe_slu_loop_step: no parameters, one copy
+        return base
     if base == "pe_slu":
         if p["h"] in PE_SLU_PARAMS:
             return "pe_slu " + PE_SLU_PARAMS[p["h"]]

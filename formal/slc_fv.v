@@ -89,18 +89,14 @@ module slc_fv #(
   // F_LTC 0044).
   (* anyconst *) reg       f_nrz;    // SLC_TX: MODE code 0 (NRZ) instead of 3 (clocked)
   (* anyconst *) reg       f_rx;     // SLC_TX: MODE bit 3, receive on (clocked)
-  // Each value is its own anyconst register tied by an assumption, so the net connected to a helper register has
-  // one cell driver (a connect to a gate output left two drivers after the asynchronous-reset conversion).
-  (* anyconst, keep *) reg [15:0] k_mode, k_txper, k_ltc, k_sel;
-  (* anyconst, keep *) reg [4:0]  k_len;
+  // Each connected value is a constant or a plain concatenation of anyconst bits and constants: a connect to the
+  // output of a gate left the helper register as a second driver after the asynchronous-reset conversion.
+  (* keep *) wire [15:0] k_txper = {8'd0, f_per};
+  (* keep *) wire [15:0] k_sel   = {f_dly, 8'hFF, f_din};
 `ifndef SLC_TX
-  always @* begin
-    assume (k_mode  == 16'h01AB);                                     // code 3 (clocked), RX on, no stuffing
-    assume (k_txper == {8'd0, f_per});
-    assume (k_ltc   == (16'h0444 | {3'd0, f_fall, 2'd0, f_ck, 8'd0}));   // LTC[10] edge start
-    assume (k_sel   == {f_dly, 8'hFF, f_din});
-    assume (k_len   == f_len);
-  end
+  (* keep *) wire [15:0] k_mode  = 16'h01AB;                          // code 3 (clocked), RX on, no stuffing
+  (* keep *) wire [15:0] k_ltc   = {3'd0, f_fall, 1'b0, 1'b1, f_ck, 8'h44};   // F_LTC 0044 with LTC[10] edge start
+  (* keep *) wire [4:0]  k_len   = f_len;
 
   // Receive only: the thread clears flags (STATUS) and sets the event mask; it writes nothing that starts or
   // stops a transmission and no configuration word while receiving.

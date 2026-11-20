@@ -91,6 +91,7 @@ jobs:
           rm -rf build/logs
           exit $rc
       - name: Netlist and configuration
+        if: always()
         shell: bash
         run: |
           set -e

@@ -116,16 +116,24 @@ module slc_fv #(
   reg         m_due, m_sv, m_last;                        // a bit to deliver now, its value, it is the last
   reg  [15:0] m_w;                                        // delivered bits, newest in bit 15
   reg         m_eop;                                      // the last bit was delivered in the previous cycle
+  reg         m_pl;                                       // the bit to deliver belongs to the previous frame
+  reg         p_act;                                      // the last sample of the previous frame is still to take
+  reg  [3:0]  p_cd;                                       // cycles to it
 
-  wire idle  = !m_fr || (m_due && m_last);
+  // The helper ends a frame at its last sampling clock edge; that sample is taken D cycles later (x1 time). The
+  // next start edge is taken from the cycle after the last sampling edge: when the frame's last sample is at
+  // most D cycles away, when it is taken, or when the frame is over.
+  wire last_near = m_fr && (m_k + 5'd1 == len) && (m_cd <= {6'd0, f_dly});
+  wire idle  = !m_fr || (m_k == len) || last_near;
   wire start = idle && x1q && !mon_x1;
   wire take  = m_fr && (m_k != len) && (m_cd == 10'd0);
+  wire ptake = p_act && (p_cd == 4'd0);
   wire [15:0] w_new = {m_sv, m_w[15:1]};
 
   always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
       x1q <= 1'b0; m_fr <= 1'b0; m_k <= 5'd0; m_cd <= 10'd0; m_due <= 1'b0; m_last <= 1'b0; m_eop <= 1'b0;
-      m_sv <= 1'b0; m_w <= 16'd0;
+      m_sv <= 1'b0; m_w <= 16'd0; m_pl <= 1'b0; p_act <= 1'b0; p_cd <= 4'd0;
     end else begin
       x1q   <= mon_x1;
       m_due <= 1'b0;
@@ -135,14 +143,29 @@ module slc_fv #(
         m_sv   <= smp;
         m_due  <= 1'b1;
         m_last <= (m_k + 5'd1 == len);
+        m_pl   <= 1'b0;
         m_k    <= m_k + 5'd1;
         m_cd   <= {1'b0, f_per, 1'b0} - 10'd1;
       end
+      if (ptake) begin
+        m_sv   <= smp;
+        m_due  <= 1'b1;
+        m_last <= 1'b1;
+        m_pl   <= 1'b1;
+        p_act  <= 1'b0;
+      end else if (p_act) begin
+        p_cd <= p_cd - 4'd1;
+      end
       if (m_due) begin
         m_w <= w_new;
-        if (m_last) m_fr <= 1'b0;
+        if (m_last && !m_pl) m_fr <= 1'b0;
       end
       if (start) begin
+        if (take) m_pl <= 1'b1;                             // the sample taken now ends the previous frame
+        if (last_near && (m_cd != 10'd0)) begin
+          p_act <= 1'b1;
+          p_cd  <= m_cd[3:0] - 4'd1;
+        end
         m_fr <= 1'b1;
         m_k  <= 5'd0;
         m_cd <= {2'd0, f_per} + {6'd0, f_dly} - 10'd1;

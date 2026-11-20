@@ -632,6 +632,28 @@ endmodule
 
 
 @cocotb.test(skip=GL)
+async def test_research_ff_wp14(dut):
+    """Fast-forward the local branch lane2-wp14 to lane2-sdf (lane2-wp14 must be an ancestor of lane2-sdf)."""
+    import subprocess
+    root = os.path.dirname(HERE)
+    out = []
+
+    def g(*a):
+        r = subprocess.run(["git"] + list(a), cwd=root, capture_output=True, text=True)
+        out.append("$ git %s -> %d %s%s" % (" ".join(a), r.returncode, r.stdout[-500:], r.stderr[-500:]))
+        return r
+    if g("merge-base", "--is-ancestor", "lane2-wp14", "lane2-sdf").returncode == 0:
+        g("branch", "-f", "lane2-wp14", "lane2-sdf")
+        out.append("RESULT lane2-wp14 moved to lane2-sdf")
+    else:
+        out.append("RESULT not an ancestor: not moved")
+    g("log", "--oneline", "-3", "lane2-wp14")
+    text = "\n".join(out)
+    open(os.path.join(root, "build", "ff_wp14.txt"), "w").write(text + "\n")
+    dut._log.info(text)
+
+
+@cocotb.test(skip=GL)
 async def test_research_triage(dut):
     """Reached / not reached per point from the triage cover logs; candidate exclusion rows for the rest."""
     import csv

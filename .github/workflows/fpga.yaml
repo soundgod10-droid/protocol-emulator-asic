@@ -23,7 +23,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        family: [ecp5, gw2a, gw5a, ice40]
+        # ecp5r: the W5 variant (FPGA-only timing means, no src/ change): ABC9 with flip-flop retiming (-abc9 -dff)
+        family: [ecp5, ecp5r, gw2a, gw5a, ice40]
     steps:
       - uses: actions/checkout@v6
       - name: OSS CAD Suite
@@ -35,12 +36,14 @@ jobs:
         shell: bash
         run: |
           yosys -V
-          files=$(grep -v '^#' fpga/files.f | tr '\n' ' ')
+          # the fmax harness top (three pins) around the chip; fpga_top.v is the bench top of the same file set
+          files="$(grep -v '^#' fpga/files.f | tr '\n' ' ') fpga/fpga_fmax_top.v"
           case "${{ matrix.family }}" in
-            ecp5)  cmd="synth_ecp5 -top fpga_top" ;;
-            gw2a)  cmd="synth_gowin -family gw2a -top fpga_top" ;;
-            gw5a)  cmd="synth_gowin -family gw5a -nolutram -top fpga_top" ;;
-            ice40) cmd="synth_ice40 -top fpga_top" ;;
+            ecp5)  cmd="synth_ecp5 -top fpga_fmax_top" ;;
+            ecp5r) cmd="synth_ecp5 -abc9 -dff -top fpga_fmax_top" ;;
+            gw2a)  cmd="synth_gowin -family gw2a -top fpga_fmax_top" ;;
+            gw5a)  cmd="synth_gowin -family gw5a -nolutram -top fpga_fmax_top" ;;
+            ice40) cmd="synth_ice40 -top fpga_fmax_top" ;;
           esac
           yosys -q -l synth_${{ matrix.family }}.log -p "read_verilog $files; $cmd; tee -o stat_${{ matrix.family }}.txt stat; write_json fpga_${{ matrix.family }}.json"
           tail -n 60 stat_${{ matrix.family }}.txt

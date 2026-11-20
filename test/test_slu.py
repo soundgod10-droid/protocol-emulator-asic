@@ -2284,8 +2284,8 @@ async def test_slu_chip_uart_rx(dut):
 
 # ----- JTAG and SWD on the USB helper at chip level (docs/helpers.md section 6) -----
 
-async def chip_start_owned(dut, prog, data, pins, owned, t1):
-    """Chip start as test_slu_chip_spi_flash: program up to the thread-1 code at t1, data words, threads 0 and 1 run,
+async def chip_start_owned(dut, prog, data, pins, owned, t1, t2=None):
+    """Chip start as test_slu_chip_spi_flash: program up to the end, data words, threads 0 and 1 (and 2 at t2) run,
     and the pins in `owned` belong to thread 0 (driven with OUT events); the other pins as given."""
     cocotb.start_soon(Clock(dut.clk, CHIP_CLK_PS, unit="ps").start())
     dut.ena.value = 1

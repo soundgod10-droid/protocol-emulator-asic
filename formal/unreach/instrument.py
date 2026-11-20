@@ -70,7 +70,10 @@ def invariants():
     eq2 = " ".join("assert (c_%s == F_%s);" % (r, r.upper()) for r in CFG)
     eq1 = " ".join(("assert ((c_%s & ~%s) == (F_%s & ~%s));" % (r, SPEC1_MASK[r], r.upper(), SPEC1_MASK[r]))
                    if r in SPEC1_MASK else "assert (c_%s == F_%s);" % (r, r.upper()) for r in CFG)
-    return "always @* begin if (SPEC == 2) begin %s end if (SPEC == 1) begin %s end end " % (eq2, eq1)
+    # Without FULL the transmitter never enters T_JAM (only a collision, under FULL, does): needed by the
+    # induction, which may start in any state.
+    return ("always @* begin if (SPEC == 2) begin %s end if (SPEC == 1) begin %s end if (!FULL) assert (tx_st != T_JAM); "
+            "end " % (eq2, eq1))
 
 
 class Source:

@@ -51,7 +51,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          python3 fpga/clock_check.py fpga_${{ matrix.family }}.json fpga_top clk | tee clock_${{ matrix.family }}.txt
+          python3 fpga/clock_check.py fpga_${{ matrix.family }}.json fpga_fmax_top clk | tee clock_${{ matrix.family }}.txt
           rc=${PIPESTATUS[0]}
           echo "::notice title=fpga clock ${{ matrix.family }}::$(tail -n 1 clock_${{ matrix.family }}.txt)"
           echo "::notice title=fpga cells ${{ matrix.family }}::$(sed -n 2p clock_${{ matrix.family }}.txt | cut -c1-900)"

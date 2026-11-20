@@ -354,7 +354,10 @@ class SluModel:
         lead = (wd - now) & 0xFFFF
         ck_estart = ck_mode and m_estart and tx_st == T_IDLE and din_prev and not x1
         ck_sop = ck_mode and not m_estart and tx_take_go
-        rx_sop = r_sop or ck_sop or ck_estart
+        # a start edge while a sample of the previous edge-started frame is on its way: the count starts at that
+        # frame's end (ck_lastb), not at the edge
+        ck_rxbusy = o["ck_pend"] != 0 or o["ck_bit_v"]
+        rx_sop = r_sop or ck_sop or (ck_estart and not ck_rxbusy)
         ck_eend = ck_mode and m_estart and half_mid and tx_nb == 0 and tx_lastw
 
         sticky = o["sticky"]

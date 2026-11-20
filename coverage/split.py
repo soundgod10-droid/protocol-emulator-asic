@@ -11,7 +11,7 @@ coverage.dat.
 
 This script edits the coverage job's checkout only (nothing is committed): the three unit-test instances
 of test/tb.v use pe_slu_ut and pe_slu_loop_ut, copies of src/pe_slu.v and src/pe_slu_loop.v that differ
-only in the module names (and the loop instance inside pe_slu_ut), appended to test/tb.v behind `line
+only in the module names (every module of the two files gets the suffix _ut), appended to test/tb.v behind `line
 directives, so Verilator reports their points with the file name and the line numbers of src/. The logic
 is unchanged, and each point of a unit copy has the file, line, column and text of the chip copy's point.
 coverage/scope.py adds the copies again for the raw figure, which is then the figure of the build without

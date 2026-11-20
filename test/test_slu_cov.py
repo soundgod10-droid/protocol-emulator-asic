@@ -422,8 +422,8 @@ async def test_slu_cov_usb_manchester(dut):
     pins = [0] * 15
     pins[0], pins[2] = ts.helper_pin(0, 0), ts.helper_pin(0, 4)
     host = await ts.chip_start(dut, prog, [], pins)
-    caps = []
-    task = capture(dut, caps, 2000)
+    caps, meta = [], {}
+    task = capture(dut, caps, 2000, meta)
     await host.start()
     st1, st2 = await pull_words(dut, host, 2)
     await task
@@ -431,7 +431,8 @@ async def test_slu_cov_usb_manchester(dut):
     exp = ref.manchester_halves(word_bits([(0x055, 16), (0x0AB, 8)]))
     first, n = win[0]
     td = [(caps[first + 3 * i + 1] & 1) for i in range(len(exp))]
-    dut._log.info("USB helper, Manchester: OE windows %s; frame status %04x, link pulse status %04x" % (win, st1, st2))
+    dut._log.info("USB helper, Manchester: OE windows %s at %s; frame status %04x, link pulse status %04x" % (
+        win, window_times(meta, win), st1, st2))
     assert td == exp, "uio0 differs from the Manchester halves of 0055, AB"
     assert n == 3 * len(exp) + 84, "OE for %d cycles: 24 bits of 6 cycles + the 84-cycle tail expected" % n
     assert st1 & 7 == TXDONE and st2 & 7 == TXDONE, "TXDONE after the frame and after the link test pulse"

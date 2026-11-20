@@ -42,13 +42,21 @@ async def pull_words(dut, host, n, max_cycles=400000):
         waited += 1000
 
 
-def capture(dut, store, n):
-    """uio_out after each falling clock edge, n cycles (background task)."""
+def capture(dut, store, n, meta=None):
+    """uio_out after each falling clock edge, n cycles (background task); meta["t0"] = time of the first sample (ns)."""
     async def run():
-        for _ in range(n):
+        for i in range(n):
             await FallingEdge(dut.clk)
+            if i == 0 and meta is not None:
+                meta["t0"] = get_sim_time("ns")
             store.append(int(dut.uio_out.value))
     return cocotb.start_soon(run())
+
+
+def window_times(meta, win):
+    """Simulation times (ns) of the falling edges that sample the first and the last high cycle of each window."""
+    return ["%.3f-%.3f ns" % (meta["t0"] + s * T_PS / 1000.0, meta["t0"] + (s + n - 1) * T_PS / 1000.0)
+            for s, n in win]
 
 
 def oe_windows(caps, bit):

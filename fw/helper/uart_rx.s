@@ -9,7 +9,7 @@
 ;   back-to-back characters need no idle time.
 ;
 ; Why:
-;   A thread alone samples a bit at most every 12 cycles (one on-time SAMPLE holds it 3 slots); the helper samples
+;   A thread alone needs 16 cycles a bit (TADD, and an on-time SAMPLE that holds it 3 slots); the helper samples
 ;   every bit at a fixed delay from the start edge. Tolerance by calculation (0.5 - 1/4) / 9.5 = 2.6 % of the bit
 ;   time; the chip test passes at -2.5 % and +2.5 %. docs/helpers.md section 6.
 ;

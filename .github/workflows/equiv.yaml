@@ -106,6 +106,7 @@ jobs:
               equiv/chip.eqy > run.eqy
           cat run.eqy
       - name: eqy
+        if: always()
         shell: bash
         run: |
           set +e

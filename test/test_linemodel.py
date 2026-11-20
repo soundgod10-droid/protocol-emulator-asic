@@ -296,7 +296,7 @@ def unreach_gen(root, branch="lane2-cov"):
         with open(dst, "wb") as fh:
             fh.write(subprocess.run(["git", "show", "%s:%s" % (branch, path)], cwd=root, capture_output=True).stdout)
     holes = os.path.join(root, "build", "holes_split.csv")
-    for args in (["--holes", holes, "--mode", "cover", "--out", "formal/unreach/build_triage"],
+    for args in (["--holes", holes, "--mode", "cover", "--depth", "12", "--out", "formal/unreach/build_triage"],
                  ["--out", "formal/unreach/build"]):
         p = subprocess.run([sys.executable, "-I", "formal/unreach/instrument.py", "--src", "src"] + args, cwd=work,
                            capture_output=True, text=True)

@@ -27,7 +27,19 @@ def plain(name):
     return name.replace("\\", "").replace(".", "__").replace("[", "_").replace("]", "_")
 
 
-def main(netlist, sdf):
+TRIPLE = re.compile(r"\(\s*(-?[\d.]+)\s*:\s*(-?[\d.]+)\s*:\s*(-?[\d.]+)\s*\)")
+UNIT_NS = {"ps": 1e-3, "ns": 1.0, "us": 1e3}
+
+
+def macro_delay(block, unit_ns):
+    """(words, largest IOPATH value in ns) of one macro CELL block."""
+    text = "".join(block)
+    words = re.search(r'\(CELLTYPE\s+"RM_IHPSG13_1P_(\d+)x16', text).group(1)
+    vals = [float(x) for b in block if "IOPATH" in b for t in TRIPLE.findall(b) for x in t]
+    return words, (max(vals) * unit_ns if vals else 0.0)
+
+
+def main(netlist, sdf, macro_vh=None, scale=1.0):
     with open(netlist) as f:
         text = f.read()
     text, n_net = re.subn(r"\\(\S+)", lambda m: plain(m.group(1)), text)

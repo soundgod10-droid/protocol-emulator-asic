@@ -2280,3 +2280,351 @@ async def test_slu_chip_uart_rx(dut):
     assert n == len(sent), "%d words stored, %d bytes sent" % (n, len(sent))
     assert good == len(sent), "first bad byte %s" % next(
         (i, rx[i], sent[i]) for i in range(n) if rx[i] != (sent[i], 0, 1))
+
+
+# ----- JTAG and SWD on the USB helper at chip level (docs/helpers.md section 6) -----
+
+async def chip_start_owned(dut, prog, data, pins, owned, t1):
+    """Chip start as test_slu_chip_spi_flash: program up to the thread-1 code at t1, data words, threads 0 and 1 run,
+    and the pins in `owned` belong to thread 0 (driven with OUT events); the other pins as given."""
+    cocotb.start_soon(Clock(dut.clk, CHIP_CLK_PS, unit="ps").start())
+    dut.ena.value = 1
+    dut.ui_in.value = 1 << hs.CS_N_BIT
+    dut.uio_in.value = 0
+    dut.rst_n.value = 0
+    await ClockCycles(dut.clk, 10)
+    dut.rst_n.value = 1
+    await ClockCycles(dut.clk, 5)
+    host = hs.SpiTimed(dut)
+    await host.write_mem(0, prog.image()[:max(prog.words) + 1])
+    for addr, words in data:
+        await host.write_mem(addr, words)
+    owner = [None] * 15
+    for p in owned:
+        owner[p] = 0
+    head, own = hs.config_words((0, t1, 0, 0), (True, True, False, False), owner, [False] * 15)
+    pins = list(pins)
+    for p in owned:
+        pins[p] = own[p]
+    await host.write_cfg(0, head)
+    await host.write_cfg(16, pins)
+    return host
+
+
+class ChipPinWatch:
+    """Calls the device callbacks at their pin times: on[i](level) for uio pin i after delay d_out (pad and
+    multiplexer); a pin whose output enable is 0 is passed as None (released)."""
+
+    def __init__(self, dut, on, d_out):
+        self.dut, self.on, self.d_out = dut, on, d_out
+        self.last = {}
+        self.task = cocotb.start_soon(self.run())
+
+    async def run(self):
+        from cocotb.triggers import Edge
+        import test_slu_clk as sc
+        while True:
+            await Edge(self.dut.uio_out)
+            out, oe = str(self.dut.uio_out.value), str(self.dut.uio_oe.value)
+            for i, fn in self.on.items():
+                o, e = out[len(out) - 1 - i], oe[len(oe) - 1 - i]
+                if e != "1":
+                    v = None
+                elif o in "01":
+                    v = int(o)
+                else:
+                    continue
+                if self.last.get(i, "x") != v:
+                    self.last[i] = v
+                    cocotb.start_soon(sc.later(self.d_out, fn, v))
+
+    def stop(self):
+        self.task.cancel()
+
+
+JTAG_HELPER_FW = """
+        .equ    E, 16           ; USB helper ports 16-31
+        .equ    TMS, 2          ; uio2: TMS, a thread-0 pin (OUT events at the bit starts)
+t0:     TNOW    8
+        OUT     TMS, 1
+        LDI     r0, 0
+        IOW     r0, E+12        ; CFGADR 0
+        LDI     r0, 0x00B
+        IOW     r0, E+13        ; MODE: clocked code, RX on
+        LDI     r0, 4
+        IOW     r0, E+13        ; TXPER 4: 8 cycles a bit (7.5 MHz TCK) for the TMS navigation
+        LDI     r0, 8
+        IOW     r0, E+12
+        LDI     r0, 0x17F
+        SHL     r0, 6
+        ORI     r0, 0x38
+        IOW     r0, E+13        ; SEL 0x5FF8: DIN = input 8 (ui_in[0], TDO), sample delay 5
+        LDI     r0, 18
+        IOW     r0, E+12
+        LDI     r0, 0
+        IOW     r0, E+13        ; LTC 0: TCK idle low, TDI out at the falling edge, the TAP samples at the rising edge
+        LDI     r0, 9
+        IOW     r0, E+4         ; TXCTRL: 9 bits (frame A)
+        LDI     r0, 0x1FF
+        IOW     r0, E+14        ; TXLAST: TDI 1 in all 9 bits
+        TNOW    100
+        TGET    r1
+        IOW     r1, E+5         ; TXTIME = T; TMS 1 1 1 1 1 0 1 0 0: Test-Logic-Reset, Run-Test/Idle, to Shift-DR
+        TADD    40              ; bit 5 starts at T + 5 x 8
+        OUT     TMS, 0
+        TADD    8
+        OUT     TMS, 1
+        TADD    8
+        OUT     TMS, 0
+wa:     IOR     r0, E+4         ; transmitter state: wait for the end of frame A and its tail
+        ANDI    r0, 15
+        BNE     wa
+        LDI     r0, 1
+        IOW     r0, E+12
+        LDI     r0, 2
+        IOW     r0, E+13        ; TXPER 2: 4 cycles a bit, 15 MHz TCK for the scan
+        LDI     r0, 0
+        IOW     r0, E+4         ; TXCTRL: 16 bits in the last word (frame B: 64 bits, both IDCODEs)
+        LDI     r3, 4
+        TNOW    100
+        TGET    r1
+        IOW     r1, E+5         ; TXTIME = T; TMS 0 in Shift-DR
+        TADD    252             ; bit 63 starts at T + 63 x 4: TMS 1 (to Exit1-DR after the last bit)
+        OUT     TMS, 1
+txb:    IOR     r0, E+0         ; TX buffer free words
+        CMPI    r0, 0
+        BEQ     txb
+        LDI     r0, 0
+        NOT     r0, r0          ; TDI 1
+        CMPI    r3, 1
+        BEQ     lastb
+        IOW     r0, E+0
+        ADDI    r3, -1
+        JMP     txb
+lastb:  IOW     r0, E+14
+wb:     IOR     r0, E+4
+        ANDI    r0, 15
+        BNE     wb
+        IOR     r1, E+2
+        PUSH    r1
+        HALT
+        .org    120
+t1:     LDI     r1, 768         ; thread 1: received words to the data memory from 768
+rx:     IOR     r0, E+6
+        ANDI    r0, 0x60
+        BEQ     rx
+        IOR     r0, E+1
+        STX     r0, [r1]
+        ADDI    r1, 1
+        ST      r1, 500         ; next free address, for the host
+        JMP     rx
+"""
+
+
+@cocotb.test()
+async def test_slu_chip_jtag_idcode(dut):
+    """USB helper in the chip as a JTAG controller (docs/helpers.md section 6): TCK = helper clock on uio0, TDI = helper
+    data on uio1, TMS from thread 0 on uio2 (OUT events at the bit starts, times from TXTIME), TDO on ui_in[0]. Frame A
+    (9 bits, 7.5 MHz) moves two TAPs from Test-Logic-Reset to Shift-DR; frame B (64 bits, 15 MHz TCK) shifts out both
+    IDCODEs; thread 1 stores the received words. Device model: the two-TAP chain of test_flex.py (TI SSYA002C state
+    machine) at its pins with TDO 7 ns after the falling edge, set-up 1 ns, hold 2 ns; pin path at the slow pads with
+    10 ns of board multiplexer each way, then at the fast pads with none. Logic simulation with the pin path as delays."""
+    import test_slu_clk as sc
+    import test_flex as fx
+    prog = pe_asm.assemble(JTAG_HELPER_FW, "jtag_helper")
+    want = fx.value_bits(fx.JTAG_IDS[1], 32) + fx.value_bits(fx.JTAG_IDS[0], 32)
+    lines = []
+    for corner in ("slow, mux 10 ns", "fast, no mux"):
+        d = sc.CORNERS[corner]
+        pins = [0] * 15
+        pins[0], pins[1] = helper_pin(0, 1), helper_pin(0, 0)          # uio0 TCK (TXB), uio1 TDI (TXA)
+        host = await chip_start_owned(dut, prog, [(500, [768])], pins, [2], 120)
+        devs = fx.jtag_devices(td=sc.JTAG_TD, tsu=sc.JTAG_TSU, th=sc.JTAG_TH, tlow=sc.JTAG_TCKMIN, thigh=sc.JTAG_TCKMIN)
+
+        class Tdo:
+            def set_pin(self, pin, level):
+                dut.ui_in.value = (1 << hs.CS_N_BIT) | (level & 1)
+        chain = sc.JtagAtPins(Tdo(), devs, d[2])
+        tms_changes = []
+
+        def tms(v):
+            tms_changes.append(get_sim_time("ns"))
+            chain.on_tms(1 if v is None else v)                       # released: board pull-up on TMS
+        watch = ChipPinWatch(dut, {0: lambda v: chain.on_tck(v or 0), 1: lambda v: chain.on_tdi(1 if v is None else v),
+                                   2: tms}, d[0])
+        dump = getattr(dut, "dump_off", None)
+        if dump is not None:
+            dump.value = 0 if corner.startswith("slow") else 1        # waveform: the slow-corner session
+        await host.start()
+        await ClockCycles(dut.clk, 3000)
+        if dump is not None:
+            dump.value = 1
+        words_out, _ = await host.pull(0)
+        await host.stop()
+        watch.stop()
+        end = (await host.read_mem(500, 1))[0]
+        got_words = await host.read_mem(768, end - 768)
+        got = sc.bits_of(got_words[1:5], 64)                          # word 0: the TDO samples of frame A
+        dev_errs = [e for dv in devs for e in dv.errors]
+        gaps = [b - a for a, b in zip(tms_changes, tms_changes[1:])]
+        lines.append("%s: thread 0 status %s, %d words stored, IDCODEs %08x %08x (want %08x %08x), device timing "
+                     "errors %d, smallest TMS change spacing %.1f ns" % (
+                         corner, ["%04x" % w for w in words_out], end - 768, fx.lsb_word(got[:32]),
+                         fx.lsb_word(got[32:]), fx.JTAG_IDS[1], fx.JTAG_IDS[0], len(dev_errs),
+                         min(gaps) if gaps else 0.0))
+        assert len(words_out) == 1 and not words_out[0] & 0x204, "thread 0 status %s" % words_out
+        assert end - 768 == 5, "%d words stored, want 5 (1 + 4)" % (end - 768)
+        assert got == want, "IDCODE scan %08x %08x" % (fx.lsb_word(got[:32]), fx.lsb_word(got[32:]))
+        assert not dev_errs, "device timing at its pins: %s" % dev_errs[:3]
+    for line in lines:
+        dut._log.info("chip JTAG on the USB helper, " + line)
+
+
+SWD_HELPER_FW = """
+        .equ    E, 16           ; USB helper ports 16-31
+        .equ    SWD, 3          ; uio3: SWDIO, a thread-0 pin; the helper reads it back as input 3
+t0:     TNOW    8
+        OUT     SWD, 1
+        LDI     r0, 0
+        IOW     r0, E+12
+        LDI     r0, 0x00B
+        IOW     r0, E+13        ; MODE: clocked code, RX on
+        LDI     r0, 8
+        IOW     r0, E+13        ; TXPER 8: 16 cycles a bit (3.75 MHz) for the connection sequence
+        LDI     r0, 8
+        IOW     r0, E+12
+        LDI     r0, 0x23F
+        SHL     r0, 6
+        ORI     r0, 0x33
+        IOW     r0, E+13        ; SEL 0x8FF3: DIN = input 3 (uio3, SWDIO), sample delay 8
+        LDI     r0, 18
+        IOW     r0, E+12
+        LDI     r0, 0
+        IOW     r0, E+13        ; LTC 0: SWCLK idle low
+        LDI     r2, 512         ; connection frame: bit count N at 512, then the SWDIO words (first bit in bit 0)
+        LDX     r3, [r2]
+        MOV     r0, r3
+        ANDI    r0, 15
+        IOW     r0, E+4         ; TXCTRL: bits in the last word (the helper data output is not used)
+        LDI     r0, 0
+        IOW     r0, E+0
+        IOW     r0, E+0
+        TNOW    120
+        TGET    r1
+        IOW     r1, E+5         ; TXTIME = T
+        ADDI    r2, 1
+cw:     LDX     r0, [r2]        ; next 16 SWDIO bits
+        ADDI    r2, 1
+        LDI     r1, 16
+cb:     OUT     SWD, r0>>       ; bit k at T + 16 k (the bit start, the falling SWCLK edge)
+        TADD    16
+        ADDI    r3, -1
+        BEQ     cend
+        DJNZ    r1, cb
+        IOR     r1, E+0         ; keep the TX buffer fed (2 free: write 2 words)
+        CMPI    r1, 2
+        BNE     cw
+        LDI     r1, 0
+        IOW     r1, E+0
+        IOW     r1, E+0
+        JMP     cw
+cend:   LDI     r0, 0
+        IOW     r0, E+14        ; TXLAST
+wc:     IOR     r0, E+4
+        ANDI    r0, 15
+        BNE     wc
+        LDI     r0, 1
+        IOW     r0, E+12
+        LDI     r0, 4
+        IOW     r0, E+13        ; TXPER 4: 8 cycles a bit, 7.5 MHz SWCLK for the transfer
+        LDI     r0, 14
+        IOW     r0, E+4         ; TXCTRL: 46 bits = 2 words + 14 (request 8, turnaround, ACK 3, data 32, parity,
+        LDI     r0, 0           ; turnaround)
+        IOW     r0, E+0
+        IOW     r0, E+0
+        LD      r0, 600         ; the 8 request bits (first bit in bit 0)
+        TNOW    100
+        TGET    r1
+        IOW     r1, E+5         ; TXTIME = T
+        LDI     r3, 8
+rq:     OUT     SWD, r0>>
+        TADD    8
+        DJNZ    r3, rq
+        OUT     SWD, Z          ; bit 8: turnaround, the target drives ACK, data and parity
+        LDI     r0, 0
+        IOW     r0, E+14        ; TXLAST
+wt:     IOR     r0, E+4
+        ANDI    r0, 15
+        BNE     wt
+        IOR     r1, E+2
+        PUSH    r1
+        HALT
+        .org    150
+t1:     LDI     r1, 768         ; thread 1: received words to the data memory from 768
+rx:     IOR     r0, E+6
+        ANDI    r0, 0x60
+        BEQ     rx
+        IOR     r0, E+1
+        STX     r0, [r1]
+        ADDI    r1, 1
+        ST      r1, 500
+        JMP     rx
+"""
+
+
+@cocotb.test()
+async def test_slu_chip_swd_dpidr(dut):
+    """USB helper in the chip as an SWD host (docs/helpers.md section 6): SWCLK = helper clock on uio0, SWDIO on uio3
+    from thread 0 (OUT events at the bit starts; released for the turnaround, ACK, data and parity) and read back by
+    the helper as input 3. Connection (JTAG-to-SWD sequence and line resets of test_flex.py) at 3.75 MHz, then a DPIDR
+    read at 7.5 MHz in one frame: request, turnaround, ACK, 32 data bits, parity; thread 1 stores the samples. Target:
+    the SW-DP model of test_flex.py (Arm IHI0031H) with output 25 ns after the rising edge, set-up and hold 2 ns, at the
+    slow pads with 10 ns of board multiplexer each way, and output 2 ns at the fast pads. Logic simulation."""
+    import test_slu_clk as sc
+    import test_flex as fx
+    prog = pe_asm.assemble(SWD_HELPER_FW, "swd_helper")
+    conn = list(fx.SWD_CONNECT)
+    cwords = sc.words_of(conn)
+    req = fx.swd_request(0, 1, 0x0)                                   # DP read, address 0: DPIDR
+    lines = []
+    for corner, td in (("slow, mux 10 ns", 25.0), ("fast, no mux", 2.0)):
+        d = sc.CORNERS[corner]
+        pins = [0] * 15
+        pins[0] = helper_pin(0, 1)                                    # uio0 SWCLK (helper TXB)
+        host = await chip_start_owned(dut, prog, [(500, [768]), (512, [len(conn)] + cwords), (600, [req])], pins,
+                                      [3], 150)
+        tgt = fx.SwdTarget(td=td, tsu=2.0, th=2.0, tlow=20.0, thigh=20.0)
+
+        class Line:
+            def set_pin(self, pin, level):
+                dut.uio_in.value = (level & 1) << 3
+        swd = sc.SwdAtPins(Line(), tgt, d[2])
+        watch = ChipPinWatch(dut, {0: lambda v: swd.on_clk(v or 0),
+                                   3: lambda v: swd.host((0, 1) if v is None else (1, v))}, d[0])
+        dump = getattr(dut, "dump_off", None)
+        if dump is not None:
+            dump.value = 0 if corner.startswith("slow") else 1
+        await host.start()
+        await ClockCycles(dut.clk, 16 * len(conn) + 1500)
+        if dump is not None:
+            dump.value = 1
+        words_out, _ = await host.pull(0)
+        await host.stop()
+        watch.stop()
+        end = (await host.read_mem(500, 1))[0]
+        got_words = await host.read_mem(768, end - 768)
+        nc = (len(conn) + 15) // 16
+        xfer = sc.bits_of(got_words[nc:nc + 3], 46)
+        ack = xfer[9] | xfer[10] << 1 | xfer[11] << 2                 # request 0-7, turnaround 8, ACK 9-11
+        val = fx.lsb_word(xfer[12:44])
+        par = xfer[44]
+        lines.append("%s, target output %.0f ns: thread 0 status %s, %d words stored, ACK %s, DPIDR %08x (target "
+                     "%08x), parity %s, target timing errors %d" % (
+                         corner, td, ["%04x" % w for w in words_out], end - 768, bin(ack), val, tgt.dpidr,
+                         "ok" if fx.parity(val) == par else "BAD", len(tgt.errors)))
+        assert len(words_out) == 1 and not words_out[0] & 0x204, "thread 0 status %s" % words_out
+        assert ack == 0b001, "ACK %s (bits %s)" % (bin(ack), xfer[:16])
+        assert val == tgt.dpidr and fx.parity(val) == par, "DPIDR %08x parity %d" % (val, par)
+        assert not tgt.errors, "target timing at its pins: %s" % tgt.errors[:3]
+    for line in lines:
+        dut._log.info("chip SWD on the USB helper, " + line)

@@ -70,6 +70,8 @@ def main(netlist, sdf, macro_vh=None, scale=1.0):
             if depth <= 0:
                 if any(MACRO.search(b) for b in block):
                     n_macro += 1
+                    words, d = macro_delay(block, unit_ns)
+                    delays[words] = max(delays.get(words, 0.0), d)
                 else:
                     lines.extend(block)
                 block = None

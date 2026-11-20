@@ -1,0 +1,54 @@
+name: cert
+# Firmware timing certificates (cert/leadcert.py): the static lead bound of every OUT and SAMPLE of fw/*.s and the
+# never-LATE verdict of each program; the checks of the analysis against the reference model (cert/selfcheck.py:
+# random programs, planted analyser bugs, leads measured in the model tests). A few seconds; runs when the firmware,
+# the assembler, the model or the analysis changes.
+on:
+  push:
+    paths:
+      - 'cert/**'
+      - 'fw/**'
+      - 'asm/**'
+      - 'model/**'
+      - '.github/workflows/cert.yaml'
+  workflow_dispatch:
+jobs:
+  cert:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Install Python packages
+        shell: bash
+        run: pip install -r test/requirements.txt
+
+      - name: Lead analysis of the firmware
+        shell: bash
+        run: |
+          set -o pipefail
+          python cert/leadcert.py --json cert_results.json | tee cert_table.md
+          cat cert_table.md >> "$GITHUB_STEP_SUMMARY"
+          echo "::notice title=firmware timing certificates::$(sed -e 's/%/%25/g' cert_table.md | sed -e ':a;N;$!ba;s/\n/%0A/g')"
+
+      - name: Checks of the analysis against the model
+        shell: bash
+        run: |
+          set -o pipefail
+          python cert/selfcheck.py --programs 2000 | tee cert_selfcheck.txt
+          echo "::notice title=certificate self-check::$(sed -e 's/%/%25/g' cert_selfcheck.txt | sed -e ':a;N;$!ba;s/\n/%0A/g')"
+
+      - name: Upload
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cert
+          path: |
+            cert_table.md
+            cert_results.json
+            cert_selfcheck.txt

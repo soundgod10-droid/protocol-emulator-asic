@@ -1,0 +1,48 @@
+# slc_nrz: the USB helper copy (pe_slu SPEC 1, FULL 0) in its NRZ code (UART transmit on the helper; docs/helpers.md
+# section 6) against formal/slc_fv.v T2 to T4 (SLC_TX with NRZ = 1): each bit holds TXPER cycles on TXA from the
+# frame's first symbol, TXB = not TXA, first symbol at TXTIME, idle line 1; no data bit is received. TXPER 1 to 4.
+# Bounded from reset (depth 24: a TXTIME lead of 4 and 5 bits at TXPER 4).
+
+[options]
+mode bmc
+depth 24
+
+[engines]
+smtbmc z3
+
+[script]
+read -formal -D SLC_TX pe_slu_loop.v pe_slu.v slc_fv.v
+hierarchy -top slc_fv -chparam NRZ 1
+prep -top slc_fv
+flatten
+cd slc_fv
+connect -set \u_slu.din_f1 din_f1_free
+connect -set \u_slu.c_mode k_mode
+connect -set \u_slu.c_txper k_txper
+connect -set \u_slu.c_ltc k_ltc
+connect -set \u_slu.c_sel k_sel
+connect -set mon_txst_w \u_slu.tx_st
+connect -set mon_x0 \u_slu.x0
+connect -set mon_x1 \u_slu.x1
+connect -set mon_rdv \u_slu.r_data_v
+connect -set mon_rd \u_slu.r_data
+connect -set mon_push \u_slu.rx_push
+connect -set mon_pushw \u_slu.rx_push_w
+connect -set mon_sticky \u_slu.sticky
+connect -set mon_lead \u_slu.tx_lead
+connect -set mon_time \u_slu.tx_time
+connect -set mon_rxnb \u_slu.rx_nb
+connect -set mon_rxsh \u_slu.rx_sh
+connect -set mon_ckpend \u_slu.ck_pend
+connect -set mon_ckbv \u_slu.ck_bit_v
+connect -set mon_tmr \u_slu.tx_tmr
+connect -set mon_half \u_slu.tx_half
+opt_clean
+cd ..
+# The job stops with an error if a property was removed (NRZ form: 10 asserts, 4 assumes).
+select -assert-min 14 t:$check t:$assert t:$assume
+
+[files]
+../src/pe_slu_loop.v
+../src/pe_slu.v
+slc_fv.v

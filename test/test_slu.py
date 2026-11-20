@@ -2456,6 +2456,8 @@ async def test_slu_chip_jtag_idcode(dut):
         if dump is not None:
             dump.value = 0 if corner.startswith("slow") else 1        # waveform: the slow-corner session
         await host.start()
+        # the host port's START transaction drives all of ui_in; give TDO back its level (the pull-up or the device)
+        dut.ui_in.value = (1 << hs.CS_N_BIT) | (1 if chain.out is None else chain.out)
         await ClockCycles(dut.clk, 3000)
         if dump is not None:
             dump.value = 1

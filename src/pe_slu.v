@@ -407,7 +407,11 @@ module pe_slu #(
   assign      ck_eop    = ck_frame && (m_code == C_CLK) && !tx_busy && (tx_st != T_ARM) &&
                           (ck_pend == 16'd0) && !ck_bit_v;
   assign      ck_lastb  = ck_mode && m_estart && r_data_v && ((rx_bits[4:0] + 5'd1) == ck_len);
-  wire        rx_sop    = r_sop || ck_sop || ck_estart;
+  // A start edge can come while the last sample of the previous edge-started frame is still on its way
+  // (from the last sampling edge to the sample, SEL[15:12] + 2 cycles). The receive count then starts at that
+  // frame's end (ck_lastb), not at the edge, so the last bit is still counted and pushed with its own frame.
+  wire        ck_rxbusy = (ck_pend != 16'd0) || ck_bit_v;
+  wire        rx_sop    = r_sop || ck_sop || (ck_estart && !ck_rxbusy);
   wire        ck_eend   = ck_mode && m_estart && half_mid && (tx_nb == 5'd0) && tx_lastw;
 
   // ----------------------------------------------------------------------------------------------

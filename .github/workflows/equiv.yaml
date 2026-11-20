@@ -115,3 +115,113 @@ jobs:
             eqy_work/logfile.txt
             eqy_work/*.log
           if-no-files-found: warn
+
+  # Six planted netlist faults (equiv/teeth.py): eqy must find each copy not equivalent. A tooth that passes, or that
+  # stops with an error instead of a failed partition, fails the job. Runs after the netlist job has passed.
+  teeth:
+    needs: equiv
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      matrix:
+        tooth: [ff_d_swap, cts_inv, hold_inv, cg_gate_swap, lat_d_swap, sync_bypass]
+    permissions:
+      actions: read
+      contents: read
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PDK_ROOT: /home/runner/pdk
+    steps:
+      - uses: actions/checkout@v6
+      - name: Commit of the gds run
+        shell: bash
+        run: echo "GDS_SHA=$(gh run view $GDS_RUN_ID --json headSha -q .headSha)" >> $GITHUB_ENV
+      - name: RTL of that commit
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.GDS_SHA }}
+          path: rtl
+      - name: Final netlist and the planted fault
+        shell: bash
+        run: |
+          gh run download $GDS_RUN_ID -n tt_submission -D build/gds
+          echo "PDK=$(jq -r '.PDK' build/gds/tt_submission/pdk.json)" >> $GITHUB_ENV
+          echo "PDK_VERSION=$(jq -r '.PDK_VERSION' build/gds/tt_submission/pdk.json)" >> $GITHUB_ENV
+          nl=$(ls build/gds/tt_submission/*.v | head -n 1)
+          out=$(python3 equiv/teeth.py plant "$nl" build/teeth | grep "^${{ matrix.tooth }}:")
+          echo "$out"
+          echo "::notice title=tooth ${{ matrix.tooth }}::$out"
+      - name: PDK
+        uses: TinyTapeout/ciel-action@v1
+        with:
+          pdk_name: ${{ env.PDK }}
+          pdk_version: ${{ env.PDK_VERSION }}
+          pdk_root: ${{ env.PDK_ROOT }}
+      - name: OSS CAD Suite
+        uses: YosysHQ/setup-oss-cad-suite@v4
+        with:
+          version: '2026-11-14'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: eqy on the faulty netlist (must fail)
+        shell: bash
+        run: |
+          set +e
+          files=$(sed -n '/source_files:/,/^[^ ]/p' rtl/info.yaml | grep -o '"[^"]*\.v"' | tr -d '"' | grep -v sram_bb.v | sed 's|^|'$PWD'/rtl/src/|' | tr '\n' ' ')
+          lib=$(ls $PDK_ROOT/$PDK/libs.ref/*_stdcell/lib/*typ*.lib | head -n 1)
+          sed -e "s|@ROOT@|$PWD|g" -e "s|@RTL@|$PWD/rtl|g" -e "s|@RTL_FILES@|$files|" -e "s|@LIB@|$lib|" \
+              -e "s|@NL@|$PWD/build/teeth/${{ matrix.tooth }}.v|" equiv/chip.eqy > run.eqy
+          eqy -j 4 -f run.eqy -d eqy_work
+          rc=$?
+          summ=$(grep -h -E "PASS|FAIL|ERROR|partitions|Successfully" eqy_work/logfile.txt 2>/dev/null | tail -n 12 | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')
+          echo "::notice title=eqy tooth ${{ matrix.tooth }} (exit $rc)::${summ}"
+          if [ $rc -eq 0 ]; then echo "::error::tooth ${{ matrix.tooth }}: eqy found the faulty netlist equivalent"; exit 1; fi
+          if ! grep -q -E "Failed to prove equivalence|FAIL" eqy_work/logfile.txt; then
+            echo "::error::tooth ${{ matrix.tooth }}: eqy stopped without a failed partition"; exit 1
+          fi
+          echo "tooth ${{ matrix.tooth }}: not equivalent, as required"
+
+  # Guard mode (dispatch with guard_ref): the RTL of this ref against the RTL of guard_ref, both read as the netlist
+  # job reads the gold side (SYNTHESIS, the same black boxes). Shows that a change is "logic unchanged" where that is
+  # its claim. A planted RTL change (one helper reset constant) must make it fail.
+  guard:
+    if: inputs.guard_ref
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      matrix:
+        case: [guard, planted]
+    steps:
+      - uses: actions/checkout@v6
+      - name: RTL of the other commit
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.guard_ref }}
+          path: base
+      - name: OSS CAD Suite
+        uses: YosysHQ/setup-oss-cad-suite@v4
+        with:
+          version: '2026-11-14'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: eqy RTL against RTL
+        shell: bash
+        run: |
+          set +e
+          if [ "${{ matrix.case }}" = planted ]; then
+            sed -i 's/tx_line <= 1.b1; tx_sck <= 1.b0;/tx_line <= 1'"'"'b0; tx_sck <= 1'"'"'b0;/' src/pe_slu.v
+            git diff --stat src/
+          fi
+          list() { sed -n '/source_files:/,/^[^ ]/p' $1/info.yaml | grep -o '"[^"]*\.v"' | tr -d '"' | grep -v sram_bb.v | sed 's|^|'$PWD/$1'/src/|' | tr '\n' ' '; }
+          gold=$(list base); gate=$(list .)
+          sed -e "s|@ROOT@|$PWD|g" -e "s|@GOLD@|$PWD/base|g" -e "s|@GATE@|$PWD|g" -e "s|@GOLD_FILES@|$gold|" -e "s|@GATE_FILES@|$gate|" \
+              equiv/guard.eqy > run.eqy
+          eqy -j 4 -f run.eqy -d eqy_work
+          rc=$?
+          summ=$(grep -h -E "PASS|FAIL|ERROR|partitions|Successfully" eqy_work/logfile.txt 2>/dev/null | tail -n 12 | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')
+          echo "::notice title=guard ${{ matrix.case }} against ${{ inputs.guard_ref }} (exit $rc)::${summ}"
+          if [ "${{ matrix.case }}" = planted ]; then
+            [ $rc -ne 0 ] && grep -q -E "Failed to prove equivalence|FAIL" eqy_work/logfile.txt || { echo "::error::planted guard change not found"; exit 1; }
+          else
+            exit $rc
+          fi

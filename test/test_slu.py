@@ -1975,8 +1975,10 @@ async def test_slu_chip_spi_flash(dut):
     rng = random.Random(77)
     flash = [rng.randrange(256) for _ in range(512)]
     addr = 0x2C
+    frame = hc.spi_flash_read_frame(addr, 256)[hc.FRAME_ADDR]          # host call: bit count, then the words
     bits = sc.bytes_to_bits([0x03, 0, 0, addr]) + [0] * (8 * 256)
     words = sc.words_of(bits)
+    assert frame == [len(bits)] + words, "host call spi_flash_read_frame differs from the bench's own frame"
     prog = pe_asm.assemble(SPI_CLK_FW, "spi_clk")
     t1 = 120
     pins = [0] * 15

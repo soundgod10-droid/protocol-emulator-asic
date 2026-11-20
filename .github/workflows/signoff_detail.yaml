@@ -1,0 +1,44 @@
+name: signoff_detail
+
+# Signoff details of an earlier gds run, as annotations, without a new layout run: for each corner the slew,
+# capacitance and fanout violators (report_check_types section of the signoff checks.rpt) and the disconnected-pin
+# report. Input: the run id of the gds run.
+on:
+  workflow_dispatch:
+    inputs:
+      gds_run_id:
+        description: 'run id of the gds workflow run'
+        required: true
+
+jobs:
+  detail:
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Layout logs of the gds run
+        uses: actions/download-artifact@v7
+        with:
+          name: GDS_logs
+          run-id: ${{ inputs.gds_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: logs
+      - name: Violators per corner
+        shell: bash
+        run: |
+          set +e
+          r=$(ls -d logs/runs/*/ 2>/dev/null | head -n 1)
+          [ -n "$r" ] || r=$(ls -d logs/*/ | head -n 1)
+          echo "run folder: $r"
+          sta=$(ls -d ${r}*-openroad-stapostpnr 2>/dev/null | tail -n 1)
+          echo "signoff step: $sta"
+          for c in $(ls $sta); do
+            f=$sta/$c/checks.rpt
+            [ -f "$f" ] || continue
+            body=$(awk '/report_check_types/{p=1} /report_parasitic_annotation/{p=0} p' "$f" | head -n 60 | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')
+            echo "::notice title=violators $c::${body}"
+          done
+          body=$(grep -rh -i -B2 -A12 "disconnected" ${r}*disconnected*/*.rpt ${r}*disconnected*/*.log 2>/dev/null | head -n 60 | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')
+          echo "::notice title=disconnected pins::${body}"
+          true

@@ -363,26 +363,23 @@ def step(prog, pc, st, res, assume, bugs):
         if "tsync_as_tnow" in bugs:
             s.move_t(Iv(imm))
             return cont(s)
-        keep, low = s.L.clip(imm, INF), s.L.clip(-INF, imm - 1)
-        parts = []
-        if keep:
-            a = s.copy()
-            a.L = keep
-            parts.append(a)
-        if keep:
-            parts[0].prune()
-        if low:
-            b = s.copy()
-            b.L = low
-            b.prune()
-            # D follows T for each L of the low part: t - T_new = D + L - imm (L within the low part)
-            b.D = {p: d + low - imm for p, d in b.D.items()}
-            b.L = Iv(imm)
-            parts.append(b)
-        out = parts[0]
-        for p in parts[1:]:
-            out = join_state(out, p)
-        return cont(out)
+        outs = []
+        for ps in s.parts():   # signed 16-bit T - now: T moves when it is less than imm (isa 7)
+            keep, low = ps.L.clip(imm, LEAD_MAX), ps.L.clip(-32768, imm - 1)
+            if keep:
+                a = ps.copy()
+                a.L = keep
+                a.prune()
+                outs.append(a)
+            if low:
+                b = ps.copy()
+                b.L = low
+                b.prune()
+                # D follows T for each L of the low part: t - T_new = D + L - imm (L within the low part)
+                b.D = {p: d + low - imm for p, d in b.D.items()}
+                b.L = Iv(imm)
+                outs.append(b)
+        return cont(merge(outs))
     if form == "TWAIT":
         parts = []
         fut, past = s.L.clip(0, INF), s.L.clip(-INF, -1)

@@ -399,6 +399,9 @@ async def test_research_consts2(dut):
             sum(per.values()), len(per), sum(rest.values()), len(rest)))
         out += ["const %5d %s %s" % (n, k[0], k[1]) for k, n in per.most_common(40)]
         out += ["rest  %5d %s %s" % (n, k[0], k[1]) for k, n in rest.most_common(60)]
+    for i, ln in enumerate(open(os.path.join(work, "src", "pe_slu.v"), encoding="utf-8").read().splitlines(), 1):
+        if ln.strip() in ("reg         tx_line;", "reg  [3:0]  tx_st;", "reg  [4:0]  cfg_adr;"):
+            out.append("DECL line %d col %d: %s" % (i, len(ln) - len(ln.lstrip()) + 1, ln))
     text = "\n".join(out)
     open(os.path.join(root, "build", "consts_try2.txt"), "w", encoding="utf-8").write(text + "\n")
     dut._log.info(text[-9000:])

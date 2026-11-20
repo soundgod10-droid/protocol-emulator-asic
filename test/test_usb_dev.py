@@ -118,14 +118,39 @@ class Bus:
         return {(1, 0): "K", (0, 1): "J", (0, 0): "SE0", (1, 1): "SE1"}[(v & 1, (v >> 1) & 1)]
 
     async def _watch(self):
+        # With layout delays (SDF job) the two driver outputs VPO and VMO do not change at the same instant, so a
+        # J/K transition passes through SE0 or SE1 for a fraction of a ns. USB 2.0 Table 7-10 allows an SE0 of up to
+        # TLST = 210 ns in a low-speed differential transition, and a receiver must not take it as a line state.
+        # The bus level follows the pins at once; the device record (what the host model decodes) gets an SE0 or
+        # SE1 that follows J or K only when it lasts TLST, at its own start time. With no delays nothing changes.
+        pend = None                                   # (start ps, level) of an SE0/SE1 after J or K
         while True:
-            await ValueChange(self.dut.uio_out)
+            if pend is None:
+                await ValueChange(self.dut.uio_out)
+            else:
+                left = pend[0] + TLST_PS - get_sim_time("ps")
+                if left > 0:
+                    await First(ValueChange(self.dut.uio_out), Timer(round(left), unit="ps"))
+            now = get_sim_time("ps")
             d = self._dev_level()
-            if d != self.d:
-                self.d = d
-                self.dev.append((get_sim_time("ps"), d))
-                self._apply()
+            if pend is not None and d == self.d and now >= pend[0] + TLST_PS:
+                self.dev.append(pend)                 # it lasted TLST: a line state
+                pend = None
                 self.changed.set()
+                continue
+            if d == self.d:
+                continue
+            prev, self.d = self.d, d
+            self._apply()
+            if pend is None and d in ("SE0", "SE1") and prev in ("J", "K"):
+                pend = (now, d)
+                continue
+            if pend is not None:
+                if not (d in ("J", "K") and now - pend[0] < TLST_PS):
+                    self.dev.append(pend)
+                pend = None
+            self.dev.append((now, d))
+            self.changed.set()
 
 
 class Glue:

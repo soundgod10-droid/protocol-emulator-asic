@@ -18,6 +18,9 @@ on:
       gds_run_id:
         description: "id of the gds workflow run whose netlist and SDF files are checked"
         required: true
+      parts:
+        description: 'JSON list of the parts to run (default all: ["main","counter","helpers"])'
+        required: false
   workflow_run:
     workflows: [gds]
     types: [completed]

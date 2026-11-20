@@ -521,6 +521,11 @@ def main():
             continue
         e.add(m2[0].end(), " (* anyseq *) wire din_f1_free;" +
               "".join(" reg %s_f = 1'b0;" % lab for lab in flags["pe_slu.v"]))
+        if args.mode == "prove":
+            # receive loop: before the initial sync the edge count stays below init_edge (LOOP2[14:13], fixed 2 in
+            # both helper copies by the configuration invariants), as the sync comes at that edge
+            ends = [m.start() for m in re.finditer(r"^endmodule", files["pe_slu_loop.v"], re.M)]
+            edits["pe_slu_loop.v"].add(ends[-1], "always @* assert (init || (nedge < init_edge)); ")
         check = "always @* %s: assert (!%s_f); " if args.mode == "prove" else "always @* %s: cover (%s_f); "
         e.add(m3[0], "".join(check % (lab, lab) for lab in flags["pe_slu.v"]) +
               (invariants() if args.mode == "prove" else ""))

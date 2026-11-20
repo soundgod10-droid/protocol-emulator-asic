@@ -303,7 +303,54 @@ def unreach_gen(root, branch="lane2-cov"):
         p = subprocess.run([sys.executable, "-I", "formal/unreach/instrument.py", "--src", "src"] + args, cwd=work,
                            capture_output=True, text=True)
         out.append("$ instrument.py %s -> %d\n%s%s" % (" ".join(args), p.returncode, p.stdout[-5000:], p.stderr[-3000:]))
+    p = subprocess.run([sys.executable, "-I", "formal/unreach/consts.py", "gen"], cwd=work, capture_output=True, text=True)
+    out.append("$ consts.py gen -> %d\n%s%s" % (p.returncode, p.stdout[-3000:], p.stderr[-3000:]))
     return out
+
+
+@cocotb.test(skip=GL)
+async def test_research_consts(dut):
+    """Toggle triage with the yconst netlists of the local formal runs (copied to where consts.py reads them)."""
+    import glob
+    import shutil
+    import subprocess
+    import sys
+    root = os.path.dirname(HERE)
+    work = os.path.join(root, "build", "unreach_try")
+    fdir = r"C:\Users\ssher\fallout-sandbox\bridge_workspace\build\chiptools2\formal"
+    out = []
+    for job in ("yconst_usb", "yconst_eth"):
+        runs = sorted(glob.glob(os.path.join(fdir, "*-" + job)))
+        src = os.path.join(runs[-1], "model", "yconst.json") if runs else ""
+        out.append("%s: %s (%s)" % (job, src, os.path.isfile(src)))
+        if os.path.isfile(src):
+            dst = os.path.join(work, "formal", "unreach", "build", job, job, "model")
+            os.makedirs(dst, exist_ok=True)
+            shutil.copyfile(src, os.path.join(dst, "yconst.json"))
+            out.append("  size %d" % os.path.getsize(src))
+    for args in (["triage", "--toggle-holes", os.path.join(root, "build", "toggle_split.txt"),
+                  "--csv", os.path.join(root, "build", "toggle_candidates.csv")],
+                 ["check", "--exclusions", os.path.join(root, "build", "toggle_candidates.csv"),
+                  "--results", os.path.join(root, "build", "yconst_results.json")]):
+        p = subprocess.run([sys.executable, "-I", "formal/unreach/consts.py"] + args, cwd=work, capture_output=True,
+                           text=True)
+        out.append("$ consts.py %s -> %d\n%s%s" % (args[0], p.returncode, p.stdout[-4000:], p.stderr[-3000:]))
+    # what stays: toggle holes of the helper copies that are not constants, grouped by signal
+    from collections import Counter
+    import csv as _csv
+    cand = {r["point"] for r in _csv.DictReader(open(os.path.join(root, "build", "toggle_candidates.csv"),
+                                                     encoding="utf-8"))}
+    rest = Counter()
+    for ln in open(os.path.join(root, "build", "toggle_split.txt"), encoding="utf-8"):
+        pid = ln.strip()
+        if pid and pid not in cand:
+            parts = pid.split(":")
+            rest[(parts[0], parts[5].split("[")[0])] += 1
+    out.append("not constant: %d in %d signals" % (sum(rest.values()), len(rest)))
+    out += ["%5d %s %s" % (n, k[0], k[1]) for k, n in rest.most_common()]
+    text = "\n".join(out)
+    open(os.path.join(root, "build", "consts_try.txt"), "w", encoding="utf-8").write(text + "\n")
+    dut._log.info(text[:7000])
 
 
 @cocotb.test(skip=GL)

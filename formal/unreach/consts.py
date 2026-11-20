@@ -46,6 +46,8 @@ STEP_INSTANCES = ("u_a", "u_a0", "u_b0", "u_b1")
 SCRIPT = """read -formal -sv pe_slu_loop.v pe_slu.v unreach_fv.v
 hierarchy -top unreach_fv -chparam SPEC {spec}
 prep -top unreach_fv -flatten
+delete t:$assert t:$assume t:$cover t:$check
+sim -clock clk -resetn rst_n -rstlen 1 -n 1 -w unreach_fv
 opt -full -sat
 opt -full -sat
 opt -full -sat

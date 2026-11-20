@@ -236,6 +236,10 @@ module slc_fv #(
   (* keep *) wire [15:0] mon_sticky;  // sticky
   (* keep *) wire        mon_lead;    // tx_lead
   (* keep *) wire [15:0] mon_time;    // tx_time
+  (* keep *) wire [4:0]  mon_rxnb;    // rx_nb
+  (* keep *) wire [15:0] mon_rxsh;    // rx_sh
+  (* keep *) wire [15:0] mon_ckpend;  // ck_pend
+  (* keep *) wire        mon_ckbv;    // ck_bit_v
 
   wire        cpol   = f_ck[0];
   wire        cpha   = f_ck[1];

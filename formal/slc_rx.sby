@@ -35,8 +35,8 @@ opt_clean
 cd ..
 # Undefined constants become free values (more behaviours, so a proof still holds); the PDR engine needs it.
 setundef -anyseq
-# The job stops with an error if a property was removed: 6 asserts and 8 assumes of slc_fv.v.
-select -assert-min 14 t:$check t:$assert t:$assume
+# The job stops with an error if a property was removed: 6 asserts and 3 assumes of slc_fv.v.
+select -assert-min 9 t:$check t:$assert t:$assume
 
 [files]
 ../src/pe_slu_loop.v

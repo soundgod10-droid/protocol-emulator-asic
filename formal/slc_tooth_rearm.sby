@@ -1,0 +1,39 @@
+# slc_tooth_rearm: check of the check for formal/slc_rx.sby R2/R3 (back-to-back re-arm). Planted fault: the receive
+# count restarts at every start edge even while a sample of the previous frame is on its way (ck_rxbusy = 0, the
+# behaviour before finding CV1-F2). Must fail.
+
+[options]
+mode bmc
+depth 24
+expect fail
+
+[engines]
+smtbmc z3
+
+[script]
+read -formal -D SLC_PIN pe_slu_loop.v pe_slu.v slc_fv.v
+prep -top slc_fv
+flatten
+cd slc_fv
+connect -set \u_slu.ck_rxbusy 1'b0
+connect -set \u_slu.din_f1 din_f1_free
+connect -set \u_slu.c_mode k_mode
+connect -set \u_slu.c_txper k_txper
+connect -set \u_slu.c_ltc k_ltc
+connect -set \u_slu.c_sel k_sel
+connect -set \u_slu.tx_lastbits k_len
+connect -set mon_x0 \u_slu.x0
+connect -set mon_x1 \u_slu.x1
+connect -set mon_sop \u_slu.ck_estart
+connect -set mon_rdv \u_slu.r_data_v
+connect -set mon_rd \u_slu.r_data
+connect -set mon_push \u_slu.rx_push
+connect -set mon_pushw \u_slu.rx_push_w
+connect -set mon_sticky \u_slu.sticky
+opt_clean
+cd ..
+
+[files]
+../src/pe_slu_loop.v
+../src/pe_slu.v
+slc_fv.v

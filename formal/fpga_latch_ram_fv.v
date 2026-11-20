@@ -48,6 +48,11 @@ module fpga_latch_ram_fv (
 
   (* anyconst *) reg [3:0] f_a;
   reg f_w = 1'b0;                     // word f_a has been written (request seen at a rising edge)
+  // The read port of both memories is a pure multiplexer (no state, no side effect), so the read address is held at
+  // the checked word: then every step compares word f_a, which k-induction needs (the multiplexer of the latch
+  // memory is property M4 of formal/mem.sby; the stand-in's is the array read itself). f_a is free, so every word is
+  // covered.
+  always @* assume ((raddr == f_a) && (raddr_q == f_a));
   always @(posedge clk) if (we_q && (waddr_q == f_a)) f_w <= 1'b1;
 
   always @* begin

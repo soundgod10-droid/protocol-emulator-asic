@@ -240,6 +240,8 @@ module slc_fv #(
   (* keep *) wire [15:0] mon_rxsh;    // rx_sh
   (* keep *) wire [15:0] mon_ckpend;  // ck_pend
   (* keep *) wire        mon_ckbv;    // ck_bit_v
+  (* keep *) wire [15:0] mon_tmr;     // tx_tmr
+  (* keep *) wire        mon_half;    // tx_half
 
   wire        cpol   = f_ck[0];
   wire        cpha   = f_ck[1];

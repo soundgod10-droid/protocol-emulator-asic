@@ -2627,7 +2627,7 @@ async def test_slu_chip_swd_dpidr(dut):
         if dump is not None:
             dump.value = 0 if corner.startswith("slow") else 1
         await host.start()
-        await ClockCycles(dut.clk, 16 * len(conn) + 1500)
+        await ClockCycles(dut.clk, 32 * (16 * len(cwords)) + 2000)
         if dump is not None:
             dump.value = 1
         words_out, _ = await host.pull(0)

@@ -171,9 +171,10 @@ def main():
     if args.proofs and excl:
         proofs = json.load(open(args.proofs, encoding="utf-8"))
         for pid, row in excl.items():
-            status = proofs.get(row["proof"].strip(), "missing")
-            if status != "PASS":
-                errors.append("exclusion %s: proof %s %s" % (pid, row["proof"], status))
+            for job in row["proof"].strip().split("+"):
+                status = proofs.get(job, "missing")
+                if status != "PASS":
+                    errors.append("exclusion %s: proof %s %s" % (pid, job, status))
 
     tot, hit, ex = defaultdict(int), defaultdict(int), defaultdict(int)
     for pid, p in chip.items():

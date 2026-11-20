@@ -320,6 +320,14 @@ module slc_fv #(
       if (m_due && (m_n == 4'd15)) assert (mon_pushw == w_new);
       if (fend && (m_n != 4'd0)) assert (mon_pushw == (m_w >> (5'd16 - {1'b0, m_n})));
       if (m_eop) assert (mon_sticky[5]);
+      // Invariants for the induction (facts about the RTL that tie the monitor to the helper's state): the
+      // samples on their way, the bit to deliver, the bit count and the word being built.
+      if (rx_on) begin
+        assert (mon_ckpend == ({1'b0, m_q} | (sched ? (16'd1 << f_dly) : 16'd0)));
+        assert (mon_ckbv == m_due);
+        assert (mon_rxnb == {1'b0, m_n});
+        if (m_fa) assert (mon_rxsh == m_w);
+      end
     end
   end
 

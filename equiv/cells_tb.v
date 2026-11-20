@@ -7,13 +7,14 @@
 
 // cells_tb: the behavioural models of src/pe_cells.v (pe_cg, pe_lat), which every RTL simulation, the coverage run and
 // the formal jobs use, against the library cell models of the PDK (sg13cmos5l_lgcp_1, sg13cmos5l_dlhq_1), which the
-// gate-level simulations use and which the netlist equivalence keeps as matched black boxes. Every sequence of
-// DEPTH input changes (each step sets both inputs of a cell to one of the 4 values) is applied to both; after each
-// step, 1 ns later, the outputs must be equal. Icarus Verilog, functional cell models (FUNCTIONAL defined).
-// Exit: "cells_tb: PASS" or $fatal at the first difference.
+// gate-level simulations use and which the netlist equivalence keeps as matched black boxes. From each of the 4
+// input states, every sequence of DEPTH single-input changes (each step changes one of the two inputs of a cell;
+// two inputs changing at the same instant would be a set-up or hold violation, not a function) is applied to both;
+// after each step, 1 ns later, the outputs must be equal. Icarus Verilog, functional cell models (FUNCTIONAL).
+// Exit: "cells_tb: PASS" or $fatal after the differences.
 
 module cells_tb;
-  localparam integer DEPTH = 8;
+  localparam integer DEPTH = 12;
 
   reg clk, en, g, d;
   wire gclk_beh, gclk_cell, q_beh, q_cell;

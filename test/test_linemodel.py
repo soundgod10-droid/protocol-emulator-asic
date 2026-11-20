@@ -319,9 +319,9 @@ async def test_research_scope(dut):
                                    "sram_sim.v")]
     run(["iverilog", "-g2012", "-DVERILATOR_SPLIT_TRY", "-I", "src", "-o", "split.vvp", "-s", "tb"] + srcs +
         ["test/tb.v"], work)
-    p = subprocess.run(["grep", "-n", "pe_slu_ut\\|pe_slu_loop_ut\\|^`line", "test/tb.v"], cwd=work,
-                       capture_output=True, text=True)
-    out.append(p.stdout[-3000:])
+    tbl = open(os.path.join(work, "test", "tb.v"), encoding="utf-8").read().splitlines()
+    out += ["tb.v:%d: %s" % (i + 1, t.strip()[:100]) for i, t in enumerate(tbl)
+            if "pe_slu_ut" in t or "pe_slu_loop_ut" in t or t.startswith("`line")]
     text = "\n".join(out)
     open(os.path.join(root, "build", "scope_try.txt"), "w", encoding="utf-8").write(text + "\n")
     dut._log.info(text[-9000:])

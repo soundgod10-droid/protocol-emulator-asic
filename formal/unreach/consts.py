@@ -12,7 +12,7 @@ u_usb) and yconst_eth (SPEC 2, FULL 1, u_eth). Each reads src/pe_slu.v and src/p
 formal/unreach/unreach_fv.v (every port access, written word and pin input free in every cycle), flattens the
 design and simplifies it with Yosys: opt -full with opt_dff -sat, so a flip-flop whose next value always equals
 its value, with an asynchronous reset to a constant, becomes that constant, and the constants propagate through
-the logic. The job writes the names of the simplified netlist with their bits (yconst.json in the job's model
+the logic. The job writes the names of the simplified netlist with their bits (yconst.json in the job's src
 folder) and then runs a one-step check of the empty netlist, which passes. formal/unreach/run.py runs them.
 
 A bit that is a constant ("0" or "1") in yconst.json has one value from the first reset on, for every input

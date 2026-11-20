@@ -1,0 +1,85 @@
+name: gl_diag
+
+# Diagnosis of a gate-level failure, without a new layout run: one test at gate level on the final netlists of
+# several earlier gds runs (GDS_logs final/nl, which a gds run keeps also when a signoff check stopped it), with the
+# tests of this commit. Started by a push of this file; the run ids and the test are below.
+on:
+  push:
+    paths:
+      - '.github/workflows/gl_diag.yaml'
+
+jobs:
+  gl:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # A: the RTL fix with the 80 % post-GRT slew margin, no post-GRT timing repair (stopped by 2 hold violators)
+          - name: fix_no_grt_repair
+            run: '44772515527'
+          # B: the candidate (the RTL fix with the post-GRT timing repair)
+          - name: candidate
+            run: '44808418029'
+          # C: control, the netlist of the RC1 commit (passed gl_protocols part 4)
+          - name: rc1
+            run: '44557589283'
+    permissions:
+      actions: read
+      contents: read
+    env:
+      PDK_ROOT: /home/runner/pdk
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+      - name: Final netlist of gds run ${{ matrix.run }}
+        shell: bash
+        run: |
+          set -e
+          gh run download ${{ matrix.run }} -n GDS_logs -D build/logs
+          nl=$(ls build/logs/runs/*/final/nl/*.v | head -n 1)
+          cp "$nl" test/gate_level_netlist.v
+          sha=$(gh run view ${{ matrix.run }} --json headSha -q .headSha)
+          echo "::notice title=gl_diag ${{ matrix.name }}::gds run ${{ matrix.run }} (commit ${sha:0:7}), netlist $(basename $nl), $(wc -l < $nl) lines, SHA-256 $(sha256sum $nl | cut -c1-16)"
+          rm -rf build/logs
+      - name: PDK (revision of the candidate)
+        shell: bash
+        run: |
+          gh run download 44808418029 -n tt_submission -D build/gds
+          echo "PDK=$(jq -r '.PDK' build/gds/tt_submission/pdk.json)" >> $GITHUB_ENV
+          echo "PDK_VERSION=$(jq -r '.PDK_VERSION' build/gds/tt_submission/pdk.json)" >> $GITHUB_ENV
+      - uses: TinyTapeout/ciel-action@v1
+        with:
+          pdk_name: ${{ env.PDK }}
+          pdk_version: ${{ env.PDK_VERSION }}
+          pdk_root: ${{ env.PDK_ROOT }}
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - name: tools
+        run: |
+          wget -q https://github.com/TinyTapeout/iverilog/releases/download/v13.0/iverilog_13.0-1_amd64.deb
+          sudo apt-get update -y
+          sudo apt-get install -y ./iverilog_13.0-1_amd64.deb
+          pip install -r test/requirements.txt
+      - name: test_usb_dev_enumerate at gate level
+        shell: bash
+        run: |
+          set +e
+          cd test
+          rm -f tb.fst results.xml
+          make clean
+          GATES=yes COCOTB_TEST_FILTER=test_usb_dev_enumerate make COCOTB_TEST_MODULES=test_usb_dev FST= 2>&1 | tail -n 60 | tee gl_diag.log
+          res=$(grep -c "<failure" results.xml)
+          echo "::notice title=gl_diag ${{ matrix.name }} result::failures $res; $(grep -E 'PASS|FAIL|enumerated|no ACK|Error' gl_diag.log | tail -n 8 | sed ':a;N;$!ba;s/\n/%0A/g')"
+          true
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: gl_diag_${{ matrix.name }}
+          path: |
+            test/results.xml
+            test/gl_diag.log

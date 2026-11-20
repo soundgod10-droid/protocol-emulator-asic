@@ -2122,7 +2122,7 @@ async def test_slu_chip_uart_rx(dut):
         sent += data
         plan.append((err, d_in, data))
     prog = pe_asm.assemble(UART_HRX_FW, "uart_hrx")
-    host = await chip_start(dut, prog, [(768, [0xFFFF] * (len(sent) + 8))], [0] * 15)
+    host = await chip_start(dut, prog, list(hc.uart_rx_buffer(len(sent)).items()), [0] * 15)
     if getattr(dut, "dump_off", None) is not None:
         dut.dump_off.value = 1                                       # no waveform until the review window
     ui = 1 << hs.CS_N_BIT

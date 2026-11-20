@@ -1,0 +1,23 @@
+# fpga_latch_ram_late: check of the check for formal/fpga_latch_ram.sby. The stand-in gets its write one cycle late
+# (FPGA_LATE); the miter must give a counterexample.
+
+[options]
+mode bmc
+depth 12
+multiclock on
+expect fail
+
+[engines]
+smtbmc z3
+
+[script]
+read_verilog -formal pe_cells.v pe_latch_ram.v
+rename pe_latch_ram pe_latch_ram_lat
+read_verilog -formal -D FPGA_LATE pe_latch_ram_fpga.v fpga_latch_ram_fv.v
+prep -top fpga_latch_ram_fv
+
+[files]
+../src/pe_cells.v
+../src/pe_latch_ram.v
+../fpga/pe_latch_ram_fpga.v
+fpga_latch_ram_fv.v

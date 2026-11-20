@@ -301,6 +301,10 @@ async def watch_pin_delays(dut, done):
                     d[1] = dt if d[1] is None else max(d[1], dt)
                     d[2] += 1
             prev[n] = v
+
+
+def write_pin_delays():
+    import json
     with open(PIN_DELAY_FILE, "w", encoding="utf-8") as f:
         json.dump(dict(sorted(PIN_DELAYS.items())), f, indent=1)
 

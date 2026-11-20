@@ -72,7 +72,7 @@ class Source:
         for m in TOKEN.finditer(clean):
             line = self.line_of(m.start())
             self.toks.append((m.group(0), line, m.start() - self.line_start[line - 1] + 1, m.start(), m.end()))
-        self.ifs, self.items, self.blocks, self.simple = {}, [], {}, []
+        self.ifs, self.items, self.blocks, self.simple, self.functions = {}, [], {}, [], []
         i = 0
         while i < len(self.toks):
             t = self.toks[i][0]

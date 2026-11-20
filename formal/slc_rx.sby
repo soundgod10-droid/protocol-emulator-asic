@@ -11,6 +11,7 @@ depth 24
 
 [engines]
 abc pdr
+smtbmc z3
 
 [script]
 read -formal pe_slu_loop.v pe_slu.v slc_fv.v

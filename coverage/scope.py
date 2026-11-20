@@ -147,7 +147,7 @@ def main():
             raw_hit[key] += count > 0
 
     # 2. chip
-    split = any(p["module"].endswith("_ut") for p in points)
+    split = any(module_parts(p)[1] for p in points)
     chip = {}
     for p in points:
         c = chip_copy(p, files)

@@ -90,6 +90,8 @@ jobs:
           missed=$(grep -rn --include='*.v' '^%' coverage_annotated | grep -v '/tb\.v:' || true)
           echo "::notice title=lines with no point hit::$(printf '%s\n' "${missed:-none}" | sed -e 's/%/%25/g' | sed -e ':a;N;$!ba;s/\n/%0A/g')"
           verilator_coverage --write-info coverage.info coverage.dat
+          # A stale exclusion list (an excluded point hit, or no longer in the RTL) fails the job.
+          exit $scope_rc
 
       - name: Test Summary
         uses: test-summary/action@v2.6

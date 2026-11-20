@@ -1010,11 +1010,11 @@ async def test_core_pins_leads_waits(dut):
         "        HALT",
     ])
     waits = []
-    for pin, edge in ((\"UIO1\", \"FALL\"), (\"UIO1\", \"RISE\"), (\"UIO7\", \"ANY\"), (\"UI0\", \"RISE\"), (\"UI1\", \"RISE\"),
-                      (\"UI2\", \"ANY\")):
-        waits += [\"        TNOW 12\", f\"        WAIT {pin}, {edge}, r2, TO\"]
+    for pin, edge in (("UIO1", "FALL"), ("UIO1", "RISE"), ("UIO7", "ANY"), ("UI0", "RISE"), ("UI1", "RISE"),
+                      ("UI2", "ANY")):
+        waits += ["        TNOW 12", f"        WAIT {pin}, {edge}, r2, TO"]
     for pin, kind in ((13, 0), (13, 1), (13, 2), (14, 0), (14, 1), (14, 2), (15, 0), (15, 2)):
-        waits += [\"        TNOW 12\", f\"        .word 0x{0xD088 | pin << 8 | kind << 4:04X}\"]  # WAIT pin, kind, r2, TO
+        waits += ["        TNOW 12", f"        .word 0x{0xD088 | pin << 8 | kind << 4:04X}"]  # WAIT pin, kind, r2, TO
     t2 = "\n".join([
         "        TNOW 8",
         "        SAMPLE UIO6, r1>>",

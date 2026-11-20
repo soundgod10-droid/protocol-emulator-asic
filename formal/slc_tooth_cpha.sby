@@ -1,0 +1,44 @@
+# slc_tooth_cpha: check of the check for formal/slc_tx.sby T1 (clock shape). Planted fault: LTC[9] (CPHA) = 1 while
+# the monitor expects CPHA 0 (SLC_PIN), so the clock output has the wrong level in each half bit. Must fail.
+
+[options]
+mode bmc
+depth 24
+expect fail
+
+[engines]
+smtbmc z3
+
+[script]
+read -formal -D SLC_TX -D SLC_PIN pe_slu_loop.v pe_slu.v slc_fv.v
+prep -top slc_fv
+flatten
+cd slc_fv
+connect -set \u_slu.din_f1 din_f1_free
+connect -set \u_slu.c_mode k_mode
+connect -set \u_slu.c_txper k_txper
+connect -set \u_slu.c_ltc 16'h0244
+connect -set \u_slu.c_sel k_sel
+connect -set mon_txst_w \u_slu.tx_st
+connect -set mon_x0 \u_slu.x0
+connect -set mon_x1 \u_slu.x1
+connect -set mon_rdv \u_slu.r_data_v
+connect -set mon_rd \u_slu.r_data
+connect -set mon_push \u_slu.rx_push
+connect -set mon_pushw \u_slu.rx_push_w
+connect -set mon_sticky \u_slu.sticky
+connect -set mon_lead \u_slu.tx_lead
+connect -set mon_time \u_slu.tx_time
+connect -set mon_rxnb \u_slu.rx_nb
+connect -set mon_rxsh \u_slu.rx_sh
+connect -set mon_ckpend \u_slu.ck_pend
+connect -set mon_ckbv \u_slu.ck_bit_v
+connect -set mon_tmr \u_slu.tx_tmr
+connect -set mon_half \u_slu.tx_half
+opt_clean
+cd ..
+
+[files]
+../src/pe_slu_loop.v
+../src/pe_slu.v
+slc_fv.v

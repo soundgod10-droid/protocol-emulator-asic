@@ -428,14 +428,18 @@ def step(prog, pc, st, res, assume, bugs):
             s.r[f["reg"]] = None
             return cont(s)
         # completes in the first slot after the sample time: T + off when on time, c + 4 when late (isa 4.3, 6.2)
-        on, waits = lead.clip(LEAD_MIN, LEAD_MAX), []
-        if on:
-            waits.append(Iv(on.lo + 1, on.hi + 4))
-        if lead.lo < LEAD_MIN or lead.hi > LEAD_MAX:
-            waits.append(Iv(5, 8))
-        w = waits[0] if len(waits) == 1 else waits[0].join(waits[1])
+        waits = []
+        for part, _shift in wrap_parts(lead):     # the lead is a 16-bit difference (isa 4.2)
+            on = part.clip(LEAD_MIN, LEAD_MAX)
+            if on:
+                waits.append(Iv(on.lo + 1, on.hi + 4))
+            if part.lo < LEAD_MIN:
+                waits.append(Iv(5, 8))
+        w = waits[0]
+        for x in waits[1:]:
+            w = w.join(x)
         s.advance(w)
-        if LEAD_MIN <= lead.lo and lead.hi <= LEAD_MAX:
+        if in_window(lead):
             s.L = Iv(-off - 4, -off - 1)    # completes in the first slot after its time T + off
         s.r[f["reg"]] = None
         return cont(s)

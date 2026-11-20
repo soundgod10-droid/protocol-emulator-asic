@@ -185,7 +185,8 @@ class Source:
                 j += 1
                 j = j + 1 if self.t(j) == "*" else self.match(j, "(", ")")
             end = self.stmt(j)
-            self.blocks[i] = (j, end)
+            clocked = any(self.t(x) in ("posedge", "negedge") for x in range(i + 1, j))
+            self.blocks[i] = (j, end, clocked)
             return end
         if t == ";":
             return i + 1

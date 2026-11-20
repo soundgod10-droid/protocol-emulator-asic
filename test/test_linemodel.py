@@ -412,6 +412,24 @@ async def test_research_triage(dut):
 
 
 @cocotb.test(skip=GL)
+async def test_research_probe(dut):
+    import glob
+    import shutil
+    import subprocess
+    import sys
+    out = ["python %s" % sys.executable]
+    for name in ("sby", "yosys", "yowasp-yosys", "yosys-smtbmc", "yowasp-yosys-smtbmc", "z3"):
+        out.append("%s: %s" % (name, shutil.which(name)))
+    scripts = os.path.dirname(sys.executable)
+    out.append("scripts: %s" % " ".join(sorted(os.path.basename(p) for p in glob.glob(os.path.join(scripts, "*")))
+                                       [:200]))
+    for cand in glob.glob(r"C:\Users\ssher\*\venv\Scripts\sby*") + glob.glob(r"C:\Users\ssher\*\*\Scripts\sby*"):
+        out.append("found %s" % cand)
+    text = "\n".join(out)
+    dut._log.info(text[:6000])
+
+
+@cocotb.test(skip=GL)
 async def test_research_toggle(dut):
     """Group the chip toggle holes (build/toggle_split.txt) by copy and signal."""
     import re

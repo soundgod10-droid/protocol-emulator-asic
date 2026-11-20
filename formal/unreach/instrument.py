@@ -526,6 +526,10 @@ def main():
             # both helper copies by the configuration invariants), as the sync comes at that edge
             ends = [m.start() for m in re.finditer(r"^endmodule", files["pe_slu_loop.v"], re.M)]
             edits["pe_slu_loop.v"].add(ends[-1], "always @* assert (init || (nedge < init_edge)); ")
+            # theta stays in [-HALF, 2 NONE) (the claim in src/pe_slu_loop.v on which its single wrap of the phase error
+            # rests), HALF = n * 2^11, NONE = n * 2^12
+            edits["pe_slu_loop.v"].add(ends[-1], "always @* assert (($signed({th[19], th}) >= -$signed({4'b0000, n, "
+                                                 "11'd0})) && ($signed({th[19], th}) < $signed({2'b00, n, 13'd0}))); ")
         check = "always @* %s: assert (!%s_f); " if args.mode == "prove" else "always @* %s: cover (%s_f); "
         e.add(m3[0], "".join(check % (lab, lab) for lab in flags["pe_slu.v"]) +
               (invariants() if args.mode == "prove" else ""))

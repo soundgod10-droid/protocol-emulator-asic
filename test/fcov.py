@@ -202,7 +202,7 @@ def attach(model, label=""):
             if th.status & 1 and not st0 & 1:
                 hit("late.kind", KINDS[kind])
         elif form in BRANCH and (w & 0x1FF) != ((pc0 + 1) & 0x1FF):
-            hit("branch.taken", (form, r != ((pc0 + 1) & 0x1FF)))
+            hit("branch.taken", (form, (r & 0x1FF) != ((pc0 + 1) & 0x1FF)))
         elif form == "DJNZ":
             hit("loop.djnz", th.r[(w >> 10) & 3] != 0)
         elif form == "TWAIT":

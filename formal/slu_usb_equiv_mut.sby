@@ -1,0 +1,54 @@
+# slu_usb_equiv_mut: check of the check for formal/slu_usb_equiv.sby. MODE writes are let through
+# (SLU_EQUIV_MODE_FREE), so the present helper can leave the USB configuration and the equivalence must break: the
+# job passes only if at least one signal pair stays unproven after the same proof steps.
+
+[options]
+mode prove
+
+[engines]
+smtbmc z3
+
+[script]
+read_verilog -sv pe_slu_ref.v
+rename pe_slu pe_slu_ref
+read_verilog -sv pe_slu_loop.v pe_slu.v
+read_verilog -sv -D SLU_EQUIV_MODE_FREE slu_usb_equiv_fv.v
+hierarchy -check
+proc
+flatten
+cd slu_equiv_old
+connect -set uadr u.cfg_adr
+cd slu_equiv_new
+connect -set uadr u.cfg_adr
+cd ..
+check -assert
+async2sync
+opt_clean
+equiv_make slu_equiv_old slu_equiv_new slu_equiv
+hierarchy -top slu_equiv
+cd slu_equiv
+equiv_add 16'b0000001110111001 u.c_mode_gold
+equiv_add 16'b0000000000101000 u.c_txper_gold
+equiv_add 16'b0000000001000100 u.c_ltc_gold
+cd ..
+equiv_simple -seq 8
+equiv_induct -seq 8
+tee -o equiv_status.txt equiv_status
+equiv_remove -proven
+select -assert-min 1 t:$equiv
+design -reset
+read_verilog -formal tiny.v
+prep -top tiny
+
+[files]
+pe_slu_ref.v
+../src/pe_slu_loop.v
+../src/pe_slu.v
+slu_usb_equiv_fv.v
+
+[file tiny.v]
+module tiny(input clk);
+  reg a = 1'b0;
+  always @(posedge clk) a <= a;
+  always @* assert (!a);
+endmodule

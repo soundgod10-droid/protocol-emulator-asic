@@ -40,8 +40,14 @@ VERILOG_SOURCES += $(PDK_LIBS_REF)/$(PDK_CELL_PREFIX)_stdcell/verilog/$(PDK_CELL
 
 # this gets copied in by the GDS action workflow
 VERILOG_SOURCES += $(PWD)/gate_level_netlist.v
-# the netlist keeps the SRAM macros as instances: their functional models
+# the netlist keeps the SRAM macros as instances: their functional models; in the SDF job the same models with the
+# read delay of the layout SDF (test/sram_sdf.v; test/sram_delay.vh written by test/sdf_names.py --macro-vh)
+ifeq ($(SDF_FILE),)
 VERILOG_SOURCES += $(SRC_DIR)/sram_sim.v
+else
+VERILOG_SOURCES += $(PWD)/sram_sdf.v
+COMPILE_ARGS    += -I$(PWD)
+endif
 
 endif
 

@@ -88,8 +88,6 @@ module slc_fv #(
   // The register values (connected to u_slu.c_mode, c_txper, c_ltc, c_sel, tx_lastbits by the .sby): the
   // writable bits of SPEC 1 set as the thread writes them, every other bit at its USB value (F_MODE 03B9,
   // F_LTC 0044).
-  (* anyconst *) reg       f_nrz;    // SLC_TX: MODE code 0 (NRZ) instead of 3 (clocked)
-  (* anyconst *) reg       f_rx;     // SLC_TX: MODE bit 3, receive on (clocked)
   // Each connected value is a constant or a plain concatenation of anyconst bits and constants: a connect to the
   // output of a gate left the helper register as a second driver after the asynchronous-reset conversion.
   (* keep *) wire [15:0] k_txper = {8'd0, f_per};

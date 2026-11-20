@@ -249,8 +249,8 @@ def _define_tests():
         assert bench.changes("own")[-1][1] == (None, None), f"{label}: pins at the end {bench.changes('own')[-1]}"
         await bench.finish(dut._log)
 
-    async def jtag(dut, name, h1, h2, **kw):
-        await rf.rtl_jtag(dut, kw["fw"], h1, h2)
+    async def jtag(dut, name, fw, h1, h2):
+        await rf.rtl_jtag(dut, fw, h1, h2)
 
     async def can(dut, name, rate, frac, part, ppm):
         bt = round(F_CLK / rate)

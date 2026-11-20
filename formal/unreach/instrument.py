@@ -382,10 +382,10 @@ def place(src, edits, kind, comment, line, col, cond, label, module_level):
         for k, rec in src.ifs.items():
             if src.toks[k][2] != col - 1:
                 continue
-            on_line = src.toks[k][1] == line or (rec["else_kw"] is not None and src.toks[rec["else_kw"]][1] == line)
+            # branch/else sits on the line of its if; line/else (an else block) on the line of the else keyword
             if kind == "branch" and src.toks[k][1] != line:
                 continue
-            if not on_line:
+            if kind == "line" and (rec["else_kw"] is None or src.toks[rec["else_kw"]][1] != line):
                 continue
             if rec["else"]:
                 edits.open_branch(rec["else"], label)

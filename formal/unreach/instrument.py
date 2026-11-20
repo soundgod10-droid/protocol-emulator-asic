@@ -343,8 +343,10 @@ def place(src, edits, kind, comment, line, col, cond, label, module_level):
     if in_function:
         if not cond:
             raise ValueError("point inside a function: its condition must be given in formal/unreach/conds.csv")
-        module_level.append("always @* if (%s) %s: %s " % (cond, label, edits.hit))
-        return "inside a function: always @* block before endmodule, condition %s" % cond
+        # the condition is checked before the endmodule of the module that holds the function
+        ends = [tok for tok in src.toks if tok[0] == "endmodule" and tok[1] > line]
+        edits.add(ends[0][3], "always @* if (%s) %s: %s " % (cond, label, edits.hit))
+        return "inside a function: always @* block before endmodule (line %d), condition %s" % (ends[0][1], cond)
     if comment in ("cond_then", "cond_else"):
         if not cond:
             k = src.at(line, col if comment == "cond_then" else col - 1)

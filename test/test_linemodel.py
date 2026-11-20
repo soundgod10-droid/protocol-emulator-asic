@@ -279,6 +279,39 @@ async def test_research_points(dut):
         dut._log.info(ln)
 
 
+def unreach_gen(root, branch="lane2-cov"):
+    """Copy src/, formal/unreach/ and coverage/ of the branch to build/unreach_try and run instrument.py there:
+    the triage (cover) jobs from build/holes_split.csv, and the proof jobs from the branch's exclusion file."""
+    import shutil
+    import subprocess
+    import sys
+    work = os.path.join(root, "build", "unreach_try")
+    shutil.rmtree(work, ignore_errors=True)
+    out = []
+    r = subprocess.run(["git", "ls-tree", "-r", "--name-only", branch, "src/", "formal/unreach/", "coverage/"],
+                       cwd=root, capture_output=True, text=True)
+    for path in r.stdout.split():
+        dst = os.path.join(work, path)
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        with open(dst, "wb") as fh:
+            fh.write(subprocess.run(["git", "show", "%s:%s" % (branch, path)], cwd=root, capture_output=True).stdout)
+    holes = os.path.join(root, "build", "holes_split.csv")
+    for args in (["--holes", holes, "--mode", "cover", "--out", "formal/unreach/build_triage"],
+                 ["--out", "formal/unreach/build"]):
+        p = subprocess.run([sys.executable, "-I", "formal/unreach/instrument.py", "--src", "src"] + args, cwd=work,
+                           capture_output=True, text=True)
+        out.append("$ instrument.py %s -> %d\n%s%s" % (" ".join(args), p.returncode, p.stdout[-5000:], p.stderr[-3000:]))
+    return out
+
+
+@cocotb.test(skip=GL)
+async def test_research_unreach(dut):
+    root = os.path.dirname(HERE)
+    text = "\n".join(unreach_gen(root))
+    open(os.path.join(root, "build", "unreach_gen.txt"), "w", encoding="utf-8").write(text + "\n")
+    dut._log.info(text[-9000:])
+
+
 @cocotb.test(skip=GL)
 async def test_research_scope(dut):
     import shutil

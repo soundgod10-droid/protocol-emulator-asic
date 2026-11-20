@@ -163,6 +163,9 @@ jobs:
           path: |
             formal/unreach/build/results.json
             formal/unreach/build/summary.txt
+            formal/unreach/build/consts.txt
+            formal/unreach/build/yconst_*/yconst.json
+            formal/unreach/build/yconst_*/*.log
             formal/unreach/build/*/points.txt
             formal/unreach/build/*/*.sby
             formal/unreach/build/*/*/logfile.txt

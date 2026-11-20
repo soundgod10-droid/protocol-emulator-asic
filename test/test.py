@@ -43,11 +43,11 @@ sys.path.insert(0, os.path.join(ROOT, "test"))
 import host_spi as hs  # noqa: E402
 import pe_asm  # noqa: E402
 
-CLK_NS = 20  # 50 MHz
-CLK_PS = CLK_NS * 1000
+CLK_PS = int(os.environ.get("CLK_PS", "16666"))  # clock period: 60 MHz (info.yaml clock_hz) unless CLK_PS is set
+CLK_NS = CLK_PS / 1000
 BAUD = 115_200
 T_NOM_PS = 1e12 / BAUD  # 8,680,555.6 ps: bit time that the receiver expects
-BIT_CYCLES = 434  # design value: round(50e6 / 115200)
+BIT_CYCLES = round(1e12 / CLK_PS / BAUD)  # design value: 521 at 60 MHz (434 at 50 MHz); fw/uart_tx.s BIT
 T_DUT_PS = BIT_CYCLES * CLK_PS  # 8,680,000 ps: bit time that the design must make
 RATE_TOL = 0.01  # +/-1 %: our part of the UART clock-error budget (design target)
 EDGE_TOL_PS = 1_000  # an edge must be within 1 ns of a bit boundary

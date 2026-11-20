@@ -2277,6 +2277,8 @@ async def test_slu_chip_jtag_idcode(dut):
         end = (await host.read_mem(500, 1))[0]
         got_words = await host.read_mem(768, end - 768)
         got = sc.bits_of(got_words[1:5], 64)                          # word 0: the TDO samples of frame A
+        assert hc.jtag_idcode_values(got_words, 2) == [fx.lsb_word(got[:32]), fx.lsb_word(got[32:])], \
+            "host call jtag_idcode_values differs from the bench"
         dev_errs = [e for dv in devs for e in dv.errors]
         gaps = [b - a for a, b in zip(tms_changes, tms_changes[1:])]
         lines.append("%s: thread 0 status %s, %d words stored, IDCODEs %08x %08x (want %08x %08x), device timing "

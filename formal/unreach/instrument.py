@@ -477,7 +477,6 @@ def main():
             continue
         e.add(m1[0].start() + len("din_f1 <= "), "din_f1_free; // ")
         e.add(m2[0].end(), " (* anyseq *) wire din_f1_free;")
-        loop_level = [x for x in module_level if False]
         e.add(m3[0], "".join(module_level) + (invariants() if args.mode == "prove" else ""))
         for f in files:
             new = edits[f].apply()

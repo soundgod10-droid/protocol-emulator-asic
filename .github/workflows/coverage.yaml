@@ -117,3 +117,44 @@ jobs:
       - name: Fail on test failures
         if: steps.tests.outcome == 'failure'
         run: exit 1
+
+  # The proofs behind coverage/exclusions.csv (formal/unreach/): each excluded point must be proved unreachable
+  # (PASS), and each tooth (a point the tests reach, planted as an exclusion) must give a counterexample. A changed
+  # source line makes its row stale and stops instrument.py.
+  unreach:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+
+      - name: Install Yosys, SymbiYosys and Z3 (OSS CAD Suite)
+        uses: YosysHQ/setup-oss-cad-suite@v4
+        with:
+          version: '2026-11-14'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Instrumented copies and proof jobs
+        shell: bash
+        run: python3 formal/unreach/instrument.py
+
+      - name: Run the proof jobs and the teeth
+        shell: bash
+        run: |
+          set -o pipefail
+          python3 formal/unreach/run.py | tee formal/unreach/build/summary.txt
+          echo "::notice title=coverage exclusion proofs::$(sed -e 's/%/%25/g' formal/unreach/build/summary.txt | sed -e ':a;N;$!ba;s/\n/%0A/g')"
+
+      - name: Upload the proof jobs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-unreach
+          path: |
+            formal/unreach/build/results.json
+            formal/unreach/build/summary.txt
+            formal/unreach/build/*/points.txt
+            formal/unreach/build/*/*.sby
+            formal/unreach/build/*/*/logfile.txt
+            formal/unreach/build/*/*/engine_*/trace*.vcd
+          if-no-files-found: warn

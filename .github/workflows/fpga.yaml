@@ -1,19 +1,143 @@
 name: fpga
 
+# FPGA build of the chip RTL for the bench (docs/bench.md): the file set of fpga/files.f (the latch memory as an
+# FPGA memory, the SRAM macros as block RAM, no IHP cells), synthesis per family with a clock-network check, place
+# and route with 5 seeds per target and the post-route fmax of each, and the RTL test suite with the FPGA file set.
+# Gate G1: the worst of the 5 seeds reaches 63 MHz (60 MHz + 5 %) with 0 flip-flops on a derived clock, on at least
+# one family that fits. nextpnr timing models are not vendor sign-off.
 on:
   push:
-    # Comment out (or remove) the following line to run the FPGA workflow on every push:
-    branches: none
+    paths:
+      - 'src/**'
+      - 'fpga/**'
+      - '.github/workflows/fpga.yaml'
   workflow_dispatch:
 
-jobs:
-  fpga:
-    runs-on: ubuntu-24.04
-    steps:
-      - name: checkout repo
-        uses: actions/checkout@v6
-        with:
-          submodules: recursive
+concurrency:
+  group: ${{ (github.ref == 'refs/heads/cmos5l' || startsWith(github.ref, 'refs/tags/')) && format('fpga-run-{0}', github.run_id) || format('fpga-{0}', github.ref) }}
+  cancel-in-progress: true
 
-      - name: FPGA bitstream for TT ASIC Sim (ICE40UP5K)
-        uses: TinyTapeout/tt-gds-action/fpga/ice40up5k@ttihp27a
+jobs:
+  synth:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        family: [ecp5, gw2a, gw5a, ice40]
+    steps:
+      - uses: actions/checkout@v6
+      - name: OSS CAD Suite
+        uses: YosysHQ/setup-oss-cad-suite@v4
+        with:
+          version: '2026-11-14'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Synthesis (${{ matrix.family }})
+        shell: bash
+        run: |
+          yosys -V
+          files=$(grep -v '^#' fpga/files.f | tr '\n' ' ')
+          case "${{ matrix.family }}" in
+            ecp5)  cmd="synth_ecp5 -top fpga_top" ;;
+            gw2a)  cmd="synth_gowin -family gw2a -top fpga_top" ;;
+            gw5a)  cmd="synth_gowin -family gw5a -nolutram -top fpga_top" ;;
+            ice40) cmd="synth_ice40 -top fpga_top" ;;
+          esac
+          yosys -q -l synth_${{ matrix.family }}.log -p "read_verilog $files; $cmd; tee -o stat_${{ matrix.family }}.txt stat; write_json fpga_${{ matrix.family }}.json"
+          tail -n 60 stat_${{ matrix.family }}.txt
+      - name: Clock network (0 flip-flops on a derived clock)
+        shell: bash
+        run: |
+          set +e
+          python3 fpga/clock_check.py fpga_${{ matrix.family }}.json fpga_top clk | tee clock_${{ matrix.family }}.txt
+          rc=${PIPESTATUS[0]}
+          echo "::notice title=fpga clock ${{ matrix.family }}::$(tail -n 1 clock_${{ matrix.family }}.txt)"
+          echo "::notice title=fpga cells ${{ matrix.family }}::$(sed -n 2p clock_${{ matrix.family }}.txt | cut -c1-900)"
+          exit $rc
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: synth-${{ matrix.family }}
+          path: |
+            fpga_${{ matrix.family }}.json
+            stat_${{ matrix.family }}.txt
+            clock_${{ matrix.family }}.txt
+            synth_${{ matrix.family }}.log
+
+  pnr:
+    needs: synth
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [ecp5_25k_6, ecp5_25k_8, gw2a_18c, gw5a_25a, ice40_up5k]
+    steps:
+      - uses: actions/checkout@v6
+      - name: OSS CAD Suite
+        uses: YosysHQ/setup-oss-cad-suite@v4
+        with:
+          version: '2026-11-14'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Netlist
+        uses: actions/download-artifact@v7
+        with:
+          pattern: synth-*
+          merge-multiple: true
+      - name: Place and route, seeds 1 to 5
+        shell: bash
+        run: |
+          set +e
+          t=${{ matrix.target }}
+          for s in 1 2 3 4 5; do
+            case "$t" in
+              ecp5_25k_6) nextpnr-ecp5 --25k --package CABGA381 --speed 6 --json fpga_ecp5.json --lpf fpga/ulx3s.lpf --lpf-allow-unconstrained --freq 63 --seed $s --timing-allow-fail --report rep_${t}_$s.json -l pnr_${t}_$s.log ;;
+              ecp5_25k_8) nextpnr-ecp5 --25k --package CABGA381 --speed 8 --json fpga_ecp5.json --lpf fpga/ulx3s.lpf --lpf-allow-unconstrained --freq 63 --seed $s --timing-allow-fail --report rep_${t}_$s.json -l pnr_${t}_$s.log ;;
+              gw2a_18c)   nextpnr-himbaechel --device GW2AR-LV18QN88C8/I7 --vopt family=GW2A-18C --vopt cst=fpga/tangnano20k.cst --json fpga_gw2a.json --freq 63 --seed $s --timing-allow-fail --report rep_${t}_$s.json -l pnr_${t}_$s.log ;;
+              gw5a_25a)   nextpnr-himbaechel --device GW5A-LV25MG121NES --vopt family=GW5A-25A --json fpga_gw5a.json --freq 63 --seed $s --timing-allow-fail --report rep_${t}_$s.json -l pnr_${t}_$s.log ;;
+              ice40_up5k) nextpnr-ice40 --up5k --package sg48 --json fpga_ice40.json --pcf-allow-unconstrained --freq 63 --seed $s --timing-allow-fail --report rep_${t}_$s.json -l pnr_${t}_$s.log ;;
+            esac
+            echo "seed $s: nextpnr exit $?"
+            grep -E "Max frequency|ERROR" pnr_${t}_$s.log | tail -n 3
+          done
+          python3 fpga/fmax.py $t 63 rep_${t}_1.json rep_${t}_2.json rep_${t}_3.json rep_${t}_4.json rep_${t}_5.json | tee fmax_$t.txt
+          echo "::notice title=fpga fmax $t::$(head -n 1 fmax_$t.txt)%0A$(tail -n +2 fmax_$t.txt | sed ':a;N;$!ba;s/\n/%0A/g')"
+          true
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: pnr-${{ matrix.target }}
+          path: |
+            rep_*.json
+            pnr_*.log
+            fmax_*.txt
+
+  # C4 W3: the RTL test suite with the FPGA file set (latch memory model of fpga/pe_latch_ram_fpga.v, no src/pe_cells.v).
+  rtl_fpga_files:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install iverilog
+        run: sudo apt-get update && sudo apt-get install -y iverilog
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - name: Install Python packages
+        run: pip install -r test/requirements.txt
+      - name: RTL tests with the FPGA file set
+        run: |
+          cd test
+          make clean
+          make SIM_BUILD=sim_build/fpga PROJECT_SOURCES="project.v pe_sync.v pe_cycle_counter.v pe_timed_out.v pe_sram.v pe_host_fifo.v pe_timed_in.v pe_config.v pe_host_port.v pe_core.v pe_proc.v pe_slu_loop.v pe_slu.v sram_sim.v ../fpga/pe_latch_ram_fpga.v"
+          python -m cocotb_tools.check_results results.xml
+      - name: Test Summary
+        uses: test-summary/action@v2.4
+        with:
+          paths: "test/results.xml"
+        if: always()
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: rtl-fpga-files-results
+          path: test/results.xml

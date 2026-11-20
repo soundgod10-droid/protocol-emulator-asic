@@ -153,7 +153,7 @@ def model_fault(case):
             h = ff.spi_h_min(a["cpol"], a["cpha"], a["d"]) + a["extra"]
             return ff.spi_fault(*ff.spi_run(a["cpol"], a["cpha"], h, a["d"]))
         if fam == "jtag":
-            run = fx.jtag_run_a if a["name"] == "jtag.s" else fx.jtag_run_b
+            run = fx.jtag_run_a if a["fw"] == "jtag.s" else fx.jtag_run_b
             return run(a["h1"], a["h2"])[0]
         if fam == "can":
             bt = round(F_CLK / a["rate"])

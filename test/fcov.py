@@ -206,6 +206,8 @@ def attach(model, label=""):
                 hit("late.kind", KINDS[kind])
         elif form in BRANCH and (w & 0x1FF) != ((pc0 + 1) & 0x1FF):
             hit("branch.taken", (form, (r & 0x1FF) != ((pc0 + 1) & 0x1FF)))
+        elif form.startswith("WAIT"):
+            hit("wait.pin_edge", ((w >> 8) & 0xF, form[5:]))
         elif form == "DJNZ":
             hit("loop.djnz", th.r[(w >> 10) & 3] != 0)
         elif form == "TWAIT":

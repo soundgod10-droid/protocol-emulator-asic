@@ -370,8 +370,8 @@ def place(src, edits, kind, comment, line, col, cond, label, module_level):
             k = src.at(line, col if comment == "cond_then" else col - 1)
         for a, b in src.simple:
             if src.toks[a][1] <= line <= src.toks[b - 1][1] and (k is None or a <= k < b):
-                edits.add(src.toks[a][3], "begin if (%s) %s: %s " % (cond, label, edits.hit))
-                edits.add(src.toks[b - 1][4], " end")
+                edits.pair(src.toks[a][3], src.toks[b - 1][4], "begin if (%s) %s: %s " % (cond, label, edits.hit),
+                           " end")
                 return "operator branch in a procedural statement, condition %s" % cond
         for j in range(k if k is not None else 0, len(src.toks)):
             if src.t(j) == ";":

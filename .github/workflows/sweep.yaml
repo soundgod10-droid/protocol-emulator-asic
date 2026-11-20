@@ -1,0 +1,101 @@
+name: sweep
+# Extended RTL tests (test/test_rtl_sweep.py): the sweep points of the model tests, one RTL testcase each, in 8 shards
+# (about 20 cases of about 1 min each per shard). The table job counts the testcases of all shards and prints the trace
+# table (case, rule, parameters).
+on: [push, workflow_dispatch]
+# On cmos5l and tags every run is kept; on other branches a newer push cancels the older run.
+concurrency:
+  group: ${{ (github.ref == 'refs/heads/cmos5l' || startsWith(github.ref, 'refs/tags/')) && format('sweep-run-{0}', github.run_id) || format('sweep-{0}', github.ref) }}
+  cancel-in-progress: true
+jobs:
+  sweep:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7]
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Install iverilog
+        shell: bash
+        run: sudo apt-get update && sudo apt-get install -y iverilog
+
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Install Python packages
+        shell: bash
+        run: pip install -r test/requirements.txt
+
+      - name: Run the shard
+        shell: bash
+        env:
+          SWEEP_SHARDS: 8
+          SWEEP_SHARD: ${{ matrix.shard }}
+        run: |
+          cd test
+          make clean
+          make COCOTB_TEST_MODULES=test_rtl_sweep
+          # make returns success even if tests fail, so check results.xml
+          python -m cocotb_tools.check_results results.xml
+
+      - name: Upload the results
+        if: success() || failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: sweep-results-${{ matrix.shard }}
+          path: test/results.xml
+
+  table:
+    needs: sweep
+    if: success() || failure()
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Install Python packages
+        shell: bash
+        run: pip install -r test/requirements.txt
+
+      - name: Download the shard results
+        uses: actions/download-artifact@v5
+        with:
+          pattern: sweep-results-*
+          path: sweep
+
+      - name: Count and trace table
+        shell: bash
+        run: |
+          set -o pipefail
+          python - <<'EOF' | tee sweep_summary.md
+          import glob, xml.etree.ElementTree as ET
+          n = fail = skip = 0
+          sim = wall = 0.0
+          for f in sorted(glob.glob("sweep/*/results.xml")):
+              for tc in ET.parse(f).getroot().iter("testcase"):
+                  n += 1
+                  fail += tc.find("failure") is not None or tc.find("error") is not None
+                  skip += tc.find("skipped") is not None
+                  sim += float(tc.get("sim_time_ns", 0))
+                  wall += float(tc.get("time", 0))
+          print("## Extended RTL tests (test/test_rtl_sweep.py)\n")
+          print("%d RTL testcases in %d shard result files: %d failed, %d skipped; %.1f ms simulated, %.0f s of test time"
+                % (n, len(glob.glob("sweep/*/results.xml")), fail, skip, sim / 1e6, wall))
+          EOF
+          echo >> sweep_summary.md
+          python test/test_rtl_sweep.py --list >> sweep_summary.md
+          cat sweep_summary.md >> "$GITHUB_STEP_SUMMARY"
+          echo "::notice title=extended RTL tests::$(sed -n '3p' sweep_summary.md | sed -e 's/%/%25/g')"

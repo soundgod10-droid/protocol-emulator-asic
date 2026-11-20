@@ -24,19 +24,26 @@ module cells_tb;
   pe_lat u_lat_beh (.g(g), .d(d), .q(q_beh));
   sg13cmos5l_dlhq_1 u_lat_cell (.D(d), .GATE(g), .Q(q_cell));
 
-  integer seq, k, v, checks, errors;
+  integer start, seq, k, checks, errors;
 
   initial begin
     checks = 0;
     errors = 0;
-    for (seq = 0; seq < (1 << (2 * DEPTH)); seq = seq + 1) begin
-      // a known start: both latches open, then the sequence (the first step sets the stored values)
-      clk = 0; en = 0; g = 1; d = 0;
+    for (start = 0; start < 4; start = start + 1)
+    for (seq = 0; seq < (1 << DEPTH); seq = seq + 1) begin
+      // a known state first: both latches open (clk 0, g 1), then the start values
+      clk = 0; en = start[0]; g = 1; d = start[0];
+      #2;
+      clk = start[1]; g = !start[1];
       #2;
       for (k = 0; k < DEPTH; k = k + 1) begin
-        v = (seq >> (2 * k)) & 3;
-        {clk, en} = v[1:0];
-        {g, d} = v[1:0];
+        if ((seq >> k) & 1) begin
+          en = !en;
+          d = !d;
+        end else begin
+          clk = !clk;
+          g = !g;
+        end
         #1;
         checks = checks + 1;
         if (gclk_beh !== gclk_cell) begin

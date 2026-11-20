@@ -4,7 +4,8 @@
 # Bounded from reset (depth 24: a TXTIME lead of 4 and 5 bits at TXPER 4).
 
 [options]
-mode prove
+# Bounded: k-induction fails from unreachable states (tried 2026-11-20 with and without a timer invariant).
+mode bmc
 depth 24
 
 [engines]

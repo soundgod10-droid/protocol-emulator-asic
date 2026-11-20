@@ -25,6 +25,17 @@ jobs:
           # C: control, the netlist of the RC1 commit (passed gl_protocols part 4)
           - name: rc1
             run: '44557589283'
+          # D: the candidate with the SDF cell delays at the three corners: a failure only without delays would be a
+          # zero-delay simulation race (clock-tree depth against short data paths), not a netlist fault
+          - name: candidate_sdf_typ
+            run: '44808418029'
+            corner: nom_typ_1p20V_25C
+          - name: candidate_sdf_slow
+            run: '44808418029'
+            corner: nom_slow_1p08V_125C
+          - name: candidate_sdf_fast
+            run: '44808418029'
+            corner: nom_fast_1p32V_m40C
     permissions:
       actions: read
       contents: read

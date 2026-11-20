@@ -1042,7 +1042,7 @@ async def test_core_pins_leads_waits(dut):
         "        ORI r2, 0",             # result 0
         "        PUSH r2",
     ]) + "\n" + fifo
-    image = asm((t0, 0), (fifo, 64), (t2, 128), (t3, 192))
+    image = asm((t0, 0), (fifo, 32), (t2, 48), (t3, 96))  # all below the 128 loaded words
     own = owners({1: 0, 3: 0, 6: 0, 7: 0, 9: 0, 10: 0, 12: 0, 11: 1})
     words = [0x1000 + i for i in range(8)]
 

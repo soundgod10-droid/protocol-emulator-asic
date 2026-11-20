@@ -30,8 +30,10 @@ import cocotb
 from cocotb.triggers import FallingEdge
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-if HERE not in sys.path:
-    sys.path.insert(0, HERE)
+ROOT = os.path.dirname(HERE)
+for _p in (os.path.join(ROOT, "model"), os.path.join(ROOT, "asm"), os.path.join(ROOT, "fw"), HERE):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
 import host_spi as hs  # noqa: E402
 import pe_asm  # noqa: E402
 import pe_model  # noqa: E402

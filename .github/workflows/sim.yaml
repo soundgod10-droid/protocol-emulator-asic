@@ -112,7 +112,9 @@ jobs:
           mod=$(python3 -I sim/tools/wave_samples.py module ${{ matrix.test }})
           cd test
           rm -f pins.vcd results.xml
-          make PIN_VCD=1 FST= COCOTB_TEST_MODULES=$mod COCOTB_TEST_FILTER=${{ matrix.test }}
+          # COCOTB_TEST_FILTER is a regular expression searched in the test name: \b ends it at the name's end, so that
+          # test_helpers_rtl_eth does not also select test_helpers_rtl_eth_collision (a $ would be expanded by make)
+          make PIN_VCD=1 FST= COCOTB_TEST_MODULES=$mod COCOTB_TEST_FILTER='${{ matrix.test }}\b'
           # make returns success even if the test fails, so check results.xml
           python -m cocotb_tools.check_results results.xml
           cd ..
@@ -186,7 +188,7 @@ jobs:
           mod=$(python3 -I sim/tools/wave_samples.py module ${{ matrix.test }})
           cd test
           rm -f pins.vcd results.xml
-          GATES=yes make PIN_VCD=1 FST= COCOTB_TEST_MODULES=$mod COCOTB_TEST_FILTER=${{ matrix.test }}
+          GATES=yes make PIN_VCD=1 FST= COCOTB_TEST_MODULES=$mod COCOTB_TEST_FILTER='${{ matrix.test }}\b'
           python -m cocotb_tools.check_results results.xml
           cd ..
           sim="Icarus Verilog $(iverilog -V 2>&1 | head -n 1 | sed -e 's/^Icarus Verilog version //' -e 's/ ()$//') + cocotb $(python -c 'import cocotb; print(cocotb.__version__)'), -DGL_TEST -DFUNCTIONAL -DSIM, netlist of gds run $GDS_ID (commit ${GDS_SHA:0:10}), cell models $PDK $PDK_VERSION"

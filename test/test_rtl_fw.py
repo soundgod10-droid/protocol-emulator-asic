@@ -46,6 +46,9 @@ import pe_model  # noqa: E402
 import test_flex as fx  # noqa: E402
 import test_fw_full as ff  # noqa: E402
 import test_holdout as ho  # noqa: E402
+import fcov  # noqa: E402  (functional coverage, FCOV=1 only)
+
+fcov.attach_jtag(fx.JtagDevice)
 
 GL = os.environ.get("GATES") == "yes"
 F_CLK = 60e6  # declared clock (info.yaml clock_hz)

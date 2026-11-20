@@ -42,6 +42,7 @@ import json
 import os
 import re
 import shutil
+import subprocess
 import sys
 
 JOBS = {"yconst_usb": 1, "yconst_eth": 2}

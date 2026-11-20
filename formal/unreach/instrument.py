@@ -355,8 +355,19 @@ class Edits:
         return "".join(out)
 
 
-def place(src, edits, kind, comment, line, col, cond, label, module_level):
-    """Put the assertion (or cover) of one point into the edit list; returns a short description."""
+def place(src, edits, kind, comment, line, col, cond, label, flags):
+    """Put the assertion (or cover) of one point into the edit list; returns a short description.
+
+    In a combinational block the statement is the labelled assertion itself. In a clocked block (an always
+    block with an asynchronous reset: Yosys's async2sync takes no assertion with two triggers) it sets the
+    sticky flag <label>_f (initial value 0), and the flag is checked in an always @* block (flags)."""
+
+    def S(k, clocked=None):
+        if src.clocked_at(k) if clocked is None else clocked:
+            flags.append(label)
+            return "%s_f <= 1'b1;" % label
+        return "%s: %s" % (label, edits.hit)
+
     in_function = any(a <= line <= b for a, b in src.functions)
     if in_function:
         if not cond:

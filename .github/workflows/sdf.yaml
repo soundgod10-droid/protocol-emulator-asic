@@ -58,11 +58,8 @@ jobs:
       fail-fast: false
       matrix:
         corner: [nom_slow_1p08V_125C, nom_typ_1p20V_25C, nom_fast_1p32V_m40C]
-        part: [main, counter, p1, p2, p3, p3u, p4, p5, p6, p7, p8]
-        include:
-          - {corner: nom_slow_1p08V_125C, part: macro_control}
-          - {corner: nom_slow_1p08V_125C, part: nodelay_control}
-          - {corner: nom_slow_1p08V_125C, part: shmoo}
+        part: ${{ fromJSON(inputs.parts || '["main","counter","p1","p2","p3","p3u","p4","p5","p6","p7","p8"]') }}
+        include: ${{ fromJSON(inputs.extra || '[{"corner":"nom_slow_1p08V_125C","part":"macro_control"},{"corner":"nom_slow_1p08V_125C","part":"nodelay_control"},{"corner":"nom_slow_1p08V_125C","part":"shmoo"}]') }}
     env:
       PDK_ROOT: /home/runner/pdk
       SDF_DELAYS: 1

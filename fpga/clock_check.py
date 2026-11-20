@@ -10,12 +10,12 @@ import json
 import sys
 from collections import Counter
 
-FF_CLOCK_PORTS = ("CLK", "C")       # ECP5 TRELLIS_FF, Gowin DFF*: CLK; iCE40 SB_DFF*: C
+FF_CLOCK_PORTS = ("CLK", "C", "CK")  # ECP5 TRELLIS_FF, Gowin DFF*: CLK; iCE40 SB_DFF*, Xilinx FD*: C; Nexus FD1P3*: CK
 
 
 def is_ff(cell_type):
     t = cell_type.upper()
-    return ("FF" in t) and not t.startswith("$")
+    return ("FF" in t or t.startswith("FD")) and not t.startswith("$")
 
 
 def main(path, top, port):

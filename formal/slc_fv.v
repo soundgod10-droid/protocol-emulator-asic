@@ -324,6 +324,14 @@ module slc_fv #(
       if (m_eop) assert (mon_sticky[5]);
       // Invariants for the induction (facts about the RTL that tie the monitor to the helper's state): the
       // samples on their way, the bit to deliver, the bit count and the word being built.
+      // The symbol timer two cycles ahead of the outputs (bit start at q = 0, mid-bit at q = TXPER).
+      if (on && (mon_txst_w == 4'd2)) begin
+        if (NRZ == 0)
+          assert ({mon_tmr, mon_half} == ((qq == 9'd0) ? 17'd0 : (qq <= {1'b0, f_per}) ?
+                  {7'd0, f_per - qq[7:0], 1'b1} : {7'd0, bitlen - qq, 1'b0}));
+        else
+          assert (mon_tmr == ((qq == 9'd0) ? 16'd0 : {7'd0, bitlen - qq}));
+      end
       if (rx_on) begin
         assert (mon_ckpend == ({1'b0, m_q} | (sched ? (16'd1 << f_dly) : 16'd0)));
         assert (mon_ckbv == m_due);

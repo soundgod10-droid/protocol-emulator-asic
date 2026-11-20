@@ -505,6 +505,13 @@ def main():
             errors.append("pe_slu.v: the din_f1 sample (at a line end), its declaration or endmodule not found once")
             continue
         e.add(m1[0].start() + len("din_f1 <= "), "din_f1_free; // ")
+        # its flip-flop takes the rising edge in the copy (a free value in every cycle either way; the proof
+        # model has one clock edge per step)
+        m4 = list(re.finditer(r"always @\(negedge clk or negedge rst_n\)", s.text))
+        if len(m4) != 1:
+            errors.append("pe_slu.v: the falling-edge always block of din_f1 not found once")
+            continue
+        e.pair(m4[0].start(), m4[0].end(), "always @(posedge clk or negedge rst_n) /* ", " */")
         if flags["pe_slu_loop.v"]:
             errors.append("%s: a point in a clocked block of pe_slu_loop.v (flag declarations are made in pe_slu.v)"
                           % job)

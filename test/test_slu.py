@@ -2302,7 +2302,7 @@ async def chip_start_owned(dut, prog, data, pins, owned, t1, t2=None):
     owner = [None] * 15
     for p in owned:
         owner[p] = 0
-    head, own = hs.config_words((0, t1, 0, 0), (True, True, False, False), owner, [False] * 15)
+    head, own = hs.config_words((0, t1, t2 or 0, 0), (True, True, t2 is not None, False), owner, [False] * 15)
     pins = list(pins)
     for p in owned:
         pins[p] = own[p]

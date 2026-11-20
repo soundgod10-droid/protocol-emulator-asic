@@ -264,6 +264,47 @@ def counter_handle(dut):
         return None
 
 
+PIN_DELAYS = {}  # SDF runs only: pin -> [min ps, max ps, changes] from the last rising clk edge to a pin change
+PIN_DELAY_FILE = os.path.join(ROOT, "test", "pin_delays.json")
+
+
+async def watch_pin_delays(dut, done):
+    """In a gate-level run with layout delays (SDF_DELAYS=1, .github/workflows/sdf.yaml): the time from the last
+    rising edge of clk at the chip pin to each change of an output pin or OE bit (pads and wires not included: the
+    SDF run has cell delays only). Written to test/pin_delays.json after each scenario."""
+    import json
+    from cocotb.triggers import Edge, First, RisingEdge
+    from cocotb.utils import get_sim_time
+    last = [None]
+
+    async def clk():
+        while not done[0]:
+            await RisingEdge(dut.clk)
+            last[0] = get_sim_time("ps")
+
+    cocotb.start_soon(clk())
+    sigs = (("uo_out", dut.uo_out), ("uio_out", dut.uio_out), ("uio_oe", dut.uio_oe))
+    prev = {n: str(s.value) for n, s in sigs}
+    while not done[0]:
+        await First(*[Edge(s) for _, s in sigs])
+        t = get_sim_time("ps")
+        for n, s in sigs:
+            v = str(s.value)
+            if v == prev[n] or last[0] is None:
+                prev[n] = v
+                continue
+            for i, (a, b) in enumerate(zip(prev[n], v)):
+                if a != b and b in "01" and a in "01":
+                    d = PIN_DELAYS.setdefault(f"{n}[{len(v) - 1 - i}]", [None, None, 0])
+                    dt = t - last[0]
+                    d[0] = dt if d[0] is None else min(d[0], dt)
+                    d[1] = dt if d[1] is None else max(d[1], dt)
+                    d[2] += 1
+            prev[n] = v
+    with open(PIN_DELAY_FILE, "w", encoding="utf-8") as f:
+        json.dump(dict(sorted(PIN_DELAYS.items())), f, indent=1)
+
+
 def ctx_fields(v):
     return {
         "r": [(v >> (16 * i)) & 0xFFFF for i in range(4)],

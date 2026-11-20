@@ -1022,3 +1022,133 @@ async def test_slc_chip_start_levels(dut):
     assert 1 < txa_low <= 40, "TXA low for %d cycles after START" % txa_low
     assert all(c[0][0] == "1" for c in seq[txa_low:]), "TXA stays at 1 after the MODE write"
     assert all(c[0][2] == "0" for c in seq), "helper OE signal stays 0 without a frame"
+
+
+# ----- Edge-started receive: a start edge before the last sample; a STATUS clear in the cycle of a new flag -----
+
+async def drive_levels(dut, u, levels):
+    """DIN at one level per clock cycle, each set a quarter period after a rising edge (away from both edges)."""
+    for lv in levels:
+        await RisingEdge(dut.clk)
+        await Timer(T_PS // 4, unit="ps")
+        u.set_pin(DIN, lv)
+
+
+def uart_levels(byte, cyc, stop=None):
+    """Levels per cycle of one 8N1 frame at cyc cycles a bit; stop = length of the stop bit in cycles."""
+    lv = []
+    for b in [0] + [(byte >> i) & 1 for i in range(8)]:
+        lv += [b] * cyc
+    return lv + [1] * (cyc if stop is None else stop)
+
+
+async def rx_drain(u):
+    words = []
+    while (await u.rd(P_RXINFO) >> 5) & 3:
+        words.append(await u.rd(P_RXDATA, pop=True))
+    return words
+
+
+@cocotb.test(skip=GL)
+async def test_slc_uart_rx_early_start(dut):
+    """Edge-started receive (LTC[10]) when the next start edge comes before the last sample of a frame: frame A with
+    its stop bit cut to 2, 3 or 4 cycles (4 cycles a bit, 15 Mbaud at 60 MHz), then frame B, at sample delays 0 and 1
+    (the settings that sample a bit inside its own cell with this input timing) and both DIN copies. The helper is
+    idle from its last sampling clock edge, D cycles before the last sample, so with a stop bit of 2 + D cycles or
+    less the start edge of B comes while the stop sample of A is on its way. Both frames must give their own word:
+    A with its data and the stop sample as the line had it (0 = framing error when the edge came first), B complete.
+    Before the fix A gave no word and its stop sample became bit 0 of B (formal/slc_rx.sby, R1 to R3).
+    Logic simulation; DIN changes a quarter period after the rising clock edge."""
+    u = await unit_reset(dut)
+    dump_on(dut, False)
+    log = dut._log
+    cyc, a, b = 4, 0xA5, 0x3C
+    lines = []
+    for fall in (0, 1):
+        for delay in (0, 1):
+            await clocked_config(u, cyc // 2, estart=1, fall=fall, delay=delay)
+            await u.wr(P_TXCTRL, 10)
+            for stop in (4, 3, 2):
+                u.set_pin(DIN, 1)
+                await ClockCycles(dut.clk, 3 * cyc)
+                await rx_drain(u)
+                await u.wr(P_STATUS, 0xFFFF)
+                review = fall == 0 and delay == 1 and stop == 2
+                if review:
+                    dump_on(dut, True)
+                    t0 = now_ns()
+                await drive_levels(dut, u, uart_levels(a, cyc, stop) + uart_levels(b, cyc) + [1] * (4 * cyc))
+                if review:
+                    dump_on(dut, False)
+                    log.info("waveform: frame A (stop bit 2 cycles) then B, delay 1, rising-edge copy, %.1f to %.1f ns"
+                             % (t0, now_ns()))
+                got = [((w >> 7) & 0xFF, (w >> 6) & 1, (w >> 15) & 1) for w in await rx_drain(u)]
+                want = [(a, 0, 1 if stop > 2 + delay else 0), (b, 0, 1)]
+                lines.append("copy %s, delay %d, stop bit %d cycles: words %s" % (
+                    "falling" if fall else "rising", delay, stop,
+                    ["data %02X start %d stop %d" % g for g in got]))
+                assert got == want, "copy %d delay %d stop %d: got %s, want %s" % (fall, delay, stop, got, want)
+    for line in lines:
+        log.info(line)
+    log.info("early start: 12 cases, both frames received in each; A's stop sample 0 exactly when the start edge of "
+             "B came at or before it (stop bit <= 2 + delay cycles)")
+
+
+@cocotb.test(skip=GL)
+async def test_slc_status_clear_same_cycle(dut):
+    """A STATUS write in the cycle in which an event sets a flag: the new flag stays set (formal/slc_rx.sby R4 found it
+    lost, because the clear assigned the whole flag vector last). Edge-started receive at 4 cycles a bit; the write
+    lands in the cycle that sets RXEOP (the frame's last sample) and in the 2 cycles before and after it, once
+    clearing only TXDONE (0x0001) and once clearing RXEOP itself (0x0020). RXEOP must be set afterwards in every case
+    except a clear of RXEOP after the cycle that set it. Logic simulation; internal net ck_lastb only to find the
+    cycle (RTL only)."""
+    u = await unit_reset(dut)
+    dump_on(dut, False)
+    log = dut._log
+    await clocked_config(u, 2, estart=1, delay=0)
+    await u.wr(P_TXCTRL, 10)
+    frame = uart_levels(0x5A, 4) + [1] * 12
+
+    async def run(off, mask):
+        u.set_pin(DIN, 1)
+        await ClockCycles(dut.clk, 12)
+        await rx_drain(u)
+        await u.wr(P_STATUS, 0xFFFF)
+        drv = cocotb.start_soon(drive_levels(dut, u, frame))
+        n = 0
+        hit = None
+        while n < len(frame) + 8:
+            await FallingEdge(dut.clk)
+            if off is None:
+                if int(dut.u_slc_ut.ck_lastb.value):
+                    hit = n
+            elif n == base + off:
+                dut.slc_addr.value = P_STATUS
+                dut.slc_wdata.value = mask
+                dut.slc_we.value = 1
+            elif n == base + off + 1:
+                dut.slc_we.value = 0
+            n += 1
+        await drv
+        st = await u.rd(P_STATUS)
+        await rx_drain(u)
+        return hit, st
+
+    base = 0
+    base, _ = await run(None, 0)
+    assert base is not None, "ck_lastb never set"
+    rows = []
+    for mask in (0x0001, 0x0020):
+        for off in range(-2, 3):
+            if mask == 0x0001 and off == 0:
+                dump_on(dut, True)
+                t0 = now_ns()
+            _, st = await run(off, mask)
+            if mask == 0x0001 and off == 0:
+                dump_on(dut, False)
+                log.info("waveform: STATUS = 0001 written in the RXEOP cycle, %.1f to %.1f ns" % (t0, now_ns()))
+            eop = (st >> 5) & 1
+            rows.append("clear %04X at RXEOP cycle %+d: RXEOP %d" % (mask, off, eop))
+            want = 0 if (mask == 0x0020 and off > 0) else 1
+            assert eop == want, "clear %04X at offset %+d: RXEOP %d, want %d" % (mask, off, eop, want)
+    log.info("; ".join(rows))

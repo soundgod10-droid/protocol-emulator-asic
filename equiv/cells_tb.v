@@ -59,8 +59,8 @@ module cells_tb;
         #1;
       end
     end
-    $display("cells_tb: %0d sequences of %0d steps, %0d output comparisons per cell, %0d differences",
-             1 << (2 * DEPTH), DEPTH, checks, errors);
+    $display("cells_tb: 4 start states x %0d sequences of %0d single-input changes, %0d comparisons per cell, %0d differences",
+             1 << DEPTH, DEPTH, checks, errors);
     if (errors != 0) $fatal(1, "cells_tb: FAIL");
     $display("cells_tb: PASS");
     $finish;

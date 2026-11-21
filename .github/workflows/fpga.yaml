@@ -110,6 +110,8 @@ jobs:
             case "$t" in
               ecp5_25k_6) nextpnr-ecp5 --25k --package CABGA381 --speed 6 --json fpga_ecp5.json --lpf fpga/ulx3s.lpf --lpf-allow-unconstrained --freq 63 --seed $s --timing-allow-fail --report rep_${t}_$s.json -l pnr_${t}_$s.log ;;
               ecp5_25k_8) nextpnr-ecp5 --25k --package CABGA381 --speed 8 --json fpga_ecp5.json --lpf fpga/ulx3s.lpf --lpf-allow-unconstrained --freq 63 --seed $s --timing-allow-fail --report rep_${t}_$s.json -l pnr_${t}_$s.log ;;
+              ecp5_12k_6) nextpnr-ecp5 --12k --package CABGA381 --speed 6 --json fpga_ecp5.json --lpf fpga/ulx3s.lpf --lpf-allow-unconstrained --freq 63 --seed $s --timing-allow-fail --report rep_${t}_$s.json -l pnr_${t}_$s.log ;;
+              ecp5_85k_6) nextpnr-ecp5 --85k --package CABGA381 --speed 6 --json fpga_ecp5.json --lpf fpga/ulx3s.lpf --lpf-allow-unconstrained --freq 63 --seed $s --timing-allow-fail --report rep_${t}_$s.json -l pnr_${t}_$s.log ;;
               ecp5r_25k_8) nextpnr-ecp5 --25k --package CABGA381 --speed 8 --json fpga_ecp5r.json --lpf fpga/ulx3s.lpf --lpf-allow-unconstrained --freq 63 --seed $s --timing-allow-fail --report rep_${t}_$s.json -l pnr_${t}_$s.log ;;
               ecp5n_25k_8) nextpnr-ecp5 --25k --package CABGA381 --speed 8 --json fpga_ecp5n.json --lpf fpga/ulx3s.lpf --lpf-allow-unconstrained --freq 63 --seed $s --timing-allow-fail --tmg-ripup --report rep_${t}_$s.json -l pnr_${t}_$s.log ;;
               ecp5x_25k_8) nextpnr-ecp5 --25k --package CABGA381 --speed 8 --json fpga_ecp5x.json --lpf fpga/ulx3s.lpf --lpf-allow-unconstrained --freq 63 --seed $s --timing-allow-fail --report rep_${t}_$s.json -l pnr_${t}_$s.log ;;

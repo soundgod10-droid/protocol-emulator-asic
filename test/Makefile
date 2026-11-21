@@ -75,7 +75,7 @@ TOPLEVEL = tb
 # List test modules to run, separated by commas and without the .py suffix. At gate level the protocol tests
 # (test_rtl_fw) run in their own parallel jobs (.github/workflows/gds.yaml gl_protocols), not in gl_test:
 ifneq ($(GATES),yes)
-COCOTB_TEST_MODULES = test,test_isa,test_core,test_fw_full,test_flex,test_holdout,test_rtl_fw,test_slu,test_slu_clk,test_linemodel,test_usb_dev,test_eth_dev,test_i2c_tgt,test_dmx512,test_dcc,test_sbus,test_lin,test_hd44780,test_hx711,test_irda,test_oregon,test_ssi,test_tm1637,test_mdb,test_tlc5940,test_unio,test_sdi12,test_sigrok,test_helpers_model,test_helpers_rtl,test_slu_cov,test_rtl_sweep,test_trace
+COCOTB_TEST_MODULES = test,test_isa,test_core,test_fw_full,test_flex,test_holdout,test_rtl_fw,test_slu,test_slu_clk,test_linemodel,test_usb_dev,test_eth_dev,test_i2c_tgt,test_dmx512,test_dcc,test_sbus,test_lin,test_hd44780,test_hx711,test_irda,test_oregon,test_ssi,test_tm1637,test_mdb,test_tlc5940,test_unio,test_sdi12,test_sent,test_sigrok,test_helpers_model,test_helpers_rtl,test_slu_cov,test_rtl_sweep,test_trace
 else
 COCOTB_TEST_MODULES = test,test_isa,test_core,test_fw_full,test_flex,test_holdout
 endif

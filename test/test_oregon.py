@@ -195,8 +195,8 @@ async def test_oregon_model(dut):
 
 @cocotb.test()
 async def test_oregon_rtl(dut):
-    """fw/oregon.s on the chip at 60 MHz against the v2.1 receiver model, all times divided by 16: the first THGR122NX
-    message, sent twice, in lockstep with the reference model."""
+    """fw/oregon.s on the chip at 60 MHz against the v2.1 receiver model, all times divided by 16: a message with the
+    sensor ID nibbles of page 13 only, sent twice, in lockstep with the reference model."""
     rf.start_clock(dut)
     log = dut._log
     label = "rtl oregon"

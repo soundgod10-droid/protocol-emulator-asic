@@ -24,6 +24,7 @@ import os
 import cocotb
 from cocotb.utils import get_sim_time
 
+import test_dmx512 as dx
 import test_flex as fx
 import test_fw_full as ff
 import test_holdout as ho

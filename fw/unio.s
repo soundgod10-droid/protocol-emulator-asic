@@ -88,8 +88,8 @@ nostb:  LD      r0, PEND
         BEQ     pend            ; no header: the byte itself
         TSYNC   16
         OUT     SCIO, 1         ; line high TSS before the start header
-        TADD    TSS
-hdr:    OUT     SCIO, 0         ; start header: low THDR, then 55h with MAK
+hdr0:   TADD    TSS
+        OUT     SCIO, 0         ; start header: low THDR, then 55h with MAK
         TADD    THDR
         LDI     r0, 0x155
         JMP     byte

@@ -69,8 +69,7 @@ def irda_receive(changes, end, rate, us=F_MHZ):
     """IrDA SIR receiver from Table 2 (not from the firmware): returns (bytes, errors, stats)."""
     errors, out = [], []
     nom, pmax = TABLE2[rate]
-    b = us * 1e6 / rate / 1e6 * 1e0  # nominal bit time in cycles
-    b = F_MHZ * 1e6 / rate
+    b = us * 1e6 / rate  # nominal bit time in cycles
     stats = dict(pw=[], dev=0.0)
     pulses = []
     for i in range(1, len(changes)):

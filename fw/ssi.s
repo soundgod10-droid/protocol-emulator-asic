@@ -29,7 +29,9 @@
 ;   pulses, read on the right edges and keep the clock period below tm.
 ;
 ; Host words to this thread: N (data bits, 1 to 30) and H (half period,
-;   cycles, 16 or more, so that every clock event keeps its lead) once; then
+;   cycles, 24 or more, so that every clock event keeps its lead: the rising
+;   edge is issued after the read of the bit before it completes; measured
+;   in the model test, 12 to 23 set LATE) once; then
 ;   one word for each read (its value is not used).
 ; Words to the host, for each read: bits 15..14 status (bit 15: DATA did not
 ;   go high in time, no read was made; bit 14: DATA was not low after the

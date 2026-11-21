@@ -151,7 +151,7 @@ def model_run(msgs, scale=1, **equ):
     bench.watch("rf", rf_level)
     bench.send(0, *host_words(msgs))
     half = equ.get("HALF", 29297)
-    bench.run(sum(2 * copy_cycles(x, half) + 24 * half for x in msgs) + 50_000)
+    bench.run(sum(2 * (copy_cycles(x, half) + 24 * half) for x in msgs) + 50_000)  # each copy and its gap
     return bench, m
 
 

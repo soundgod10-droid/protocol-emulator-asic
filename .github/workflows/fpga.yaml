@@ -277,6 +277,10 @@ jobs:
             exit 1
           fi
           set -e
+          # a part passes only with at least one testcase run (a filter that matches nothing passed in run 44946375808)
+          n=$(python -c "import xml.etree.ElementTree as E; t = E.parse('results.xml'); print(sum(1 for c in t.iter('testcase') if c.find('skipped') is None))")
+          echo "::notice title=postsynth ${{ matrix.part }}::$n testcase(s) run; $(grep -c '<failure' results.xml || true) failure(s)"
+          [ "$n" -gt 0 ]
           python -m cocotb_tools.check_results results.xml
       - name: Test Summary
         uses: test-summary/action@v2.4

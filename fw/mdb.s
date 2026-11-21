@@ -90,13 +90,20 @@ tbit:   OUT     TX, r1>>
         BNE     txb
         LDI     r3, 0           ; reply bytes before the last one
         LDI     r2, 0           ; their sum
-wait:   TWAIT                   ; T = end of the last stop bit (or half a bit after a reply byte)
-        LDI     r0, TR
-        SHL     r0, 5
-        TADD    r0              ; time-out: t-response
-        WAIT    RX, FALL, r1, TO, CT
-        BEC     tout
-        TADD    HB              ; middle of the start bit
+wait:   LDI     r0, OUTN        ; T = end of the last stop bit (or half a bit after a reply byte)
+        ST      r0, OC
+wout:   LDI     r0, 1000
+wsmp:   TADD    24
+        SAMPLE  RX, r1>>        ; the line every 24 cycles (a WAIT time-out cannot reach 5 ms)
+        BEC     start           ; low: a start bit
+        DJNZ    r0, wsmp
+        LD      r0, OC
+        ADDI    r0, -1
+        ST      r0, OC
+        TADD    40              ; lead for the next sample after these instructions
+        BNE     wout
+        JMP     tout
+start:  TADD    HBE             ; middle of the start bit: its edge lies 0 to 24 cycles before this sample
         LDI     r0, 11
 smp:    SAMPLE  RX, r1>>        ; start bit, 8 data bits, mode bit, stop bit
         TADD    HB

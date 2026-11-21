@@ -452,6 +452,10 @@ async def test_unio_model(dut):
     late = [e for e in dev.errors if "master edge at" in e]
     log.info(f"limit TE 10 us (100 kbit/s): {late[0] if late else 'no fault found'} ({len(dev.errors)} device errors)")
     assert late, "100 kbit/s: expected the late bit-start edge after the NoSAK time-out"
+    dev = Unio11xx(skew=0.2, jitter=0.03, twc_us=80 * 900 / F_MHZ)
+    bench, m = model_run(dev, words, want, 800_000, **rate_equ(900))
+    log.info(f"limit TE 15 us (66.7 kbit/s), device edges +0.2 UI: late pin events {m.late[:2]}")
+    assert m.late, "66.7 kbit/s at +0.2 UI: expected late pin events"
     for equ, want_text in ((dict(THDR=200), "THDR"), (dict(STBN=8), "no SAK")):
         dev = Unio11xx(twc_us=2000.0)
         bench, m = model_run(dev, words[:2], 3, 400_000, **equ)

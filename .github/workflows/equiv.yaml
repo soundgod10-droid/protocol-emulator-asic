@@ -76,8 +76,9 @@ jobs:
           set -o pipefail
           v=$PDK_ROOT/$PDK/libs.ref/sg13cmos5l_stdcell/verilog/sg13cmos5l_stdcell.v
           # the cell library first: the `default_nettype none of the project files would apply to it otherwise
-          iverilog -g2012 -DFUNCTIONAL -o cells_tb "$v" rtl/src/pe_cells.v equiv/cells_tb.v > cells_iv.log 2>&1
-          rc=$?
+          # the shell runs with -e: the exit code is caught here, or a failing compile ends the step without its notice
+          rc=0
+          iverilog -g2012 -DFUNCTIONAL -o cells_tb "$v" rtl/src/pe_cells.v equiv/cells_tb.v > cells_iv.log 2>&1 || rc=$?
           if [ $rc -ne 0 ]; then
             echo "::notice title=cell models compile (exit $rc)::$(grep -v '^ ' cells_iv.log | sort | uniq -c | sort -rn | head -n 8 | cut -c1-300 | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')"
             exit $rc

@@ -34,7 +34,7 @@
 ; Memory: BUF..BUF+16 in data memory (the frame's words), TMP, CH, CB, PTR
 ;   after the code.
 
-        .equ    TX, UO4
+        .equ    TX, UIO4
         .equ    BIT, 600        ; 10.0 us at 60 MHz (100,000 bit/s)
         .equ    GAPN, 60        ; idle after a frame: 60 x 4,000 cycles = 4.0 ms
         .equ    BUF, 512        ; frame buffer in data memory

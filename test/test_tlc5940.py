@@ -131,7 +131,7 @@ class Tlc5940:
                     width = 6 if new["VPRG"] else 12
                     if len(self.sr) != 16 * width:
                         self._err(c, f"XLAT after {len(self.sr)} bits ({16 * width} for {'dot correction' if width == 6 else 'grayscale'})")
-                    bits = (self.sr + [0] * 192)[-16 * width:] if len(self.sr) >= 16 * width else None
+                    bits = self.sr[-16 * width:] if len(self.sr) >= 16 * width else None
                     if bits is not None:
                         vals = self._values(bits, width)
                         if width == 6:

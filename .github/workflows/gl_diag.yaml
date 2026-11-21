@@ -9,7 +9,53 @@ on:
       - '.github/workflows/gl_diag.yaml'
 
 jobs:
+  # The testcases of earlier gate-level and SDF runs (results.xml artifacts), each failure with its message, as
+  # annotations: the failure text without the log or an artifact download.
+  report:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      actions: read
+      contents: read
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Failed testcases with their messages
+        shell: bash
+        run: |
+          set +e
+          cat > /tmp/fails.py <<'EOF'
+          import sys
+          import xml.etree.ElementTree as ET
+          tag = sys.argv[2]
+          rows = []
+          for tc in ET.parse(sys.argv[1]).getroot().iter("testcase"):
+              st, msg = "pass", ""
+              for k in ("failure", "error", "skipped"):
+                  e = tc.find(k)
+                  if e is not None:
+                      st, msg = k, ((e.get("message") or "") + " " + (e.text or "")).strip()
+                      break
+              rows.append((tc.get("name"), st, tc.get("time"), tc.get("sim_time_ns"), msg))
+          esc = lambda s: s.replace("%", "%25").replace("\r", "").replace("\n", "%0A")
+          print("::notice title=%s testcases::%s" % (tag, esc("\n".join("%s %s (%s s, %s ns)" % r[:4] for r in rows))))
+          for n, st, t, ns, m in rows:
+              if st in ("failure", "error"):
+                  print("::notice title=%s %s::%s" % (tag, n, esc(m[-1800:])))
+          EOF
+          for spec in "44808418029 gl_protocols_3" "44822461050 sdf_nom_slow_1p08V_125C_helpers"; do
+            set -- $spec
+            rm -rf art && mkdir art
+            gh run download $1 -R ${{ github.repository }} -n $2 -D art
+            for f in $(find art -name results.xml); do
+              python3 /tmp/fails.py "$f" "$2 ($1)"
+            done
+          done
+          true
+
   gl:
+    # ran in gl_diag run 44836952691 (commit 3321939); off here, so that the push of the report job does not repeat it
+    if: false
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     strategy:

@@ -159,10 +159,11 @@ rnib:   OUT     DB4, Z
         OR      r1, r0
         JR      r3
 
-; Wait r2 x 4,000 cycles from T.
+; Wait r2 x 4,000 cycles from T (then T is at least 40 cycles ahead of now).
 wait:   TADD    4000
         TWAIT
         DJNZ    r2, wait
+        TSYNC   40
         JR      r3
 
 CMD:    .word   0

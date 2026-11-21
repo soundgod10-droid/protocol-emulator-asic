@@ -52,7 +52,10 @@ jobs:
             gw5a)  cmd="synth_gowin -family gw5a -nolutram -top fpga_fmax_top" ;;
             ice40) cmd="synth_ice40 -top fpga_fmax_top" ;;
           esac
-          yosys -q -l synth_${{ matrix.family }}.log -p "read_verilog $files; $cmd; tee -o stat_${{ matrix.family }}.txt stat; write_json fpga_${{ matrix.family }}.json"
+          yosys -q -l synth_${{ matrix.family }}.log -p "read_verilog $files; $cmd; tee -o stat_${{ matrix.family }}.txt stat; write_json fpga_${{ matrix.family }}.json" || {
+            echo "::notice title=fpga synth error ${{ matrix.family }}::$(grep -E 'ERROR' synth_${{ matrix.family }}.log | head -n 3 | cut -c1-400)"
+            exit 1
+          }
           tail -n 60 stat_${{ matrix.family }}.txt
       - name: Clock network (0 flip-flops on a derived clock)
         shell: bash

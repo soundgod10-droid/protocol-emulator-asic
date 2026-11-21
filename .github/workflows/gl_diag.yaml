@@ -62,26 +62,31 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # A: the RTL fix with the 80 % post-GRT slew margin, no post-GRT timing repair (stopped by 2 hold violators)
-          - name: fix_no_grt_repair
-            run: '44772515527'
-          # B: the candidate (the RTL fix with the post-GRT timing repair)
+          # The USB device tests with the receiver view of the bus (test_usb_dev.py receiver_view, USB 2.0 7.1.4.1):
+          # runs 44835473258 and 44836952691 showed the device reply on time but each J/K change through a
+          # zero-width SE0 or SE1 (VPO and VMO in different simulation steps), and the old listener took the SE0 of
+          # a K-to-J change as the EOP.
+          # B: the candidate (the RTL fix with the post-GRT timing repair), all five tests
           - name: candidate
             run: '44808418029'
-          # C: control, the netlist of the RC1 commit (passed gl_protocols part 4)
+            filter: ''
+          # C: control, the netlist of the RC1 commit (passed gl_protocols part 4 with the old listener)
           - name: rc1
             run: '44557589283'
-          # D: the candidate with the SDF cell delays at the three corners: a failure only without delays would be a
-          # zero-delay simulation race (clock-tree depth against short data paths), not a netlist fault
+            filter: test_usb_dev_enumerate
+          # D: the candidate with the SDF cell delays at the three corners (the step widths are the pin skew)
           - name: candidate_sdf_typ
             run: '44808418029'
             corner: nom_typ_1p20V_25C
+            filter: test_usb_dev_enumerate
           - name: candidate_sdf_slow
             run: '44808418029'
             corner: nom_slow_1p08V_125C
+            filter: test_usb_dev_enumerate
           - name: candidate_sdf_fast
             run: '44808418029'
             corner: nom_fast_1p32V_m40C
+            filter: test_usb_dev_enumerate
     permissions:
       actions: read
       contents: read

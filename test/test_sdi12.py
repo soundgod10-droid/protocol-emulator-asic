@@ -224,7 +224,18 @@ def scale_equ(s):
 
 
 def model_run(dev, w, want, cycles, **equ):
-    m = pe_model.PeModel(assemble(**equ).words, owner=ff.owners({P_SD: 0}))
+    prog = assemble(**equ)
+    m = pe_model.PeModel(prog.words, owner=ff.owners({P_SD: 0}))
+    m.late = []  # (cycle, lead, address, program line) of late pin events and samples, for the failure message
+    event_cycle = m._event_cycle
+
+    def watch(th, c, t):
+        d = (t - c) & 0xFFFF
+        if not pe_model.LEAD <= d < pe_model.HORIZON and len(m.late) < 5:
+            m.late.append((c, d - 0x10000 if d & 0x8000 else d, th.pc, prog.source[th.pc][1].strip()))
+        return event_cycle(th, c, t)
+
+    m._event_cycle = watch
     bench = ff.Bench(m, inputs=dev)
     bench.send(0, *w)
     for _ in range(0, cycles, 200_000):

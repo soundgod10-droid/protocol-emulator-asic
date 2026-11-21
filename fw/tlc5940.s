@@ -167,10 +167,11 @@ nonext: LD      r3, MODE        ; frame to shift in the next cycle: 0 none, 1 gr
         LDI     r0, NGSH
         SHL     r0, 3
         LD      r1, RUN
-        TADD    216             ; room for the latch, frame and setup instructions above (about 250 cycles)
+        TADD    296             ; room for the latch, frame and setup instructions (longest path: the first
+                                ; SCLK event of the next cycle written 336 cycles after the BLANK rise)
         MOV     r1, r1
         BEQ     dark
-        OUT     BLANK, 0        ; BLANK high 320 cycles
+        OUT     BLANK, 0        ; BLANK high 400 cycles
 dark:   TADD    16              ; the first GSCLK rise 16 cycles after the BLANK fall
         JMP     cycle
 

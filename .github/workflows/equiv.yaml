@@ -78,7 +78,9 @@ jobs:
             echo "::notice title=cell models compile (exit $rc)::$(grep -v '^ ' cells_iv.log | sort | uniq -c | sort -rn | head -n 8 | cut -c1-300 | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')"
             exit $rc
           fi
-          vvp -n cells_tb | tee cells_tb.log
+          vvp -n cells_tb > cells_tb.log 2>&1
+          echo "vvp exit $?" | tee -a cells_tb.log
+          cat cells_tb.log
           echo "::notice title=cell models::$(grep '^cells_tb' cells_tb.log | sed ':a;N;$!ba;s/\n/%0A/g')"
           grep -q "cells_tb: PASS" cells_tb.log
       - name: The submitted netlist is the final netlist (nl = pnl without power)

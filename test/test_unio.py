@@ -445,6 +445,13 @@ async def test_unio_model(dut):
         ff.assert_status_clean(m, [0])
         log.info(f"{label}: {len(bench.words(0))} host words as expected; device TE {dev.te:.1f} cycles; status "
                  f"polls {[hex(s) for s in st]}; device events {[e[0] for e in dev.events]}")
+    # measured limit: at 100 kbit/s the instructions after a NoSAK time-out (0.8 TE into the bit) do not fit in the
+    # rest of the bit, so the next byte's first bit-start edge comes late
+    dev = Unio11xx(twc_us=80 * 600 / F_MHZ)
+    model_run(dev, words, want, 600_000, **rate_equ(600))
+    late = [e for e in dev.errors if "master edge at" in e]
+    log.info(f"limit TE 10 us (100 kbit/s): {late[0] if late else 'no fault found'} ({len(dev.errors)} device errors)")
+    assert late, "100 kbit/s: expected the late bit-start edge after the NoSAK time-out"
     for equ, want_text in ((dict(THDR=200), "THDR"), (dict(STBN=8), "no SAK")):
         dev = Unio11xx(twc_us=2000.0)
         bench, m = model_run(dev, words[:2], 3, 400_000, **equ)

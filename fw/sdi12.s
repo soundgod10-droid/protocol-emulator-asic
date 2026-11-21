@@ -161,11 +161,10 @@ rwait1: TADD    POLL
         PUSH    r1
         JMP     get
 
-halves: LD      r0, HALFW       ; wait r3 half bits, then T one more half bit ahead (lead); return address in r2
-hl:     TADD    r0
-        TWAIT
-        DJNZ    r3, hl
+halves: LD      r0, HALFW       ; T += r3 half bits; waits until one half bit before the new T (lead); link r2
+hl:     TWAIT                   ; wait until T first: T stays within the 32,767-cycle horizon
         TADD    r0
+        DJNZ    r3, hl
         JR      r2
 
 CMD:    .word   0

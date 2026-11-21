@@ -114,6 +114,9 @@ class Hx711:
                 self.ready_at = c + SETTLE * self.p
             elif self.pulses and not T3_MIN <= high <= T3_MAX:
                 self.errors.append(f"cycle {c}: PD_SCK high {high:.3f} us in a read (T3 0.2 to 50 us)")
+            elif self.bad_rise is not None:
+                self.errors.append(f"cycle {self.bad_rise}: PD_SCK pulse while DOUT is high (data not ready, page 4)")
+            self.bad_rise = None
             self.initial = False
             self.low_since = c
         self.sck = sck

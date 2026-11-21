@@ -78,7 +78,7 @@ class Hx711:
         self.reads.append((self.first, n, self.word, self.sel_used))
         self.sel = SEL.get(n, self.sel)
         self.pulses, self.first, self.ready, self.dout = 0, None, False, 1
-        self.ready_at = c + self.p
+        self.ready_at = self.low_since + self.p  # one period after the last pulse (model assumption)
 
     def __call__(self, c, uo, uio, oe):
         us = self.us

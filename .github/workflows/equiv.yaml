@@ -237,9 +237,11 @@ jobs:
           if-no-files-found: warn
 
   # Six planted netlist faults (equiv/teeth.py): eqy must find each copy not equivalent. A tooth that passes, or that
-  # stops with an error instead of a failed partition, fails the job. Runs after the netlist job has passed.
+  # stops with an error instead of a failed partition, fails the job. Runs only when eqy has passed on the netlist (a
+  # tooth of a check that does not run shows nothing).
   teeth:
     needs: equiv
+    if: needs.equiv.outputs.eqy == 'success'
     runs-on: ubuntu-24.04
     timeout-minutes: 240
     strategy:

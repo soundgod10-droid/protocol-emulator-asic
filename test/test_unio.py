@@ -223,7 +223,7 @@ class Unio11xx:
             self.line = line
             self.last_edge = c
         if self.por and line == 1 and c - self.high_since == round(self.cyc(TSTBY_US)):
-            self.state = "standby"
+            self.state, self.after_cmd = "standby", None
             self.events.append(("standby", c))
         if self.state == "bits":
             self._bits(c)

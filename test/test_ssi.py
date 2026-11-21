@@ -157,8 +157,9 @@ async def test_ssi_words(dut):
 
 @cocotb.test(skip=GL)
 async def test_ssi_model(dut):
-    """fw/ssi.s in the reference model against the SSI encoder model: 13 and 25 bits, tm 10 and 30 us, back-to-back
-    reads; an encoder with one bit more; a dead encoder; negative controls for the clock rate and the period."""
+    """fw/ssi.s in the reference model against the SSI encoder model: 13 and 25 bits, tm 15 and 25 us, tv 100 ns and
+    T/2 - 1 cycle, back-to-back reads; an encoder with one bit more; a dead encoder; negative controls for the clock
+    rate and the period."""
     log = dut._log
     for bits, tm, pos, tv in CASES:
         enc = SsiEncoder(bits, tm, pos, tv=tv)

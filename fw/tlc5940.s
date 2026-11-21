@@ -163,11 +163,11 @@ ndc:    LDI     r3, 2
         ST      r3, BPV
         LDI     r3, 1
         ST      r3, VPL
-nonext: TADD    16
+nonext: TADD    168             ; room for the latch and frame instructions above (about 100 cycles)
         LD      r1, RUN
         MOV     r1, r1
         BEQ     dark
-        OUT     BLANK, 0        ; BLANK high 48 cycles
+        OUT     BLANK, 0        ; BLANK high 200 cycles
 dark:   TADD    16              ; the first GSCLK rise 16 cycles after the BLANK fall
         JMP     cycle
 

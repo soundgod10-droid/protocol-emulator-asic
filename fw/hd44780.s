@@ -66,7 +66,7 @@
         .equ    W1, 64          ; 64 x 4,000 cycles = 4.27 ms
         .equ    W2, 2           ; 2 x 4,000 cycles = 133 us
         .equ    TADDW, 540      ; 9.0 us after BF = 0 before a read (tADD = 1.5 / fOSC: 7.9 us at 190 kHz)
-        .equ    BUSYN, 1023     ; busy reads before the time-out: 1,023 x 2.8 us = 2.9 ms
+        .equ    BUSYN, 1023     ; busy reads before the time-out: 1,023 x 236 cycles = 4.0 ms
 
         TSYNC   32
         OUT     E, 0

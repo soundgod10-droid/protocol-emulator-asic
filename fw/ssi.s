@@ -76,7 +76,7 @@ hip:    TADD    r3
         OUT     CLK, 1          ; next bit to DATA
         TADD    r3
         OUT     CLK, 0
-        SAMPLE  DATA, r1<<      ; at the falling edge's time: the level before it
+        SAMPLE  DATA, r1<<, 2   ; pin level of the cycle before the clock falls (isa 4.4, 6.2: t = p + 2)
         DJNZ    r2, hip
         MOV     r0, r1          ; bits above the low word
 lowpart:

@@ -174,3 +174,4 @@ MAKF:   .word   0
 RES:    .word   0
 CNT:    .word   0
 ERRF:   .word   0
+PORF:   .word   0

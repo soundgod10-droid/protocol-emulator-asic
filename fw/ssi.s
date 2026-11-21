@@ -93,7 +93,7 @@ lop:    TADD    r3
         TADD    r3
         OUT     CLK, 1          ; last rising edge: clock idle
         TADD    r3
-        SAMPLE  DATA, r2<<      ; DATA must be low now (monoflop)
+        SAMPLE  DATA, r2<<, 2   ; DATA must be low H after the last rise (monoflop)
         BEC     done
         LDI     r2, 1
         SHL     r2, 14

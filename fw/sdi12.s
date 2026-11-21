@@ -41,8 +41,8 @@
         .equ    HALF, 25000     ; half bit (bit 833.3 us)
         .equ    POLL, 240       ; start bit search step (4 us, 0.5 % of a bit)
         .equ    HSP, 24880      ; HALF - POLL / 2: from the poll that sees the start to the start bit middle
-        .equ    BRKN, 29        ; break: BRKN + 1 = 30 half bits = 12.5 ms
-        .equ    MRKN, 21        ; marking after the break: MRKN + 1 = 22 half bits = 9.17 ms
+        .equ    BRKN, 30        ; break: 30 half bits = 12.5 ms
+        .equ    MRKN, 22        ; marking after the break: 22 half bits = 9.17 ms
         .equ    TOUT, 4375      ; polls for the first response start bit (17.5 ms)
         .equ    TGAP, 2083      ; polls for the next response character (8.33 ms)
 

@@ -69,6 +69,8 @@ class SsiEncoder:
         if self.pend and c >= self.pend[0]:
             self.data, self.pend = self.pend[1], None
         if self.mono_until is not None and c >= self.mono_until:  # monoflop runs out: line high, ready
+            if self.idx < self.n and not self.dead:
+                self.errors.append(f"cycle {c}: monoflop ran out after {self.idx} of {self.n} bits (clock period >= tm)")
             self.sent.append((self.t0, self.word, self.falls))
             self.mono_until = None
             self.data = 0 if self.dead else 1

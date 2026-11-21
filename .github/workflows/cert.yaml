@@ -38,6 +38,14 @@ jobs:
           cat cert_table.md >> "$GITHUB_STEP_SUMMARY"
           echo "::notice title=firmware timing certificates::$(sed -e 's/%/%25/g' cert_table.md | sed -e ':a;N;$!ba;s/\n/%0A/g')"
 
+      - name: Pin terms of the certified programs
+        shell: bash
+        run: |
+          set -o pipefail
+          python cert/pinwin.py --results cert_results.json --selftest | tee cert_pins.md
+          cat cert_pins.md >> "$GITHUB_STEP_SUMMARY"
+          echo "::notice title=certificate pin terms::$(sed -e 's/%/%25/g' cert_pins.md | sed -e ':a;N;$!ba;s/\n/%0A/g')"
+
       - name: Checks of the analysis against the model
         shell: bash
         run: |

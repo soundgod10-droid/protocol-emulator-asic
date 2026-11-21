@@ -129,6 +129,92 @@ jobs:
             eqy_work/*.log
           if-no-files-found: warn
 
+  # Second method (C3 WP9), independent of eqy: one sequential miter of the RTL and the final netlist (equiv/dprove.ys),
+  # proved by ABC dprove from the reset state; the planted fault ff_d_swap (equiv/teeth.py) must give a counterexample.
+  dprove:
+    if: (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') && !inputs.guard_ref
+    runs-on: ubuntu-24.04
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        case: [netlist, ff_d_swap]
+    permissions:
+      actions: read
+      contents: read
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PDK_ROOT: /home/runner/pdk
+    steps:
+      - uses: actions/checkout@v6
+      - name: Commit of the gds run
+        shell: bash
+        run: echo "GDS_SHA=$(gh run view $GDS_RUN_ID --json headSha -q .headSha)" >> $GITHUB_ENV
+      - name: RTL of that commit
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.GDS_SHA }}
+          path: rtl
+      - name: Final netlist (or the planted fault)
+        shell: bash
+        run: |
+          gh run download $GDS_RUN_ID -n tt_submission -D build/gds
+          echo "PDK=$(jq -r '.PDK' build/gds/tt_submission/pdk.json)" >> $GITHUB_ENV
+          echo "PDK_VERSION=$(jq -r '.PDK_VERSION' build/gds/tt_submission/pdk.json)" >> $GITHUB_ENV
+          nl=$(ls build/gds/tt_submission/*.v | head -n 1)
+          if [ "${{ matrix.case }}" = netlist ]; then
+            echo "NL=$PWD/$nl" >> $GITHUB_ENV
+          else
+            out=$(python3 equiv/teeth.py plant "$nl" build/teeth | grep "^${{ matrix.case }}:")
+            echo "::notice title=dprove tooth ${{ matrix.case }}::$out"
+            echo "NL=$PWD/build/teeth/${{ matrix.case }}.v" >> $GITHUB_ENV
+          fi
+      - name: PDK
+        uses: TinyTapeout/ciel-action@v1
+        with:
+          pdk_name: ${{ env.PDK }}
+          pdk_version: ${{ env.PDK_VERSION }}
+          pdk_root: ${{ env.PDK_ROOT }}
+      - name: OSS CAD Suite
+        uses: YosysHQ/setup-oss-cad-suite@v4
+        with:
+          version: '2026-11-14'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Miter (Yosys) and ABC dprove
+        shell: bash
+        run: |
+          set +e
+          files=$(sed -n '/source_files:/,/^[^ ]/p' rtl/info.yaml | grep -o '"[^"]*\.v"' | tr -d '"' | grep -v sram_bb.v | sed 's|^|'$PWD'/rtl/src/|' | tr '\n' ' ')
+          lib=$(ls $PDK_ROOT/$PDK/libs.ref/*_stdcell/lib/*typ*.lib | head -n 1)
+          sed -e "s|@ROOT@|$PWD|g" -e "s|@RTL@|$PWD/rtl|g" -e "s|@RTL_FILES@|$files|" -e "s|@LIB@|$lib|" -e "s|@NL@|$NL|" \
+              equiv/dprove.ys > run.ys
+          yosys -q -l dprove_yosys.log run.ys
+          if [ $? -ne 0 ]; then
+            echo "::notice title=dprove ${{ matrix.case }} yosys error::$(grep -E 'ERROR' dprove_yosys.log | head -n 3 | cut -c1-400)"
+            exit 1
+          fi
+          echo "::notice title=dprove ${{ matrix.case }} miter::$(grep -E 'ports|cells|FF|DFF' dprove_stat.txt | head -n 14 | sed ':a;N;$!ba;s/\n/%0A/g')"
+          timeout 16200 yosys-abc -c "read_aiger miter.aig; print_stats; dprove -v" > dprove_abc.log 2>&1
+          rc=$?
+          summ=$(grep -E -i "equivalent|proved|asserted|failed|disproved|undecided|time =" dprove_abc.log | tail -n 14 | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')
+          echo "::notice title=dprove ${{ matrix.case }}, gds $GDS_RUN_ID (abc exit $rc)::${summ}"
+          if [ "${{ matrix.case }}" = netlist ]; then
+            grep -q -i -E "Networks are equivalent|Property proved" dprove_abc.log
+          else
+            grep -q -i -E "NOT EQUIVALENT|asserted|disproved" dprove_abc.log
+          fi
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: dprove-${{ matrix.case }}-${{ env.GDS_RUN_ID }}
+          path: |
+            run.ys
+            dprove_yosys.log
+            dprove_abc.log
+            dprove_ports.txt
+            dprove_stat.txt
+          if-no-files-found: warn
+
   # Six planted netlist faults (equiv/teeth.py): eqy must find each copy not equivalent. A tooth that passes, or that
   # stops with an error instead of a failed partition, fails the job. Runs after the netlist job has passed.
   teeth:

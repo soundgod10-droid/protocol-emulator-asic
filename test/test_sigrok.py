@@ -30,6 +30,7 @@ import test_fw_full as ff
 import test_holdout as ho
 import test_i2c_tgt as it
 import test_rtl_fw as rf
+import test_sbus as sb
 import test_usb_dev as ud
 
 OUT = os.environ.get("SIGROK_SCENARIO", "scenario.json")

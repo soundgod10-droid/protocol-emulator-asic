@@ -2,7 +2,7 @@
 ;
 ; What it does:
 ;   Drives a TI TLC5940 (data sheet SLVS515D, December 2004, revised November
-;   2015: 7.6 timing requirements, 8.3.1 serial interface, 8.3.6 output
+;   2015: 6.3 AC characteristics, 8.3.1 serial interface, 8.3.6 output
 ;   enable, 8.4.1 to 8.4.3 and 8.4.5): SIN = uo_out[0] (UO0), SCLK = uo_out[1]
 ;   (UO1), XLAT = uo_out[2] (UO2), BLANK = uo_out[3] (UO3), GSCLK = uo_out[4]
 ;   (UO4), VPRG = uo_out[5] (UO5; logic level: the 22 V EEPROM programming

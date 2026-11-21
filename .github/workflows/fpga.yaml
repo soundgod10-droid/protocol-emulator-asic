@@ -118,6 +118,9 @@ jobs:
           done
           python3 fpga/fmax.py $t 63 rep_${t}_1.json rep_${t}_2.json rep_${t}_3.json rep_${t}_4.json rep_${t}_5.json | tee fmax_$t.txt
           echo "::notice title=fpga fmax $t::$(head -n 1 fmax_$t.txt)%0A$(tail -n +2 fmax_$t.txt | sed ':a;N;$!ba;s/\n/%0A/g')"
+          # nextpnr errors of a seed without a report (the job log needs a sign-in to read)
+          err=$(grep -h -E "ERROR|error:" pnr_${t}_*.log 2>/dev/null | sort | uniq -c | head -n 6 | cut -c1-300 | sed ':a;N;$!ba;s/\n/%0A/g')
+          [ -n "$err" ] && echo "::notice title=fpga pnr errors $t::$err"
           true
       - uses: actions/upload-artifact@v7
         if: always()

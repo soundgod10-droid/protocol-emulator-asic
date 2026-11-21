@@ -57,6 +57,9 @@ gate-nomatch *.u_lat.g
 use sby
 depth 3
 engine smtbmc yices
+# the 10BASE-T helper's falling-edge DIN flip-flops: without multiclock the solver returned no status on their piece
+# and ended the run (equiv run 44934313144, u_proc.u_eth.din_f1)
+option multiclock on
 
 [strategy pdr]
 use sby

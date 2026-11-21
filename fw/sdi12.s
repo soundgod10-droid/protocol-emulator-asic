@@ -156,6 +156,8 @@ pchk:   MOV     r0, r2
         JAL     r2, halves      ; for 7.5 ms + 0.4 ms more, so wait before the next command
         JMP     get
 rgap0:  LD      r0, TGAPW       ; T = middle of the stop bit (or of the spike)
+        TSYNC   32              ; the parity check took about 520 cycles; the next start bit
+                                ; comes at least half a bit (HALF cycles) after the stop bit middle
 rwait1: TADD    POLL
         SAMPLE  SD, r1>>
         BES     rstart

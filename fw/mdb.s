@@ -75,7 +75,8 @@ gat:    PULL    r1
         STX     r0, [r2]        ; CHK
         LDI     r2, BUF
         LDI     r3, 256         ; mode bit of the address byte
-        TSYNC   200             ; the first event comes about 15 slots later
+        TSYNC   120
+        TADD    80              ; the first event comes about 15 slots later
 txb:    LDX     r1, [r2]
         ADDI    r2, 1
         OR      r1, r3          ; mode bit (bit 8)

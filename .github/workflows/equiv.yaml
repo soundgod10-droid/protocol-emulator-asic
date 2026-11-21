@@ -394,7 +394,7 @@ jobs:
         with:
           version: '2026-11-14'
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: eqy RTL against RTL
+      - name: RTL against RTL (dprove miter)
         shell: bash
         run: |
           set +e

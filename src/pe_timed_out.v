@@ -46,6 +46,7 @@ module pe_timed_out #(
 ) (
     input  wire        clk,
     input  wire        rst_n,      // active low, asynchronous assert
+    input  wire        pin_rst_n,  // chip reset, active low, asynchronous assert (pin value)
     input  wire [15:0] now,        // low 16 bits of the cycle counter
     // Event write port
     input  wire        ev_load,    // 1 = write the event below

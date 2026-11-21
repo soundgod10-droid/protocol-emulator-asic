@@ -284,8 +284,7 @@ jobs:
           name: postsynth-${{ matrix.part }}
           path: |
             test/results.xml
-            stat_net.txt
-            synth_net.log
+            test/make.log
 
   # C4 W10 (bench step F0) and the bench bitstreams: the wiring-check simulation test with its controls
   # (fpga/test_wiring_check.py), then the wiring check and the chip (fpga_top.v) placed and routed on the ULX3S parts

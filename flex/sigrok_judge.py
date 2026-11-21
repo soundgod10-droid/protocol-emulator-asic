@@ -148,11 +148,27 @@ def control_ok(r):
     return all(not pd_match(r[2], pd) or r[3] in cls for pd, cls in CONTROL_CLASSES.items())
 
 
-def evaluate(rows, content, forbid=()):
-    """forbid: further "decoder:class" names that a decoder uses for errors only (swd: parity)."""
+def allowed(r, rows, allow):
+    """allow: {"decoder:class": anchor} for classes that are part of a protocol although their name matches
+    FAIL_CLASS. An empty anchor allows the class anywhere; an anchor "decoder:class" allows it only inside the span of
+    an annotation of that class (dmx512: each packet starts with a BREAK, and the uart decoder below it marks the
+    BREAK and a frame error inside it)."""
+    for key, anchor in allow.items():
+        pd, _, cls = key.partition(":")
+        if pd_match(r[2], pd) and r[3] == cls:
+            if not anchor:
+                return True
+            apd, _, acls = anchor.partition(":")
+            return any(pd_match(a[2], apd) and a[3] == acls and a[0] <= r[0] and r[1] <= a[1] for a in rows)
+    return False
+
+
+def evaluate(rows, content, forbid=(), allow=None):
+    """forbid: further "decoder:class" names that a decoder uses for errors only (swd: parity). allow: see allowed()."""
+    allow = allow or {}
     fails = [f"{r[2]}: {r[3]}: {r[4]}" for r in rows
-             if FAIL_CLASS.search(r[3]) or any(pd_match(r[2], f.split(":")[0]) and r[3] == f.split(":")[1]
-                                               for f in forbid)]
+             if (FAIL_CLASS.search(r[3]) or any(pd_match(r[2], f.split(":")[0]) and r[3] == f.split(":")[1]
+                                                for f in forbid)) and not allowed(r, rows, allow)]
     got, first = {}, None
     for key in content:
         pd, _, cls = key.partition(":")

@@ -53,8 +53,7 @@
         .equ    TLO, 600        ; low pulse before the standby pulse
         .equ    STBN, 10        ; standby pulse high STBN x 4,000 cycles
 
-        OUT     SCIO, Z
-        LDI     r0, 0
+        LDI     r0, 0           ; SCIO is released from reset (pull-up: high)
         ST      r0, PEND
         TSYNC   32
 get:    LD      r0, PEND

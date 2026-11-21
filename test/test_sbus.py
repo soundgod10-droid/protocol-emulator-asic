@@ -47,8 +47,13 @@ import test_rtl_fw as rf  # noqa: E402
 
 GL = os.environ.get("GATES") == "yes"
 F_MHZ = 60
-P_TX = 12  # SBUS_TX = uo_out[4]
+P_TX = 4  # SBUS_TX = uio[4], with a pull-down on the board (released pin: low, the idle level)
 UI_RX = 3  # SBUS_RX = ui_in[3]
+
+
+def tx_level(uo, uio, oe):
+    """Level of the SBUS_TX line: the pin's value when driven, the pull-down's 0 when released."""
+    return (uio >> P_TX) & 1 if (oe >> P_TX) & 1 else 0
 
 # RPG Quadrotor Control wiki, SBUS-Protocol: 100,000 bit/s, 8E2, inverted, 25 bytes, header 0x0F, footer 0x00.
 BIT_US = 10.0

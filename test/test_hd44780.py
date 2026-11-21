@@ -396,7 +396,7 @@ async def test_hd44780_rtl(dut):
         await bench.run(6_000)
         dut.dump_off.value = 1
         log.info(f"{label}: waveform window model cycles {c0 - 1_500} to {bench.m.cycle}, simulation time about "
-                 f"{get_sim_time(unit='ps') - 6_000 * rf.CLK_PS} ps at its start; E rises in it at model cycles "
+                 f"{get_sim_time(unit='ps') - 6_000 * rf.CLK_PS} ps at its start; transfers end (E falls) in it at model cycles "
                  f"{[c for c, _, _ in lcd.reads + lcd.writes if c0 - 1_500 <= c < bench.m.cycle][:8]} (E falls)")
     for _ in range(200):
         if len(bench.words(0)) >= len(WANT):

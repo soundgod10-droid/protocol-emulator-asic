@@ -324,18 +324,21 @@ jobs:
       - name: Bitstreams (ULX3S 12F and 85F, speed 6, bench pin map, 25 MHz)
         shell: bash
         run: |
-          set -e
+          set +e
+          note() { echo "::notice title=$1::$(grep -h -E 'ERROR|Error|error' $2 | sort | uniq -c | head -n 6 | cut -c1-300 | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')"; }
           files="$(grep -v '^#' fpga/files.f | tr '\n' ' ')"
-          yosys -q -l synth_wiring.log -p "read_verilog fpga/wiring_check.v; synth_ecp5 -top wiring_check; write_json wiring.json"
-          yosys -q -l synth_bench.log -p "read_verilog $files fpga/fpga_top.v; synth_ecp5 -top fpga_top; tee -o stat_bench.txt stat; write_json bench.json"
+          yosys -q -l synth_wiring.log -p "read_verilog fpga/wiring_check.v; synth_ecp5 -top wiring_check; write_json wiring.json" || { note "wiring synthesis" synth_wiring.log; exit 1; }
+          yosys -q -l synth_bench.log -p "read_verilog $files fpga/fpga_top.v; synth_ecp5 -top fpga_top; tee -o stat_bench.txt stat; write_json bench.json" || { note "bench synthesis" synth_bench.log; exit 1; }
           for part in 12k 85k; do
             for d in wiring bench; do
               nextpnr-ecp5 --$part --package CABGA381 --speed 6 --json $d.json --lpf fpga/ulx3s_bench.lpf --freq 25 \
-                --seed 1 --timing-allow-fail --report rep_${d}_${part}_1.json --textcfg ${d}_$part.config -l pnr_${d}_$part.log
-              ecppack --compress ${d}_$part.config ${d}_ulx3s_$part.bit
+                --seed 1 --timing-allow-fail --report rep_${d}_${part}_1.json --textcfg ${d}_$part.config -l pnr_${d}_$part.log \
+                || { note "pnr $d $part" pnr_${d}_$part.log; exit 1; }
+              ecppack --compress ${d}_$part.config ${d}_ulx3s_$part.bit > pack_${d}_$part.log 2>&1 || { note "pack $d $part" pack_${d}_$part.log; exit 1; }
               grep -E "Max frequency" pnr_${d}_$part.log | tail -n 1
             done
           done
+          set -e
           python3 fpga/fmax.py bench_12k_pins 26.25 rep_bench_12k_1.json | tee fmax_bench_12k.txt
           python3 fpga/fmax.py bench_85k_pins 26.25 rep_bench_85k_1.json | tee fmax_bench_85k.txt
           python3 fpga/fmax.py wiring_12k 26.25 rep_wiring_12k_1.json | tee fmax_wiring_12k.txt

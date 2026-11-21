@@ -12,10 +12,10 @@
 ;   longest monoflop time, 25 us), it reports "not ready". Then it makes N + 1
 ;   clock pulses with half period H: the first falling edge makes the encoder
 ;   store the position and start its monoflop, each rising edge shifts the
-;   next bit to DATA (MSB first, 100 ns after the edge), and the thread reads
-;   DATA just before each of the falling edges 2 to N + 1. After the last
+;   next bit to DATA (MSB first, tv < T/2 after the edge), and the thread
+;   reads DATA just before each of the falling edges 2 to N + 1. After the last
 ;   rising edge (clock back to idle high) the encoder drives DATA low until
-;   its monoflop time tm (10 to 30 us) has run out; the thread checks that
+;   its monoflop time tm (15 to 25 us) has run out; the thread checks that
 ;   DATA is low H after that edge (a bit count or a line fault shows as a 1).
 ;   The default H = 90 cycles = 1.5 us gives 333 kHz (the page's rate for a
 ;   cable shorter than 50 m: below 400 kHz); the clock period stays far below

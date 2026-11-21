@@ -197,7 +197,34 @@ jobs:
   # set, written as Verilog, simulated with Yosys's own ECP5 cell models (cells_sim.v) as a gate-level run (GATES=yes:
   # pins only, no RTL names). Logic simulation at zero delay: it shows that the FPGA synthesis keeps the behaviour the
   # RTL tests check (the same tests pass on the RTL and on the IHP netlist), not the FPGA's timing.
+  # The mapped netlist and the cell models come from the OSS CAD Suite job; the simulations run without the suite on
+  # the path (its own Python and cocotb clash with the test environment: "undefined symbol: gpi_finish", run 44936513061).
+  ecp5_netlist:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - name: OSS CAD Suite
+        uses: YosysHQ/setup-oss-cad-suite@v4
+        with:
+          version: '2026-11-14'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Mapped netlist (synth_ecp5, chip top)
+        shell: bash
+        run: |
+          files="$(grep -v '^#' fpga/files.f | tr '\n' ' ')"
+          yosys -q -l synth_net.log -p "read_verilog $files; synth_ecp5 -top tt_um_soundgod10_droid_protocol_emulator; tee -o stat_net.txt stat; write_verilog -noattr fpga_ecp5_net.v"
+          tail -n 30 stat_net.txt
+          echo "::notice title=fpga netlist cells::$(grep -E '^ +[0-9]+ +(LUT4|TRELLIS_FF|CCU2C|PFUMX|L6MUX21|DP16KD|TRELLIS_DPR16X4)' stat_net.txt | sed ':a;N;$!ba;s/\n/%0A/g')"
+          mkdir -p ecp5_net
+          cp fpga_ecp5_net.v stat_net.txt synth_net.log ecp5_net/
+          cp -r $(yosys-config --datdir)/ecp5 ecp5_net/cells
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ecp5-netlist
+          path: ecp5_net
+
   postsynth:
+    needs: ecp5_netlist
     runs-on: ubuntu-24.04
     timeout-minutes: 355
     strategy:
@@ -206,27 +233,22 @@ jobs:
         part: [fw1, fw2, slu, usb, eth]
     steps:
       - uses: actions/checkout@v6
-      - name: OSS CAD Suite
-        uses: YosysHQ/setup-oss-cad-suite@v4
+      - uses: actions/download-artifact@v7
         with:
-          version: '2026-11-14'
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          name: ecp5-netlist
+          path: ecp5_net
+      - name: Install iverilog
+        run: sudo apt-get update && sudo apt-get install -y iverilog
       - uses: actions/setup-python@v6
         with:
           python-version: '3.11'
       - name: Install Python packages
         run: pip install -r test/requirements.txt
-      - name: Mapped netlist (synth_ecp5, chip top)
-        shell: bash
-        run: |
-          files="$(grep -v '^#' fpga/files.f | tr '\n' ' ')"
-          yosys -q -l synth_net.log -p "read_verilog $files; synth_ecp5 -top tt_um_soundgod10_droid_protocol_emulator; tee -o stat_net.txt stat; write_verilog -noattr fpga_ecp5_net.v"
-          tail -n 30 stat_net.txt
-          echo "::notice title=fpga netlist cells::$(grep -E '^ +[0-9]+ +(LUT4|TRELLIS_FF|CCU2C|PFUMX|L6MUX21|DP16KD|TRELLIS_DPR16X4)' stat_net.txt | sed ':a;N;$!ba;s/\n/%0A/g')"
       - name: Tests on the mapped netlist (${{ matrix.part }})
         shell: bash
         run: |
-          dat=$(yosys-config --datdir)
+          dat=$GITHUB_WORKSPACE/ecp5_net/cells
+          cp ecp5_net/fpga_ecp5_net.v fpga_ecp5_net.v
           iverilog -V 2>&1 | head -n 1
           cd test
           rm -f results.xml

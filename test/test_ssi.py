@@ -160,9 +160,9 @@ async def test_ssi_model(dut):
     """fw/ssi.s in the reference model against the SSI encoder model: 13 and 25 bits, tm 10 and 30 us, back-to-back
     reads; an encoder with one bit more; a dead encoder; negative controls for the clock rate and the period."""
     log = dut._log
-    for bits, tm, pos in CASES:
-        enc = SsiEncoder(bits, tm, pos)
-        bench, m = model_run(enc, bits, 90, len(pos))
+    for bits, tm, pos, tv in CASES:
+        enc = SsiEncoder(bits, tm, pos, tv=tv)
+        bench, m = model_run(enc, bits, H_TEST, len(pos))
         want = [w for v in pos for w in expect(bits, bits, v)]
         assert not enc.errors, f"model {bits} bits tm {tm}: {enc.errors[:3]}"
         assert bench.words(0) == want, f"model {bits} bits tm {tm}: {[hex(w) for w in bench.words(0)]}"

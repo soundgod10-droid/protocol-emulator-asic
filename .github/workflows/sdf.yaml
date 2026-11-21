@@ -194,7 +194,7 @@ jobs:
           case "${{ matrix.part }}" in
             macro_control|nodelay_control)
               # a control passes when the test fails
-              grep -q "<failure" results.xml && echo "control ${{ matrix.part }}: test_r3_sdf failed, as required" ;;
+              grep -q "<failure" results.xml && echo "control ${{ matrix.part }}: the test failed, as required" ;;
             *) ! grep -q "<failure" results.xml ;;
           esac
 

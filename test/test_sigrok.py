@@ -633,6 +633,37 @@ async def test_sigrok_usb(dut):
            "model), logic levels only", forbid=["usb_packet:packet-invalid"])
 
 
+# ----- DMX512 -----
+# dmx512/pd.py on uart (250,000 bit/s, 2 stop bits), option format hex: class startcode "STARTCODE {v:02X}" for slot 0
+# and databyte "DATABYTE {n}: {v:02X}" for slot n. Its class break is the BREAK of every packet, and the uart decoder
+# below it gives rx-break and a frame-error rx-warning for the same low (a frame of zeros without stop bits): these
+# are allowed inside the span of a dmx512 break annotation only; dmx512's warning and error classes stay faults.
+
+
+@cocotb.test()
+async def test_sigrok_dmx512(dut):
+    """fw/dmx512.s sends four packets (25, 4, 1 and 3 slots; NULL and alternate START Code), checked by the E1.11
+    receiver model of test_dmx512.py."""
+    rf.start_clock(dut)
+    label = "sigrok dmx512"
+    bench = rf.RtlBench(dut, dx.assemble().words, owner=ff.owners({dx.P_TX: 0}), label=label)
+    bench.watch("tx", lambda uo, uio, oe: (uo >> 4) & 1)
+    await bench.run(100)
+    t0 = now_ps()
+    bench.send(0, *dx.host_words(dx.PACKETS))
+    await bench.run(rf.HOST_START + dx.run_cycles(dx.PACKETS))
+    t1 = now_ps()
+    await bench.finish(dut._log)
+    dx.check(bench.changes("tx"), bench.m.cycle, dx.PACKETS, label)
+    texts = []
+    for p in dx.PACKETS:
+        texts += [f"STARTCODE {p[0]:02X}"] + [f"DATABYTE {n}: {v:02X}" for n, v in enumerate(p[1:], 1)]
+    record("test_sigrok_dmx512", "dmx512", [["dmx_tx", "uo:4"]],
+           "uart:rx=dmx_tx:baudrate=250000:stop_bits=2.0,dmx512:format=hex", {"dmx512:startcode|databyte": texts},
+           t0, t1, "dmx_tx", "chip DMX512 controller (DMX_TX = OUT12, the transceiver's DI), 4 packets",
+           allow={"dmx512:break": "", "uart:rx-break": "dmx512:break", "uart:rx-warning": "dmx512:break"})
+
+
 def record_pdi(t0, t1, texts):
     record("test_sigrok_pdi", "pdi", [["pdi_clk", f"drvh:{ho.P_CLK}"], ["pdi_data", f"bus:{ho.P_DAT}"]],
            "avr_pdi:reset=pdi_clk:data=pdi_data", {"avr_pdi:data-prog|data-dev": texts}, t0, t1, "pdi_data",

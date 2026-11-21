@@ -88,6 +88,7 @@ class Bus:
         self.d = "IDLE"                   # device level (IDLE = OE# high)
         self.rcv = 0
         self.dev = []                     # device level changes (absolute ps, level)
+        self.transients = []              # widths (ps) of the SE0/SE1 steps in device J/K changes (receiver_view)
         self.host_eops = []
         self.collisions = []
         self.changed = Event()

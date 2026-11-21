@@ -271,7 +271,7 @@ async def test_mdb_rtl(dut):
     log = dut._log
     label = "rtl mdb"
     dev = MdbChanger(scale=5, rate=0.98, resp_us=1000.0, gap_us=900.0)
-    bench = rf.RtlBench(dut, assemble(HB=625, TR=188).words, owner=ff.owners({P_TX: 0}), inputs=dev, label=label)
+    bench = rf.RtlBench(dut, assemble(HB=625, HBE=613, OUTN=3).words, owner=ff.owners({P_TX: 0}), inputs=dev, label=label)
     bench.send(0, *RTL_WORDS)
     if hasattr(dut, "dump_off"):  # waveform of the RESET exchange (tb.fst), for review
         dut.dump_off.value = 0

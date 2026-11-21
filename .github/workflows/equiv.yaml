@@ -212,7 +212,7 @@ jobs:
           if [ "${{ matrix.case }}" = netlist ]; then
             grep -q -i -E "Networks are equivalent|Property proved" dprove_abc.log
           else
-            grep -q -i -E "NOT EQUIVALENT|asserted|disproved" dprove_abc.log
+            grep -q -i -E "NOT EQUIVALENT|was asserted in frame|disproved" dprove_abc.log
           fi
       - uses: actions/upload-artifact@v7
         if: always()

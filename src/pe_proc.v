@@ -233,6 +233,7 @@ module pe_proc (
   // docs/isa.md 2.4: after reset each output pin has V = 1, OE = 0. Thus
   // UART_TX (pin 12, uo_out[4]) is at the idle level and all uio pins are
   // inputs. A helper pin drives its signal from a flip-flop, with OE = 1 while the threads run.
+  // A STOP clears every OE at once and sets every V at the next clock edge (pe_timed_out).
   wire [14:0] slot_v, slot_oe;
   reg  [14:0] hv;
   // A helper pin is an output only while the threads run: STOP and the chip reset release it as

@@ -202,7 +202,10 @@ jobs:
             exit 1
           fi
           echo "::notice title=dprove ${{ matrix.case }} miter::$(grep -E 'ports|cells|FF|DFF' dprove_stat.txt | head -n 14 | sed ':a;N;$!ba;s/\n/%0A/g')"
-          timeout 16200 yosys-abc -c "read_aiger miter.aig; print_stats; dprove -v" > dprove_abc.log 2>&1
+          # the netlist is proved (dprove: induction with register correspondence); a planted fault must give a
+          # counterexample, which the bounded model checker finds (dprove left ff_d_swap undecided, run 44893267827)
+          if [ "${{ matrix.case }}" = netlist ]; then abc="dprove -v"; else abc="bmc3 -v -T 7200"; fi
+          timeout 16200 yosys-abc -c "read_aiger miter.aig; print_stats; $abc" > dprove_abc.log 2>&1
           rc=$?
           summ=$(grep -E -i "equivalent|proved|asserted|failed|disproved|undecided|time =" dprove_abc.log | tail -n 14 | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')
           echo "::notice title=dprove ${{ matrix.case }}, gds $GDS_RUN_ID (abc exit $rc)::${summ}"

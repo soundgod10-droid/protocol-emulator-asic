@@ -112,6 +112,7 @@ ready:  LD      r0, CMD
         MOV     r2, r1
         ANDI    r2, 2
         BNE     read
+        TSYNC   40
         OUT     RS, r1>>
         OUT     RW, 0
         SHR     r0, 4           ; high nibble

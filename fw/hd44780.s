@@ -93,7 +93,8 @@ idle:   TSYNC   32
         BEC     idle
         ST      r0, CMD
         LDI     r2, BUSYN
-poll:   OUT     RS, 0           ; read busy flag and address
+poll:   TSYNC   40              ; lead for the five OUTs of the first transfer
+        OUT     RS, 0           ; read busy flag and address
         OUT     RW, 1
         JAL     r3, rnib
         JAL     r3, rnib

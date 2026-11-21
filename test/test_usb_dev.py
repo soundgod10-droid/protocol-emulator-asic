@@ -121,7 +121,7 @@ class Bus:
         """(host EOP end, device SOP) in absolute ps for the first n device packets, for the waveform check."""
         out = []
         prev = "IDLE"
-        for t, lv in self.dev:
+        for t, lv in receiver_view(self.dev, "IDLE")[0]:
             if lv == "K" and prev == "IDLE":
                 eops = [e for e in self.host_eops if e < t]
                 if eops:

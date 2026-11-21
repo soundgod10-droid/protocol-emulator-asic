@@ -250,7 +250,7 @@ async def test_sdi12_model(dut):
     log = dut._log
     want = expect(REPLIES)
     dev = Sdi12Sensor()
-    bench, m = model_run(dev, words(SESSION), len(want), 40_000_000, **scale_equ(1))
+    bench, m = model_run(dev, words(SESSION), len(want), 80_000_000, **scale_equ(1))
     assert not dev.errors, f"session: {dev.errors[:3]}"
     assert bench.words(0) == want, f"session: {[hex(x) for x in bench.words(0)]}"
     assert dev.commands == [t for _, t in SESSION], f"session: sensor saw {dev.commands}"

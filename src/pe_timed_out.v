@@ -166,6 +166,29 @@ module pe_timed_out #(
     end
   end
 
+  // Expected pin value (isa 2.4, 4.4): the value of the last event that occurred; the chip reset gives RESET_VALUE
+  // at once, a processor reset (STOP) gives it at the next clock edge, after the enable is already off.
+  reg m_vq;  // the pin value in the cycle before
+  always @(posedge clk or negedge pin_rst_n) begin
+    if (!pin_rst_n) begin
+      m_pv <= RESET_VALUE;
+      m_vq <= RESET_VALUE;
+    end else begin
+      m_vq <= pin_value;
+      if (!rst_n) m_pv <= RESET_VALUE;
+      else if (m_due) m_pv <= m_v;
+    end
+  end
+
+  always @* begin
+    // T7: the release order of a STOP: while the processor reset is on, the enable is RESET_OE in the same cycle,
+    //     and the value is the one of the cycle before or RESET_VALUE (it changes only at a clock edge).
+    if (pin_rst_n && !rst_n) begin
+      assert (pin_oe == RESET_OE);
+      assert ((pin_value == m_vq) || (pin_value == RESET_VALUE));
+    end
+  end
+
   always @* begin
     // T1: The pin (value and output enable) is the reset value or the
     //     value of the last event that occurred. Thus, the pin changes only

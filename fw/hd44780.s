@@ -44,9 +44,9 @@
 ;   host sends the function set (4-bit, N, F), display, clear and entry mode
 ;   instructions itself (Figure 24, after the 0x2 transfer).
 ; Words to the host: for a read word, the byte read (bits 7..0); 0xFFFF if
-;   the busy flag stayed 1 for BUSYN reads (2.9 ms: longer than the 1.52 ms
-;   of clear display and return home at the slowest oscillator, 2.16 ms at
-;   190 kHz); then the word is dropped.
+;   the busy flag stayed 1 for BUSYN reads (one read every 236 cycles: 4.0 ms,
+;   longer than the 1.52 ms of clear display and return home at the slowest
+;   oscillator, 2.16 ms at 190 kHz); then the word is dropped.
 ; Registers: r0 nibble and work, r1 bytes read, r2 counter, r3 return address.
 ; Memory: CMD after the code.
 

@@ -263,8 +263,8 @@ jobs:
           esac
           set +e
           make GATES=yes GL_PART=$gl_part COCOTB_TEST_FILTER="$filter" SIM_BUILD=sim_build/fpga_net \
-            VERILOG_SOURCES="$GITHUB_WORKSPACE/fpga_ecp5_net.v $dat/ecp5/cells_sim.v $PWD/tb.v" \
-            COMPILE_ARGS="-DGL_TEST -DSIM -I$dat/ecp5" COCOTB_TEST_MODULES=$mod > make.log 2>&1
+            VERILOG_SOURCES="$GITHUB_WORKSPACE/fpga_ecp5_net.v $dat/cells_sim.v $PWD/tb.v" \
+            COMPILE_ARGS="-DGL_TEST -DSIM -I$dat" COCOTB_TEST_MODULES=$mod > make.log 2>&1
           rc=$?
           tail -n 60 make.log
           if [ ! -f results.xml ]; then

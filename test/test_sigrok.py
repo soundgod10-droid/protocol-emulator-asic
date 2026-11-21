@@ -40,11 +40,12 @@ def now_ps():
     return int(get_sim_time(unit="ps"))
 
 
-def record(test, name, lines, stack, content, t0, t1, tamper, note, forbid=()):
+def record(test, name, lines, stack, content, t0, t1, tamper, note, forbid=(), allow=None):
     """Adds one scenario and rewrites the scenario file (each test of the module adds its records). forbid: classes
-    that a decoder uses for errors only."""
+    that a decoder uses for errors only. allow: classes that the judge's fault pattern matches but that are part of
+    the protocol, each with the annotation class inside whose span it is allowed (flex/sigrok_judge.py allowed)."""
     _scenarios.append(dict(test=test, name=name, lines=lines, stack=stack, content=content, window_ps=[t0, t1],
-                           tamper=tamper, note=note, forbid=list(forbid)))
+                           tamper=tamper, note=note, forbid=list(forbid), allow=dict(allow or {})))
     with open(OUT, "w", encoding="utf-8", newline="\n") as fh:
         json.dump({"level": LEVEL, "commit": os.environ.get("GITHUB_SHA", ""), "clock_ps": rf.CLK_PS,
                    "scenarios": _scenarios}, fh, indent=1)

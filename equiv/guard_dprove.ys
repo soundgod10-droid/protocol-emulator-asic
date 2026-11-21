@@ -1,0 +1,45 @@
+# Guard mode of the equivalence check (C3 WP9): the RTL of one commit (gold, @GOLD@) against the RTL of another
+# (gate, @GATE@), both read as the netlist check reads its gold side (SYNTHESIS defined; the latch and clock-gate cells
+# and the SRAM macros as black boxes, whose pins expose -evert makes miter ports by instance path), one sequential
+# miter from the state after the chip reset, proved by ABC dprove (equiv.yaml, job guard). It shows that a change is
+# "logic unchanged" where that is its claim. eqy RTL against RTL failed 459 of 7,869 pieces on two identical commits
+# (run 44935973646), so it cannot tell a change from none; this miter has no name matching.
+
+read_verilog -lib @ROOT@/equiv/cells_bb.v @GOLD@/src/sram_bb.v
+read_verilog -sv -DSYNTHESIS @GOLD_FILES@
+hierarchy -top tt_um_soundgod10_droid_protocol_emulator
+proc
+flatten
+opt_clean
+expose -evert t:sg13cmos5l_dlhq_1 t:sg13cmos5l_lgcp_1 t:RM_IHPSG13_*
+setundef -zero -undriven
+rename tt_um_soundgod10_droid_protocol_emulator gold
+design -stash gold
+
+read_verilog -lib @ROOT@/equiv/cells_bb.v @GATE@/src/sram_bb.v
+read_verilog -sv -DSYNTHESIS @GATE_FILES@
+hierarchy -top tt_um_soundgod10_droid_protocol_emulator
+proc
+flatten
+opt_clean
+expose -evert t:sg13cmos5l_dlhq_1 t:sg13cmos5l_lgcp_1 t:RM_IHPSG13_*
+setundef -zero -undriven
+rename tt_um_soundgod10_droid_protocol_emulator gate
+design -stash gate
+
+design -copy-from gold -as gold gold
+design -copy-from gate -as gate gate
+miter -equiv -flatten gold gate miter
+hierarchy -top miter
+memory_map
+opt_clean
+sim -clock in_clk -resetn in_rst_n -rstlen 3 -n 3 -zinit -w
+async2sync
+dffunmap
+techmap
+opt -fast -nodffe -nosdff
+aigmap
+setundef -zero
+opt_clean
+tee -o guard_stat.txt stat
+write_aiger -zinit miter.aig

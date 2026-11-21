@@ -1,0 +1,9 @@
+# The three pins of fpga_fmax_top.v on the LIFCL-40 (BG400) for the fmax build only (fpga.yaml, target nexus40_9):
+# nextpnr-nexus refuses unconstrained IO ("Found unconstrained IO 'u_chip.clk_IB_O'", fpga run 44881773305). Sites
+# from the open Nexus examples (prjoxide examples/blinky_evn/evn.pdc) and the evaluation board's 12 MHz clock pin.
+ldc_set_location -site {L13} [get_ports clk]
+ldc_set_location -site {E17} [get_ports sin]
+ldc_set_location -site {F13} [get_ports sout]
+ldc_set_port -iobuf {IO_TYPE=LVCMOS33} [get_ports clk]
+ldc_set_port -iobuf {IO_TYPE=LVCMOS33} [get_ports sin]
+ldc_set_port -iobuf {IO_TYPE=LVCMOS33} [get_ports sout]

@@ -13,7 +13,9 @@
 ;   clock pulses with half period H: the first falling edge makes the encoder
 ;   store the position and start its monoflop, each rising edge shifts the
 ;   next bit to DATA (MSB first, tv < T/2 after the edge), and the thread
-;   reads DATA just before each of the falling edges 2 to N + 1. After the last
+;   reads DATA in the last cycle before each of the falling edges 2 to N + 1
+;   (SAMPLE offset 2: isa 6.2 gives the pin level of cycle t - 2, and the
+;   clock pin changes at t + 1), so any tv up to H - 1 cycles works. After the last
 ;   rising edge (clock back to idle high) the encoder drives DATA low until
 ;   its monoflop time tm (15 to 25 us) has run out; the thread checks that
 ;   DATA is low H after that edge (a bit count or a line fault shows as a 1).

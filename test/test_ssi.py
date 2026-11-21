@@ -100,7 +100,7 @@ class SsiEncoder:
                     self.idx += 1
                     k = self.n - self.idx
                     level = (self.word >> k) & 1 if k >= 0 else 0  # after the LSB: low until tm
-                    self.pend = (c + max(1, round(TV_US * self.us)), level)
+                    self.pend = (c + self.tv, level)
             self.clk = clk
         return self.data << UI_DATA, 0
 

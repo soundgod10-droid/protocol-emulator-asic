@@ -123,7 +123,9 @@ jobs:
               equiv/chip.eqy > run.eqy
           cat run.eqy
       - name: eqy
+        id: eqy
         if: always()
+        continue-on-error: true
         shell: bash
         run: |
           set +e

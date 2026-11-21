@@ -84,6 +84,11 @@ def check(rows, results=None):
     groups = fcov_groups()
     formal_yaml = _read(os.path.join(ROOT, ".github", "workflows", "formal.yaml"))
     sweep_text = _read(os.path.join(HERE, "test_rtl_sweep.py"))
+    # family -> testcase name prefixes, from the add(name, family, ...) calls of test_rtl_sweep.build_cases()
+    families = {}
+    for name, fam in re.findall(r'add\(\s*f?"([^"]*)",\s*"([a-z0-9_]+)"', sweep_text):
+        families.setdefault(fam, set()).add("test_sweep_" + name.split("{")[0])
+    families = {k: tuple(sorted(v)) for k, v in families.items()}
     sources = {}
     passed, failed, modules = results if results is not None else (set(), set(), set())
     want = {(d, s): t for d in DOCS for s, t in headings(d)}

@@ -164,15 +164,30 @@ jobs:
             macro_control) export COCOTB_TEST_FILTER=test_core_alu_flags; run make $sdf COCOTB_TEST_MODULES=test_core ;;
             nodelay_control) run make COCOTB_TEST_MODULES=test_r3_sdf ;;
             shmoo)
-              for p in 16666 15000 14500 14000 13500 13000 12500 12000 11000 10000; do
-                rm -f results.xml
-                export CLK_PS=$p; run make $sdf COCOTB_TEST_MODULES=test_r3_sdf
-                if [ -f results.xml ] && ! grep -q "<failure" results.xml; then r=pass; else r=fail; fi
-                cp results.xml "results_$p.xml" 2>/dev/null || true
-                echo "$p ps ($(python -c "print(round(1e6/$p, 2))") MHz): $r" | tee -a shmoo.txt
+              # test_r3_sdf reads through the host port and cannot see a late path; test_core_alu_flags (lockstep, an
+              # instruction fetch from the macro in every slot) fails when a path it uses is longer than the period. Icarus
+              # runs no setup check, so its first failing period lies below the STA minimum period. A failure with SDF
+              # is run again without SDF (own build folder) to tell a timing failure from a test-bench limit.
+              ok() { [ -f results.xml ] && ! grep -q "<failure" results.xml && echo pass || echo fail; }
+              for p in 16666 15000 14000 13000 12000 11000 10000 9000 8000 7000 6000; do
+                export CLK_PS=$p
+                rm -f results.xml; unset COCOTB_TEST_FILTER; run make $sdf COCOTB_TEST_MODULES=test_r3_sdf
+                r1=$(ok); cp results.xml "results_r3_$p.xml" 2>/dev/null || true
+                rm -f results.xml; export COCOTB_TEST_FILTER=test_core_alu_flags; run make $sdf COCOTB_TEST_MODULES=test_core
+                r2=$(ok); cp results.xml "results_core_$p.xml" 2>/dev/null || true
+                r3=""
+                if [ "$r2" = fail ]; then
+                  rm -f results.xml; GATES=yes make SIM_BUILD=sim_build/gl_nodelay COCOTB_TEST_MODULES=test_core FST= 2>&1 \
+                    | grep -v "SDF WARNING" | tee -a sdf_nodelay.log > /dev/null || true
+                  r3=", without SDF $(ok)"
+                fi
+                unset COCOTB_TEST_FILTER
+                echo "$p ps ($(python -c "print(round(1e6/$p, 2))") MHz): test_r3_sdf $r1, test_core_alu_flags $r2$r3" | tee -a shmoo.txt
               done
               echo "::notice title=period shmoo ${{ matrix.corner }}::$(sed -e ':a;N;$!ba;s/\n/%0A/g' shmoo.txt)"
-              cp results_16666.xml results.xml ;;
+              # the job's verdict: both tests pass at the declared 60 MHz
+              grep -q "<failure" results_core_16666.xml && echo "test_core_alu_flags fails at 60 MHz" && exit 1
+              cp results_r3_16666.xml results.xml ;;
           esac
           # Clock-to-pin delays of the core lockstep tests (part main): pin terms of the firmware timing certificates.
           if [ -f pin_delays.json ]; then

@@ -207,11 +207,17 @@ def assemble(**equ):
     return ff.assemble("mdb.s", **equ)
 
 
-def model_run(dev, words, cycles, **equ):
+def model_run(dev, words, cycles, want_n=None, **equ):
+    """Runs until want_n host words have come (at most `cycles` cycles), or for `cycles` cycles."""
     m = pe_model.PeModel(assemble(**equ).words, owner=ff.owners({P_TX: 0}))
     bench = ff.Bench(m, inputs=dev)
     bench.send(0, *words)
-    bench.run(cycles)
+    step = 100_000
+    for _ in range(0, cycles, step):
+        if want_n is not None and len(bench.words(0)) >= want_n:
+            break
+        bench.run(step)
+    bench.run(20_000)
     return bench, m
 
 

@@ -208,7 +208,17 @@ def owner():
 
 
 def model_run(dev, words, cycles, **equ):
-    m = pe_model.PeModel(assemble(**equ).words, owner=owner())
+    prog = assemble(**equ)
+    m = pe_model.PeModel(prog.words, owner=owner())
+    m.late = []  # (cycle, program line) of each late pin event, for the failure message
+    event_cycle = m._event_cycle
+
+    def watch(th, c, t):
+        if (t - c) & 0xFFFF not in range(pe_model.LEAD, pe_model.HORIZON) and len(m.late) < 5:
+            m.late.append((c, prog.source[th.pc][1].strip()))
+        return event_cycle(th, c, t)
+
+    m._event_cycle = watch
     bench = ff.Bench(m, inputs=dev)
     bench.send(0, *words)
     bench.run(cycles)

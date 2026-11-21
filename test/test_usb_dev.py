@@ -47,27 +47,6 @@ RESET_PS, RECOVERY_PS = 20e6, 100e6       # simulation speed, see the module tex
 LEVEL_PINS = {"J": (0, 1), "K": (1, 0), "SE0": (0, 0), "SE1": (1, 1)}   # (VP, VM)
 TLST_PS = 210_000                         # USB 2.0 Table 7-10: SE0 in a low-speed differential transition, max
 EV_RESET, EV_SUSPEND, EV_RESUME, EV_CONFIG, EV_LED, EV_EP1, EV_ADDR = 1, 2, 3, 4, 5, 6, 7
-TLST_PS = L.LIM["TLST_PS"]
-
-
-def receiver_view(edges, init):
-    """Device level changes as a low-speed receiver reads them (USB 2.0 7.1.4.1 p.140): both lines may be below
-    VIH for up to TLST (210 ns) during a J/K transition, and the receiver must not take that as an SE0. The chip
-    drives VPO and VMO on two pins whose changes are some gate delays apart (zero time but different simulation
-    steps in a netlist without delays, the cell and pad skew with delays), so a J/K change can pass through SE0 or
-    SE1. Such a step shorter than TLST between two J/K (or idle) levels is left out. Returns the remaining changes
-    and the widths (ps) of the steps left out."""
-    diff = ("J", "K", "IDLE")
-    out, widths, prev = [], [], init
-    for k, (t, lv) in enumerate(edges):
-        nxt = edges[k + 1] if k + 1 < len(edges) else None
-        if lv in ("SE0", "SE1") and prev in diff and nxt is not None and nxt[1] in diff and nxt[0] - t < TLST_PS:
-            widths.append(nxt[0] - t)
-            continue
-        if lv != prev:
-            out.append((t, lv))
-        prev = lv
-    return out, widths
 
 
 def helper_pin(signal):
@@ -88,7 +67,6 @@ class Bus:
         self.d = "IDLE"                   # device level (IDLE = OE# high)
         self.rcv = 0
         self.dev = []                     # device level changes (absolute ps, level)
-        self.transients = []              # widths (ps) of the SE0/SE1 steps in device J/K changes (receiver_view)
         self.host_eops = []
         self.collisions = []
         self.changed = Event()
@@ -121,7 +99,7 @@ class Bus:
         """(host EOP end, device SOP) in absolute ps for the first n device packets, for the waveform check."""
         out = []
         prev = "IDLE"
-        for t, lv in receiver_view(self.dev, "IDLE")[0]:
+        for t, lv in self.dev:
             if lv == "K" and prev == "IDLE":
                 eops = [e for e in self.host_eops if e < t]
                 if eops:
@@ -224,7 +202,7 @@ class Glue:
         k0 = len(self.bus.dev)
         init = self.bus.d
         while True:
-            ed, steps = receiver_view([(t - self.t0, lv) for t, lv in self.bus.dev[k0:]], init)
+            ed = [(t - self.t0, lv) for t, lv in self.bus.dev[k0:]]
             sop = next((t for t, lv in ed if lv == "K"), None)
             if sop is None:
                 limit = start + a.timeout_ps
@@ -242,7 +220,6 @@ class Glue:
                 break
             self.bus.changed.clear()
             await First(self.bus.changed.wait(), Timer(max(1, round(limit - self.now())), unit="ps"))
-        self.bus.transients += steps
         wave = Wave(init, [(t - start, lv) for t, lv in ed if t <= limit], end=limit - start)
         return H.Result(t=start, wave=wave)
 
@@ -306,9 +283,6 @@ def summary(s):
 def check_clean(s, bus):
     assert not s.violations, "USB 2.0 violations: %s" % s.violations[:6]
     assert not bus.collisions, "host and device drove the bus at the same time: %s" % bus.collisions[:4]
-    tr = bus.transients
-    cocotb.log.info("device J/K changes through SE0 or SE1 (receiver view, TLST %.0f ns): %d, widest %.0f ps" % (
-        TLST_PS / 1e3, len(tr), max(tr, default=0)))
     for eop, sop in bus.first_reply_marks(2):
         cocotb.log.info("waveform marks: host EOP end %d ps, device SOP %d ps (reply %.3f bit times)" % (
             eop, sop, (sop - eop) / L.BIT_PS))

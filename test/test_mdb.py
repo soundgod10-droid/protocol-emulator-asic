@@ -80,6 +80,7 @@ class MdbChanger:
         self.just_reset = True  # power-up
         self.reset_end = None
         self.blocks, self.replies, self.breaks, self.errors = [], [], [], []
+        self.starts, self.reply_starts = [], []  # cycles of the master's start edges and of the changer's replies
 
     def _err(self, c, text):
         self.errors.append(f"cycle {c}: {text}")

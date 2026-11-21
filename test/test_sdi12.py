@@ -278,7 +278,7 @@ async def test_sdi12_model(dut):
         assert not m.late, f"{label}: late events {m.late}"
         ff.assert_status_clean(m, [0])
         log.info(f"{label}: replies as expected")
-    for equ, want_text in ((dict(BRKN=19), "neither a character nor a break"), (dict(HALF=2600), "recorder edge"),
+    for equ, want_text in ((dict(BRKN=22), "neither a character nor a break"), (dict(HALF=2600), "recorder edge"),
                            (dict(TOUT=1250), "time-out")):
         dev = Sdi12Sensor(scale=10, resp_ms=15.4, mark_ms=7.0)
         e = {**scale_equ(10), **equ}

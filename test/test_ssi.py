@@ -188,7 +188,7 @@ async def test_ssi_model(dut):
         model_run(enc, 13, h, 2)
         log.info(f"control H {h}: {enc.errors[0] if enc.errors else 'no fault found'}")
         assert enc.errors and want in enc.errors[0], f"control H {h}: expected '{want}', got {enc.errors[:2]}"
-    bad = []  # shortest half period: every event on time and the bits right with the latest tv (H - 1)
+    # shortest half period: every event on time and the bits right with the latest tv (H - 1)
     kinds = {}
     for h in range(12, 29):
         enc = SsiEncoder(13, 15.0, [0x1555, 0x0AAA], tv=h - 1)

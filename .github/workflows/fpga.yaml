@@ -25,7 +25,9 @@ jobs:
       matrix:
         # W5 variants (FPGA-only timing means, no src/ change): ecp5r ABC9 with flip-flop retiming (-abc9 -dff);
         # ecp5n ABC9 without the PFUMX/L6MUX wide-LUT muxes (-abc9 -nowidelut); nexus: Lattice Nexus (28 nm FD-SOI)
-        family: [ecp5, ecp5r, ecp5n, nexus, gw2a, gw5a, ice40]
+        # ecp5x and ecp5c are path-ladder diagnoses, not bench builds: the 10BASE-Te helper (ecp5x) or both helpers
+        # (ecp5c) removed from pe_proc, so that place and route names the limiting path of the remaining logic
+        family: [ecp5, ecp5r, ecp5n, ecp5x, ecp5c, nexus, gw2a, gw5a, ice40]
     steps:
       - uses: actions/checkout@v6
       - name: OSS CAD Suite

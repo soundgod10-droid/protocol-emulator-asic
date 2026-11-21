@@ -45,6 +45,7 @@
         .equ    MRKN, 22        ; marking after the break: 22 half bits = 9.17 ms
         .equ    TOUT, 4375      ; polls for the first response start bit (17.5 ms)
         .equ    TGAP, 2083      ; polls for the next response character (8.33 ms)
+        .equ    RELN, 20        ; half bits after the <LF> stop bit middle before the next command (8.33 ms)
 
         TSYNC   32
         OUT     SD, Z

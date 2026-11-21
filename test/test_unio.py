@@ -22,8 +22,10 @@ What it does:
   Model assumption, stated: commands other than RDSR during a write cycle are not acknowledged.
   The model test runs a whole EEPROM session (WREN, page WRITE of 8 bytes, RDSR polling through the write cycle, READ
   of the 8 bytes, CRRD, address polling of an absent device) at 50 kbit/s with the device's edges at +0.2 UI and
-  -0.2 UI with jitter, at 10 kbit/s, and at 100 kbit/s with no skew; negative controls THDR 3.3 us and a standby
-  pulse of 533 us. The RTL test runs WREN, a 2-byte write, status polling and the read-back at 50 kbit/s with the
+  -0.2 UI with +/-0.03 UI jitter, and at 10 kbit/s at +0.1 UI; negative controls THDR 3.3 us and a standby pulse of
+  533 us. Measured limits of the firmware, kept as checks: at 66.7 kbit/s with the device's edges at +0.2 UI the
+  next byte's first bit is written late (LATE), and at 100 kbit/s the instructions after a NoSAK time-out make the
+  next bit-start edge 0.35 UI late; the firmware is for 10 to 50 kbit/s. The RTL test runs WREN, a 2-byte write, status polling and the read-back at 50 kbit/s with the
   device's edges at +0.15 UI, in lockstep with the reference model; the same test runs on the gate-level netlist
   (gl_fw workflow).
 

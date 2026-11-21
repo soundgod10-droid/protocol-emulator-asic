@@ -170,7 +170,7 @@ async def test_ssi_model(dut):
         starts = [t for t, _, _ in enc.sent]
         gaps = [(b - a) / F_MHZ for a, b in zip(starts, starts[1:])]
         lo, hi = clock_stats(bench)
-        log.info(f"model {bits} bits, tm {tm} us: {len(pos)} reads correct {[hex(w) for w in bench.words(0)]}; "
+        log.info(f"model {bits} bits, tm {tm} us, tv {enc.tv / F_MHZ * 1000:.0f} ns: {len(pos)} reads correct {[hex(w) for w in bench.words(0)]}; "
                  f"{enc.sent[0][2]} falling edges a read; clock period {lo / F_MHZ:.3f} to {hi / F_MHZ:.3f} us; "
                  f"read starts {', '.join(f'{g:.1f}' for g in gaps)} us apart (the monoflop is {tm} us)")
     enc = SsiEncoder(14, 20.0, [0x2AAB])  # one bit more than the controller expects, LSB 1

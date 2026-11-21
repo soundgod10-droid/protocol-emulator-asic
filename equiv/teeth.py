@@ -26,6 +26,11 @@ INST = re.compile(r"^[ \t]*([A-Za-z_][\w$]*)[ \t]+(\\\S+[ \t]|[A-Za-z_][\w$\[\]]
 PIN = re.compile(r"\.([A-Za-z_][\w!]*)[ \t]*\(([^()]*)\)")
 POWER_PINS = {"VPWR", "VGND", "VPB", "VNB", "VDD", "VSS", "VDD!", "VSS!", "VDDARRAY!", "VDDARRAY", "VDDA", "VSSA"}
 NO_LOGIC = ("fill", "decap", "tap", "antenna", "diode")
+OUT_PINS = {"Q", "Q_N", "X", "Y", "GCLK", "A_DOUT"}
+ASSIGN = re.compile(r"^[ \t]*assign[ \t]+(\\\S+|[\w$.\[\]]+)[ \t]*=[ \t]*(\\\S+|[\w$.\[\]']+)[ \t]*;", re.M)
+# Clock pins of the sequential cells: flip-flops, latches (GATE, from a clock gate), clock gates, SRAM macros.
+SINKS = (("flip-flop", r"sg13cmos5l_s?df\w*", "CLK"), ("latch", r"sg13cmos5l_dlh\w*", "GATE"),
+         ("clock gate", r"sg13cmos5l_lgcp\w*", "CLK"), ("SRAM macro", r"RM_IHPSG13\w*", "A_CLK"))
 
 
 class Inst:

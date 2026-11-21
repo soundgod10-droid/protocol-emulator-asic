@@ -34,6 +34,7 @@ import os
 import sys
 
 import cocotb
+from cocotb.utils import get_sim_time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "model"))

@@ -47,8 +47,8 @@ F_MHZ = 60
 P_CLK = 12  # SSI_CLK = uo_out[4]
 UI_DATA = 3  # SSI_DATA = ui_in[3]
 
-TV_US = 0.1  # data valid after the rising edge
-TM_US = (10.0, 30.0)  # monoflop time range
+TV_US = 0.1  # data valid after the rising edge (any value below T/2)
+TM_US = (15.0, 25.0)  # monoflop time range
 F_MAX_KHZ = 400.0  # cable shorter than 50 m
 
 

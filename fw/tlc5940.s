@@ -22,7 +22,7 @@
 ;   at the end of the cycle it pulses XLAT (8 cycles after the BLANK rise, 8
 ;   cycles high) when a frame was shifted in that cycle; after the first
 ;   grayscale latch that follows a dot correction latch it gives the
-;   additional SCLK pulse of 8.4.3. BLANK stays high (outputs off) until the
+;   additional SCLK pulse of 8.4.3 (96 cycles after the BLANK rise). BLANK stays high (outputs off) until the
 ;   first grayscale data are latched (8.4.1: register values are unknown after
 ;   power-up).
 ;

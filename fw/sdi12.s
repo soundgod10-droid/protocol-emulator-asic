@@ -148,7 +148,10 @@ pchk:   MOV     r0, r2
         PUSH    r3
         ANDI    r3, 127
         CMPI    r3, 10
-        BEQ     get             ; <LF>: the response is complete
+        BNE     rgap0
+        LDI     r3, RELN        ; <LF>: the response is complete; the sensor may hold the line
+        JAL     r2, halves      ; for 7.5 ms + 0.4 ms more, so wait before the next command
+        JMP     get
 rgap0:  LD      r0, TGAPW       ; T = middle of the stop bit (or of the spike)
         JMP     rwait1
 rwait1: TADD    POLL

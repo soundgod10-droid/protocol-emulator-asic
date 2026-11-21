@@ -122,7 +122,12 @@ class Hx711:
         self.sck = sck
         if sck and not self.pd and (c - self.high_since) / us > T_PD and not self.initial:
             if self.pulses:
-                self.errors.append(f"cycle {c}: power-down inside a read after {self.pulses} pulses")
+                self.pulses -= 1  # its rise was counted as a pulse
+                if self.pulses >= 25:
+                    self._end_read(c)
+                elif self.pulses:
+                    self.errors.append(f"cycle {c}: power-down inside a read after {self.pulses} pulses")
+            self.bad_rise = None
             self.pd, self.ready, self.dout, self.pulses = True, False, 1, 0
         if not sck and self.pulses and (c - self.low_since) / us > 20.0:
             self._end_read(c)

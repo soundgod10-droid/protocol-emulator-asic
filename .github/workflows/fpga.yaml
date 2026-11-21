@@ -212,7 +212,10 @@ jobs:
         shell: bash
         run: |
           files="$(grep -v '^#' fpga/files.f | tr '\n' ' ')"
-          yosys -q -l synth_net.log -p "read_verilog $files; synth_ecp5 -top tt_um_soundgod10_droid_protocol_emulator; tee -o stat_net.txt stat; write_verilog -noattr fpga_ecp5_net.v"
+          # -nobram: the block RAM primitive DP16KD is a black box in the suite's cell models (no simulation model), so the
+          # two memories map to LUT RAM (TRELLIS_DPR16X4, which has one) here; the block RAM itself is the memory model of
+          # the RTL tests (C4 W3) and bench step F1 (all 1,536 words written and read on the board)
+          yosys -q -l synth_net.log -p "read_verilog $files; synth_ecp5 -nobram -top tt_um_soundgod10_droid_protocol_emulator; tee -o stat_net.txt stat; write_verilog -noattr fpga_ecp5_net.v"
           tail -n 30 stat_net.txt
           echo "::notice title=fpga netlist cells::$(grep -E '^ +[0-9]+ +(LUT4|TRELLIS_FF|CCU2C|PFUMX|L6MUX21|DP16KD|TRELLIS_DPR16X4)' stat_net.txt | sed ':a;N;$!ba;s/\n/%0A/g')"
           mkdir -p ecp5_net

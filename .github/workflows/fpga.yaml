@@ -307,8 +307,10 @@ jobs:
         shell: bash
         run: |
           cd fpga
-          make -f $(cocotb-config --makefiles)/Makefile.sim SIM=icarus TOPLEVEL_LANG=verilog TOPLEVEL=wiring_check \
-            VERILOG_SOURCES=$PWD/wiring_check.v COCOTB_TEST_MODULES=test_wiring_check WAVES=1 > make.log 2>&1 || true
+          # VERILOG_SOURCES from the environment, so that WAVES=1 can add its dump module to it (a command-line value
+          # would replace the addition: "Unable to find the root module cocotb_iverilog_dump", run 44938079121)
+          VERILOG_SOURCES=$PWD/wiring_check.v make -f $(cocotb-config --makefiles)/Makefile.sim SIM=icarus \
+            TOPLEVEL_LANG=verilog TOPLEVEL=wiring_check COCOTB_TEST_MODULES=test_wiring_check WAVES=1 > make.log 2>&1 || true
           tail -n 40 make.log
           test -f results.xml || { echo "::notice title=wiring build::$(grep -i -E 'error' make.log | head -n 6 | cut -c1-300 | sed ':a;N;$!ba;s/\n/%0A/g')"; exit 1; }
           echo "::notice title=wiring check summary::$(grep -A6 'wiring check summary' make.log | cut -c1-300 | sed ':a;N;$!ba;s/\n/%0A/g')"

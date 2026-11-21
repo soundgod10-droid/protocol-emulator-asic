@@ -5,7 +5,9 @@
 ;   DS22076D, 2009) on SCIO = uio[0] (UIO0) with a pull-up on the board (2.0,
 ;   2.3: idle high; the master drives push-pull and releases the line while a
 ;   slave sends). Manchester bits of TE = 2 x HB cycles (default 1,200 cycles
-;   = 20 us, 50 kbit/s): first half the inverted bit, second half the bit, so
+;   = 20 us, 50 kbit/s; set HB, QE, HBQ, TOW for 10 to 50 kbit/s: above 50
+;   kbit/s the work after a slave bit no longer fits before the next bit,
+;   measured in test/test_unio.py): first half the inverted bit, second half the bit, so
 ;   the middle edge rises for 1 and falls for 0 (4.0); bytes MSB first (5.0),
 ;   each followed by MAK (master: 1 continue, 0 NoMAK) and SAK (slave: a
 ;   rising middle edge; no edge = NoSAK) (5.1). Start header: line high for

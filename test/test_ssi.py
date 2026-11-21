@@ -185,8 +185,8 @@ async def test_ssi_model(dut):
 
 @cocotb.test()
 async def test_ssi_rtl(dut):
-    """fw/ssi.s on the chip at 60 MHz against the SSI encoder model: a 25-bit encoder with tm 20 us, three back-to-back
-    reads and an encoder with one bit more, in lockstep with the reference model."""
+    """fw/ssi.s on the chip at 60 MHz against the SSI encoder model: a 25-bit encoder with tm 20 us and three
+    back-to-back reads, in lockstep with the reference model."""
     rf.start_clock(dut)
     log = dut._log
     label = "rtl ssi"

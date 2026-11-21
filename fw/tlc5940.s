@@ -133,7 +133,6 @@ pnext:  DJNZ    r0, pbit
         OUT     SCLK, 1         ; additional SCLK pulse after the first grayscale latch after dot correction
         TADD    8
         OUT     SCLK, 0
-        TADD    -16 & 0         ; (no change: T stays 16 cycles later than the other paths)
         LDI     r1, 0
         ST      r1, DCL
         JMP     nolat1

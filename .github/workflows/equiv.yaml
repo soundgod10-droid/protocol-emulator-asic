@@ -81,7 +81,7 @@ jobs:
           vvp -n cells_tb > cells_tb.log 2>&1
           echo "vvp exit $?" | tee -a cells_tb.log
           cat cells_tb.log
-          echo "::notice title=cell models::$(grep '^cells_tb' cells_tb.log | sed ':a;N;$!ba;s/\n/%0A/g')"
+          echo "::notice title=cell models::$(grep -E '^cells_tb|^vvp exit|rror' cells_tb.log | head -n 20 | sed ':a;N;$!ba;s/\n/%0A/g')"
           grep -q "cells_tb: PASS" cells_tb.log
       - name: The submitted netlist is the final netlist (nl = pnl without power)
         if: always()

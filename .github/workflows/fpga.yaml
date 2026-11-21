@@ -23,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # The bench family (ECP5), GW2A and the iCE40 \"does not fit\" record. The W5 variants (ecp5r ABC9 with
+        # The bench family (ECP5), GW2A and the iCE40 "does not fit" record. The W5 variants (ecp5r ABC9 with
         # flip-flop retiming, ecp5n without wide-LUT muxes, nexus, gw5a) and the path-ladder diagnoses (ecp5x, ecp5c:
         # helpers removed from pe_proc) keep their case lines below for a run by hand; G1 was not met with any of them
         # (best worst-seed 39.28 MHz), and the bench runs at 25 MHz on ECP5 speed 6.

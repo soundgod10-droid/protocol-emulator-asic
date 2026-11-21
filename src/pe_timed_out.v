@@ -139,7 +139,6 @@ module pe_timed_out #(
       m_t    <= 16'd0;
       m_v    <= RESET_VALUE;
       m_e    <= RESET_OE;
-      m_pv   <= RESET_VALUE;
       m_pe   <= RESET_OE;
       m_j    <= 17'd0;
       m_d    <= 17'd0;

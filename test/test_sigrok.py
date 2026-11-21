@@ -698,6 +698,44 @@ async def test_sigrok_sbus(dut):
            "chip S.BUS transmitter (SBUS_TX = uio[4]; released pin read low through the board pull-down), 2 frames")
 
 
+# ----- LIN -----
+# lin/pd.py on uart (19,200 bit/s), option version 2 (enhanced checksum except for identifiers 60, 61): at the end of a
+# frame (next BREAK or two idle byte times) class data "Sync", "ID: {id:02X} Parity: {p:d} (ok)", "Data: 0x{b:02X}" for
+# each data byte, "Checksum: 0x{c:02X}"; class control "Break condition" for the BREAK, and the uart decoder's rx-break
+# and frame-error warning for the same low are allowed inside that annotation only; lin's error classes stay faults.
+
+
+@cocotb.test()
+async def test_sigrok_lin(dut):
+    """fw/lin_cmd.s runs two frames with the LIN responder node of test_lin.py: one the chip publishes (0x22) and one the
+    node publishes (0x10, the data of LIN 2.2A Table 2.5); the bus level (LIN_RX) is decoded."""
+    rf.start_clock(dut)
+    label = "sigrok lin_cmd"
+    sched, words, publish, subscribe, want = ln.cmd_case(short=True)
+    node = ln.LinNode("responder", publish=publish, subscribe=subscribe)
+    bench = rf.RtlBench(dut, ln.assemble("lin_cmd.s").words, owner=ff.owners({ln.P_TX: 0}), inputs=node, label=label)
+    await bench.run(100)
+    t0 = now_ps()
+    bench.send(0, *words)
+    for _ in range(100):
+        if len(node.frames) >= len(sched) and len(bench.words(0)) >= 5:
+            break
+        await bench.run(20_000)
+    await bench.run(int(30 * ln.BIT))  # two idle byte times end the last frame in lin/pd.py
+    t1 = now_ps()
+    await bench.finish(dut._log)
+    ln.cmd_check(node, bench.words(0), sched, want, label)
+    texts = []
+    for fid, kind, x in sched:
+        data = list(x) if kind == "pub" else list(publish[fid])
+        texts += (["Sync", f"ID: {fid:02X} Parity: {ln.lin_pid(fid) >> 6:d} (ok)"] + [f"Data: 0x{b:02X}" for b in data]
+                  + [f"Checksum: 0x{ln.lin_checksum(fid, data):02X}"])
+    record("test_sigrok_lin", "lin_cmd", [["lin_bus", f"ui:{ln.UI_RX}"]], "uart:rx=lin_bus:baudrate=19200,lin",
+           {"lin:data": texts}, t0, t1, "lin_bus",
+           "chip as LIN commander with the responder node; LIN_RX = the bus (wired AND of both nodes), 2 frames",
+           allow={"uart:rx-break": "lin:control", "uart:rx-warning": "lin:control"})
+
+
 def record_pdi(t0, t1, texts):
     record("test_sigrok_pdi", "pdi", [["pdi_clk", f"drvh:{ho.P_CLK}"], ["pdi_data", f"bus:{ho.P_DAT}"]],
            "avr_pdi:reset=pdi_clk:data=pdi_data", {"avr_pdi:data-prog|data-dev": texts}, t0, t1, "pdi_data",

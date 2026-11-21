@@ -189,18 +189,20 @@ async def test_ssi_model(dut):
         log.info(f"control H {h}: {enc.errors[0] if enc.errors else 'no fault found'}")
         assert enc.errors and want in enc.errors[0], f"control H {h}: expected '{want}', got {enc.errors[:2]}"
     bad = []  # shortest half period: every event on time and the bits right with the latest tv (H - 1)
-    for h in range(12, 25):
+    kinds = {}
+    for h in range(12, 29):
         enc = SsiEncoder(13, 15.0, [0x1555, 0x0AAA], tv=h - 1)
         bench, m = model_run(enc, 13, h, 2)
         try:
             ff.assert_status_clean(m, [0])
-            ok = bench.words(0) == [w for v in (0x1555, 0x0AAA) for w in expect(13, 13, v)]
         except AssertionError:
-            ok = False
-        if not ok:
-            bad.append(h)
-    log.info(f"half period 12 to 24 cycles, tv = H - 1: LATE or wrong bits at H = {bad} (header limit H >= {H_MIN})")
-    assert all(h < H_MIN for h in bad) and H_MIN - 1 in bad, f"half-period limit: {bad}"
+            kinds[h] = "status"
+            continue
+        if bench.words(0) != [w for v in (0x1555, 0x0AAA) for w in expect(13, 13, v)]:
+            kinds[h] = "bits"
+    bad = sorted(kinds)
+    log.info(f"half period 12 to 28 cycles, tv = H - 1: faults {kinds} (header limit H >= {H_MIN})")
+    assert all(h < H_MIN for h in bad) and H_MIN - 1 in bad, f"half-period limit: {kinds}"
 
 
 @cocotb.test()

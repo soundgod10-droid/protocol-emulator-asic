@@ -2496,9 +2496,9 @@ async def test_slu_chip_swd_dpidr(dut):
         val = fx.lsb_word(xfer[11:43])
         par = xfer[43]
         lines.append("%s, target output %.0f ns: thread 0 status %s, %d words stored, ACK %s, DPIDR %08x (target "
-                     "%08x), parity %s, target timing errors %d" % (
+                     "%08x), parity %s, target timing errors %d; STOP release: %s" % (
                          corner, td, ["%04x" % w for w in words_out], end - 768, bin(ack), val, tgt.dpidr,
-                         "ok" if fx.parity(val) == par else "BAD", len(tgt.errors)))
+                         "ok" if fx.parity(val) == par else "BAD", len(tgt.errors), release))
         assert len(words_out) == 1 and not words_out[0] & 0x204, "thread 0 status %s" % words_out
         assert ack == 0b001, "ACK %s (bits %s)" % (bin(ack), xfer[:16])
         assert val == tgt.dpidr and fx.parity(val) == par, "DPIDR %08x parity %d" % (val, par)

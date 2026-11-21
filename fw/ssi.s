@@ -75,8 +75,8 @@ ready:  LD      r3, HH
 hip:    TADD    r3
         OUT     CLK, 1          ; next bit to DATA
         TADD    r3
-        SAMPLE  DATA, r1<<      ; read before the falling edge
         OUT     CLK, 0
+        SAMPLE  DATA, r1<<      ; at the falling edge's time: the level before it
         DJNZ    r2, hip
         MOV     r0, r1          ; bits above the low word
 lowpart:

@@ -56,7 +56,8 @@
         .equ    BUF, 512
 
         TSYNC   32
-        OUT     XLAT, 0
+        OUT     XLAT, 0         ; first: every uo pin is high from reset, SCLK and VPRG must not change with XLAT high
+        TADD    2               ; th3: XLAT fall to VPRG
         OUT     SCLK, 0
         OUT     GSCLK, 0
         OUT     VPRG, 0

@@ -298,9 +298,9 @@ jobs:
               grep -E "Max frequency" pnr_${d}_$part.log | tail -n 1
             done
           done
-          python3 fpga/fmax.py bench_12k_pins 26.25 rep_bench_12k.json | tee fmax_bench_12k.txt
-          python3 fpga/fmax.py bench_85k_pins 26.25 rep_bench_85k.json | tee fmax_bench_85k.txt
-          python3 fpga/fmax.py wiring_12k 26.25 rep_wiring_12k.json | tee fmax_wiring_12k.txt
+          python3 fpga/fmax.py bench_12k_pins 26.25 rep_bench_12k_1.json | tee fmax_bench_12k.txt
+          python3 fpga/fmax.py bench_85k_pins 26.25 rep_bench_85k_1.json | tee fmax_bench_85k.txt
+          python3 fpga/fmax.py wiring_12k 26.25 rep_wiring_12k_1.json | tee fmax_wiring_12k.txt
           sha256sum fpga/files.f $files fpga/fpga_top.v fpga/wiring_check.v fpga/ulx3s_bench.lpf *.bit > MANIFEST.txt
           echo "commit $GITHUB_SHA, OSS CAD Suite 2026-11-14" >> MANIFEST.txt
           echo "::notice title=bench bitstreams::$(head -n 1 fmax_bench_12k.txt)%0A$(head -n 1 fmax_bench_85k.txt)%0A$(head -n 1 fmax_wiring_12k.txt)%0A$(grep -c bit MANIFEST.txt) bitstreams in MANIFEST.txt"

@@ -294,7 +294,7 @@ async def test_sbus_tx_rtl(dut):
     label = "rtl sbus_tx"
     frames = FRAMES[:2]
     bench = rf.RtlBench(dut, assemble("sbus_tx.s").words, owner=ff.owners({P_TX: 0}), label=label)
-    bench.watch("tx", lambda uo, uio, oe: (uo >> 4) & 1)
+    bench.watch("tx", tx_level)
     bench.send(0, *tx_words(frames))
     await bench.run(rf.HOST_START + tx_cycles(frames))
     await bench.finish(log)

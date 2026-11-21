@@ -193,6 +193,70 @@ jobs:
             pnr_*.log
             fmax_*.txt
 
+  # C4 W6: the protocol tests on the bench family's mapped netlist: Yosys synth_ecp5 of the chip top with the FPGA file
+  # set, written as Verilog, simulated with Yosys's own ECP5 cell models (cells_sim.v) as a gate-level run (GATES=yes:
+  # pins only, no RTL names). Logic simulation at zero delay: it shows that the FPGA synthesis keeps the behaviour the
+  # RTL tests check (the same tests pass on the RTL and on the IHP netlist), not the FPGA's timing.
+  postsynth:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [fw1, fw2, slu, usb, eth]
+    steps:
+      - uses: actions/checkout@v6
+      - name: OSS CAD Suite
+        uses: YosysHQ/setup-oss-cad-suite@v4
+        with:
+          version: '2026-11-14'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - name: Install Python packages
+        run: pip install -r test/requirements.txt
+      - name: Mapped netlist (synth_ecp5, chip top)
+        shell: bash
+        run: |
+          files="$(grep -v '^#' fpga/files.f | tr '\n' ' ')"
+          yosys -q -l synth_net.log -p "read_verilog $files; synth_ecp5 -top tt_um_soundgod10_droid_protocol_emulator; tee -o stat_net.txt stat; write_verilog -noattr fpga_ecp5_net.v"
+          tail -n 30 stat_net.txt
+          echo "::notice title=fpga netlist cells::$(grep -E '^ +[0-9]+ +(LUT4|TRELLIS_FF|CCU2C|PFUMX|L6MUX21|DP16KD|TRELLIS_DPR16X4)' stat_net.txt | sed ':a;N;$!ba;s/\n/%0A/g')"
+      - name: Tests on the mapped netlist (${{ matrix.part }})
+        shell: bash
+        run: |
+          dat=$(yosys-config --datdir)
+          iverilog -V 2>&1 | head -n 1
+          cd test
+          rm -f results.xml
+          gl_part=
+          filter=
+          case "${{ matrix.part }}" in
+            fw1) mod=test_rtl_fw; gl_part=1 ;;
+            fw2) mod=test_rtl_fw; gl_part=2 ;;
+            slu) mod=test_slu ;;
+            usb) mod=test_usb_dev; filter='^test_usb_dev_enumerate$' ;;
+            eth) mod=test_eth_dev; filter='^test_eth_dev_(tx|rx)$' ;;
+          esac
+          make GATES=yes GL_PART=$gl_part COCOTB_TEST_FILTER="$filter" SIM_BUILD=sim_build/fpga_net \
+            VERILOG_SOURCES="$GITHUB_WORKSPACE/fpga_ecp5_net.v $dat/ecp5/cells_sim.v $PWD/tb.v" \
+            COMPILE_ARGS="-DGL_TEST -DSIM -I$dat/ecp5" COCOTB_TEST_MODULES=$mod
+          python -m cocotb_tools.check_results results.xml
+      - name: Test Summary
+        uses: test-summary/action@v2.4
+        with:
+          paths: "test/results.xml"
+        if: always()
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: postsynth-${{ matrix.part }}
+          path: |
+            test/results.xml
+            stat_net.txt
+            synth_net.log
+
   # C4 W3: the RTL test suite with the FPGA file set (latch memory model of fpga/pe_latch_ram_fpga.v, no src/pe_cells.v).
   rtl_fpga_files:
     runs-on: ubuntu-24.04

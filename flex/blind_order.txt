@@ -1,0 +1,6 @@
+drand quicknet round 34159012 (published 2026-11-21T17:00:00Z)
+randomness a08eacf123483fa9dc7089ba9459360735c113f0b6f520cf4b721ad3bcccba9b
+command: python flex/order.py a08eacf123483fa9dc7089ba9459360735c113f0b6f520cf4b721ad3bcccba9b
+list C: 41 rows; reserve R: 4 rows
+blind arm B (8, by SHA-256(R + id)): pocsag j1708 ds1302 biss hdlc ata magstripe snes
+pre-freeze list P (33, score order): dmx512 dcc sbus lin hd44780 hx711 irda oregon ssi tm1637 mdb psi5 tlc5940 unio i3c iso7816 sent adb hub75 joybus x10 iolink mil1553 sdi12 centronics sega6 arinc429 asi kline lanc mbp endat knx

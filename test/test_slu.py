@@ -2264,9 +2264,10 @@ async def stop_release(dut, host, pins):
             first = next(k for k, (t, v, _) in enumerate(ev) if bit(v) != v0)
             order = "value first" if first < next(k for k, (t, _, oe) in enumerate(ev) if bit(oe) != "1") else "same step"
             out.append("uio%d drove 0, 1 for %.3f ns before the enable fell (%s)" % (i, (t_oe - t_v) / 1000.0, order))
+            runts.append(i)
         else:
             out.append("uio%d drove %s, enable fell at +%.3f ns, no high runt" % (i, v0, (t_oe - t0) / 1000.0))
-    return "; ".join(out)
+    return "; ".join(out), runts
 
 
 JTAG_HELPER_FW = helper_fw("jtag_idcode.s")

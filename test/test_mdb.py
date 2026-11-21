@@ -112,6 +112,7 @@ class MdbChanger:
             chk = (sum(data) + (1 if self.corrupt and cmd == 1 else 0)) & 0xFF
             out = data + [chk | 0x100]
         self.blocks.append((blk, out))
+        self.reply_starts.append(round(end + self.resp))
         t_end = self._send(end + self.resp, out)
         if data is not None:
             self.sent = data

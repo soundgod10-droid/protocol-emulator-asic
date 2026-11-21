@@ -145,7 +145,8 @@ report: SHL     r0, 8
         OR      r0, r1
         PUSH    r0              ; identifier and status
         LD      r2, NN
-        LDI     r1, BUF
+        LDI     r1, BUFH
+        SHL     r1, 1
 rep:    LDX     r0, [r1]
         PUSH    r0
         ADDI    r1, 1

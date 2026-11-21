@@ -2489,7 +2489,7 @@ async def test_slu_chip_swd_dpidr(dut):
             dump.value = 1
         watch.stop()                                                  # the session is over: thread 0 has halted
         words_out, _ = await host.pull(0)
-        release = await stop_release(dut, host, (0, 3))
+        release, runts = await stop_release(dut, host, (0, 3))
         end = (await host.read_mem(500, 1))[0]
         got_words = await host.read_mem(768, end - 768)
         nc = (len(conn) + 15) // 16

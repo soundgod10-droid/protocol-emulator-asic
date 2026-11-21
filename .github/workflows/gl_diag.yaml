@@ -141,9 +141,9 @@ jobs:
           make clean
           sdf=""
           [ -n "${{ matrix.corner }}" ] && sdf="SDF_FILE=/tmp/cell_only.sdf"
-          GATES=yes COCOTB_TEST_FILTER=test_usb_dev_enumerate make $sdf COCOTB_TEST_MODULES=test_usb_dev FST= 2>&1 | grep -v "SDF WARNING" | tail -n 60 | tee gl_diag.log
+          GATES=yes COCOTB_TEST_FILTER="${{ matrix.filter }}" make $sdf COCOTB_TEST_MODULES=test_usb_dev FST= 2>&1 | grep -v "SDF WARNING" | tee gl_diag_full.log | tail -n 60 > gl_diag.log
           res=$(grep -c "<failure" results.xml)
-          echo "::notice title=gl_diag ${{ matrix.name }} result::failures $res; $(grep -E 'PASS|FAIL|enumerated|no ACK|Error' gl_diag.log | tail -n 8 | sed ':a;N;$!ba;s/\n/%0A/g')"
+          echo "::notice title=gl_diag ${{ matrix.name }} result::failures $res; $(grep -E 'PASS|FAIL|enumerated|errors:|HID:|suspend:|through SE0|no ACK|Error' gl_diag_full.log | grep -v 'Error [12]$' | tail -n 24 | sed ':a;N;$!ba;s/\n/%0A/g')"
           true
       - uses: actions/upload-artifact@v7
         if: always()

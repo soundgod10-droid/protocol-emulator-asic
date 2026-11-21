@@ -161,7 +161,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        case: [netlist, ff_d_swap]
+        # netlist: the proof; the others: planted faults (equiv/teeth.py), each must give a counterexample. cts_inv
+        # inverts the clock of the clock gates and macros, whose clock pins are miter outputs here.
+        case: [netlist, ff_d_swap, sync_bypass, hold_inv, cts_inv, cg_gate_swap, lat_d_swap]
     permissions:
       actions: read
       contents: read

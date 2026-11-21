@@ -35,8 +35,8 @@ gate-nomatch *.clk
 # The latch enables (gated clocks of the latch memories): the clock tree splits each word's gated clock into several
 # buffered nets that keep the RTL names of different bits, while the RTL has one net per word, so one gold net got
 # two gate names in one partition (run 44830886025: word 9, g_bit[0] and g_bit[10], "used but has no driver").
-gold-nomatch /.+\.u_lat\.g/
-gate-nomatch /.+\.u_lat\.g/
+gold-nomatch *.u_lat.g
+gate-nomatch *.u_lat.g
 
 # k-induction on every piece (a base case from the initial state and an induction step), then PDR for the pieces
 # that k-induction leaves open (PDR finds the invariant that relates two encodings of the same state).

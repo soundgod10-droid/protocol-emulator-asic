@@ -2271,9 +2271,9 @@ async def test_slu_chip_jtag_idcode(dut):
         await ClockCycles(dut.clk, 3000)
         if dump is not None:
             dump.value = 1
+        watch.stop()                                                  # the session is over: thread 0 has halted
         words_out, _ = await host.pull(0)
-        await host.stop()
-        watch.stop()
+        release = await stop_release(dut, host, (0, 1, 2))
         end = (await host.read_mem(500, 1))[0]
         got_words = await host.read_mem(768, end - 768)
         got = sc.bits_of(got_words[1:5], 64)                          # word 0: the TDO samples of frame A

@@ -43,7 +43,8 @@
         .equ    TX, UO4
         .equ    RX, UI3
         .equ    HB, 3125        ; half a bit time (9600 bit/s: 6,250 cycles)
-        .equ    TR, 938         ; t-response: TR x 32 = 30,016 cycles = 5.003 ms
+        .equ    HBE, 3113       ; first sample after the start bit was seen: HB - 12 (the middle of the 24-cycle step)
+        .equ    OUTN, 13        ; reply time-out: OUTN x 1,000 x 24 cycles = 312,000 cycles = 5.2 ms
         .equ    BRK, 751        ; bus reset: BRK x 8,000 cycles (100 ms minimum)
         .equ    SET, 1001       ; setup after a reset: SET x 12,000 cycles (200 ms minimum)
         .equ    BUF, 512

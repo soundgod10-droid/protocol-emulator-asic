@@ -17,7 +17,8 @@ name: sdf
 #                    the model; every instruction fetch uses the program macro's data at the next clock edge;
 #                    test_r3_sdf cannot see it, the host port reads the data many cycles later)
 #   nodelay_control  the gate-level netlist with no SDF: test_r3_sdf must fail (it needs a clock-to-MISO delay)
-#   shmoo            test_r3_sdf at clock periods from 16.666 ns down to 10 ns: pass or fail at each period
+#   shmoo            test_r3_sdf and test_core_alu_flags at clock periods from 16.666 ns down to 6 ns: pass or fail at
+#                    each period (a failure is run again without SDF)
 #
 # It runs by hand (Actions > sdf > Run workflow) with the id of the gds run, and after a successful gds run of a
 # tape-out tag. A run by hand can take the tests of the branch it runs on (tests: this ref; the src/ difference to the

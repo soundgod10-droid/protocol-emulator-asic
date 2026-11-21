@@ -10,6 +10,25 @@ import re
 import sys
 
 
+def limiting_path(rep):
+    """Start and end cell of the longest critical path of a nextpnr report, its delay split into logic (cell) and
+    routing, and the number of steps."""
+    best = None
+    for cp in rep.get("critical_paths", []):
+        steps = cp.get("path", [])
+        total = sum(s.get("delay", 0.0) for s in steps)
+        if steps and (best is None or total > best[0]):
+            best = (total, steps)
+    if best is None:
+        return "none in the report"
+    total, steps = best
+    route = sum(s.get("delay", 0.0) for s in steps if s.get("type") == "routing")
+    start = steps[0].get("from", {}).get("cell", "?")
+    end = steps[-1].get("to", {}).get("cell", "?")
+    return "%s -> %s, %.2f ns (logic %.2f, routing %.2f), %d steps" % (start, end, total, total - route, route,
+                                                                      len(steps))
+
+
 def main(target, gate, paths):
     gate = float(gate)
     worst = None

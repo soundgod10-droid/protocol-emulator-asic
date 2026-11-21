@@ -56,8 +56,9 @@ class SsiEncoder:
     """SSI encoder (see the module text). bits: resolution; tm_us: monoflop time; positions: values stored at the
     successive transmissions; dead: data line stuck low. Records transmissions [(cycle, value sent, falling edges)]."""
 
-    def __init__(self, bits, tm_us, positions, dead=False, us=F_MHZ):
+    def __init__(self, bits, tm_us, positions, dead=False, us=F_MHZ, tv=None):
         self.n, self.us, self.tm = bits, us, round(tm_us * us)
+        self.tv = tv if tv is not None else max(1, round(TV_US * us))  # cycles from the rising edge
         self.pos = list(positions)
         self.dead = dead
         self.clk, self.data = 1, 0 if dead else 1

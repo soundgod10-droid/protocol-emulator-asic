@@ -88,6 +88,7 @@ par:    MOV     r0, r2
         TSYNC   32
 sbit:   OUT     SD, r2>>
         LD      r0, HALFW
+        TWAIT                   ; wait until the bit starts: T stays within the horizon
         TADD    r0
         TWAIT
         TADD    r0

@@ -215,7 +215,7 @@ def model_run(dev, words, cycles, **equ):
 
     def watch(th, c, t):
         if (t - c) & 0xFFFF not in range(pe_model.LEAD, pe_model.HORIZON) and len(m.late) < 5:
-            m.late.append((c, prog.source[th.pc][1].strip()))
+            m.late.append((c, _signed(t - c), th.pc, prog.source[th.pc][1].strip()))
         return event_cycle(th, c, t)
 
     m._event_cycle = watch

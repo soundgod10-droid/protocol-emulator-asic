@@ -29,7 +29,7 @@
 ;
 ; Host words to this thread:
 ;   bits 1..0: 1, 2 or 3 = 25, 26 or 27 pulses (input and gain of the next
-;   conversion); bit 2 = 1: power down instead of a read (bits 1..0 are not
+;   conversion; 0 is taken as 1); bit 2 = 1: power down instead of a read (bits 1..0 are not
 ;   used); the next word ends the power-down.
 ; Words to the host, for each read: the 24-bit result in two's complement as
 ;   bits 23..16 sign-extended to 16 bits, then bits 15..0.

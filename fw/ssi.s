@@ -9,7 +9,7 @@
 ;   For each read word from the host the thread first waits until DATA is high
 ;   (the encoder's monoflop has run out: a new transmission may start only
 ;   then); if DATA stays low for 4,000 cycles = 66.7 us (longer than the
-;   longest monoflop time, 30 us), it reports "not ready". Then it makes N + 1
+;   longest monoflop time, 25 us), it reports "not ready". Then it makes N + 1
 ;   clock pulses with half period H: the first falling edge makes the encoder
 ;   store the position and start its monoflop, each rising edge shifts the
 ;   next bit to DATA (MSB first, 100 ns after the edge), and the thread reads

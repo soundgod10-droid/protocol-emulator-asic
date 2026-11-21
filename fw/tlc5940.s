@@ -69,11 +69,8 @@
         LDI     r0, BUF
         ST      r0, GP
         TSYNC   100
-cycle:  LDI     r0, NGSH        ; T = the first GSCLK rise of the cycle
-        SHL     r0, 3
-        LD      r3, MODE        ; frame to shift in this cycle: 0 none, 1 grayscale, 2 dot correction
-        ST      r3, LAT
-        MOV     r3, r3
+        JMP     nonext
+cycle:  MOV     r3, r3          ; T = the first GSCLK rise of the cycle; r0 = GSCLK periods, r3 = LAT
         BEQ     plain
         LDI     r1, 0
         ST      r1, MODE

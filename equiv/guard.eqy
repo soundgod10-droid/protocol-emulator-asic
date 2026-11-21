@@ -35,3 +35,5 @@ opt_clean
 use sby
 depth 10
 engine smtbmc yices
+# falling-edge DIN flip-flops of the 10BASE-T helper (as in equiv/chip.eqy)
+option multiclock on

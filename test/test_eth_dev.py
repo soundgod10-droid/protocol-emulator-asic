@@ -116,12 +116,41 @@ class Line:
         return start
 
     def tx_wave(self, t0, t1):
-        """Chip transmit levels in [t0, t1) (absolute ps) as a Wave with times relative to t0."""
+        """Chip transmit levels in [t0, t1) (absolute ps) as a Wave with times relative to t0.
+
+        With the cell delays of the layout (SDF runs) TD+ and TD- change a few hundred ps apart, so each
+        transition passes through both-low or both-high, which _level() reads as 0. On the pair that is the
+        zero crossing itself, not silence. A 0 shorter than SKEW_MAX_PS between two driven levels is taken as
+        one transition at its midpoint (or dropped if the level returns), so the crossing moves by at most half
+        the gap and the jitter check sees the moved time. 8 ns is the TD jitter limit into 100 ohm
+        (IEEE 802.3 14.3.1.2.3 p.525); a packet holds no silence and the shortest silence the decoder must
+        see (the idle after TP_IDL, between link pulses) lasts microseconds. In RTL and zero-delay gate-level
+        runs both pins change in the same step and nothing is merged. self.skews keeps the merged gaps (ps)."""
         init = 0
         for t, lv in self.tx:
             if t < t0:
                 init = lv
-        return Wave(init, [(t - t0, lv) for t, lv in self.tx if t0 <= t < t1], end=t1 - t0)
+        raw = [(t - t0, lv) for t, lv in self.tx if t0 <= t < t1]
+        edges, self.skews = [], []
+        prev = init
+        i = 0
+        while i < len(raw):
+            t, lv = raw[i]
+            if lv == 0 and prev != 0 and i + 1 < len(raw) and raw[i + 1][1] != 0 \
+                    and raw[i + 1][0] - t < self.SKEW_MAX_PS:
+                tn, ln = raw[i + 1]
+                self.skews.append(tn - t)
+                if ln != prev:
+                    edges.append(((t + tn) / 2, ln))
+                    prev = ln
+                i += 2
+                continue
+            edges.append((t, lv))
+            prev = lv
+            i += 1
+        return Wave(init, edges, end=t1 - t0)
+
+    SKEW_MAX_PS = 8000
 
 
 class HostPort:

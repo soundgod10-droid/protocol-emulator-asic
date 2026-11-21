@@ -182,7 +182,7 @@ async def test_ssi_model(dut):
     log.info(f"model dead encoder (DATA low): {[hex(w) for w in bench.words(0)]}")
     assert bench.words(0) == [0x8000, 0] and not enc.sent, "dead encoder"
     for h, want in ((30, "below 400 kHz"), (900, ">= tm")):
-        enc = SsiEncoder(13, 10.0, [0x1ABC, 0x0001])
+        enc = SsiEncoder(13, 15.0, [0x1ABC, 0x0001])
         model_run(enc, 13, h, 2)
         log.info(f"control H {h}: {enc.errors[0] if enc.errors else 'no fault found'}")
         assert enc.errors and want in enc.errors[0], f"control H {h}: expected '{want}', got {enc.errors[:2]}"

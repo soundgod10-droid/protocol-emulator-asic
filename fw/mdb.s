@@ -13,9 +13,12 @@
 ;   them back to back: the first (address) byte with the mode bit set, the
 ;   other bytes and the CHK with it clear (no gap between bytes).
 ;   Then it waits for the peripheral's reply: the first start bit must come
-;   within t-response (TR x 32 cycles = 5.0 ms) after the end of the CHK
-;   byte, each later byte within the same time after the byte before (the
-;   receiver tolerance of Appendix 3, longer than the sender's 1 ms limit).
+;   within OUTN x 24,000 cycles = 5.2 ms (t-response 5.0 ms) after the end of
+;   the CHK byte, each later byte within the same time after the byte before
+;   (the receiver tolerance of Appendix 3, longer than the sender's 1 ms
+;   limit). A WAIT time-out reaches at most 32,767 cycles (546 us, isa 6.3),
+;   so the thread samples RX every 24 cycles while it waits: no start bit can
+;   pass unseen, and its edge is known to +/-12 cycles (0.2 % of a bit).
 ;   Each reply byte is read in the middle of its bits from its start edge and
 ;   goes to the host with its mode bit. A reply that ends with its first byte
 ;   (mode bit set: ACK 00H or NAK FFH) ends the exchange; after a data block

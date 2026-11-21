@@ -142,7 +142,7 @@ def clock_stats(bench):
 
 
 H_TEST = 90  # half clock period in cycles: T = 3 us (333 kHz)
-H_MIN = 16  # shortest half period that fw/ssi.s states
+H_MIN = 24  # shortest half period that fw/ssi.s states
 CASES = [(13, 15.0, [0x1ABC, 0x0001, 0x1FFF, 0x0A5A], None), (25, 25.0, [0x1ABCDEF, 0x0000001, 0x1FFFFFF], None),
          (13, 25.0, [0x0F0F, 0x10F0], None), (25, 15.0, [0x0123456, 0x1F0F0F0], None),
          (13, 15.0, [0x1555, 0x0AAA], H_TEST - 1), (25, 25.0, [0x1555555, 0x0AAAAAA], H_TEST - 1)]

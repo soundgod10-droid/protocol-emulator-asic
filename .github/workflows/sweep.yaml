@@ -132,6 +132,19 @@ jobs:
           echo "::notice title=functional coverage groups::$(sed -n '/^| Group | Clause/,/^$/p' fcov_report.md | sed -e 's/%/%25/g' | sed -e ':a;N;$!ba;s/\n/%0A/g')"
           exit $rc
 
+      # Every numbered section of docs/isa.md, host_port.md and helpers.md -> bins, tests and proofs -> CI job; the cited
+      # tests of the modules run here (test_rtl_sweep, test_core, test_rtl_fw) must have passed in this run.
+      - name: Traceability matrix
+        if: success() || failure()
+        shell: bash
+        run: |
+          rc=0
+          python test/trace_check.py --results "sweep/**/results.xml" --out trace_report.md --selftest > trace_out.txt || rc=$?
+          grep -E "^(planted fault|self-test)" trace_out.txt || true
+          cat trace_report.md >> "$GITHUB_STEP_SUMMARY"
+          echo "::notice title=traceability matrix::$( (tail -n 1 trace_out.txt; grep '^self-test' trace_out.txt) | sed -e 's/%/%25/g' | sed -e ':a;N;$!ba;s/\n/%0A/g')"
+          exit $rc
+
       - name: Upload the reports
         if: success() || failure()
         uses: actions/upload-artifact@v7
@@ -140,3 +153,4 @@ jobs:
           path: |
             sweep_summary.md
             fcov_report.md
+            trace_report.md

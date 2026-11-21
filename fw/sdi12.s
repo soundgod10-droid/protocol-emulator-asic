@@ -16,7 +16,9 @@
 ;   it looks for a start bit every POLL cycles for TOUT polls (17.5 ms; the
 ;   first start bit comes within 15.0 ms + 0.4 ms), samples each bit in its
 ;   middle, checks parity and the stop bit, and waits at most TGAP polls
-;   (8.33 ms, the retry condition of 7.2) for the next character, up to <LF>.
+;   (8.33 ms, the retry condition of 7.2) for the next character, up to <LF>;
+;   after the <LF> it leaves the line to the sensor for RELN half bits (8.33
+;   ms; the sensor may hold it 7.5 ms + 0.4 ms) before the next command.
 ;   All times are .equ values, so a test can divide them by a common factor.
 ;
 ; Why:

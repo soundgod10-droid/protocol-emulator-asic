@@ -143,8 +143,6 @@ class Tm1637:
                 self._err(c, f"DIO changed {c - self.t_rise} cycles after the CLK rise (tHOLD 100 ns)")
             self.ctl_dio, self.t_dio = ctl, c
         dio = ctl & self.dev
-        if self.clk and clk == 1 and dio != self.dio and ctl != (self.dio if dio == ctl else ctl ^ 1):
-            pass
         if self.clk and clk and dio != self.dio:  # DIO edge while CLK is high: START or STOP
             if dio == 0:
                 self.active, self.first, self.k, self.byte = True, True, 0, 0

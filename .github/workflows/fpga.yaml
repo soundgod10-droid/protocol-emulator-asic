@@ -293,7 +293,7 @@ jobs:
           for part in 12k 85k; do
             for d in wiring bench; do
               nextpnr-ecp5 --$part --package CABGA381 --speed 6 --json $d.json --lpf fpga/ulx3s_bench.lpf --freq 25 \
-                --seed 1 --timing-allow-fail --report rep_${d}_$part.json --textcfg ${d}_$part.config -l pnr_${d}_$part.log
+                --seed 1 --timing-allow-fail --report rep_${d}_${part}_1.json --textcfg ${d}_$part.config -l pnr_${d}_$part.log
               ecppack --compress ${d}_$part.config ${d}_ulx3s_$part.bit
               grep -E "Max frequency" pnr_${d}_$part.log | tail -n 1
             done

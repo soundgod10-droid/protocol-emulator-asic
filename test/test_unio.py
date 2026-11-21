@@ -450,7 +450,7 @@ RTL_POLLS = 6
 @cocotb.test()
 async def test_unio_rtl(dut):
     """fw/unio.s on the chip at 60 MHz against the 11XX model at 50 kbit/s with the device's edges at +0.15 UI: WREN,
-    a 2-byte WRITE, RDSR polling through a 0.6 ms write cycle and the READ back, in lockstep with the reference
+    a 2-byte WRITE, RDSR polling through a 1 ms write cycle and the READ back, in lockstep with the reference
     model."""
     rf.start_clock(dut)
     log = dut._log

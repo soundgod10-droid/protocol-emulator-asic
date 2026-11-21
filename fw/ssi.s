@@ -17,8 +17,8 @@
 ;   rising edge (clock back to idle high) the encoder drives DATA low until
 ;   its monoflop time tm (15 to 25 us) has run out; the thread checks that
 ;   DATA is low H after that edge (a bit count or a line fault shows as a 1).
-;   The default H = 90 cycles = 1.5 us gives 333 kHz (the page's rate for a
-;   cable shorter than 50 m: below 400 kHz); the clock period stays far below
+;   The default H = 90 cycles = 1.5 us gives 333 kHz (section 2.7: below
+;   400 kHz for a cable shorter than 50 m); the clock period stays far below
 ;   tm, as the monoflop requires.
 ;
 ; Why:

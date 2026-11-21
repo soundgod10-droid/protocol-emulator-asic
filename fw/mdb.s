@@ -142,7 +142,9 @@ last:   MOV     r3, r3
 bad:    LDI     r1, 255         ; NAK
         LDI     r2, 1
         SHL     r2, 14
-reply:  SHL     r1, 1           ; mode bit 0, start bit 0
+reply:  TADD    HB
+        TADD    HB              ; half a bit after the end of the reply's stop bit
+        SHL     r1, 1           ; mode bit 0, start bit 0
         LDI     r0, 768
         SHL     r0, 2
         OR      r1, r0

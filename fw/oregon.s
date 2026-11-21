@@ -107,15 +107,15 @@ bit:    LD      r0, CUR         ; LSB first
         OUT     RF, 0
         LD      r1, TRC
         TADD    r1
-ended:  LD      r0, REP
-        ADDI    r0, -1
-        ST      r0, REP
-        BEQ     idle
-        LDI     r0, GAPH
+ended:  LDI     r0, GAPH        ; gap after every copy, also before the next message
 gap:    TWAIT
         LD      r1, HLF
         TADD    r1
         DJNZ    r0, gap
+        LD      r0, REP
+        ADDI    r0, -1
+        ST      r0, REP
+        BEQ     idle
         JMP     copy
 
 ; One data bit (bit 0 of r0) as four half periods from T: d = 1 is off, on,

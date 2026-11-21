@@ -2219,6 +2219,7 @@ class ChipPinWatch:
         import test_slu_clk as sc
         while True:
             await Edge(self.dut.uio_out)
+            await Timer(round(PAD_ABSORB_NS * 1000), unit="ps")
             out, oe = str(self.dut.uio_out.value), str(self.dut.uio_oe.value)
             for i, fn in self.on.items():
                 o, e = out[len(out) - 1 - i], oe[len(oe) - 1 - i]

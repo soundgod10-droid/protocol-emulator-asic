@@ -110,11 +110,12 @@ wsmp:   TADD    24
         BNE     wout
         JMP     tout
 start:  TADD    HBE             ; middle of the start bit: its edge lies 0 to 24 cycles before this sample
-        LDI     r0, 11
-smp:    SAMPLE  RX, r1>>        ; start bit, 8 data bits, mode bit, stop bit
+        LDI     r0, 10
+smp:    SAMPLE  RX, r1>>        ; start bit, 8 data bits, mode bit
         TADD    HB
         TADD    HB
         DJNZ    r0, smp
+        SAMPLE  RX, r1>>        ; stop bit; T stays at its middle, where the search for the next start bit begins
         SHR     r1, 5           ; bit 0 start, 1-8 data, 9 mode, 10 stop
         MOV     r0, r1
         SHR     r0, 10

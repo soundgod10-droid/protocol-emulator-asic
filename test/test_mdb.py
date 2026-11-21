@@ -236,7 +236,7 @@ async def test_mdb_model(dut):
     log = dut._log
     for rate, resp, gap in ((0.98, 200.0, 0.0), (1.01, 4900.0, 900.0), (0.98, 4900.0, 900.0)):
         dev = MdbChanger(rate=rate, resp_us=resp, gap_us=gap)
-        bench, m = model_run(dev, WORDS, 4_800_000)
+        bench, m = model_run(dev, WORDS, 9_000_000, want_n=len(WANT))
         label = f"model changer rate {rate}, reply after {resp} us, byte gap {gap} us"
         assert not dev.errors, f"{label}: {dev.errors[:3]}"
         assert bench.words(0) == WANT, f"{label}: {[hex(w) for w in bench.words(0)]}"

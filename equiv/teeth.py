@@ -95,63 +95,104 @@ def plant(path, outdir):
 
     ffs = [i for i in by_cell(insts, lambda c: re.match(r"sg13cmos5l_df\w*", c)) if "D" in i.pins
            and not is_const(i.pins["D"])]
-    a = ffs[0]
-    b = next(i for i in ffs[1:] if i.pins["D"] != a.pins["D"])
-    t = with_pins(text, b, {"D": a.pins["D"]})
-    t = with_pins(t, instances(t)[[x.name for x in instances(t)].index(a.name)], {"D": b.pins["D"]})
-    write("ff_d_swap", t, "D of %s (%s) and %s (%s) exchanged" % (a.name, a.pins["D"], b.name, b.pins["D"]))
-
-    cts = next(i for i in insts if i.name.startswith("clkbuf_") and re.match(r"sg13cmos5l_buf_\d+$", i.cell))
-    size = cts.cell.rsplit("_", 1)[1]
-    write("cts_inv", with_pins(text, cts, {"X": ("Y", cts.pins["X"])}, cell="sg13cmos5l_inv_%s" % size),
-          "%s %s made sg13cmos5l_inv_%s" % (cts.cell, cts.name, size))
-
-    hold = next(i for i in insts if i.name.startswith("hold") and "X" in i.pins and "A" in i.pins)
-    write("hold_inv", with_pins(text, hold, {"X": ("Y", hold.pins["X"])}, cell="sg13cmos5l_inv_1"),
-          "%s %s made sg13cmos5l_inv_1" % (hold.cell, hold.name))
-
-    cgs = by_cell(insts, lambda c: c == "sg13cmos5l_lgcp_1")
-    a = cgs[0]
-    b = next(i for i in cgs[1:] if i.pins["GATE"] != a.pins["GATE"])
-    t = with_pins(text, b, {"GATE": a.pins["GATE"]})
-    t = with_pins(t, instances(t)[[x.name for x in instances(t)].index(a.name)], {"GATE": b.pins["GATE"]})
-    write("cg_gate_swap", t, "GATE of %s (%s) and %s (%s) exchanged" % (a.name, a.pins["GATE"], b.name,
-                                                                      b.pins["GATE"]))
-
-    lats = by_cell(insts, lambda c: c == "sg13cmos5l_dlhq_1")
-    a = lats[0]
-    b = next(i for i in lats[1:] if i.pins["D"] != a.pins["D"])
-    t = with_pins(text, b, {"D": a.pins["D"]})
-    t = with_pins(t, instances(t)[[x.name for x in instances(t)].index(a.name)], {"D": b.pins["D"]})
-    write("lat_d_swap", t, "D of %s (%s) and %s (%s) exchanged" % (a.name, a.pins["D"], b.name, b.pins["D"]))
-
     drv = drivers(insts)
+    alias = aliases(text)
 
-    def source_ff(net, depth=0):
-        """The flip-flop that drives net, through buffers and delay cells."""
-        if net not in drv or depth > 8:
-            return None
-        i, _ = drv[net]
-        if re.match(r"sg13cmos5l_df\w*", i.cell):
-            return i
-        if re.match(r"sg13cmos5l_(buf|dlygate)\w*", i.cell) and "A" in i.pins:
-            return source_ff(i.pins["A"], depth + 1)
-        return None
+    def tooth(name, make):
+        """Plants one fault; a fault that has no place in this netlist is reported and the others are still made."""
+        try:
+            new_text, what = make()
+        except (AssertionError, StopIteration, LookupError) as e:
+            print("%s: not planted on this netlist (%s)" % (name, str(e) or type(e).__name__))
+            return
+        write(name, new_text, what)
 
-    sync = None
-    for i in ffs:
-        q = i.pins.get("Q", "")
-        if "stage[1]" not in q:
-            continue
-        first = source_ff(i.pins["D"])
-        if first is not None and "stage[0]" in first.pins.get("Q", "") and not is_const(first.pins["D"]):
-            sync = (i, first)
-            break
-    assert sync is not None, "no two-stage synchronizer found"
-    second, first = sync
-    write("sync_bypass", with_pins(text, second, {"D": first.pins["D"]}),
-          "D of %s (Q %s) taken from %s instead of the first stage %s" % (second.name, second.pins["Q"],
-                                                                         first.pins["D"], first.name))
+    def swap(a, b, pin):
+        t = with_pins(text, b, {pin: a.pins[pin]})
+        t = with_pins(t, instances(t)[[x.name for x in instances(t)].index(a.name)], {pin: b.pins[pin]})
+        return t, "%s of %s (%s) and %s (%s) exchanged" % (pin, a.name, a.pins[pin], b.name, b.pins[pin])
+
+    def root(net, depth=0):
+        """(net, driving cell) in front of the buffers and delay cells that lead to net."""
+        if depth < 32 and net not in drv and net in alias:
+            return root(alias[net], depth + 1)
+        if depth < 32 and net in drv:
+            i, _ = drv[net]
+            if re.match(r"sg13cmos5l_(buf|dlygate)\w*", i.cell) and "A" in i.pins:
+                return root(i.pins["A"], depth + 1)
+            return net, i
+        return net, None
+
+    def is_ff(i):
+        return i is not None and re.match(r"sg13cmos5l_df\w*", i.cell) is not None
+
+    # A flip-flop D swap that reaches a pin within a few cycles: the flip-flop that drives HOST_MISO (uo_out[7],
+    # docs/host_port.md 2) and the nearest flip-flop in the logic in front of its D. Two flip-flops taken by their
+    # place in the file showed no output difference within 57 cycles from reset (equiv run 44919684023), so a
+    # bounded check could not show that the miter catches the fault.
+    def ff_d_swap():
+        a = root("uo_out[7]")[1]
+        assert is_ff(a), "uo_out[7] is not driven by a flip-flop through buffers"
+        seen, todo = set(), [(a.pins["D"], 0)]
+        while todo:
+            net, depth = todo.pop(0)
+            if net in seen or depth > 6:
+                continue
+            seen.add(net)
+            if net not in drv and net in alias:
+                todo.append((alias[net], depth))
+                continue
+            if net not in drv:
+                continue
+            i, _ = drv[net]
+            if is_ff(i):
+                if i is not a and not is_const(i.pins.get("D", "")) and i.pins["D"] != a.pins["D"]:
+                    return swap(a, i, "D")
+                continue
+            todo += [(n, depth + 1) for p, n in i.pins.items() if p not in OUT_PINS and p not in POWER_PINS
+                     and not is_const(n)]
+        raise AssertionError("no flip-flop in front of the D of %s" % a.name)
+
+    tooth("ff_d_swap", ff_d_swap)
+
+    def cts_inv():
+        cts = next(i for i in insts if i.name.startswith("clkbuf_") and re.match(r"sg13cmos5l_buf_\d+$", i.cell))
+        size = cts.cell.rsplit("_", 1)[1]
+        return (with_pins(text, cts, {"X": ("Y", cts.pins["X"])}, cell="sg13cmos5l_inv_%s" % size),
+                "%s %s made sg13cmos5l_inv_%s" % (cts.cell, cts.name, size))
+
+    tooth("cts_inv", cts_inv)
+
+    def hold_inv():
+        hold = next(i for i in insts if i.name.startswith("hold") and "X" in i.pins and "A" in i.pins)
+        return (with_pins(text, hold, {"X": ("Y", hold.pins["X"])}, cell="sg13cmos5l_inv_1"),
+                "%s %s made sg13cmos5l_inv_1" % (hold.cell, hold.name))
+
+    tooth("hold_inv", hold_inv)
+
+    def pair_swap(cell, pin):
+        cells = by_cell(insts, lambda c: c == cell)
+        a = cells[0]
+        b = next(i for i in cells[1:] if i.pins[pin] != a.pins[pin])
+        return swap(a, b, pin)
+
+    tooth("cg_gate_swap", lambda: pair_swap("sg13cmos5l_lgcp_1", "GATE"))
+    tooth("lat_d_swap", lambda: pair_swap("sg13cmos5l_dlhq_1", "D"))
+
+    # The second stage of the HOST_SCK synchronizer (ui_in[7]) fed from the pin instead of from the first stage.
+    # The first stage is the flip-flop whose D comes from the pin through buffers, the second the one whose D comes
+    # from the first one's Q: the stage names do not survive the layout (equiv run 44919684023).
+    def sync_bypass():
+        for pin in ["ui_in[7]"] + ["ui_in[%d]" % k for k in range(7)]:
+            first = next((i for i in ffs if root(i.pins["D"])[0] == pin), None)
+            second = first and next((i for i in ffs if root(i.pins["D"])[1] is first), None)
+            if second is not None:
+                return (with_pins(text, second, {"D": first.pins["D"]}),
+                        "D of %s (second stage of %s) taken from %s instead of %s" % (
+                            second.name, pin, first.pins["D"], first.name))
+        raise AssertionError("no two-stage synchronizer on a ui_in pin")
+
+    tooth("sync_bypass", sync_bypass)
     return made
 
 

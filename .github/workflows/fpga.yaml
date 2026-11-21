@@ -349,7 +349,8 @@ jobs:
           name: bench-bitstreams
           path: |
             fpga/results.xml
-            fpga/sim_build/*.fst
+            fpga/wiring_check.vcd
+            fpga/make.log
             *.bit
             MANIFEST.txt
             fmax_*.txt

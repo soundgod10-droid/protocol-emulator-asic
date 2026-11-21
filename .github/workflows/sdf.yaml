@@ -198,7 +198,7 @@ jobs:
             errors=$(grep -c "SDF ERROR" sdf_run.log || true)
             echo "SDF ERROR lines: $errors" | tee -a sdf_names.log
             grep "SDF ERROR" sdf_run.log | sort | uniq -c | head -n 20 || true
-            test "$errors" -le $([ "${{ matrix.part }}" = shmoo ] && echo 40 || echo 4)
+            test "$errors" -le $([ "${{ matrix.part }}" = shmoo ] && echo 88 || echo 4)   # shmoo: 22 SDF runs x 4
           fi
           # Names and messages of the failed testcases as an annotation, so a failure can be read without the log.
           if [ -f results.xml ]; then

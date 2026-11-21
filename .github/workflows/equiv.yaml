@@ -33,6 +33,8 @@ jobs:
     if: (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') && !inputs.guard_ref
     runs-on: ubuntu-24.04
     timeout-minutes: 240
+    outputs:
+      eqy: ${{ steps.eqy.outcome }}
     permissions:
       actions: read
       contents: read

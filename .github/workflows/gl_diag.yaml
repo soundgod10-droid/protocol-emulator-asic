@@ -12,6 +12,8 @@ jobs:
   # The testcases of earlier gate-level and SDF runs (results.xml artifacts), each failure with its message, as
   # annotations: the failure text without the log or an artifact download.
   report:
+    # ran in gl_diag run 44842458447 (commit c813606); off here
+    if: false
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:

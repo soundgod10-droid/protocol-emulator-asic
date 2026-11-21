@@ -9,9 +9,9 @@
 ;   level is not used, DCPRG is tied on the board).
 ;   One thread makes the grayscale PWM cycles without a pause in GSCLK: each
 ;   cycle has NGS = NGSH x 8 GSCLK pulses (4,096, the data sheet's full cycle)
-;   with period 2 x H = 80 cycles (750 kHz), then BLANK is high for 200 cycles
-;   (counter reset); the next cycle's first GSCLK rise comes 16 cycles after
-;   the BLANK fall.
+;   with period 2 x H = 80 cycles (750 kHz), then BLANK is high for 400 cycles
+;   (counter reset; the thread prepares the next cycle in this time); the next
+;   cycle's first GSCLK rise comes 16 cycles after the BLANK fall.
 ;   During the first GSCLK periods of a cycle the thread shifts the frame that
 ;   was gathered in the cycle before, one bit with each GSCLK period: SIN
 ;   changes SL cycles after the GSCLK rise while SCLK is low, SCLK rises with

@@ -217,7 +217,7 @@ def assemble(**equ):
 
 
 def scale_equ(s):
-    poll = 240 if s == 1 else 24
+    poll = 240 if s == 1 else 48  # the search loop takes about 24 cycles a step
     half = 25000 // s
     return dict(HALF=half, POLL=poll, HSP=half - poll // 2, TOUT=round(17.5e-3 * 60e6 / s / poll),
                 TGAP=round(8.33e-3 * 60e6 / s / poll))

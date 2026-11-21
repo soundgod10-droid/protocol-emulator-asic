@@ -312,7 +312,9 @@ async def test_tm1637_rtl(dut):
         dut.dump_off.value = 0
         await bench.run(rf.HOST_START + 3500)
         dut.dump_off.value = 1
-        log.info(f"{label}: waveform from the start; first byte 0xC0, CLK rises at model cycles {dev.rises[:9]}")
+        now = get_sim_time(unit="ps")
+        log.info(f"{label}: waveform from the start; first byte 0xC0, CLK rises at simulation times (ps) "
+                 f"{[round(now - (bench.m.cycle - c) * rf.CLK_PS) for c in dev.rises[:9]]}")
     want = expect(RTL_WORDS, RTL_KEYS)
     await bench.collect(0, len(want))
     await bench.run(1000)

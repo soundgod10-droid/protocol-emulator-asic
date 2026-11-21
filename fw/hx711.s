@@ -87,6 +87,8 @@ lo:     OUT     SCK, 1
         TADD    TL
         DJNZ    r2, lo
         ANDI    r3, 3           ; 1 to 3 more pulses: input and gain
+        BNE     ex
+        LDI     r3, 1           ; code 0: as 1 (25 pulses)
 ex:     OUT     SCK, 1
         TADD    TH
         OUT     SCK, 0

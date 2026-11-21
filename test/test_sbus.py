@@ -211,7 +211,7 @@ def assemble(name, **equ):
 def tx_model(frames, slow=False, **equ):
     m = pe_model.PeModel(assemble("sbus_tx.s", **equ).words, owner=ff.owners({P_TX: 0}))
     bench = ff.Bench(m)
-    bench.watch("tx", lambda uo, uio, oe: (uo >> 4) & 1)
+    bench.watch("tx", tx_level)
     words = tx_words(frames)
     if slow:  # two words every 1,000 cycles
         for k in range(0, len(words), 2):

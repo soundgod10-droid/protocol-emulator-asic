@@ -50,20 +50,21 @@
 first:  TSYNC   8               ; no message before the first word
         PULL.NB r0
         BEC     first
+        ST      r0, W1
         TSYNC   32
         OUT     SENT_OUT, 0     ; first sync
         LDI     r3, LOWN
-        JAL     r2, ticks
+        JAL     r2, ticks       ; (ticks uses r0)
         OUT     SENT_OUT, 1
-        JMP     got             ; r0 = the first word
+        JMP     got2
 frame:  OUT     SENT_OUT, 0     ; sync: falling edge at T
         LDI     r3, LOWN
         JAL     r2, ticks
         OUT     SENT_OUT, 1     ; release after LOWN ticks
         PULL.NB r0              ; the next values, if the host sent them
         BEC     same
-got:    ST      r0, W1
-        PULL    r0
+        ST      r0, W1
+got2:   PULL    r0
         ST      r0, W2
 same:   LDI     r1, NIBS        ; nibbles 0 to 6: status, D1 to D6
         LD      r0, W1

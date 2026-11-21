@@ -14,7 +14,8 @@ What it does:
   scenario the judge
     1. writes the window as a VCD of named lines and runs sigrok-cli on it as a separate program;
     2. fails on any annotation whose class names a warning, an error or a break (class name contains "warn", "err"
-       or "break"), from any decoder of the stack;
+       or "break"), from any decoder of the stack, except a class that the scenario allows inside a named
+       annotation span (allow; the DMX512 BREAK);
     3. compares, for each decoder and class set, the decoded texts in order with the scenario's texts: they must be
        equal and not empty;
     4. negative control: inverts the scenario's data line in the middle of the first content annotation that spans

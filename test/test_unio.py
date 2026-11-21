@@ -426,7 +426,7 @@ async def test_unio_model(dut):
     want = len(expect(None, cmds))
     for te, skew, jit, cycles in ((1200, 0.2, 0.03, 3_000_000), (1200, -0.2, 0.03, 3_000_000),
                                   (6000, 0.1, 0.03, 12_000_000), (600, 0.0, 0.0, 2_000_000)):
-        dev = Unio11xx(skew=skew, jitter=jit, twc_us=2000.0)
+        dev = Unio11xx(skew=skew, jitter=jit, twc_us=80 * te / F_MHZ)  # write cycle = 8 byte times
         bench, m = model_run(dev, words, want, cycles, **rate_equ(te))
         label = f"model TE {te / F_MHZ:.0f} us, device edges {skew:+.2f} UI +/-{jit} UI"
         st = check(dev, bench.words(0), cmds, label)

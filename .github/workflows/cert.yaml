@@ -61,6 +61,7 @@ jobs:
           path: |
             cert_table.md
             cert_results.json
+            cert_pins.md
             cert_selfcheck.txt
 
   # F3: "LATE is never set" of a firmware image on the processor RTL (formal/fwlate/), unbounded with ABC PDR. The

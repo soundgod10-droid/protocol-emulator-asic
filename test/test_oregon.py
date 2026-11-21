@@ -202,7 +202,7 @@ async def test_oregon_rtl(dut):
     label = "rtl oregon"
     s = 16
     equ = dict(HALF=29297 // s, TRUNC=5580 // s)
-    msgs = MESSAGES[:1]
+    msgs = ["1D2001"]  # sensor ID 1D20 only, checksum 0x10: a short message keeps the RTL run to minutes
     bench = rf.RtlBench(dut, assemble(**equ).words, owner=ff.owners({P_RF: 0}), label=label)
     bench.watch("rf", rf_level)
     bench.send(0, *host_words(msgs))

@@ -165,8 +165,9 @@ jobs:
           if [ "${{ matrix.case }}" = netlist ]; then
             echo "NL=$PWD/$nl" >> $GITHUB_ENV
           else
-            out=$(python3 equiv/teeth.py plant "$nl" build/teeth | grep "^${{ matrix.case }}:")
-            echo "::notice title=dprove tooth ${{ matrix.case }}::$out"
+            python3 equiv/teeth.py plant "$nl" build/teeth > teeth.txt 2>&1 || true
+            echo "::notice title=dprove tooth ${{ matrix.case }}::$(grep "^${{ matrix.case }}:" teeth.txt)%0A$(tail -n 2 teeth.txt | cut -c1-300 | sed ':a;N;$!ba;s/\n/%0A/g')"
+            test -f build/teeth/${{ matrix.case }}.v
             echo "NL=$PWD/build/teeth/${{ matrix.case }}.v" >> $GITHUB_ENV
           fi
       - name: PDK

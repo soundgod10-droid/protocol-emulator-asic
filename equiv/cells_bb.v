@@ -22,3 +22,12 @@ module sg13cmos5l_lgcp_1 (
     output wire GCLK
 );
 endmodule
+
+// The clock gate as eqy compares it (equiv/clk_tie.v): without its clock pin, which the chip's clk port drives with no
+// logic in the RTL, and which eqy cannot take as a piece of its own. equiv/teeth.py clocks checks that pin instead.
+(* blackbox *)
+module eqy_lgcp_box (
+    input  wire GATE,
+    output wire GCLK
+);
+endmodule

@@ -187,7 +187,7 @@ jobs:
           fi
           # Names and messages of the failed testcases as an annotation, so a failure can be read without the log.
           if [ -f results.xml ]; then
-            failed=$(python3 -c "import xml.etree.ElementTree as E; r = E.parse('results.xml').getroot(); print('%0A'.join(t.get('name') + ': ' + (t.find('failure').get('message') or '')[:300].replace('%', '%25').replace('\n', ' ') for t in r.iter('testcase') if t.find('failure') is not None))")
+            failed=$(python3 -c "import xml.etree.ElementTree as E; r = E.parse('results.xml').getroot(); print('%0A'.join(t.get('name') + ': ' + (t.find('failure').get('message') or t.find('failure').get('error_msg') or '')[:300].replace('%', '%25').replace('\n', ' ') for t in r.iter('testcase') if t.find('failure') is not None))")
             if [ -n "$failed" ]; then echo "::warning title=failed tests ${{ matrix.corner }} ${{ matrix.part }}::$failed"; fi
           fi
           test -f results.xml

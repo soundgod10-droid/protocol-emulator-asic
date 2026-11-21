@@ -387,6 +387,8 @@ async def test_eth_dev_collision(dut):
     t1 = get_sim_time("ps")
     assert EV_SENT in port.codes() and EV_NOTSENT not in port.codes(), [hex(w) for w in port.codes()]
     evs = T.decode_tx(line.tx_wave(t0, t1))
+    dut._log.info("TD+/TD- transitions through 0 merged: %d, largest gap %.0f ps (limit %d ps)" % (
+        len(line.skews), max(line.skews, default=0), line.SKEW_MAX_PS))
     bursts = [e for e in evs if e.kind != "pulse"]
     assert len(bursts) == 2, "chip bursts: %s" % [(e.kind, round((e.t1 - e.t0) / BT, 1)) for e in evs]
     first, second = bursts

@@ -1,0 +1,40 @@
+# Netlist-to-RTL equivalence, second method (C3 WP9): one sequential miter of the RTL of a commit (gold) and the final
+# netlist of its layout run (gate), proved by ABC dprove. The latch and clock-gate cells (equiv/cells_bb.v) and the
+# SRAM macros (src/sram_bb.v) are black boxes on both sides; expose -evert turns their pins into miter ports by
+# instance path, so each side's black-box inputs are compared and their outputs are the same free inputs. The
+# initial state of both sides is the state after the chip reset (3 cycles with rst_n low from any state), so the
+# reset-to-1 registers that the netlist keeps inverted start equal. .github/workflows/equiv.yaml fills in @...@.
+
+read_verilog -lib @ROOT@/equiv/cells_bb.v @RTL@/src/sram_bb.v
+read_verilog -sv -DSYNTHESIS @RTL_FILES@
+hierarchy -top tt_um_soundgod10_droid_protocol_emulator
+proc
+flatten
+opt_clean
+expose -evert t:sg13cmos5l_dlhq_1 t:sg13cmos5l_lgcp_1 t:RM_IHPSG13_*
+rename tt_um_soundgod10_droid_protocol_emulator gold
+design -stash gold
+
+read_verilog -lib @ROOT@/equiv/cells_bb.v @RTL@/src/sram_bb.v
+read_liberty -ignore_redef -ignore_miss_func @LIB@
+read_verilog @NL@
+hierarchy -top tt_um_soundgod10_droid_protocol_emulator
+flatten
+opt_clean
+expose -evert t:sg13cmos5l_dlhq_1 t:sg13cmos5l_lgcp_1 t:RM_IHPSG13_*
+rename tt_um_soundgod10_droid_protocol_emulator gate
+design -stash gate
+
+design -copy-from gold -as gold gold
+design -copy-from gate -as gate gate
+miter -equiv -flatten -ignore_gold_x gold gate miter
+hierarchy -top miter
+tee -o dprove_ports.txt select -list miter/i:*
+memory_map
+opt_clean
+sim -clock in_clk -resetn in_rst_n -rstlen 3 -n 3 -zinit -w
+async2sync
+clk2fflogic
+opt -fast
+tee -o dprove_stat.txt stat
+write_aiger -zinit miter.aig

@@ -23,7 +23,8 @@
 
 module timed_out_fv (
     input wire        clk,
-    input wire        rst_n,
+    input wire        rst_n,     // processor reset (chip reset or STOP)
+    input wire        pin_rst_n, // chip reset
     input wire        clear,     // START: counter is 0 in the next cycle
     input wire        ev_load,
     input wire [15:0] ev_time,

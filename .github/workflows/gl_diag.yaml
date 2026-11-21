@@ -152,3 +152,4 @@ jobs:
           path: |
             test/results.xml
             test/gl_diag.log
+            test/gl_diag_full.log

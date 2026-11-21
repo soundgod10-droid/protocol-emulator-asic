@@ -181,7 +181,7 @@ def check(dev, words, label, want=WANT, want_sel=WANT_SEL):
 
 def summary(bench, dev):
     sck = bench.changes("sck")
-    highs = [b[0] - a[0] for a, b in zip(sck, sck[1:]) if a[1] == 1 and b[0] - a[0] < 3000]
+    highs = [b[0] - a[0] for a, b in zip(sck[1:], sck[2:]) if a[1] == 1 and b[0] - a[0] < 3000]  # not the reset level
     lows = [b[0] - a[0] for a, b in zip(sck, sck[1:]) if a[1] == 0 and b[0] - a[0] < 300]
     return (f"{len(dev.reads)} reads, pulses {[r[1] for r in dev.reads]}, selections {[r[3] for r in dev.reads]}; "
             f"PD_SCK high {min(highs) / F_MHZ:.3f} to {max(highs) / F_MHZ:.3f} us, low inside a read "

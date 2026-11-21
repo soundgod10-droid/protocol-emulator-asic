@@ -188,7 +188,7 @@ async def test_oregon_model(dut):
     ff.assert_status_clean(m, [0])
     log.info(f"model: {summary(copies, stats)}; {m.cycle} cycles")
     s = 16  # controls with all times divided by 16
-    for equ, want in ((dict(HALF=29400 // s, TRUNC=5580 // s), "bit rate"), (dict(HALF=29297 // s, TRUNC=0), "fall")):
+    for equ, want in ((dict(HALF=29400 // s, TRUNC=5580 // s), "bit rate"), (dict(HALF=29297 // s, TRUNC=1), "fall")):  # pulses not shortened
         bench, m = model_run(MESSAGES[:1], **equ)
         _, errors, _ = oregon_receive(bench.changes("rf"), m.cycle, scale=s)
         log.info(f"control {equ} (times / 16): {errors[0] if errors else 'no fault found'}")

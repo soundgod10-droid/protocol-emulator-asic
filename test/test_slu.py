@@ -2197,9 +2197,17 @@ async def chip_start_owned(dut, prog, data, pins, owned, t1, t2=None):
     return host
 
 
+PAD_ABSORB_NS = 0.5   # a pulse this short at the chip boundary does not reach the board: pad SPICE (cv1 runt runs,
+                      # sg13cmos5l_IOPadInOut30mA, 5 pF): fast corner 0.3 ns -> 0.2 mV and 0.68 ns -> 0.16 V at the pad,
+                      # slow corner 1.25 ns -> 0.13 mV; a zero-delay netlist gives such steps zero width
+
+
 class ChipPinWatch:
     """Calls the device callbacks at their pin times: on[i](level) for uio pin i after delay d_out (pad and
-    multiplexer); a pin whose output enable is 0 is passed as None (released)."""
+    multiplexer); a pin whose output enable is 0 is passed as None (released). The pins are read PAD_ABSORB_NS after
+    a change, so a step shorter than that (the value and the enable of one pin changing a few gate delays apart, or
+    in different simulation steps of a netlist without delays) is not passed on, as the pad would not pass it; the
+    device still gets each change d_out after it."""
 
     def __init__(self, dut, on, d_out):
         self.dut, self.on, self.d_out = dut, on, d_out

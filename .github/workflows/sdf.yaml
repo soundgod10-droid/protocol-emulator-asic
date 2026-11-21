@@ -13,7 +13,9 @@ name: sdf
 #   p3u      test_usb_dev enumerate, errors, hid           p4   test_usb_dev drift     p5   test_usb_dev suspend
 #   p6       test_eth_dev rx, tx, collision                p7   test_eth_dev link      p8   test_eth_dev nlp_period
 # Controls and shmoo, slow corner only:
-#   macro_control    macro read delay x 3 (beyond one clock period): test_r3_sdf must fail
+#   macro_control    macro read delay x 3 (beyond one clock period): test_core_alu_flags must fail (lockstep with
+#                    the model; every instruction fetch uses the program macro's data at the next clock edge;
+#                    test_r3_sdf cannot see it, the host port reads the data many cycles later)
 #   nodelay_control  the gate-level netlist with no SDF: test_r3_sdf must fail (it needs a clock-to-MISO delay)
 #   shmoo            test_r3_sdf at clock periods from 16.666 ns down to 10 ns: pass or fail at each period
 #

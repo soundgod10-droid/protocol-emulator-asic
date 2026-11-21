@@ -30,8 +30,8 @@ opt_clean
 
 [match *]
 # The clock port wires of the instances: only the chip's clock pin is matched.
-gold-nomatch /.+\.clk/
-gate-nomatch /.+\.clk/
+gold-nomatch *.clk
+gate-nomatch *.clk
 # The latch enables (gated clocks of the latch memories): the clock tree splits each word's gated clock into several
 # buffered nets that keep the RTL names of different bits, while the RTL has one net per word, so one gold net got
 # two gate names in one partition (run 44830886025: word 9, g_bit[0] and g_bit[10], "used but has no driver").

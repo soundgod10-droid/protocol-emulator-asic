@@ -96,7 +96,7 @@ tbit:   OUT     TX, r1>>
         BNE     txb
         LDI     r3, 0           ; reply bytes before the last one
         LDI     r2, 0           ; their sum
-wait:   LDI     r0, OUTN        ; T = end of the last stop bit (or half a bit after a reply byte)
+wait:   LDI     r0, OUTN        ; T = end of the last stop bit sent (or the middle of a reply byte's stop bit)
         ST      r0, OC
 wout:   LDI     r0, 1000
 wsmp:   TADD    24

@@ -27,7 +27,7 @@ jobs:
         # flip-flop retiming, ecp5n without wide-LUT muxes, nexus, gw5a) and the path-ladder diagnoses (ecp5x, ecp5c:
         # helpers removed from pe_proc) keep their case lines below for a run by hand; G1 was not met with any of them
         # (best worst-seed 39.28 MHz), and the bench runs at 25 MHz on ECP5 speed 6.
-        family: [ecp5, gw2a, ice40]
+        family: [ecp5, gw2a, ice40, nexus]
     steps:
       - uses: actions/checkout@v6
       - name: OSS CAD Suite

@@ -224,7 +224,13 @@ jobs:
           echo "::notice title=dprove ${{ matrix.case }} miter::$(grep -E 'ports|cells|FF|DFF' dprove_stat.txt | head -n 14 | sed ':a;N;$!ba;s/\n/%0A/g')"
           # the netlist is proved (dprove: induction with register correspondence); a planted fault must give a
           # counterexample, which the bounded model checker finds (dprove left ff_d_swap undecided, run 44893267827)
-          if [ "${{ matrix.case }}" = netlist ]; then abc="dprove -v"; else abc="bmc3 -v -T 2400"; fi
+          # cg_gate_swap: a clock-gate enable of the host FIFOs first differs after a host START and a PUSH word, about
+          # 82 cycles from reset; bmc3 reached 46 cycles in 2,400 s (run 44934313144), so this case gets 4 hours
+          case "${{ matrix.case }}" in
+            netlist) abc="dprove -v" ;;
+            cg_gate_swap) abc="bmc3 -v -T 14400" ;;
+            *) abc="bmc3 -v -T 2400" ;;
+          esac
           timeout 16200 yosys-abc -c "read_aiger miter.aig; print_stats; $abc" > dprove_abc.log 2>&1
           rc=$?
           summ=$(grep -E -i "equivalent|proved|asserted|failed|disproved|undecided|time =" dprove_abc.log | tail -n 14 | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')

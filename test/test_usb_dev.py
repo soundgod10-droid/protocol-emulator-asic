@@ -280,6 +280,9 @@ def summary(s):
 def check_clean(s, bus):
     assert not s.violations, "USB 2.0 violations: %s" % s.violations[:6]
     assert not bus.collisions, "host and device drove the bus at the same time: %s" % bus.collisions[:4]
+    tr = bus.transients
+    cocotb.log.info("device J/K changes through SE0 or SE1 (receiver view, TLST %.0f ns): %d, widest %.0f ps" % (
+        TLST_PS / 1e3, len(tr), max(tr, default=0)))
     for eop, sop in bus.first_reply_marks(2):
         cocotb.log.info("waveform marks: host EOP end %d ps, device SOP %d ps (reply %.3f bit times)" % (
             eop, sop, (sop - eop) / L.BIT_PS))

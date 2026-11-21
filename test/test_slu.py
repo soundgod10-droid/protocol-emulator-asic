@@ -2231,7 +2231,7 @@ class ChipPinWatch:
                     continue
                 if self.last.get(i, "x") != v:
                     self.last[i] = v
-                    cocotb.start_soon(sc.later(self.d_out, fn, v))
+                    cocotb.start_soon(sc.later(self.d_out - PAD_ABSORB_NS, fn, v))
 
     def stop(self):
         self.task.cancel()

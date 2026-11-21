@@ -128,8 +128,8 @@ pnext:  DJNZ    r0, pbit
         LD      r1, DCL
         MOV     r1, r1
         BEQ     nolat0
-        TADD    8
-        OUT     SCLK, 1         ; additional SCLK pulse after the first grayscale latch after dot correction
+        TADD    80
+        OUT     SCLK, 1         ; BLANK rise + 96: additional SCLK pulse after the first grayscale latch after dot correction
         TADD    8
         OUT     SCLK, 0
         LDI     r1, 0
@@ -137,10 +137,10 @@ pnext:  DJNZ    r0, pbit
         JMP     nolat1
 latdc:  LDI     r1, 1
         ST      r1, DCL
-nolat0: TADD    16
+nolat0: TADD    88
         JMP     nolat1
-nolat:  TADD    32
-nolat1: CMPI    r3, 17          ; T = BLANK rise + 32
+nolat:  TADD    104
+nolat1: CMPI    r3, 17          ; T = BLANK rise + 104
         BCC     nonext
         LDI     r3, BUF
         ST      r3, GP

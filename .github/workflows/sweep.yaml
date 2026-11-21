@@ -5,7 +5,8 @@ name: sweep
 #  - core, rtl_fw: test_core.py (lockstep with the model, every instruction group) and test_rtl_fw.py (protocol
 #    firmware), run again here for their functional coverage.
 # Every part runs with FCOV=1 (test/fcov.py); the table job counts the testcases of the sweep shards, prints their trace
-# table, and merges the functional coverage of all parts (test/fcov_report.py: zero-bin rule, trace table).
+# table, and merges the functional coverage of all parts (test/fcov_report.py: zero-bin rule, trace table), then checks
+# the traceability matrix of the documents against the results of this run (test/trace_check.py, test/trace.csv).
 on: [push, workflow_dispatch]
 # On cmos5l and tags every run is kept; on other branches a newer push cancels the older run.
 concurrency:

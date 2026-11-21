@@ -18,7 +18,7 @@ What it does:
   The model test runs a session (break and a!, aI!, aM!, aD0!, a command to an absent sensor, ?!, aAb! and the new
   address) at the real 1200 baud, and the first four commands with all times divided by 10 at the corners: sensor
   bit rate -2 % and +2 %, first start bit after 7.93 ms and 15.4 ms, 1.66 ms between the sensor's characters;
-  negative controls: a 7.9 ms break, a bit time 4 % long, and a response time-out shorter than 15.4 ms. The RTL test
+  negative controls: a 9.17 ms break, a bit time 4 % long, and a response time-out shorter than 15.4 ms. The RTL test
   runs break and 0!, then 0M!, with all times divided by 20, in lockstep with the reference model; the same test runs
   on the gate-level netlist (gl_fw workflow).
 

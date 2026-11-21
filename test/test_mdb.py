@@ -284,7 +284,7 @@ async def test_mdb_rtl(dut):
         await bench.run(rf.HOST_START + 40_000)
         dut.dump_off.value = 1
         log.info(f"{label}: waveform from the start; changer blocks {dev.blocks[:1]}")
-    await bench.collect(0, len(RTL_WANT))
+    await bench.collect(0, len(RTL_WANT), limit=600_000)
     await bench.run(2000)
     await bench.finish(log)
     assert not dev.errors and bench.words(0) == RTL_WANT, f"{label}: {dev.errors[:3]} {[hex(w) for w in bench.words(0)]}"

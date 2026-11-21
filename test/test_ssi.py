@@ -134,7 +134,7 @@ def model_run(enc, n_ctl, h, reads, gap=0, limit=None):
 def clock_stats(bench):
     ch = bench.changes("clk")
     rises = [c for c, v in ch if v == 1][1:]
-    per = [b - a for a, b in zip(rises, rises[1:]) if b - a < 2000]
+    per = [b - a for a, b in zip(rises, rises[1:]) if b - a < 600]  # inside a transmission only
     return min(per), max(per)
 
 

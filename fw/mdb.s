@@ -178,3 +178,4 @@ sw:     TWAIT
         JMP     get
 
 CNT:    .word   0
+OC:     .word   0

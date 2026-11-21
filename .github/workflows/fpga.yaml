@@ -295,11 +295,9 @@ jobs:
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@v6
-      - name: OSS CAD Suite
-        uses: YosysHQ/setup-oss-cad-suite@v4
-        with:
-          version: '2026-11-14'
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+      # the simulation runs before the OSS CAD Suite is on the path (its Python and cocotb clash with the test's)
+      - name: Install iverilog
+        run: sudo apt-get update && sudo apt-get install -y iverilog
       - uses: actions/setup-python@v6
         with:
           python-version: '3.11'
@@ -310,8 +308,16 @@ jobs:
         run: |
           cd fpga
           make -f $(cocotb-config --makefiles)/Makefile.sim SIM=icarus TOPLEVEL_LANG=verilog TOPLEVEL=wiring_check \
-            VERILOG_SOURCES=$PWD/wiring_check.v COCOTB_TEST_MODULES=test_wiring_check WAVES=1
+            VERILOG_SOURCES=$PWD/wiring_check.v COCOTB_TEST_MODULES=test_wiring_check WAVES=1 > make.log 2>&1 || true
+          tail -n 40 make.log
+          test -f results.xml || { echo "::notice title=wiring build::$(grep -i -E 'error' make.log | head -n 6 | cut -c1-300 | sed ':a;N;$!ba;s/\n/%0A/g')"; exit 1; }
+          echo "::notice title=wiring check summary::$(grep -A6 'wiring check summary' make.log | cut -c1-300 | sed ':a;N;$!ba;s/\n/%0A/g')"
           python -m cocotb_tools.check_results results.xml
+      - name: OSS CAD Suite
+        uses: YosysHQ/setup-oss-cad-suite@v4
+        with:
+          version: '2026-11-14'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Bitstreams (ULX3S 12F and 85F, speed 6, bench pin map, 25 MHz)
         shell: bash
         run: |

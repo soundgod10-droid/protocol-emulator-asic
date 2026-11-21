@@ -56,10 +56,8 @@ jobs:
           true
 
   gl:
-    # ran in gl_diag run 44836952691 (commit 3321939); off here, so that the push of the report job does not repeat it
-    if: false
     runs-on: ubuntu-24.04
-    timeout-minutes: 120
+    timeout-minutes: 330
     strategy:
       fail-fast: false
       matrix:

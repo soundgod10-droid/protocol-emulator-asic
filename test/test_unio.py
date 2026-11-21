@@ -79,7 +79,7 @@ class Unio11xx:
         self.drive, self.sched = None, []
         self.contend = 0
         self.errors, self.events, self.bytes = [], [], []
-        self.te = None
+        self.te, self.after_cmd, self.byte_bits = None, None, []
 
     def _err(self, c, text):
         self.errors.append(f"cycle {c}: {text}")

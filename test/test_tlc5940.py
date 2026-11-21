@@ -256,6 +256,7 @@ async def test_tlc5940_model(dut):
     dev = Tlc5940()
     bench, m = model_run(dev, words, 2_100_000)
     got = check(dev, "model", [GS_A, GS_B], 4096)
+    assert not m.late, f"late pin events: {m.late}"
     ff.assert_status_clean(m, [0])
     rises = dev.sclk_rises
     log.info(f"model: latches {[k for k, _ in dev.latches]}; dot correction register {dev.dc}; {len(dev.cycles)} "

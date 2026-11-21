@@ -310,5 +310,7 @@ if __name__ == "__main__":
         plant(sys.argv[2], sys.argv[3])
     elif sys.argv[1] == "same":
         sys.exit(0 if same(*sys.argv[2:5]) else 1)
+    elif sys.argv[1] == "clocks":
+        sys.exit(0 if clocks(*sys.argv[2:4]) else 1)
     else:
-        sys.exit("usage: teeth.py plant NETLIST OUTDIR | same NL PNL [SUB]")
+        sys.exit("usage: teeth.py plant NETLIST OUTDIR | same NL PNL [SUB] | clocks NL [SYNTH_NL]")

@@ -131,7 +131,7 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install -y ./iverilog_13.0-1_amd64.deb
           pip install -r test/requirements.txt
-      - name: test_usb_dev_enumerate at gate level
+      - name: USB device tests at gate level
         shell: bash
         run: |
           set +e

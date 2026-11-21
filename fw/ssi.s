@@ -1,9 +1,9 @@
 ; fw/ssi.s - SSI absolute encoder controller (synchronous serial interface, monoflop protocol).
 ;
 ; What it does:
-;   Reads an absolute encoder with an SSI interface (Hengstler, "SSI Interface
-;   for Absolute Encoders", knowledge center page: transmission process, block
-;   diagram times, recommended clock rates) through RS-422 transceivers:
+;   Reads an absolute encoder with an SSI interface (SICK, Technical
+;   Information "SSI Interface Description" 8027422/2022-02-08: sequence 2.2,
+;   Figures 2 and 3, recommended clock rates 2.7) through RS-422 transceivers:
 ;   SSI_CLK = uo_out[4] (output pin 12, UO4; high when idle, also the pin's
 ;   reset level) and SSI_DATA = ui_in[3] (input pin 11, UI3).
 ;   For each read word from the host the thread first waits until DATA is high

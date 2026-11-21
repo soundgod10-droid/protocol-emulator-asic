@@ -88,7 +88,7 @@ lop:    TADD    r3
         OUT     CLK, 1
         TADD    r3
         OUT     CLK, 0
-        SAMPLE  DATA, r1<<
+        SAMPLE  DATA, r1<<, 2
         DJNZ    r2, lop
         TADD    r3
         OUT     CLK, 1          ; last rising edge: clock idle

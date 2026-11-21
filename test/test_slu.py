@@ -2228,6 +2228,45 @@ class ChipPinWatch:
         self.task.cancel()
 
 
+async def stop_release(dut, host, pins):
+    """Host STOP with the uio pins in `pins` watched. For each pin that was an output: its level before STOP, the time
+    of its value change and of its output enable falling, from the first change. A pin that drove 0 and shows 1 before
+    its enable falls carries a high runt of that length at the chip boundary (docs/helpers.md section 6, STOP). Zero-
+    delay netlists give 0 ns for every change; SDF runs give the cell-delay skew. Returns one text for all pins."""
+    from cocotb.triggers import Edge, First
+    ev = [(get_sim_time("ps"), str(dut.uio_out.value), str(dut.uio_oe.value))]
+    stop = {"done": False}
+
+    async def rec():
+        while not stop["done"]:
+            await First(Edge(dut.uio_out), Edge(dut.uio_oe))
+            ev.append((get_sim_time("ps"), str(dut.uio_out.value), str(dut.uio_oe.value)))
+    task = cocotb.start_soon(rec())
+    await host.stop()
+    await ClockCycles(dut.clk, 4)
+    stop["done"] = True
+    task.cancel()
+    out = []
+    for i in pins:
+        bit = lambda s: s[len(s) - 1 - i]
+        v0, oe0 = bit(ev[0][1]), bit(ev[0][2])
+        if oe0 != "1":
+            out.append("uio%d not an output" % i)
+            continue
+        t_oe = next((t for t, _, oe in ev if bit(oe) != "1"), None)
+        t_v = next((t for t, v, _ in ev if bit(v) != v0), None)
+        t0 = min(t for t in (t_oe, t_v) if t is not None) if (t_oe or t_v) else ev[0][0]
+        if t_oe is None:
+            out.append("uio%d still an output" % i)
+        elif t_v is not None and t_v <= t_oe and v0 == "0":
+            first = next(k for k, (t, v, _) in enumerate(ev) if bit(v) != v0)
+            order = "value first" if first < next(k for k, (t, _, oe) in enumerate(ev) if bit(oe) != "1") else "same step"
+            out.append("uio%d drove 0, 1 for %.3f ns before the enable fell (%s)" % (i, (t_oe - t_v) / 1000.0, order))
+        else:
+            out.append("uio%d drove %s, enable fell at +%.3f ns, no high runt" % (i, v0, (t_oe - t0) / 1000.0))
+    return "; ".join(out)
+
+
 JTAG_HELPER_FW = helper_fw("jtag_idcode.s")
 
 

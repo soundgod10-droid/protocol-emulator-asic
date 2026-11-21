@@ -9,9 +9,9 @@
 ;   the middle edge rises for 1 and falls for 0 (4.0); bytes MSB first (5.0),
 ;   each followed by MAK (master: 1 continue, 0 NoMAK) and SAK (slave: a
 ;   rising middle edge; no edge = NoSAK) (5.1). Start header: line high for
-;   TSS, low for THDR, then 55h with MAK (6.0). Standby pulse: a low pulse,
-;   then high for STBN x 4,000 cycles (666.7 us; TSTBY >= 600 us, 3.0; the
-;   low pulse gives the low-to-high edge needed after power-up).
+;   TSS, low for THDR, then 55h with MAK (6.0). Standby pulse: high for STBN
+;   x 4,000 cycles (666.7 us; TSTBY >= 600 us, 3.0); before the first one
+;   after reset a low pulse gives the low-to-high edge needed after power-up.
 ;   Bits from the slave are found by edge time, not at fixed sample points,
 ;   so that the slave's output edge jitter (+/-0.25 UI in the 11XX data
 ;   sheet) is covered: the thread waits for edges; an edge earlier than a

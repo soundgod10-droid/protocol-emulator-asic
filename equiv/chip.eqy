@@ -28,6 +28,11 @@ read_liberty -ignore_redef -ignore_miss_func @LIB@
 read_verilog @NL@
 prep -top tt_um_soundgod10_droid_protocol_emulator
 flatten
+techmap -map @ROOT@/equiv/clk_tie.v t:sg13cmos5l_lgcp_1
+cd tt_um_soundgod10_droid_protocol_emulator
+connect -port u_proc.u_mem.u_pmem A_CLK 1'0
+connect -port u_proc.u_mem.u_dmem A_CLK 1'0
+cd ..
 # Every name that can match the RTL is inside one of its instances (u_*) or a port. Flattening names the cells'
 # pin wires after the cells (_19785_.A0 beside u_proc...u_lat.q) and the layout adds nets (net5288, clknet_*,
 # clknet_..._<design net>): eqy read them as second matches for the same gold bit (equiv runs 44773718663,

@@ -112,7 +112,7 @@ def check(rows, results=None):
                 mod, _, name = val.partition(":")
                 p = os.path.join(HERE, mod + ".py")
                 if p not in sources:
-                    sources[p] = open(p, encoding="utf-8").read() if os.path.isfile(p) else ""
+                    sources[p] = _read(p) if os.path.isfile(p) else ""
                 ok = bool(name) and re.search(r"\bdef\s+%s\s*\(" % re.escape(name), sources[p]) is not None
                 ci.add(CI_OF_MODULE.get(mod, "test"))
                 if ok and mod in modules and (mod, name) not in passed:

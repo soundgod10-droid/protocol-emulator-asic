@@ -328,7 +328,8 @@ jobs:
           note() { echo "::notice title=$1::$(grep -h -E 'ERROR|Error|error' $2 | sort | uniq -c | head -n 6 | cut -c1-300 | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')"; }
           files="$(grep -v '^#' fpga/files.f | tr '\n' ' ')"
           yosys -q -l synth_wiring.log -p "read_verilog fpga/wiring_check.v; synth_ecp5 -top wiring_check; write_json wiring.json" || { note "wiring synthesis" synth_wiring.log; exit 1; }
-          yosys -q -l synth_bench.log -p "read_verilog $files fpga/fpga_top.v; synth_ecp5 -top fpga_top; tee -o stat_bench.txt stat; write_json bench.json" || { note "bench synthesis" synth_bench.log; exit 1; }
+          # fpga/files.f already lists fpga_top.v
+          yosys -q -l synth_bench.log -p "read_verilog $files; synth_ecp5 -top fpga_top; tee -o stat_bench.txt stat; write_json bench.json" || { note "bench synthesis" synth_bench.log; exit 1; }
           for part in 12k 85k; do
             for d in wiring bench; do
               nextpnr-ecp5 --$part --package CABGA381 --speed 6 --json $d.json --lpf fpga/ulx3s_bench.lpf --freq 25 \

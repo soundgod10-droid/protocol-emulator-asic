@@ -13,10 +13,10 @@
 ;   Each byte goes as two 4-bit transfers, the high nibble first (page 22,
 ;   Figure 9). One transfer (one E pulse): RS, R/W and DB change at the
 ;   transfer start, E rises TAS = 6 cycles later (100 ns; tAS 60 ns), falls
-;   72 cycles after its rise (1.2 us... see TE; PWEH 450 ns), and the next
-;   transfer starts 30 cycles after the fall: E cycle TC = 84 cycles = 1.4 us
-;   (tcycE 1,000 ns), data set-up to the E fall 900 ns (tDSW 195 ns), data and
-;   address hold after the E fall 500 ns (tH 10 ns, tAH 20 ns). A read
+;   48 cycles after its rise (800 ns; PWEH 450 ns), and the next transfer
+;   starts 54 cycles after the fall: E cycle TC = 108 cycles = 1.8 us (tcycE
+;   1,000 ns), data set-up to the E fall 900 ns (tDSW 195 ns), data and
+;   address hold after the E fall 900 ns (tH 10 ns, tAH 20 ns). A read
 ;   transfer releases DB4..DB7 and reads them with port PINS TS = 32 cycles
 ;   after the transfer start: 26 cycles = 433 ns after the E rise (tDDR
 ;   360 ns maximum), before the E fall (the LCD holds the data until tDHR

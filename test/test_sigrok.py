@@ -29,6 +29,7 @@ import test_flex as fx
 import test_fw_full as ff
 import test_holdout as ho
 import test_i2c_tgt as it
+import test_lin as ln
 import test_rtl_fw as rf
 import test_sbus as sb
 import test_usb_dev as ud

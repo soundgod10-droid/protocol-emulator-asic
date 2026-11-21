@@ -202,7 +202,7 @@ async def test_hx711_model(dut):
              f"{dev.reads[0][0] / F_MHZ / 1000:.3f} ms (settling 50 ms); {m.cycle} cycles, {len(pds)} PD_SCK changes")
     # late host: the second word comes 2.5 periods after the first read; the result waits in the HX711
     dev = Hx711(period)
-    bench, m = model_run(dev, codes=[1, 2], steps=[([1], 3_200_000), ([2], 2 * period + period // 2)])
+    bench, m = model_run(dev, codes=[1, 2], steps=[([1], 3_200_000 + 2 * period + period // 2), ([2], 0)])
     check(dev, bench.words(0), "model late host", want=words_of("A128") * 2, want_sel=["A128", "A128"])
     ff.assert_status_clean(m, [0])
     log.info(f"model late host: {summary(bench, dev)}; second read {(dev.reads[1][0] - dev.reads[0][0]) / F_MHZ / 1000:.3f}"

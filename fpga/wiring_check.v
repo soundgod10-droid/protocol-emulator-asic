@@ -3,6 +3,7 @@
  */
 
 `default_nettype none
+`timescale 1ns / 1ps
 
 // wiring_check: bitstream for the first bench step (C4 F0), with the same pins as fpga_top.v.
 //

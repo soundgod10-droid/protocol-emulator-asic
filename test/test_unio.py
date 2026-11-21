@@ -441,6 +441,7 @@ async def test_unio_model(dut):
         bench, m = model_run(dev, words, want, cycles, **rate_equ(te))
         label = f"model TE {te / F_MHZ:.0f} us, device edges {skew:+.2f} UI +/-{jit} UI"
         st = check(dev, bench.words(0), cmds, label)
+        assert not m.late, f"{label}: late events {m.late}"
         ff.assert_status_clean(m, [0])
         log.info(f"{label}: {len(bench.words(0))} host words as expected; device TE {dev.te:.1f} cycles; status "
                  f"polls {[hex(s) for s in st]}; device events {[e[0] for e in dev.events]}")

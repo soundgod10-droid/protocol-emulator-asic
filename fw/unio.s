@@ -80,7 +80,7 @@ stb1:   OUT     SCIO, 1         ; standby pulse
 stbl:   TADD    4000
         TWAIT
         DJNZ    r2, stbl
-        JMP     hdr
+        JMP     hdr0            ; high TSS more, then the start header
 nostb:  LD      r0, PEND
         MOV     r1, r0
         SHR     r1, 10

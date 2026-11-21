@@ -2282,10 +2282,10 @@ async def test_slu_chip_jtag_idcode(dut):
         dev_errs = [e for dv in devs for e in dv.errors]
         gaps = [b - a for a, b in zip(tms_changes, tms_changes[1:])]
         lines.append("%s: thread 0 status %s, %d words stored, IDCODEs %08x %08x (want %08x %08x), device timing "
-                     "errors %d, smallest TMS change spacing %.1f ns" % (
+                     "errors %d, smallest TMS change spacing %.1f ns; STOP release: %s" % (
                          corner, ["%04x" % w for w in words_out], end - 768, fx.lsb_word(got[:32]),
                          fx.lsb_word(got[32:]), fx.JTAG_IDS[1], fx.JTAG_IDS[0], len(dev_errs),
-                         min(gaps) if gaps else 0.0))
+                         min(gaps) if gaps else 0.0, release))
         assert len(words_out) == 1 and not words_out[0] & 0x204, "thread 0 status %s" % words_out
         assert end - 768 == 5, "%d words stored, want 5 (1 + 4)" % (end - 768)
         assert got == want, "IDCODE scan %08x %08x" % (fx.lsb_word(got[:32]), fx.lsb_word(got[32:]))

@@ -161,7 +161,7 @@ rwait1: TADD    POLL
         PUSH    r1
         JMP     get
 
-halves: LD      r0, HALFW       ; wait r3 half bits; return address in r2
+halves: LD      r0, HALFW       ; wait r3 half bits, then T one more half bit ahead (lead); return address in r2
 hl:     TADD    r0
         TWAIT
         DJNZ    r3, hl

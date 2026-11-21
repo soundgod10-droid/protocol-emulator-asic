@@ -26,9 +26,12 @@ env:
 
 jobs:
   equiv:
-    # Open (CV1, 2026-11-21): eqy stops in its partition step on the primary clock net ("Found 2 problems in
-    # 'check -assert'", run 44891831007). Until that is solved the netlist equivalence evidence is the dprove job
-    # below; this job still runs and shows its result, but does not fail the workflow.
+    # Open (CV1, 2026-11-21): with the black-box clock pins taken out (equiv/clk_tie.v) the partition step passes, but
+    # the pieces do not close: the final netlist keeps few RTL register names, so most gate-side pieces carry 248 or
+    # more unmatched inputs and k-induction ends "equivalence unknown"; the piece of the falling-edge flip-flop
+    # u_eth.din_f1 ends the run with no solver status (runs 44934313144, 44935967877). The netlist equivalence
+    # evidence is the dprove job below (the whole sequential miter, with its planted faults); this job still runs and
+    # shows its result, but does not fail the workflow.
     continue-on-error: true
     if: (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') && !inputs.guard_ref
     runs-on: ubuntu-24.04

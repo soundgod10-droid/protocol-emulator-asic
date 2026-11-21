@@ -69,6 +69,7 @@ class Hx711:
         self.ready, self.dout, self.ready_c = False, 1, None
         self.word, self.pulses, self.first = 0, 0, None
         self.pend = None  # (cycle, DOUT level) T2 after a rise
+        self.bad_rise = None
         self.reads, self.errors = [], []
 
     def _end_read(self, c):

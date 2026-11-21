@@ -275,6 +275,7 @@ async def test_sdi12_model(dut):
         bench, m = model_run(dev, words(four), len(w4), 4_000_000, **scale_equ(10))
         label = f"sensor rate {rate}, first start bit {resp} ms, character gap {gap} ms (times / 10)"
         assert not dev.errors and bench.words(0) == w4, f"{label}: {dev.errors[:3]} {[hex(x) for x in bench.words(0)]}"
+        assert not m.late, f"{label}: late events {m.late}"
         ff.assert_status_clean(m, [0])
         log.info(f"{label}: replies as expected")
     for equ, want_text in ((dict(BRKN=19), "neither a character nor a break"), (dict(HALF=2600), "recorder edge"),

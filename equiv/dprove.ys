@@ -39,7 +39,7 @@ sim -clock in_clk -resetn in_rst_n -rstlen 3 -n 3 -zinit -w
 async2sync
 dffunmap
 techmap
-opt -fast
+opt -fast -nodffe -nosdff
 aigmap
 setundef -zero
 opt_clean

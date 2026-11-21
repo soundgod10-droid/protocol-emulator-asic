@@ -36,6 +36,7 @@ def main(target, gate, paths):
                                                        for k, v in fm.items())))
         u = rep.get("utilization", {})
         util = ", ".join("%s %d/%d" % (k, v["used"], v["available"]) for k, v in sorted(u.items()) if v["used"])
+        lines.append("  limiting path: " + limiting_path(rep))
     verdict = "PASS" if worst is not None and worst >= gate else "FAIL"
     print("%s: worst fmax over %d seeds %.2f MHz, gate %.1f MHz: %s" % (target, len(paths), worst or 0.0, gate,
                                                                        verdict))

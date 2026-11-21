@@ -41,6 +41,7 @@ clk2fflogic
 techmap
 opt -fast
 aigmap
+setundef -zero
 opt_clean
 tee -o dprove_stat.txt stat
 write_aiger -zinit miter.aig

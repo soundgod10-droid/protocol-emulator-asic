@@ -104,6 +104,8 @@ The reset is the chip reset rst_n (asynchronous assert, release at a clock edge,
 
 Effect of V = 1, OE = 0 on the chip pins: uio_oe = 0 (all uio pins are inputs), uio_out = 0xFF, uo_out[6:0] = 1. Thus, UART_TX (uo_out[4]) is 1 (idle level) during and after reset. uo_out[7] is the host MISO pin (docs/host_port.md section 2). It is not an output pin of the threads.
 
+Release order at STOP: a STOP clears OE of every output pin (thread and helper pins) at once, and sets V to 1 at the next clock edge. Thus a pin that drives 0 is released while it still drives 0, and it shows no high pulse between the two changes; after the release only the external pull-up or pull-down sets the line. The chip reset sets V and OE at once (also with the clock stopped).
+
 ## 3 Barrel timing
 
 ### 3.1 Slots

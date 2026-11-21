@@ -67,7 +67,7 @@ wget:   TSYNC   8
         SHR     r1, 11
         ANDI    r1, 1
         BEQ     nostb
-        TSYNC   16
+        TSYNC   32
         LD      r1, PORF
         MOV     r1, r1
         BNE     stb1

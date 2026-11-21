@@ -207,6 +207,11 @@ def owner():
     return ff.owners({p: 0 for p in PINS.values()})
 
 
+def _signed(v):
+    v &= 0xFFFF
+    return v - 0x10000 if v & 0x8000 else v
+
+
 def model_run(dev, words, cycles, **equ):
     prog = assemble(**equ)
     m = pe_model.PeModel(prog.words, owner=owner())

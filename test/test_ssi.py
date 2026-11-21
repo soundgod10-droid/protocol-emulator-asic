@@ -3,19 +3,21 @@
 and on the RTL at 60 MHz.
 
 What it does:
-  The encoder model (SsiEncoder) is written from the Hengstler knowledge-center page "SSI Interface for Absolute
-  Encoders" (transmission process (1) to (4), the block-diagram times T, tm = 10 to 30 us and tv = 100 ns, and the
-  table of recommended clock rates by cable length). It does not use the firmware, the assembler or the processor
-  model. While no clock comes its data line is high; the first falling edge stores the position and starts the
-  retriggerable monoflop (time tm from the last falling edge); each rising edge puts the next bit on the data line tv
-  after the edge, MSB first; after the LSB the line is low until the monoflop runs out, then high again. It checks
-  that a transmission starts only while the line is high (monoflop run out), that the clock period stays below tm
-  (else the monoflop runs out inside a transmission) and that the clock rate is below 400 kHz (the page's rate for a
-  cable shorter than 50 m).
-  The model test reads 13-bit and 25-bit encoders with tm = 10 and 30 us and a host that asks back to back (the
-  firmware must wait for the monoflop), an encoder with one bit more than the controller expects (the end check
-  must flag it) and a dead encoder (data stuck low: "not ready"); negative controls set the clock to 1 MHz and the
-  clock period above tm. The RTL test runs the firmware on the chip in lockstep with the reference model; the same
+  The encoder model (SsiEncoder) is written from the SICK "Technical Information SSI Interface Description"
+  8027422/2022-02-08 (SSI was developed by Max Stegmann GmbH, now SICK): section 2.2 sequence and Figures 2 and 3
+  (first high-low edge loads the position, each low-high edge sends the next bit MSB first, tv < T/2, tm = 15 to
+  25 us, clock interval greater than tm) and section 2.7 (recommended clock rate by cable length). It does not use
+  the firmware, the assembler or the processor model. While no clock comes its data line is high; the first falling
+  edge stores the position and starts the retriggerable monoflop (time tm from the last falling edge); each rising
+  edge puts the next bit on the data line tv after the edge; after the LSB the line is low until the monoflop runs
+  out, then high again. It checks that a transmission starts only while the line is high (monoflop run out), that
+  the clock period stays below tm (else the monoflop runs out inside a transmission) and that the clock rate is
+  below 400 kHz (section 2.7, cable shorter than 50 m).
+  The model test reads 13-bit and 25-bit encoders with tm = 15 and 25 us and a host that asks back to back (the
+  firmware must wait for the monoflop), with tv = 100 ns and with the latest tv the document allows (one clock
+  cycle under T/2), an encoder with one bit more than the controller expects (the end check must flag it) and a
+  dead encoder (data stuck low: "not ready"); negative controls set the clock to 1 MHz and the clock period above
+  tm. The RTL test runs the firmware on the chip in lockstep with the reference model; the same
   test runs on the gate-level netlist (gl_fw workflow).
 
 Why:

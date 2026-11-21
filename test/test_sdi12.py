@@ -184,7 +184,7 @@ class Sdi12Sensor:
                 st["k"] += 1
             if st["k"] == 10:
                 self.rx = None
-                if c - st["t0"] < self.cyc(6.5):  # not the start of a break
+                if any(st["bits"]):  # all ten samples spacing: the start of a break, not a character
                     self._char(c, st)
         if line == 0 and self.awake and not sensor_tx and c - self.mark_since > self.cyc(100.0):
             self.awake = False  # 100 ms of marking: low-power standby

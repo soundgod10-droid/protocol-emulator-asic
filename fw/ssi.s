@@ -61,7 +61,7 @@ idle:   TSYNC   32
         BNE     ready
         TNOW    16
         TADD    4000
-        WAIT    DATA, RISE, r3, TO
+        WAIT    DATA, RISE, r3, TO, CT      ; CT: the read starts right after the rise, not at the time-out time
         BES     ready
         LDI     r0, 1           ; not ready
         SHL     r0, 15

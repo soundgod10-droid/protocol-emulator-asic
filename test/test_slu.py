@@ -2332,6 +2332,7 @@ async def test_slu_chip_jtag_idcode(dut):
         assert end - 768 == 5, "%d words stored, want 5 (1 + 4)" % (end - 768)
         assert got == want, "IDCODE scan %08x %08x" % (fx.lsb_word(got[:32]), fx.lsb_word(got[32:]))
         assert not dev_errs, "device timing at its pins: %s" % dev_errs[:3]
+        assert not runts, "STOP: a pin that drove 0 showed 1 before its enable fell: %s" % release
     for line in lines:
         dut._log.info("chip JTAG on the USB helper, " + line)
 

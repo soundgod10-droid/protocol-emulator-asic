@@ -275,8 +275,11 @@ module pe_proc (
           default: hs = !ho;
         endcase
       end
-      always @(posedge clk or negedge run_rst_n) begin
-        if (!run_rst_n) hv[p] <= 1'b1;
+      // As in pe_timed_out: a STOP clears the enable (hrun) at once and sets the value at the next clock edge, so a
+      // helper pin that drives 0 is released at 0, with no high pulse; the chip reset sets the value at once.
+      always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) hv[p] <= 1'b1;
+        else if (!run_rst_n) hv[p] <= 1'b1;
         else hv[p] <= hs;
       end
       assign pin_v[p]  = pin_hdrv[p] ? hv[p] : slot_v[p];

@@ -286,7 +286,11 @@ async def test_mdb_rtl(dut):
         dut.dump_off.value = 0
         await bench.run(rf.HOST_START + 40_000)
         dut.dump_off.value = 1
-        log.info(f"{label}: waveform from the start; changer blocks {dev.blocks[:1]}")
+        now = get_sim_time(unit="ps")
+        ps = lambda c: round(now - (bench.m.cycle - c) * rf.CLK_PS)  # noqa: E731
+        log.info(f"{label}: waveform from the start; changer blocks {dev.blocks[:1]}; master start edges at "
+                 f"{[ps(c) for c in dev.starts[:2]]} ps, changer reply at {[ps(c) for c in dev.reply_starts[:1]]} ps; "
+                 f"bit {dev.bit:.0f} cycles")
     await bench.collect(0, len(RTL_WANT), limit=600_000)
     await bench.run(2000)
     await bench.finish(log)

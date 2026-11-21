@@ -83,8 +83,9 @@ jobs:
             echo "::notice title=cell models compile (exit $rc)::$(grep -v '^ ' cells_iv.log | sort | uniq -c | sort -rn | head -n 8 | cut -c1-300 | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')"
             exit $rc
           fi
-          vvp -n cells_tb > cells_tb.log 2>&1
-          echo "vvp exit $?" | tee -a cells_tb.log
+          rc=0
+          vvp -n cells_tb > cells_tb.log 2>&1 || rc=$?
+          echo "vvp exit $rc" | tee -a cells_tb.log
           cat cells_tb.log
           echo "::notice title=cell models::$(grep -E '^cells_tb|^vvp exit|rror' cells_tb.log | head -n 20 | sed ':a;N;$!ba;s/\n/%0A/g')"
           grep -q "cells_tb: PASS" cells_tb.log

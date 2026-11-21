@@ -45,8 +45,8 @@ jobs:
             ecp5)  cmd="synth_ecp5 -top fpga_fmax_top" ;;
             ecp5r) cmd="synth_ecp5 -abc9 -dff -top fpga_fmax_top" ;;
             ecp5n) cmd="synth_ecp5 -abc9 -nowidelut -top fpga_fmax_top" ;;
-            ecp5x) cmd="delete pe_proc/u_eth; setundef -zero -undriven; synth_ecp5 -top fpga_fmax_top" ;;
-            ecp5c) cmd="delete pe_proc/u_eth pe_proc/u_usb; setundef -zero -undriven; synth_ecp5 -top fpga_fmax_top" ;;
+            ecp5x) cmd="hierarchy -top fpga_fmax_top; proc; delete pe_proc/u_eth; setundef -zero -undriven; synth_ecp5 -top fpga_fmax_top" ;;
+            ecp5c) cmd="hierarchy -top fpga_fmax_top; proc; delete pe_proc/u_eth pe_proc/u_usb; setundef -zero -undriven; synth_ecp5 -top fpga_fmax_top" ;;
             nexus) cmd="synth_nexus -top fpga_fmax_top" ;;
             gw2a)  cmd="synth_gowin -family gw2a -top fpga_fmax_top" ;;
             gw5a)  cmd="synth_gowin -family gw5a -nolutram -top fpga_fmax_top" ;;

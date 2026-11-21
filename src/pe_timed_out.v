@@ -30,8 +30,15 @@
 //
 // Reset:
 //   RESET_VALUE and RESET_OE set the pin state during and after reset.
-//   For a UART TX pin this is 1 (idle level). The reset is asynchronous,
-//   so the pin goes to this state also when the clock is stopped.
+//   For a UART TX pin this is 1 (idle level). rst_n (the processor reset,
+//   also asserted by a STOP) clears the output enable at once,
+//   asynchronously. The pin value takes RESET_VALUE at the first clock edge
+//   while rst_n is 0, so it does not change before the enable is off: a pin
+//   that drives 0 at a STOP is released at 0, with no high pulse whose
+//   length would be the skew between the two flip-flops, the shuttle's
+//   multiplexer and the pad's enable and data paths. pin_rst_n (the chip
+//   reset) sets the value asynchronously, so the pin goes to its reset
+//   state also when the clock is stopped.
 
 module pe_timed_out #(
     parameter [0:0] RESET_VALUE = 1'b0,  // pin value during and after reset

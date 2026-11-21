@@ -51,7 +51,8 @@ bit:    SHR     r0, 1           ; C = the bit
         TADD    r2
         DJNZ    r1, bit
         JMP     idle
-one:    TADD    r2              ; 1 bit: no pulse
-        TADD    r3
+one:    TWAIT                   ; 1 bit: no pulse; wait for the cell start, so that
+        TADD    r2              ; T stays within one bit time of now (a run of 1 bits at
+        TADD    r3              ; 9.6 kbit/s would put T more than 32,767 cycles ahead)
         DJNZ    r1, bit
         JMP     idle

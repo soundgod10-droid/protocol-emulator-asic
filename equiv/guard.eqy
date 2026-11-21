@@ -9,6 +9,13 @@ prep -top tt_um_soundgod10_droid_protocol_emulator
 flatten
 memory_map
 opt_clean
+# the black-box clock pins that clk drives with no logic, as in equiv/chip.eqy (equiv/clk_tie.v)
+techmap -map @ROOT@/equiv/clk_tie.v t:sg13cmos5l_lgcp_1
+cd tt_um_soundgod10_droid_protocol_emulator
+connect -port u_proc.u_mem.u_pmem A_CLK 1'0
+connect -port u_proc.u_mem.u_dmem A_CLK 1'0
+cd ..
+opt_clean
 
 [gate]
 read_verilog -lib @ROOT@/equiv/cells_bb.v @GATE@/src/sram_bb.v

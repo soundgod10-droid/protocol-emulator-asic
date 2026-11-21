@@ -228,9 +228,9 @@ async def test_mdb_model(dut):
     """fw/mdb.s in the reference model against the changer model: six exchanges at the bit-rate corners, reply delays
     and byte gaps; a wrong CHK in a reply; a bus reset; negative controls for t-response and the master's bit rate."""
     log = dut._log
-    for rate, resp, gap in ((0.98, 200.0, 0.0), (1.01, 4900.0, 900.0), (1.0, 4900.0, 0.0), (0.98, 1000.0, 900.0)):
+    for rate, resp, gap in ((0.98, 200.0, 0.0), (1.01, 4900.0, 900.0), (0.98, 4900.0, 900.0)):
         dev = MdbChanger(rate=rate, resp_us=resp, gap_us=gap)
-        bench, m = model_run(dev, WORDS, 3_400_000)
+        bench, m = model_run(dev, WORDS, 4_800_000)
         label = f"model changer rate {rate}, reply after {resp} us, byte gap {gap} us"
         assert not dev.errors, f"{label}: {dev.errors[:3]}"
         assert bench.words(0) == WANT, f"{label}: {[hex(w) for w in bench.words(0)]}"

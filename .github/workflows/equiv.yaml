@@ -145,6 +145,12 @@ jobs:
             eqy_work/logfile.txt
             eqy_work/*.log
           if-no-files-found: warn
+      - name: eqy result
+        if: always()
+        shell: bash
+        run: |
+          echo "::notice title=eqy result::${{ steps.eqy.outcome }}"
+          [ "${{ steps.eqy.outcome }}" = success ]
 
   # Second method (C3 WP9), independent of eqy: one sequential miter of the RTL and the final netlist (equiv/dprove.ys),
   # proved by ABC dprove from the reset state; the planted fault ff_d_swap (equiv/teeth.py) must give a counterexample.

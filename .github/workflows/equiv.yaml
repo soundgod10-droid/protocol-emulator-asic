@@ -399,8 +399,10 @@ jobs:
         run: |
           set +e
           if [ "${{ matrix.case }}" = planted ]; then
-            sed -i 's/tx_line <= 1.b1; tx_sck <= 1.b0;/tx_line <= 1'"'"'b0; tx_sck <= 1'"'"'b0;/' src/pe_slu.v
+            # the first READ_ID response byte with one bit flipped (0x51 for 0x50): on HOST_MISO about 30 cycles from reset
+            sed -i 's/2.d0:    id_b = CHIP_ID\[31:24\];/2'"'"'d0:    id_b = CHIP_ID[31:24] ^ 8'"'"'h01;/' src/pe_host_port.v
             git diff --stat src/
+            git diff src/ | grep -q "CHIP_ID\[31:24\] ^ 8'h01" || { echo "::error::planted guard change not made"; exit 1; }
           fi
           list() { sed -n '/source_files:/,/^[^ ]/p' $1/info.yaml | grep -o '"[^"]*\.v"' | tr -d '"' | grep -v sram_bb.v | sed 's|^|'$PWD/$1'/src/|' | tr '\n' ' '; }
           gold=$(list base); gate=$(list .)

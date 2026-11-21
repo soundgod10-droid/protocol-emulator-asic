@@ -42,6 +42,7 @@ data:   TWAIT                   ; end of the window before (T stays within B of 
         BES     zero            ; a pulse: 0
         ORI     r1, 128
 zero:   DJNZ    r0, data
+        TWAIT
         TADD    r2              ; stop bit window
         WAIT    RX, FALL, r3, TO
         BEC     ok

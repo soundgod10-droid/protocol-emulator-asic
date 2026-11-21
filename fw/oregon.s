@@ -17,8 +17,9 @@
 ;   A message is the preamble (16 data bits 1), the sync nibble 0xA, the
 ;   payload nibbles from the host, and the checksum (the 8-bit sum of the
 ;   payload nibbles, low nibble first); every nibble goes LSB first. The
-;   message is sent twice, with a gap of 22 half periods (10.74 ms; page 2:
-;   about 10.9 ms for the THGR122NX) between the copies.
+;   message is sent twice, each copy followed by a gap of 22 half periods
+;   (10.74 ms; page 2: about 10.9 ms for the THGR122NX), so that also the next
+;   message starts after a pause.
 ;
 ; Why:
 ;   The sensor protocol is a Manchester stream at a slow rate with doubled,

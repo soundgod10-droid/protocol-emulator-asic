@@ -8,7 +8,11 @@ What it does:
                          clock-gate cells exchanged), lat_d_swap (the D nets of two latch cells exchanged), sync_bypass
                          (the second stage of an input synchronizer fed from the stage's input instead of the first
                          stage). It prints the instance and nets that each fault changed. eqy must report every copy
-                         as not equivalent, or the job fails (a check that cannot fail proves nothing).
+                         as not equivalent, or the job fails (a check that cannot fail proves nothing). A fault that
+                         has no place in the netlist is reported and the others are still written.
+  clocks NL [SYNTH]      clock-tree check: what each sequential cell's clock pin reaches through buffers and
+                         inverters (clk port or clock gate) and with how many inversions, in NL and unchanged from
+                         the synthesis netlist SYNTH. cts_inv must fail it.
   same NL PNL [SUB]      checks that the power netlist PNL without its power connections and without the cells that
                          have no logic (fill, tap, decap, antenna diode) has the same instances, cell types and signal
                          connections as NL, and that SUB (the netlist of the submission) is one of the two.

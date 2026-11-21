@@ -89,7 +89,7 @@ def oregon_receive(changes, end, scale=1, us=F_MHZ):
                 stats["trunc"].append(t)
                 if not TRUNC_US[0] <= t <= TRUNC_US[1]:
                     errors.append(f"cycle {c}: carrier fall {t:.1f} us before the grid point (93 us, page 3)")
-        n_half = round((grp[-1][0] - r0) / hh) + 2
+        n_half = round((grp[-1][0] - r0) / hh) + 1  # the last edge ends half n_half - 1 (or the one before)
 
         def level(t):
             lv = 0

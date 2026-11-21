@@ -169,6 +169,7 @@ class MdbChanger:
                 self.low_since = c
                 if self.rx is None:
                     self.rx = {"t0": c, "bits": [], "k": 0, "edges": []}
+                    self.starts.append(c)
             else:
                 low = c - self.low_since
                 if low >= self.cyc(T_BREAK_US):

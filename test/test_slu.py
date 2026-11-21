@@ -2507,5 +2507,6 @@ async def test_slu_chip_swd_dpidr(dut):
         assert ack == 0b001, "ACK %s (bits %s)" % (bin(ack), xfer[:16])
         assert val == tgt.dpidr and fx.parity(val) == par, "DPIDR %08x parity %d" % (val, par)
         assert not tgt.errors, "target timing at its pins: %s" % tgt.errors[:3]
+        assert not runts, "STOP: a pin that drove 0 showed 1 before its enable fell: %s" % release
     for line in lines:
         dut._log.info("chip SWD on the USB helper, " + line)

@@ -41,7 +41,8 @@
 ;   with a wrong CHK (answered with NAK), 0x2000 = framing error (stop bit
 ;   0), 0x8000 = no reply or no next byte in time. A bus reset gives 0.
 ; Registers: r0 work, r1 byte, r2 pointer and checksum, r3 count.
-; Memory: BUF.. in data memory (the block and its CHK), CNT after the code.
+; Memory: BUF.. in data memory (the block and its CHK), CNT and OC after the
+;   code.
 
         .equ    TX, UO4
         .equ    RX, UI3

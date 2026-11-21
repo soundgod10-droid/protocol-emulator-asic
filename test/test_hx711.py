@@ -229,19 +229,22 @@ async def test_hx711_rtl(dut):
     log = dut._log
     label = "rtl hx711"
     period = 12_000
+    ref = Hx711(period)
+    model_run(ref, limit=400_000)
+    w0 = ref.reads[0][0] - 1_500  # waveform window around the first read
     dev = Hx711(period)
     bench = rf.RtlBench(dut, assemble().words, owner=ff.owners({P_SCK: 0}), inputs=dev, label=label)
     bench.watch("sck", lambda uo, uio, oe: (uo >> 4) & 1)
     bench.send(0, *CODES)
     if hasattr(dut, "dump_off"):
-        await bench.run(SETTLE * period - 500 - bench.m.cycle)
+        await bench.run(w0 - bench.m.cycle)
         dut.dump_off.value = 0
-        await bench.run(4_000)
+        await bench.run(6_000)
         dut.dump_off.value = 1
-        rises = [c for c, v in bench.changes("sck") if v == 1 and c >= SETTLE * period - 500]
-        log.info(f"{label}: waveform window model cycles {SETTLE * period - 500} to {bench.m.cycle}, simulation time "
-                 f"about {get_sim_time(unit='ps') - 4_000 * rf.CLK_PS} ps at its start; DOUT fall at model cycle "
-                 f"{dev.reads[0][0] if dev.reads else dev.ready_c}; PD_SCK rises {rises[:3]} ... ({len(rises)} in it)")
+        rises = [c for c, v in bench.changes("sck") if v == 1 and c >= w0]
+        log.info(f"{label}: waveform window model cycles {w0} to {bench.m.cycle}, simulation time about "
+                 f"{get_sim_time(unit='ps') - 6_000 * rf.CLK_PS} ps at its start; DOUT fall at model cycle "
+                 f"{dev.ready_c}; PD_SCK rises {rises[:3]} ... {rises[-1:]} ({len(rises)} in it)")
     for _ in range(100):
         if len(bench.words(0)) >= len(WANT):
             break

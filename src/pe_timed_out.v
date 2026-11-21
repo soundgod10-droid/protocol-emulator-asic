@@ -150,7 +150,6 @@ module pe_timed_out #(
       if (m_pend) m_j <= m_j + 17'd1;
       if (m_due) begin
         m_pend <= 1'b0;
-        m_pv   <= m_v;
         m_pe   <= m_e;
       end
       if (f_take) begin

@@ -60,7 +60,8 @@
         .equ    TAS, 6          ; E rise after the transfer start: 100 ns (tAS 60 ns)
         .equ    TS, 32          ; read of DB after the transfer start: E rise + 433 ns (tDDR 360 ns)
         .equ    TE, 54          ; E fall after the transfer start: E high 48 cycles = 800 ns (PWEH 450 ns)
-        .equ    TC, 84          ; next transfer start: E cycle 1.4 us (tcycE 1,000 ns)
+        .equ    TC, 108         ; next transfer start: E cycle 1.8 us (tcycE 1,000 ns); the lead of the
+                                ; next transfer's five OUTs needs about 90 cycles after a read transfer
         .equ    PON, 610        ; 610 x 4,000 cycles = 40.7 ms after the start
         .equ    W1, 64          ; 64 x 4,000 cycles = 4.27 ms
         .equ    W2, 2           ; 2 x 4,000 cycles = 133 us

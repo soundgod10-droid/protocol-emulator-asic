@@ -44,7 +44,7 @@
         .equ    CHUNKS, 102     ; wait for each byte: 102 x 4,000 cycles = 130 bit times
         .equ    TAB, 512
         .equ    DAT, 576
-        .equ    BUF, 1088
+        .equ    BUFH, 544       ; received bytes at 2 x 544 = 1,088 (above the LDI range)
 
 idle:   PULL.NB r0              ; a table entry from the host?
         BES     cfg

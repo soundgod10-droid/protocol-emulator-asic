@@ -149,7 +149,7 @@ class Tm1637:
                 self.active, self.first, self.k, self.byte = True, True, 0, 0
                 self.reading = self.read_next = False
             else:
-                if self.active and 0 < self.k < 9:
+                if self.active and 1 < self.k < 9:  # the rise before a STOP is the STOP's own CLK rise
                     self._err(c, f"STOP after {self.k} clocks of a byte (the byte is not valid)")
                 self.active = False
         self.dio = dio

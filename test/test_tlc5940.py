@@ -12,7 +12,7 @@ What it does:
   before. A grayscale latch must come while BLANK is high (8.4.3). The first grayscale latch after a dot correction
   latch takes effect only with an additional SCLK pulse after XLAT (8.4.3); a PWM cycle that starts before it is a
   fault. A PWM cycle starts at the BLANK fall; each GSCLK rise counts; an output with grayscale value GSn is on for
-  GSn GSCLK periods (the reading of 8.4.5 that the output on-time error of 7.5, GSn = 01h against one GSCLK period,
+  GSn GSCLK periods (the reading of 8.4.5 that the output on-time error of 6.6, GSn = 01h against one GSCLK period,
   confirms), the counter stops at FFFh. Every setup, hold and pulse duration of 7.3 is checked on the pins:
   tsu0 to tsu5, th0 to th4, twh0/twl0, twh1/twl1, twh2, twh3, and SCLK and GSCLK at most 30 MHz; SIN, SCLK and VPRG
   must not change while XLAT is high.

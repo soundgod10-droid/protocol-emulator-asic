@@ -366,7 +366,7 @@ async def test_hd44780_model(dut):
     # Negative controls: the LCD model must catch each bus or initialization fault, or the read-back must fail.
     for equ, want in ((dict(TAS=2), "tAS 60 ns"), (dict(TE=30), "PWEH 450 ns"), (dict(W1=60), "more than 4.1 ms")):
         lcd = short_lcd()
-        model_run(lcd, words=HOST[:3], nwords=0, limit=600_000, PON=PON_SHORT, **equ)
+        model_run(lcd, words=HOST[:3], nwords=1, limit=600_000, PON=PON_SHORT, **equ)  # no word comes: runs to limit
         log.info(f"control {equ}: {lcd.errors[0] if lcd.errors else 'no fault found'}")
         assert lcd.errors and want in lcd.errors[0], f"control {equ}: expected '{want}', got {lcd.errors[:2]}"
     lcd = short_lcd()

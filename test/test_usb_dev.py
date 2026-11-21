@@ -216,6 +216,7 @@ class Glue:
                 break
             self.bus.changed.clear()
             await First(self.bus.changed.wait(), Timer(max(1, round(limit - self.now())), unit="ps"))
+        self.bus.transients += steps
         wave = Wave(init, [(t - start, lv) for t, lv in ed if t <= limit], end=limit - start)
         return H.Result(t=start, wave=wave)
 

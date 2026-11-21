@@ -73,8 +73,10 @@ def oregon_receive(changes, end, scale=1, us=F_MHZ):
         grp = edges[i:j + 1]
         rises = [c for c, v in grp if v == 1]
         r0 = rises[0]
-        k_last = round((rises[-1] - r0) / h)
-        hh = (rises[-1] - r0) / k_last if k_last else h  # measured half period from the rises
+        # half period from the preamble (data bits 1: a rise every 4 half periods), then over the whole copy
+        hh0 = (rises[8] - r0) / 32 if len(rises) > 8 else h
+        k_last = round((rises[-1] - r0) / hh0)
+        hh = (rises[-1] - r0) / k_last if k_last else hh0
         rate = us * 1e6 / (2 * hh * scale)
         stats["rate"].append(rate)
         if abs(rate - RATE) > RATE_TOL:

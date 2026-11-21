@@ -57,7 +57,10 @@ jobs:
 
   # F3: "LATE is never set" of a firmware image on the processor RTL (formal/fwlate/), unbounded with ABC PDR. The
   # result (PASS, FAIL, or no result within the limit) is reported as an annotation; a FAIL fails the job.
+  # It runs by hand only: the first run (44819115126, fw/uart_tx.s) gave no result within 3,600 s, so on every push
+  # it would hold a runner for an hour without a verdict.
   fwlate:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
     timeout-minutes: 80
     steps:

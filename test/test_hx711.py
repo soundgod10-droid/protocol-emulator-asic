@@ -90,7 +90,7 @@ class Hx711:
             if self.pd:
                 pass
             elif not self.ready:
-                self.errors.append(f"cycle {c}: PD_SCK pulse while DOUT is high (data not ready, page 4)")
+                self.bad_rise = c  # a pulse while not ready, unless it becomes a power-down (checked at the fall)
             else:
                 if self.pulses == 0:
                     t1 = (c - self.ready_c) / us

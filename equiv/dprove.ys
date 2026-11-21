@@ -12,6 +12,7 @@ proc
 flatten
 opt_clean
 expose -evert t:sg13cmos5l_dlhq_1 t:sg13cmos5l_lgcp_1 t:RM_IHPSG13_*
+setundef -zero -undriven
 rename tt_um_soundgod10_droid_protocol_emulator gold
 design -stash gold
 

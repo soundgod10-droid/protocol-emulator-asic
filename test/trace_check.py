@@ -82,8 +82,8 @@ def check(rows, results=None):
     """results: None, or (passed, failed, modules) from read_results. Returns (errors, table)."""
     errors, table = [], []
     groups = fcov_groups()
-    formal_yaml = open(os.path.join(ROOT, ".github", "workflows", "formal.yaml"), encoding="utf-8").read()
-    sweep_text = open(os.path.join(HERE, "test_rtl_sweep.py"), encoding="utf-8").read()
+    formal_yaml = _read(os.path.join(ROOT, ".github", "workflows", "formal.yaml"))
+    sweep_text = _read(os.path.join(HERE, "test_rtl_sweep.py"))
     sources = {}
     passed, failed, modules = results if results is not None else (set(), set(), set())
     want = {(d, s): t for d in DOCS for s, t in headings(d)}

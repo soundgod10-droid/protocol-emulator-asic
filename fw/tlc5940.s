@@ -68,7 +68,7 @@
         LDI     r0, BUF
         ST      r0, GP
         TSYNC   100
-cycle:  LDI     r0, NGSH        ; T = the cycle start (BLANK fall)
+cycle:  LDI     r0, NGSH        ; T = the first GSCLK rise of the cycle
         SHL     r0, 3
         LD      r3, MODE        ; frame to shift in this cycle: 0 none, 1 grayscale, 2 dot correction
         ST      r3, LAT

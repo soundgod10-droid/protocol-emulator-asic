@@ -37,7 +37,7 @@ memory_map
 opt_clean
 sim -clock in_clk -resetn in_rst_n -rstlen 3 -n 3 -zinit -w
 async2sync
-clk2fflogic
+dffunmap
 techmap
 opt -fast
 aigmap

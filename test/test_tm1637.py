@@ -174,7 +174,7 @@ class Tm1637:
                     self.rises.append(c)
                 self.t_rise = self.last_rise = c
             else:  # CLK fall
-                if self.active:
+                if self.active and self.t_rise is not None:
                     hi = c - self.t_rise
                     if hi < self.cyc(PW_CLK_US):
                         self._err(c, f"CLK high {hi / self.us * 1000:.0f} ns (PWCLK 400 ns)")

@@ -69,9 +69,14 @@ wget:   TSYNC   8
         ANDI    r1, 1
         BEQ     nostb
         TSYNC   16
-        OUT     SCIO, 0         ; low pulse, then the standby pulse
+        LD      r1, PORF
+        MOV     r1, r1
+        BNE     stb1
+        OUT     SCIO, 0         ; first standby pulse after reset: a low pulse before it
         TADD    TLO
-        OUT     SCIO, 1
+        LDI     r1, 1
+        ST      r1, PORF
+stb1:   OUT     SCIO, 1         ; standby pulse
         LDI     r2, STBN
 stbl:   TADD    4000
         TWAIT

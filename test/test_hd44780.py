@@ -364,7 +364,7 @@ async def test_hd44780_model(dut):
     assert bench.words(0) == [0xFFFF] and not [w for w in lcd.writes if w[0] > first], "stuck busy flag"
     assert (t_out - first) / F_MHZ > 1.1 * LONG_US * F_NOM / 190.0, "time-out shorter than clear display at 190 kHz"
     # Negative controls: the LCD model must catch each bus or initialization fault, or the read-back must fail.
-    for equ, want in ((dict(TAS=2), "tAS 60 ns"), (dict(TE=30), "PWEH 450 ns"), (dict(W1=60), "more than 4.1 ms")):
+    for equ, want in ((dict(TAS=2), "tAS 60 ns"), (dict(TE=32, TS=30), "PWEH 450 ns"), (dict(W1=60), "more than 4.1 ms")):
         lcd = short_lcd()
         model_run(lcd, words=HOST[:3], nwords=1, limit=600_000, PON=PON_SHORT, **equ)  # no word comes: runs to limit
         log.info(f"control {equ}: {lcd.errors[0] if lcd.errors else 'no fault found'}")

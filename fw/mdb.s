@@ -96,7 +96,8 @@ tbit:   OUT     TX, r1>>
         BNE     txb
         LDI     r3, 0           ; reply bytes before the last one
         LDI     r2, 0           ; their sum
-wait:   LDI     r0, OUTN        ; T = end of the last stop bit sent (or the middle of a reply byte's stop bit)
+wait:   TSYNC   8               ; T = end of the last stop bit sent, or the middle of a reply byte's stop bit
+        LDI     r0, OUTN        ; (about 100 cycles back after a reply byte: the search starts at now + 8)
         ST      r0, OC
 wout:   LDI     r0, 1000
 wsmp:   TADD    24

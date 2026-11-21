@@ -36,6 +36,9 @@ opt_clean
 sim -clock in_clk -resetn in_rst_n -rstlen 3 -n 3 -zinit -w
 async2sync
 clk2fflogic
+techmap
 opt -fast
+aigmap
+opt_clean
 tee -o dprove_stat.txt stat
 write_aiger -zinit miter.aig

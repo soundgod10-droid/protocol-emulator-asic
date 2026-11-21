@@ -319,6 +319,10 @@ def _define_tests():
         prog = fx.assemble("jtag.s", H1=h1, H2=h2)
         devs = fx.jtag_devices()
         label = f"rtl jtag.s TAP walk H1 {h1} H2 {h2}"
+        try:
+            dut.dump_off.value = 0  # a short case (about 11,000 cycles): its waveform is kept for review
+        except AttributeError:  # Verilator build: no dump
+            pass
         bench = rf.RtlBench(dut, prog.words, owner=ff.owners({fx.P_TCK: 0, fx.P_TMS: 0, fx.P_TDI: 0}),
                             inputs=fx.JtagChain(devs), label=label)
         await bench.run(50)

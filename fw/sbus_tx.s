@@ -1,7 +1,9 @@
 ; fw/sbus_tx.s - S.BUS transmitter (radio receiver side): 16 proportional channels, 2 digital channels, 2 flags.
 ;
 ; What it does:
-;   Sends S.BUS frames on SBUS_TX = uo_out[4] (output pin 12, UO4) as the
+;   Sends S.BUS frames on SBUS_TX = uio[4] (output pin 4, UIO4, push-pull; a
+;   pull-down resistor on the board holds the line low, the idle level, while
+;   the chip is in reset or stopped and the pin is released) as the
 ;   S.BUS description of the RPG Quadrotor Control wiki (SBUS-Protocol page)
 ;   gives them: serial at 100,000 bit/s, 8E2 (start bit, 8 data bits LSB
 ;   first, even parity, 2 stop bits), voltage levels inverted (a "0" bit is

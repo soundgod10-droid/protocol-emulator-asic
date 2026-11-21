@@ -48,7 +48,7 @@ async def run_case(dut, out_map, in_map):
         high, rst = window[0]
         in_steps.append((set(high), ui_seen))
         rst_steps.append((rst, rst_seen))
-    expected_out = {h: (p if p is not None else h) for h, p in out_map.items()}
+    expected_out = {h: h for h in out_map}  # the intended wiring: host input h on FPGA output h
     faults = wiring_judge.judge(out_frames, expected_out, in_steps, {h: h for h in in_map}, rst_steps)
     return faults, sum(len(f) for f in out_frames.values())
 

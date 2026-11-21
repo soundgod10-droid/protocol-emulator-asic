@@ -148,7 +148,7 @@ reply:  TADD    HB
         LDI     r0, 768
         SHL     r0, 2
         OR      r1, r0
-rbit:   OUT     TX, r1>>        ; T = half a bit after the reply's stop bit
+rbit:   OUT     TX, r1>>
         TADD    HB
         TADD    HB
         CMPI    r1, 2

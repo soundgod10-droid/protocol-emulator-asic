@@ -188,6 +188,8 @@ jobs:
               echo "::notice title=period shmoo ${{ matrix.corner }}::$(sed -e ':a;N;$!ba;s/\n/%0A/g' shmoo.txt)"
               # the job's verdict: both tests pass at the declared 60 MHz
               grep -q "<failure" results_core_16666.xml && echo "test_core_alu_flags fails at 60 MHz" && exit 1
+              # the pin delays of the last test_core run (possibly a no-SDF rerun) are not a measurement of this part
+              rm -f pin_delays.json
               cp results_r3_16666.xml results.xml ;;
           esac
           # Clock-to-pin delays of the core lockstep tests (part main): pin terms of the firmware timing certificates.

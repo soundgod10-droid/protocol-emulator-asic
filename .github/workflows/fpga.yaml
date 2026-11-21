@@ -235,9 +235,9 @@ jobs:
           case "${{ matrix.part }}" in
             fw1) mod=test_rtl_fw; gl_part=1 ;;
             fw2) mod=test_rtl_fw; gl_part=2 ;;
-            slu) mod=test_slu ;;
-            usb) mod=test_usb_dev; filter='^test_usb_dev_enumerate$' ;;
-            eth) mod=test_eth_dev; filter='^test_eth_dev_(tx|rx)$' ;;
+            slu) mod=test_slu; gl_part=3 ;;
+            usb) mod=test_usb_dev; gl_part=4; filter='^test_usb_dev_enumerate$' ;;
+            eth) mod=test_eth_dev; gl_part=5; filter='^test_eth_dev_(tx|rx)$' ;;
           esac
           make GATES=yes GL_PART=$gl_part COCOTB_TEST_FILTER="$filter" SIM_BUILD=sim_build/fpga_net \
             VERILOG_SOURCES="$GITHUB_WORKSPACE/fpga_ecp5_net.v $dat/ecp5/cells_sim.v $PWD/tb.v" \

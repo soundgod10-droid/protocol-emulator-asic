@@ -113,7 +113,8 @@ enh:    ST      r0, SUM
         ANDI    r0, 1
         BNE     pub
 ; subscribed: receive N data bytes and the checksum
-        LDI     r1, BUF
+        LDI     r1, BUFH
+        SHL     r1, 1
         ST      r1, PTR
         LD      r2, NN
         ADDI    r2, 1

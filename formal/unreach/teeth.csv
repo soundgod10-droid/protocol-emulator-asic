@@ -1,6 +1,6 @@
 point,proof,source
-eth:pe_slu.v:669:11:branch:if,tooth_eth,if (tx_go) begin
-usb:pe_slu.v:669:11:branch:if,tooth_usb,if (tx_go) begin
+eth:pe_slu.v:677:11:branch:if,tooth_eth,if (tx_go) begin
+usb:pe_slu.v:677:11:branch:if,tooth_usb,if (tx_go) begin
 eth:pe_slu.v:330:15:toggle:tx_line:1->0,yconst_eth,reg         tx_line;
 usb:pe_slu.v:330:15:toggle:tx_line:1->0,yconst_usb,reg         tx_line;
 eth:pe_slu.v:320:15:toggle:tx_st[0]:0->1,yconst_eth,reg  [3:0]  tx_st;

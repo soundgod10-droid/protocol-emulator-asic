@@ -198,7 +198,7 @@ class Glue:
         k0 = len(self.bus.dev)
         init = self.bus.d
         while True:
-            ed = [(t - self.t0, lv) for t, lv in self.bus.dev[k0:]]
+            ed, steps = receiver_view([(t - self.t0, lv) for t, lv in self.bus.dev[k0:]], init)
             sop = next((t for t, lv in ed if lv == "K"), None)
             if sop is None:
                 limit = start + a.timeout_ps

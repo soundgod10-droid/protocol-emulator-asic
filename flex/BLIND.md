@@ -60,3 +60,15 @@ The writer type is not fixed by this file: a person outside the project, or an A
 ## 10 Conditions
 
 Every result of this arm is a logic-simulation result (RTL and functional gate-level netlist at the declared clock, ideal pins), like the census. Electrical needs (transceivers, level shifters) are named per protocol and not simulated.
+
+## Record: beacon round 34159012 (2026-11-21)
+
+- **Round read** 2026-11-21 at about 17:57 UTC, after its publication, from `https://api.drand.sh/52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971/public/34159012`:
+  - round `34159012`
+  - randomness `a08eacf123483fa9dc7089ba9459360735c113f0b6f520cf4b721ad3bcccba9b`
+  - signature `b8092c5860421cd7018845802cc6bf37e75fcb7ad5acfca4653c6a7d220e3cd2e3df712a2401c45aee413b816c7b862c`
+- **Checks:** the randomness is the SHA-256 of the signature bytes; the round time is 1692803367 + 3 x 34159011 = 1795280400 s = 2026-11-21T17:00:00Z; the latest round at the time of reading was 34160144 (2026-11-21T17:56:36Z), so the round was public before this record. flex/order.py and flex/candidates.csv are the files of the commits 7bc7479 and 5fb04b8 (pushed 2026-11-17, more than 24 hours before the round); neither was changed since.
+- **Result** of `python flex/order.py a08eacf123483fa9dc7089ba9459360735c113f0b6f520cf4b721ad3bcccba9b` (the same as `python flex/order.py --round 34159012`), also in [blind_order.txt](blind_order.txt):
+  - **blind arm B** (8, in SHA-256(R + id) order): pocsag, j1708, ds1302, biss, hdlc, ata, magstripe, snes;
+  - **pre-freeze list P** (33, score order): dmx512, dcc, sbus, lin, hd44780, hx711, irda, oregon, ssi, tm1637, mdb, psi5, tlc5940, unio, i3c, iso7816, sent, adb, hub75, joybus, x10, iolink, mil1553, sdi12, centronics, sega6, arinc429, asi, kline, lanc, mbp, endat, knx.
+- The order inside B is set later with the census round (section 2). From this record on, section 3 applies to the eight ids of B: no commit before the `rtl-freeze` tag adds firmware, a model or a test for any of them. The writer type (section 9) stays open.

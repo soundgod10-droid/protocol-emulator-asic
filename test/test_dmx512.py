@@ -266,6 +266,9 @@ async def test_dmx512_rtl(dut):
         dut.dump_off.value = 0
         await bench.run(18_000)
         dut.dump_off.value = 1
+        fall = next(c for c, v in bench.changes("tx") if v == 0)
+        log.info(f"{label}: first BREAK edge at model cycle {fall}, simulation time about "
+                 f"{get_sim_time(unit='ps') - (bench.m.cycle - fall) * rf.CLK_PS} ps (for the waveform review)")
     await bench.run(total - bench.m.cycle)
     await bench.finish(log)
     got, stats = check(bench.changes("tx"), bench.m.cycle, PACKETS, label)

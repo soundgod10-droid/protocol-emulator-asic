@@ -244,6 +244,55 @@ jobs:
             dprove_stat.txt
           if-no-files-found: warn
 
+  # Clock-tree check (equiv/teeth.py clocks): the one-clock model of the dprove job cannot see on which edge a
+  # flip-flop is clocked, and eqy does not compare the clock pins of the black boxes (equiv/clk_tie.v). This job
+  # reads each sequential cell's clock path in the final netlist (clk port or clock gate, through buffers and
+  # inverters) and compares it with the synthesis netlist of the same run. The planted clock-tree inverter must fail.
+  clocks:
+    if: (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') && !inputs.guard_ref
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      actions: read
+      contents: read
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Final and synthesis netlists of the gds run
+        shell: bash
+        run: |
+          gh run download $GDS_RUN_ID -n tt_submission -D build/gds
+          gh run download $GDS_RUN_ID -n GDS_logs -D build/logs
+          r=$(ls -d build/logs/runs/*/ | head -n 1)
+          ls ${r}*-yosys-synthesis/
+          nl=$(ls build/gds/tt_submission/*.v | head -n 1)
+          syn=$(ls ${r}*-yosys-synthesis/*.nl.v | head -n 1)
+          test -f "$nl" && test -f "$syn"
+          echo "NL=$nl" >> $GITHUB_ENV
+          echo "SYN=$syn" >> $GITHUB_ENV
+      - name: Clock tree of the final netlist, against the synthesis netlist
+        shell: bash
+        run: |
+          set +e
+          out=$(python3 equiv/teeth.py clocks "$NL" "$SYN")
+          rc=$?
+          echo "$out"
+          echo "::notice title=clock tree, gds $GDS_RUN_ID (exit $rc)::$(echo "$out" | head -n 20 | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')"
+          exit $rc
+      - name: Planted clock-tree inverter (must fail)
+        shell: bash
+        run: |
+          set +e
+          python3 equiv/teeth.py plant "$NL" build/teeth > teeth.txt 2>&1
+          cat teeth.txt
+          test -f build/teeth/cts_inv.v || { echo "::error::cts_inv not planted"; exit 1; }
+          out=$(python3 equiv/teeth.py clocks build/teeth/cts_inv.v "$SYN")
+          rc=$?
+          echo "$out"
+          echo "::notice title=clock tree, tooth cts_inv (exit $rc)::$(grep '^cts_inv:' teeth.txt)%0A$(echo "$out" | tail -n 4 | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')"
+          [ $rc -ne 0 ]
+
   # Six planted netlist faults (equiv/teeth.py): eqy must find each copy not equivalent. A tooth that passes, or that
   # stops with an error instead of a failed partition, fails the job. Runs only when eqy has passed on the netlist (a
   # tooth of a check that does not run shows nothing).

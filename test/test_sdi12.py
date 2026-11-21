@@ -265,6 +265,7 @@ async def test_sdi12_model(dut):
     assert not dev.errors, f"session: {dev.errors[:3]}"
     assert bench.words(0) == want, f"session: {[hex(x) for x in bench.words(0)]}"
     assert dev.commands == [t for _, t in SESSION], f"session: sensor saw {dev.commands}"
+    assert not m.late, f"session: late events {m.late}"
     ff.assert_status_clean(m, [0])
     log.info(f"session at 1200 baud: {len(want)} host words as expected; sensor saw {dev.commands}; replies "
              f"{[r for r in dev.responses]}; {m.cycle} cycles ({m.cycle / F_MHZ / 1000:.1f} ms)")

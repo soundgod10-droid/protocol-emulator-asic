@@ -2231,7 +2231,7 @@ class ChipPinWatch:
 async def stop_release(dut, host, pins):
     """Host STOP with the uio pins in `pins` watched. For each pin that was an output: its level before STOP, the time
     of its value change and of its output enable falling, from the first change. A pin that drove 0 and shows 1 before
-    its enable falls carries a high runt of that length at the chip boundary (docs/helpers.md section 6, STOP). Zero-
+    its enable falls carries a high runt of that length at the chip boundary, before the pad. Zero-
     delay netlists give 0 ns for every change; SDF runs give the cell-delay skew. Returns one text for all pins."""
     from cocotb.triggers import Edge, First
     ev = [(get_sim_time("ps"), str(dut.uio_out.value), str(dut.uio_oe.value))]

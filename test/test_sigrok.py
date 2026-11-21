@@ -665,6 +665,38 @@ async def test_sigrok_dmx512(dut):
            allow={"dmx512:break": "", "uart:rx-break": "dmx512:break", "uart:rx-warning": "dmx512:break"})
 
 
+# ----- S.BUS -----
+# sbus_futaba/pd.py on uart (100,000 bit/s, even parity, 2 stop bits, inverted): classes header "0x{:02x}", proportional
+# "{:d}" (channels 1 to 16), digital "{:d}" (channels 17, 18), framelost and failsafe "{:d}", footer "0x{:02x}"; it ends
+# a message at the uart decoder's IDLE (one frame time of idle line).
+SBUS_CLASSES = "sbus_futaba:header|proportional|digital|framelost|failsafe|footer"
+
+
+@cocotb.test()
+async def test_sigrok_sbus(dut):
+    """fw/sbus_tx.s sends two frames (values over the 11-bit range, flags 0001 and 1100), checked by the S.BUS receiver
+    model of test_sbus.py."""
+    rf.start_clock(dut)
+    frames = sb.FRAMES[:2]
+    label = "sigrok sbus_tx"
+    bench = rf.RtlBench(dut, sb.assemble("sbus_tx.s").words, owner=ff.owners({sb.P_TX: 0}), label=label)
+    bench.watch("tx", sb.tx_level)
+    await bench.run(100)
+    t0 = now_ps()
+    bench.send(0, *sb.tx_words(frames))
+    await bench.run(rf.HOST_START + sb.tx_cycles(frames))
+    t1 = now_ps()
+    await bench.finish(dut._log)
+    sb.tx_check(bench.changes("tx"), bench.m.cycle, frames, label)
+    texts = []
+    for ch, fl in frames:
+        texts += (["0x0f"] + [f"{v:d}" for v in ch] + [f"{(fl >> k) & 1:d}" for k in range(4)] + ["0x00"])
+    record("test_sigrok_sbus", "sbus_tx", [["sbus_tx", f"drvl:{sb.P_TX}"]],
+           "uart:rx=sbus_tx:baudrate=100000:parity=even:stop_bits=2.0:invert_rx=yes,sbus_futaba",
+           {SBUS_CLASSES: texts}, t0, t1, "sbus_tx",
+           "chip S.BUS transmitter (SBUS_TX = uio[4]; released pin read low through the board pull-down), 2 frames")
+
+
 def record_pdi(t0, t1, texts):
     record("test_sigrok_pdi", "pdi", [["pdi_clk", f"drvh:{ho.P_CLK}"], ["pdi_data", f"bus:{ho.P_DAT}"]],
            "avr_pdi:reset=pdi_clk:data=pdi_data", {"avr_pdi:data-prog|data-dev": texts}, t0, t1, "pdi_data",

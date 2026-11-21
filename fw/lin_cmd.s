@@ -186,7 +186,9 @@ rs:     SAMPLE  RX, r1>>        ; start bit, 8 data bits, stop bit
         ANDI    r1, 255
         MOV     r0, r1
         JR      r3              ; E = 1 (from the stop bit sample)
-rbad:   LDI     r0, 256
+rbad:   LDI     r0, 8
+        IOW     r0, FLAGS       ; E = 1: a byte came, with a framing error
+        LDI     r0, 256
         JR      r3
 
 ; SUM = SUM + r0 with end-around carry (2.3.1.5). r0 is changed.

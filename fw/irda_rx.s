@@ -35,7 +35,8 @@ idle:   WAIT    RX, FALL, r3, CT        ; start bit pulse: T = t0
         TADD    r3              ; end of the start bit window
         LDI     r1, 0
         LDI     r0, 8
-data:   TADD    r2              ; end of this bit's window
+data:   TWAIT                   ; end of the window before (T stays within B of now,
+        TADD    r2              ; so that the time-out lead fits up to B = 32,767); end of this one
         SHR     r1, 1
         WAIT    RX, FALL, r3, TO
         BES     zero            ; a pulse: 0

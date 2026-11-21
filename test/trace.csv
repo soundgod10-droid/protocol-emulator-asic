@@ -1,0 +1,65 @@
+doc,section,title,evidence,reason
+# Traceability matrix: numbered section -> evidence (space-separated). bin:<fcov group> test:<module>:<function> sweep:<test_rtl_sweep family> formal:<job>. Checked by test/trace_check.py.
+docs/isa.md,1,Summary,,summary of sections 2 to 12; each item is checked through the row of its own section
+docs/isa.md,2,Machine state,,heading of 2.1 to 2.4
+docs/isa.md,2.1,State of each thread,bin:isa.form_thread bin:late.thread test:test_core:test_core_random formal:core,
+docs/isa.md,2.2,Shared state,bin:fifo.level test:test_core:test_core_branches_memory test:test:test_host_load_readback formal:mem formal:sram,
+docs/isa.md,2.3,Register count and area,,area figures from the cell library (no behaviour); the synthesis area is in docs/rationale.md
+docs/isa.md,2.4,Reset state,test:test:test_reset_keeps_line_idle test:test:test_host_reset_clears_config test:test_slu:test_slu_line_after_reset test:test_slu:test_slu_ports_after_reset,
+docs/isa.md,3,Barrel timing,,heading of 3.1 to 3.3
+docs/isa.md,3.1,Slots,bin:isa.form_thread test:test_core:test_core_barrel formal:core,
+docs/isa.md,3.2,Blocking instructions,bin:fifo.op bin:out.slot_full bin:time.twait test:test_core:test_core_host_io test:test_core:test_core_sample_wait,
+docs/isa.md,3.3,Memory access,test:test_core:test_core_branches_memory test:test_isa:test_model_store_rule formal:proc formal:sram,
+docs/isa.md,4,Time and output pin events,,heading of 4.1 to 4.5
+docs/isa.md,4.1,Event time,bin:event.kind_thread test:test_core:test_core_out_events,
+docs/isa.md,4.2,When a thread may issue an event,bin:event.kind_lead test:test_core:test_core_horizon test:test_fw_full:test_g1_lead,
+docs/isa.md,4.3,Late events,bin:late.thread bin:late.kind test:test_isa:test_model_lead_and_late formal:timed_out,
+docs/isa.md,4.4,Output event slots,bin:out.slot_full bin:pin.change formal:timed_out,
+docs/isa.md,4.5,Values of an output event,bin:out.pin_kind bin:owner.open_drain test:test_isa:test_model_open_drain_and_z,
+docs/isa.md,5,Pins,,heading of 5.1 to 5.3
+docs/isa.md,5.1,Pin numbers,bin:out.pin_kind bin:sample.pin_dir bin:wait.pin_edge test:test_core:test_core_sample_input15,
+docs/isa.md,5.2,"Owner of a pin, and two threads on one pin",bin:out.not_owner bin:owner.pin_thread test:test_isa:test_model_owner_and_slot formal:iso,
+docs/isa.md,5.3,Open-drain mode,bin:owner.open_drain test:test_rtl_fw:test_rtl_i2c,
+docs/isa.md,6,Input pins,,heading of 6.1 to 6.3
+docs/isa.md,6.1,Synchronizer,test:test_core:test_core_spike_filter test:test_core:test_core_sample_wait formal:cdc,
+docs/isa.md,6.2,SAMPLE,bin:sample.pin_dir bin:late.kind test:test_core:test_core_sample_wait,
+docs/isa.md,6.3,WAIT,bin:wait.outcome bin:wait.pin_edge test:test_core:test_core_wait_far_expired,
+docs/isa.md,7,Time instructions,bin:time.twait bin:time.tsync test:test_core:test_core_time test:test_fw_full:test_g1_tsync,
+docs/isa.md,8,Instructions,,notation of 8.1 to 8.5
+docs/isa.md,8.1,System and control,bin:branch.taken bin:loop.djnz test:test_core:test_core_branches_memory test:test_core:test_core_illegal_halt,
+docs/isa.md,8.2,Data,bin:alu.result bin:alu.carry test:test_core:test_core_alu_flags test:test_core:test_core_shifts,
+docs/isa.md,8.3,Pin events,bin:out.pin_kind bin:event.kind_thread test:test_core:test_core_out_events,
+docs/isa.md,8.4,Time,bin:time.tsync test:test_core:test_core_time,
+docs/isa.md,8.5,Host FIFOs and I/O ports,bin:fifo.op bin:port.access test:test_core:test_core_host_io test:test_rtl_fw:test_rtl_pull_rule,
+docs/isa.md,9,Flags and conditions,,heading of 9.1 and 9.2
+docs/isa.md,9.1,Flags,bin:alu.result bin:alu.carry test:test_isa:test_model_alu_flags test:test_core:test_core_alu_flags,
+docs/isa.md,9.2,Branch conditions,bin:branch.taken test:test_core:test_core_branches_memory,
+docs/isa.md,10,I/O ports,bin:port.access test:test_core:test_core_host_io test:test_slu:test_slu_port_rules,
+docs/isa.md,11,Encoding,,heading of 11.1 and 11.2
+docs/isa.md,11.1,Fields,bin:isa.form test:test_isa:test_asm_encodings,
+docs/isa.md,11.2,Encoding table,bin:isa.form test:test_isa:test_asm_encodings test:test_core:test_core_random,
+docs/isa.md,12,Illegal instructions,bin:illegal.class test:test_core:test_core_illegal_halt test:test_isa:test_model_illegal_and_halt,
+docs/isa.md,13,"Choices, reasons and rejected alternatives",,design reasons and rejected alternatives; the behaviour they choose is checked in the sections they cite
+docs/isa.md,14,Summary of the main choices,,summary of section 13
+docs/host_port.md,1,Function,test:test:test_host_load_readback test:test:test_host_id_status_rules formal:host_port,
+docs/host_port.md,2,Pins and SPI mode,test:test:test_host_partial_byte test:test:test_host_sck_limit formal:host_port,
+docs/host_port.md,3,Timing rules for the host,test:test:test_host_sck_limit test:test:test_r2_host_sck_clocks,
+docs/host_port.md,4,Commands,test:test:test_host_id_status_rules test:test:test_host_load_readback formal:host_port formal:host_port_mut_id,
+docs/host_port.md,5,Status bytes (READ_STATUS),test:test:test_host_status_reserved_bits test:test:test_host_id_status_rules,
+docs/host_port.md,6,Maximum SCK,test:test:test_host_sck_limit test:test_r3_sdf:test_r3_sdf_delay,
+docs/host_port.md,7,"Timing diagram (WRITE_MEM, one word)",test:test:test_host_load_readback,
+docs/host_port.md,8,"STOP, START and reset",test:test:test_stop_start test:test:test_r2_stop_pins test:test:test_reset_during_frame test:test_fw_full:test_r3_i2c_bus_clear test:test_fw_full:test_m3_i2c_stuck_scl,
+docs/host_port.md,9,FIFO rule (host side),bin:fifo.level test:test_rtl_fw:test_rtl_pull_rule formal:host_port,
+docs/host_port.md,10,Host throughput,,figures measured by tests of the research branch r2-timing (the section says so); not in CI
+docs/host_port.md,11,System clock and host constants,test:test_fw_full:test_r2_clock_margins test:test:test_r2_host_sck_clocks,
+docs/host_port.md,12,Host program and firmware format (docs/decisions.md entry 9),test:test_fw_full:test_fw_full_word_count,
+docs/host_port.md,13,SPI target (fw/spi_tgt.s),test:test_fw_full:test_m3_spi_tgt test:test_rtl_fw:test_rtl_spi_tgt sweep:spi_tgt,
+docs/host_port.md,14,"Firmware for other protocols (CAN, JTAG, SWD, PS/2, timed trigger)",test:test_flex:test_flex_can test:test_flex:test_flex_jtag test:test_flex:test_flex_swd test:test_flex:test_flex_ps2 test:test_flex:test_flex_trigger test:test_flex:test_flex_word_count sweep:can sweep:jtag sweep:jtag_walk,
+docs/host_port.md,14.1,I2C target timing characterization,test:test_flex:test_flex_i2c_char,
+docs/helpers.md,1,Purpose,test:test_helpers_rtl:test_helpers_rtl_usb_enum test:test_helpers_rtl:test_helpers_rtl_eth formal:slu_usb formal:slu_eth,
+docs/helpers.md,2,Ports,bin:port.access test:test_slu:test_slu_port_rules test:test_slu:test_slu_rxinfo_words test:test_slu:test_slu_txtime_lead_limit test:test_slu:test_slu_tx_late_underflow test:test_slu_cov:test_slu_cov_eth_tx_rules test:test_slu_cov:test_slu_cov_usb_tx_rules,
+docs/helpers.md,3,Pins,test:test_slu:test_slu_sel_last_pin test:test_slu:test_slu_chip_eth_events test:test:test_helper_pin_stopped_level formal:cdc,
+docs/helpers.md,3.1,Receive loop,test:test_slu:test_slu_loop_equiv test:test_slu:test_slu_loop_window_edge test:test_slu:test_slu_loop_acq_window test:test_slu:test_slu_loop_acq_end test:test_slu_cov:test_slu_cov_eth_loop_integrator_fast,
+docs/helpers.md,4,Measured results,test:test_slu:test_slu_usb_tx test:test_slu:test_slu_usb_rx test:test_slu:test_slu_eth_tx test:test_slu:test_slu_eth_rx test:test_slu:test_slu_eth_collision test:test_slu:test_slu_jabber test:test_slu:test_slu_usb_line_conditions test:test_slu:test_slu_chip_usb_events,
+docs/helpers.md,5,Notes for firmware,test:test_usb_dev:test_usb_dev_enumerate test:test_eth_dev:test_eth_dev_rx test:test_eth_dev:test_eth_dev_link,
+docs/helpers.md,6,Clocked and NRZ modes of the USB helper,test:test_slu_clk:test_slc_spi_flash_15mhz test:test_slu_clk:test_slc_jtag test:test_slu_clk:test_slc_swd test:test_slu_clk:test_slc_uart_tx test:test_slu_clk:test_slc_uart_rx test:test_slu_clk:test_slc_chip_start_levels test:test_slu:test_slu_chip_spi_flash test:test_slu_cov:test_slu_cov_usb_clocked_states test:test_slu_cov:test_slu_cov_usb_nrz_rx,

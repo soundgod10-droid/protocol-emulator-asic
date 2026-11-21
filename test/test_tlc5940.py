@@ -4,7 +4,7 @@ and on the RTL at 60 MHz.
 
 What it does:
   The chip model (Tlc5940) is written from the TI TLC5940 data sheet SLVS515D (December 2004, revised November 2015):
-  timing requirements 7.3 (pulse durations, setup and hold times, clock frequencies), serial interface 8.3.1 and
+  AC characteristics 6.3 (pulse durations, setup and hold times, clock frequencies), serial interface 8.3.1 and
   Figure 11, output enable 8.3.6, operating modes 8.4.1, dot correction 8.4.2, grayscale 8.4.3, grayscale PWM 8.4.5.
   It does not use the firmware, the assembler or the processor model. SCLK rises shift SIN into the input shift
   register, MSB first; an XLAT rise latches the last 96 bits into the dot correction register (VPRG high) or the last

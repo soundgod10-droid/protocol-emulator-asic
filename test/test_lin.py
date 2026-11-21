@@ -299,8 +299,9 @@ def cmd_model(bit=BIT, short=False, corrupt=(0x11,), **equ):
     bench = ff.Bench(m, inputs=node)
     bench.send(0, *words)
     nframes = len(sched)
+    nwords = sum(x + 1 for _, kind, x in sched if kind == "sub")
     for _ in range(400):
-        if len(node.frames) >= nframes and not bench.to_thread[0]:
+        if len(node.frames) >= nframes and len(bench.words(0)) >= nwords:
             break
         bench.run(50_000)
     bench.run(20_000)

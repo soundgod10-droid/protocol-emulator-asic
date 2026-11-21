@@ -87,8 +87,8 @@ lowpart:
 lop:    TADD    r3
         OUT     CLK, 1
         TADD    r3
-        SAMPLE  DATA, r1<<
         OUT     CLK, 0
+        SAMPLE  DATA, r1<<
         DJNZ    r2, lop
         TADD    r3
         OUT     CLK, 1          ; last rising edge: clock idle

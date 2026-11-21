@@ -154,7 +154,6 @@ pchk:   MOV     r0, r2
         JAL     r2, halves      ; for 7.5 ms + 0.4 ms more, so wait before the next command
         JMP     get
 rgap0:  LD      r0, TGAPW       ; T = middle of the stop bit (or of the spike)
-        JMP     rwait1
 rwait1: TADD    POLL
         SAMPLE  SD, r1>>
         BES     rstart

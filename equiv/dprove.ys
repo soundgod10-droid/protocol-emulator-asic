@@ -30,7 +30,7 @@ design -stash gate
 
 design -copy-from gold -as gold gold
 design -copy-from gate -as gate gate
-miter -equiv -flatten -ignore_gold_x gold gate miter
+miter -equiv -flatten gold gate miter
 hierarchy -top miter
 tee -o dprove_ports.txt select -list miter/i:*
 memory_map

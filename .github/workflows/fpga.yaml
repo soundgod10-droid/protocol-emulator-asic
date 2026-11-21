@@ -261,8 +261,10 @@ jobs:
             fw1) mod=test_rtl_fw; gl_part=1 ;;
             fw2) mod=test_rtl_fw; gl_part=2 ;;
             slu) mod=test_slu; gl_part=3 ;;
-            usb) mod=test_usb_dev; gl_part=4; filter='^test_usb_dev_enumerate$' ;;
-            eth) mod=test_eth_dev; gl_part=5; filter='^test_eth_dev_(tx|rx)$' ;;
+            # filters without shell or make metacharacters: cocotb's make recipe pastes them unquoted into a shell line
+            # (a bracket pair or a $ anchor broke it, run 44946375808)
+            usb) mod=test_usb_dev; gl_part=4; filter='test_usb_dev_enumerate' ;;
+            eth) mod=test_eth_dev; gl_part=5; filter='test_eth_dev_.x' ;;
           esac
           set +e
           make GATES=yes GL_PART=$gl_part COCOTB_TEST_FILTER="$filter" SIM_BUILD=sim_build/fpga_net \

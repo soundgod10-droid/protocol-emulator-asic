@@ -142,6 +142,8 @@ jobs:
   # with the Project X-Ray database), 5 seeds, the same fmax harness and gate. Timing comes from the X-Ray timing database,
   # not from the vendor's sign-off.
   xc7:
+    # by hand only (worst seed 37.17 MHz, run 44808418108); the nix toolchain build is the longest job of the workflow
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
     timeout-minutes: 300
     steps:

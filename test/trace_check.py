@@ -32,10 +32,15 @@ DOCS = ("docs/isa.md", "docs/host_port.md", "docs/helpers.md")
 CI_OF_MODULE = {"test_rtl_sweep": "sweep", "test_r3_sdf": "sdf"}       # every other test module runs in test.yaml
 
 
+def _read(path):
+    with open(path, encoding="utf-8") as f:
+        return f.read()
+
+
 def headings(path):
     """(number, title) of each '## n' and '### n.m' heading outside code blocks."""
     out, fence = [], False
-    for line in open(os.path.join(ROOT, path), encoding="utf-8"):
+    for line in _read(os.path.join(ROOT, path)).splitlines():
         if line.startswith("```"):
             fence = not fence
             continue

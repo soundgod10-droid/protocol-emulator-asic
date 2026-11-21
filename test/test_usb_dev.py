@@ -46,6 +46,27 @@ PIN_HDRV = 1 << 4
 RESET_PS, RECOVERY_PS = 20e6, 100e6       # simulation speed, see the module text
 LEVEL_PINS = {"J": (0, 1), "K": (1, 0), "SE0": (0, 0), "SE1": (1, 1)}   # (VP, VM)
 EV_RESET, EV_SUSPEND, EV_RESUME, EV_CONFIG, EV_LED, EV_EP1, EV_ADDR = 1, 2, 3, 4, 5, 6, 7
+TLST_PS = L.LIM["TLST_PS"]
+
+
+def receiver_view(edges, init):
+    """Device level changes as a low-speed receiver reads them (USB 2.0 7.1.4.1 p.140): both lines may be below
+    VIH for up to TLST (210 ns) during a J/K transition, and the receiver must not take that as an SE0. The chip
+    drives VPO and VMO on two pins whose changes are some gate delays apart (zero time but different simulation
+    steps in a netlist without delays, the cell and pad skew with delays), so a J/K change can pass through SE0 or
+    SE1. Such a step shorter than TLST between two J/K (or idle) levels is left out. Returns the remaining changes
+    and the widths (ps) of the steps left out."""
+    diff = ("J", "K", "IDLE")
+    out, widths, prev = [], [], init
+    for k, (t, lv) in enumerate(edges):
+        nxt = edges[k + 1] if k + 1 < len(edges) else None
+        if lv in ("SE0", "SE1") and prev in diff and nxt is not None and nxt[1] in diff and nxt[0] - t < TLST_PS:
+            widths.append(nxt[0] - t)
+            continue
+        if lv != prev:
+            out.append((t, lv))
+        prev = lv
+    return out, widths
 
 
 def helper_pin(signal):

@@ -85,6 +85,83 @@ def drivers(insts):
     return out
 
 
+def aliases(text):
+    """Net -> net for the port assignments of the netlist (assign uo_out[7] = net12;)."""
+    return {m.group(1).strip(): m.group(2).strip() for m in ASSIGN.finditer(text)}
+
+
+def clock_view(path):
+    """Sequential cell -> (kind, source, inversions): what its clock pin reaches through buffers, delay cells and
+    inverters (the chip's clk port, a clock-gate cell, or the first other cell or net), and how many inverters
+    are on the way, modulo 2."""
+    with open(path, encoding="utf-8") as f:
+        text = f.read()
+    insts = instances(text)
+    drv = drivers(insts)
+    alias = aliases(text)
+    view = {}
+    for i in insts:
+        kind, pin = next(((k, p) for k, pat, p in SINKS if re.match(pat + "$", i.cell)), (None, None))
+        if kind is None or pin not in i.pins:
+            continue
+        net, inv, src = i.pins[pin], 0, "loop"
+        for _ in range(256):
+            if net == "clk":
+                src = "clk"
+                break
+            if net not in drv and net in alias:
+                net = alias[net]
+                continue
+            if net not in drv:
+                src = "net " + net
+                break
+            d, p = drv[net]
+            if p == "GCLK":
+                src = "clock gate " + d.name
+                break
+            if re.match(r"sg13cmos5l_(buf|dlygate)\w*$", d.cell):
+                net = d.pins["A"]
+            elif re.match(r"sg13cmos5l_inv\w*$", d.cell):
+                inv ^= 1
+                net = d.pins["A"]
+            else:
+                src = "cell %s %s" % (d.cell, d.name)
+                break
+        view[i.name] = (kind, src, inv)
+    return view
+
+
+def clocks(nl, synth=None):
+    """Clock-tree check of the final netlist NL: every flip-flop, clock gate and SRAM macro is clocked from the clk
+    port through buffers and inverters only, every latch from a clock gate through buffers only, the clock gates
+    and macros with no inversion; with SYNTH (the synthesis netlist, before the clock tree and the repair
+    buffers) every sequential cell keeps its clock source and its inversion. The netlist equivalence (dprove)
+    takes one global clock and cannot see the edge a cell is clocked on; this check covers that."""
+    a = clock_view(nl)
+    bad = []
+    counts = {}
+    for name, (kind, src, inv) in sorted(a.items()):
+        short = "clock gate" if src.startswith("clock gate") else src
+        counts[(kind, short, inv)] = counts.get((kind, short, inv), 0) + 1
+        want = "clock gate" if kind == "latch" else "clk"
+        if short != want or (inv and kind != "flip-flop"):
+            bad.append("%s %s: clock from %s, %d inversion(s)" % (kind, name, src, inv))
+    for (kind, src, inv), n in sorted(counts.items()):
+        print("%s: %d clocked from %s with %d inversion(s)" % (kind, n, src, inv))
+    if synth:
+        b = clock_view(synth)
+        only_a, only_b = sorted(set(a) - set(b)), sorted(set(b) - set(a))
+        diff = sorted(n for n in set(a) & set(b) if a[n] != b[n])
+        print("synthesis netlist: %d sequential cells; only in the final netlist %d, only in synthesis %d, "
+              "clock source or inversion changed %d" % (len(b), len(only_a), len(only_b), len(diff)))
+        bad += ["%s: final %s / synthesis %s" % (n, a[n], b[n]) for n in diff]
+        bad += ["%s: only in the final netlist" % n for n in only_a] + ["%s: only in synthesis" % n for n in only_b]
+    for line in bad[:12]:
+        print("  " + line)
+    print("clock tree: %d sequential cells, %d problem(s)" % (len(a), len(bad)))
+    return not bad
+
+
 def plant(path, outdir):
     with open(path, encoding="utf-8") as f:
         text = f.read()

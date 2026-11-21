@@ -13,6 +13,14 @@ prep -top tt_um_soundgod10_droid_protocol_emulator
 flatten
 memory_map
 opt_clean
+# The black-box clock pins that the clk port drives with no logic (clock gates, SRAM macros) are taken out on both
+# sides (equiv/clk_tie.v gives the reason); equiv/teeth.py clocks checks them in the netlist.
+techmap -map @ROOT@/equiv/clk_tie.v t:sg13cmos5l_lgcp_1
+cd tt_um_soundgod10_droid_protocol_emulator
+connect -port u_proc.u_mem.u_pmem A_CLK 1'0
+connect -port u_proc.u_mem.u_dmem A_CLK 1'0
+cd ..
+opt_clean
 
 [gate]
 read_verilog -lib @ROOT@/equiv/cells_bb.v @RTL@/src/sram_bb.v

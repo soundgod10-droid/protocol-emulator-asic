@@ -257,7 +257,7 @@ class Unio11xx:
                 self.state, self.anchor, self.kanchor = "bits", c, 7
                 self.phase, self.last_byte, self.ending = "hdr", 0x55, False
                 self.bytes.append(("hdr", 0x55))
-                self.kinds, self.kbase, self.edges, self.prev_bit = ["mak", "nosak"], 8, [], 1
+                self.kinds, self.kbase, self.edges, self.byte_bits = ["mak", "nosak"], 8, [], []
                 self.after_cmd = None
         elif st == "bits":
             self.edges.append((c, line))

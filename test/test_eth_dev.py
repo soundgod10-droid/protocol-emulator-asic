@@ -346,6 +346,8 @@ async def test_eth_dev_tx(dut):
     port.running = False
     t1 = get_sim_time("ps")
     evs = T.decode_tx(line.tx_wave(t0, t1))
+    dut._log.info("TD+/TD- transitions through 0 merged: %d, largest gap %.0f ps (limit %d ps)" % (
+        len(line.skews), max(line.skews, default=0), line.SKEW_MAX_PS))
     pk = [e for e in evs if e.kind == "packet"]
     assert len(pk) == 3, "packets on the line: %d (%s)" % (len(pk), [e.kind for e in evs])
     for e, body in zip(pk, sent):

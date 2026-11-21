@@ -458,7 +458,7 @@ async def test_unio_rtl(dut):
     cmds = [("stby", [ADDR, WREN]), ("hdr", [ADDR, WRITE, 0x00, 0x10] + RTL_DATA),
             ("hdr", [ADDR, RDSR] + ["r"] * RTL_POLLS), ("hdr", [ADDR, READ, 0x00, 0x10, "r", "r"])]
     want = len(expect(None, cmds))
-    dev = Unio11xx(skew=0.15, jitter=0.02, twc_us=600.0)
+    dev = Unio11xx(skew=0.15, jitter=0.02, twc_us=1000.0)
     bench = rf.RtlBench(dut, assemble().words, owner=ff.owners({P_SCIO: 0}), inputs=dev, label=label)
     bench.send(0, *host_words(cmds))
     if hasattr(dut, "dump_off"):  # waveform of the standby pulse end, the start header and the address byte

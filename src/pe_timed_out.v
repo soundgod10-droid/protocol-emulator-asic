@@ -97,6 +97,15 @@ module pe_timed_out #(
     end
   end
 
+  // The pin value: the chip reset sets it at once; the processor reset (rst_n, a STOP) sets it at the next clock
+  // edge, after pin_oe is already off. rst_n is the output of flip-flops released at a clock edge (project.v), so
+  // here it is an ordinary synchronous input.
+  always @(posedge clk or negedge pin_rst_n) begin
+    if (!pin_rst_n) pin_value <= RESET_VALUE;
+    else if (!rst_n) pin_value <= RESET_VALUE;
+    else if (fire) pin_value <= ev_value_q;
+  end
+
 `ifdef FORMAL
   // ---------------------------------------------------------------------
   // Formal properties (formal/timed_out.sby with the wrapper

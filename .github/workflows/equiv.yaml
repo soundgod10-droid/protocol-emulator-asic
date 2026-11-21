@@ -217,8 +217,17 @@ jobs:
           set +e
           files=$(sed -n '/source_files:/,/^[^ ]/p' rtl/info.yaml | grep -o '"[^"]*\.v"' | tr -d '"' | grep -v sram_bb.v | sed 's|^|'$PWD'/rtl/src/|' | tr '\n' ' ')
           lib=$(ls $PDK_ROOT/$PDK/libs.ref/*_stdcell/lib/*typ*.lib | head -n 1)
+          # cg_gate_swap: the two swapped enables are host FIFO word enables, first 1 after a host START and a PUSH word
+          # (about 82 cycles from reset); bmc3 reached 63 cycles of the whole miter in 4 hours (run 44939730655). Its miter
+          # keeps only the GATE pins of the two clock gates and their fan-in cones: a counterexample of that miter is one of
+          # the whole miter, because the kept outputs take the same values under the same inputs and reset state
+          t=tt_um_soundgod10_droid_protocol_emulator
+          cone=
+          if [ "${{ matrix.case }}" = cg_gate_swap ]; then
+            cone="delete -output $t/o:* $t/o:*u_in_ram.g_word?0?.u_cg.u_cell.GATE %d $t/o:*u_in_ram.g_word?10?.u_cg.u_cell.GATE %d; select -assert-count 2 $t/o:*; opt_clean"
+          fi
           sed -e "s|@ROOT@|$PWD|g" -e "s|@RTL@|$PWD/rtl|g" -e "s|@RTL_FILES@|$files|" -e "s|@LIB@|$lib|" -e "s|@NL@|$NL|" \
-              equiv/dprove.ys > run.ys
+              -e "s|@CONE@|$cone|" equiv/dprove.ys > run.ys
           yosys -q -l dprove_yosys.log run.ys
           if [ $? -ne 0 ]; then
             echo "::notice title=dprove ${{ matrix.case }} yosys error::$(grep -E 'ERROR' dprove_yosys.log | head -n 3 | cut -c1-400)"

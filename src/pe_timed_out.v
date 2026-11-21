@@ -80,11 +80,9 @@ module pe_timed_out #(
       ev_time_q  <= 16'd0;
       ev_value_q <= RESET_VALUE;
       ev_oe_q    <= RESET_OE;
-      pin_value  <= RESET_VALUE;
       pin_oe     <= RESET_OE;
     end else begin
       if (fire) begin
-        pin_value <= ev_value_q;
         pin_oe    <= ev_oe_q;
         ev_valid  <= 1'b0;
       end

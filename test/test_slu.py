@@ -2248,7 +2248,7 @@ async def stop_release(dut, host, pins):
     await ClockCycles(dut.clk, 4)
     stop["done"] = True
     task.cancel()
-    out = []
+    out, runts = [], []
     for i in pins:
         bit = lambda s: s[len(s) - 1 - i]
         v0, oe0 = bit(ev[0][1]), bit(ev[0][2])

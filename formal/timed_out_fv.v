@@ -32,8 +32,11 @@ module timed_out_fv (
     input wire        ev_oe
 );
 
-  // The check starts in reset. After it, reset can occur at any cycle.
+  // The check starts in reset. After it, reset can occur at any cycle. The chip reset is also a processor reset
+  // (project.v: run_rst_n = rst_n_int & running); the processor reset alone is a STOP.
   initial assume (!rst_n);
+  initial assume (!pin_rst_n);
+  always @* assume (pin_rst_n || !rst_n);
 
   wire [15:0] now;
   wire        ev_ready;

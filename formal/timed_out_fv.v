@@ -58,6 +58,7 @@ module timed_out_fv (
   ) u_slot (
       .clk      (clk),
       .rst_n    (rst_n),
+      .pin_rst_n(pin_rst_n),
       .now      (now),
       .ev_load  (ev_load),
       .ev_time  (ev_time),

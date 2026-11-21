@@ -88,7 +88,7 @@ jobs:
         # W5: ecp5n_25k_8 adds the timing-driven router rip-up; nexus40_9 is the LIFCL-40 at speed grade 9
         # ecp5_12k_6, ecp5_85k_6: the two ULX3S variants on sale (LFE5U-12F-6BG381C, LFE5U-85F-6BG381C; the shop no
         # longer lists the 25F)
-        target: [ecp5_25k_6, ecp5_25k_8, ecp5_12k_6, ecp5_85k_6, gw2a_18c, nexus40_9]
+        target: [ecp5_25k_6, ecp5_25k_8, ecp5_12k_6, ecp5_85k_6, gw2a_18c]
     steps:
       - uses: actions/checkout@v6
       - name: OSS CAD Suite

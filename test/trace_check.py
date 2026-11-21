@@ -118,12 +118,12 @@ def check(rows, results=None):
                 if ok and mod in modules and (mod, name) not in passed:
                     errors.append("%s %s: %s did not pass in the given results" % (key + (it,)))
             elif kind == "sweep":
-                ok = bool(val) and re.search(r',\s*"%s",' % re.escape(val), sweep_text) is not None
+                pres = families.get(val, [])
+                ok = bool(pres)
                 ci.add("sweep")
                 if ok and "test_rtl_sweep" in modules:
-                    pre = "test_sweep_" + val
-                    n_pass = sum(1 for m, n in passed if m == "test_rtl_sweep" and n.startswith(pre))
-                    n_fail = sum(1 for m, n in failed if m == "test_rtl_sweep" and n.startswith(pre))
+                    n_pass = sum(1 for m, n in passed if m == "test_rtl_sweep" and n.startswith(pres))
+                    n_fail = sum(1 for m, n in failed if m == "test_rtl_sweep" and n.startswith(pres))
                     if n_pass == 0 or n_fail:
                         errors.append("%s %s: %s has %d passed and %d failed testcases in the given results"
                                       % (key + (it, n_pass, n_fail)))

@@ -224,10 +224,8 @@ def rx_case(bit_scale=1.0, gap_us=1000):
     bad_footer = list(good[1])
     bad_footer[24] = 0x01
     frames = [good[0], good[1], good[2][:24], bad_footer, good[3], good[2]]
-    flips = {(1, 7)}  # frame 1 has a parity error in byte 7: dropped
-    want = []
-    for k in (0, 5):  # frames 1 (parity), 2 (short), 3 (footer) and 4... see below
-        pass
+    flips = {(1, 7)}  # frame 1 has a parity error in byte 7
+    # frames 1 (parity error), 2 (24 bytes) and 3 (footer 0x01) are dropped; frames 0, 4 and 5 give their words
     want = tx_words([FRAMES[0]]) + tx_words([FRAMES[3]]) + tx_words([FRAMES[2]])
     return frames, flips, want, BIT_US * F_MHZ * bit_scale, gap_us * F_MHZ
 

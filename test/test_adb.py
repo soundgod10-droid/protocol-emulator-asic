@@ -211,7 +211,7 @@ class AdbDevice:
                     self.cell_low = low
                 self.rise = c
             self.hlow = hlow
-        if self.mode == "data" and not hlow and c - self.rise > self.cyc(250):
+        if self.mode == "data" and not hlow and c - self.rise > self.cyc(150):  # longer than any cell's high time
             self._listen_end(c)
         line = 0 if hlow or dlow else 1
         return 0, line << P_ADB

@@ -237,7 +237,7 @@ SESSION = ([GRST], [talk(3, 3)], listen(3, 3, [0x0A, 0xFE]), [talk(3, 3)], [talk
            [talk(3, 3)])
 EXPECT = ([status()], [0x63, 0x01, status(2)], [status()], [status()], [0x6A, 0x01, status(2)], [status()],
           [status(srq=True)], [0x81, 0x7F, status(2)], [status()], [status()], [status()], [0x63, 0x01, status(2)])
-PEND_AFTER = 6  # register 0 data is ready after the Listen R2 (sixth command)
+PEND_AFTER = 5  # register 0 data is ready after the Listen R2 (fifth command; the Global Reset is a signal)
 
 
 def flat(lists):

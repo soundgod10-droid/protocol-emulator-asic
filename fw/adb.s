@@ -221,6 +221,6 @@ ATTW:   .word   ATTH
 SRQTW:  .word   27000           ; service request: wait for the release up to 450 us
 TOW:    .word   17400           ; answer window after the stop bit
 RTOW:   .word   9000            ; a low longer than 150 us is a fault
-STTW:   .word   11400           ; Listen: to 200 us after the stop bit
+STTW:   .word   STT
 GRW:    .word   30000           ; a sixth of the Global Reset
 IDLEW:  .word   12000           ; bus free time after a transaction

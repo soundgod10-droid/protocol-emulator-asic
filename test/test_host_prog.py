@@ -30,8 +30,8 @@ from cocotb.triggers import ClockCycles, RisingEdge, Timer
 from cocotb.utils import get_sim_time
 
 try:
-    from cocotb import bridge, resume
-except ImportError:                      # cocotb 1.x names
+    from cocotb.task import bridge, resume          # cocotb 2.0
+except ImportError:                                  # cocotb 1.x names
     from cocotb import external as bridge, function as resume
 try:
     from cocotb.triggers import ValueChange

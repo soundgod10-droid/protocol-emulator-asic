@@ -65,7 +65,7 @@ gat:    TNOW    8
         STX     r0, [r2]
         ADDI    r2, 1
         DJNZ    r3, gat
-        TNOW    32
+        TNOW    100             ; the first fall after the set-up of the loop (about 40 cycles)
         LDI     r2, BUF
         LD      r3, NC
 sbyte:  LDX     r1, [r2]

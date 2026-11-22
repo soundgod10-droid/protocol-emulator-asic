@@ -246,10 +246,10 @@ txo:    MOV     r2, r1          ; one frame of octet r1; T = its start; returns 
         OR      r1, r2          ; stop bit
         OUT     TX, 0, 2        ; start bit
         LDI     r2, 10
-txb:    TADD    BIT
+txb:    TADD    TBT
         OUT     TX, r1>>, 2
         DJNZ    r2, txb
-        TADD    BIT
+        TADD    TBT
         JR      r3
 
 MC:     .word   0

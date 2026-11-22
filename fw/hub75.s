@@ -51,6 +51,7 @@
         .equ    CSH, 5          ; log2(COLS)
         .equ    COLT, 64        ; cycles per column (1.07 us)
         .equ    CHI, 30         ; CLK high time (500 ns); low COLT - CHI
+        .equ    SU, 2           ; data set-up before the CLK rise (33 ns)
         .equ    HOSTT, 400      ; host window after a row pair is lit (4 words fit)
         .equ    FB, 512         ; frame buffer in data memory
 

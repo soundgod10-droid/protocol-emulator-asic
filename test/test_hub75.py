@@ -240,7 +240,7 @@ async def test_hub75_rtl(dut):
                  f"{[(round(now - (bench.m.cycle - c) * rf.CLK_PS), n, v) for c, n, v in panel.edges[:22]]}")
     await bench.run(rf.HOST_START + 3 * frame_t - bench.m.cycle)
     since = bench.m.cycle
-    await bench.run(2 * frame_t + 500)
+    await bench.run(2 * frame_t + row_period(cols))
     await bench.finish(log)
     assert not panel.errors, f"{label}: {panel.errors[:3]}"
     n, dur = check_frame(panel, FRAME_A(cols), since, label)

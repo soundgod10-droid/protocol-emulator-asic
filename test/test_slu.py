@@ -2004,8 +2004,8 @@ async def test_slu_chip_spi_flash(dut):
     pins[2] = own[2]                                                # /CS: a pin of thread 0
     await host.write_cfg(0, head)
     await host.write_cfg(16, pins)
-    d_out = sc.OUT_PAD[1] + sc.MUX_MAX
-    d_in = sc.IN_PAD[1] + sc.MUX_MAX
+    d_out = sc.OUT_PAD[0] if SDF_OVERCLOCK else sc.OUT_PAD[1] + sc.MUX_MAX
+    d_in = sc.IN_PAD[0] if SDF_OVERCLOCK else sc.IN_PAD[1] + sc.MUX_MAX
     dev = sc.SpiFlash(None, 0, 0, flash, d_in)
     io = ChipSpiPins(dut, dev, d_out)
     dev.u = io

@@ -79,7 +79,7 @@ Every rate here is at the declared clock of 60 MHz. Static timing signs off that
 | USB low-speed device, helper + firmware | 1.5 Mbit/s | every device packet by a USB 2.0 host model | yes | yes | yes (a) | ideal transceiver; not on the 25 MHz bench |
 | 10BASE-T station, helper + firmware | 10 Mbit/s | every frame by an IEEE 802.3 partner model | yes | yes | yes (a) | ideal slicer and squelch; not on the 25 MHz bench |
 
-(a) SDF run [44817952932](https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44817952932) on the layout of gds 44589189324 (the RTL before the three fixes of November 21; the present layout has the gate-level runs). (b) SDF run [44904006755](https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44904006755) on the layout of gds 44901436079, the present RTL.
+(a) SDF run [44817952932](https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44817952932) on the layout of gds 44589189324 (the RTL before the three fixes of November 21; the present layout has the gate-level runs). (b) SDF run [44904006755](https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44904006755) on the layout of gds 44901436079, the present RTL. (c) The gate-level run of the gl_fw workflow (shard `test_i2c_fmp`) on the layout netlist of the present RTL; the claim in [flex/protocols.csv](../flex/protocols.csv) is `strict` once it has passed.
 
 ### What is not claimed
 

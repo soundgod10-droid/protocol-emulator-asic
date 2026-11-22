@@ -317,7 +317,9 @@ async def test_tm1637_rtl(dut):
         log.info(f"{label}: waveform from the start; first byte 0xC0, CLK rises at simulation times (ps) "
                  f"{[round(now - (bench.m.cycle - c) * rf.CLK_PS) for c in dev.rises[:9]]}")
     want = expect(RTL_WORDS, RTL_KEYS)
-    await bench.collect(0, len(want))
+    # The key read ends about 20,000 cycles after the start; the waveform window above runs only where tb.v has
+    # dump_off (not in the Verilator coverage build), so the limit must cover the whole session on its own.
+    await bench.collect(0, len(want), limit=40_000)
     await bench.run(1000)
     await bench.finish(log)
     assert not dev.errors and bench.words(0) == want, f"{label}: {dev.errors[:3]} {[hex(w) for w in bench.words(0)]}"

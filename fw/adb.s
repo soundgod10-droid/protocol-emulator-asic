@@ -135,7 +135,7 @@ lbit:   TST     r1, r1
         TADD    STOPH
         TADD    STOPH
         OUT     ADB, 1
-        JMP     status
+        JMP     done
 talk:   LD      r0, TOW         ; the answer starts within 260 us (window 290 us)
         TADD    r0
         WAIT    ADB, FALL, r0, TO, CT

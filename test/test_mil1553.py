@@ -236,7 +236,7 @@ def check_rt(label, bench, messages):
 RT_MSGS = [
     [(0x0843, True, None), (0x1234, False, None), (0xABCD, False, None), (0x0000, False, None)],
     [(0x0800, True, None)],  # a status-like word alone
-    [(0x0C20, True, None)] + [((k * 0x1111) ^ 0x8001, False, None) for k in range(32)],
+    [(0x0C20, True, None)] + [(((k * 0x1111) ^ 0x8001) & 0xFFFF, False, None) for k in range(32)],
     [(0x5555, True, None), (0xFFFF, False, "par")],  # parity error
     [(0x0F0F, True, None), (0x00FF, False, ("man", 7))],  # Manchester error in the last word
     [(0x1111, True, "sync")],  # positive for 3 us: no mid-sync edge

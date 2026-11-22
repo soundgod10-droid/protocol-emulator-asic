@@ -51,6 +51,7 @@ nav:
   - Line helpers: helpers.md
   - Protocols: protocols.md
   - Counting rule: counting.md
+  - Protocol count: count.md
   - Verification: verification.md
   - Signoff: signoff.md
   - Decisions: decisions.md

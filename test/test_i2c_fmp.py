@@ -70,9 +70,25 @@ def model_run(words, stretch=0, bus=None, cycles=12_000, **equ):
                          open_drain=ff.open_drain({P_SCL, P_SDA}))
     bus = bus or ff.I2cBus(ff.I2C_ADDR, ff.I2C_READ, stretch=stretch)
     bench = ff.Bench(m, inputs=bus)
+    bench.lates = []  # events issued with a lead outside 4 to 32,767 cycles: (cycle, lead, instruction)
+    if hasattr(m, "_event_cycle"):
+        prog, orig = assemble(**equ), m._event_cycle
+
+        def event_cycle(th, c, t):
+            lead = (t - c) & 0xFFFF
+            if not 4 <= lead <= ff.HORIZON:
+                bench.lates.append((c, lead - 0x10000 if lead > ff.HORIZON else lead, prog.source[th.pc]))
+            return orig(th, c, t)
+        m._event_cycle = event_cycle
     bench.send(0, *words)
     bench.run(cycles)
     return bench, m, bus
+
+
+def assert_on_time(m, bench, label):
+    th = m.threads[0]
+    assert th.status == 0 and th.run, f"{label}: status {th.status}, run {th.run}, late events {bench.lates[:4]}"
+    assert not bench.lates, f"{label}: late events {bench.lates[:4]}"
 
 
 def check_fmp(log, changes, label):

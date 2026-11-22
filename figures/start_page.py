@@ -166,7 +166,8 @@ def main(runs_dir, out_md):
              f"{eqy or NO} (partitions do not close; not used as evidence) | {L(equiv)} | timing, SRAM macro inside |")
     W.append(f"| Firmware timing certificates | {len(certified)} of {len(certs)} programs never LATE | {L(cert)} | "
              f"programs with unbounded waits |")
-    W.append(f"| Mutation campaign | {mline.split(': ', 1)[-1] if mline else NO} | {L(mut)} | timing, layout |")
+    W.append(f"| Mutation campaign of the RTL tests | {mline or NO} | {L(mut)} | timing, layout; survivors are read one "
+             f"by one ([Verification](verification.md)) |")
     W.append(f"| sigrok decoders on the RTL pins | {sig['conclusion'] if sig else NO} | {L(sig)} | electrical levels |")
     W.append("")
 

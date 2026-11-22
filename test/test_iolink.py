@@ -247,7 +247,7 @@ async def test_iolink_model(dut):
         ta = (falls[0] - master.msgs[0][1]) / TBIT
         log.info(f"{label}: {len(SESSION)} M-sequences as expected (replies {[f for f in replies]}), host words "
                  f"{[hex(w) for w in bench.words(0)]}, first tA {ta:.3f} TBIT")
-    for equ, text in ((dict(TAN=12), "tA"), (dict(BIT=1625, HB=812), "detection window"), (dict(SEED=0x53), "replies")):
+    for equ, text in ((dict(TAN=12), "tA"), (dict(TBT=1625), "detection window"), (dict(SEED=0x53), "replies")):
         master = IolMaster(steps[:3])
         bench, m = model_run(master, **equ)
         replies, errors = master.analyse()

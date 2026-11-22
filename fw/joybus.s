@@ -41,7 +41,7 @@
         .equ    STOPL, 60       ; console stop bit low (1 us)
         .equ    TS, 120         ; fall to the sample point of a reply bit (2 us)
         .equ    TOB, 300        ; sample point to the time-out of the next fall (fall + 7 us)
-        .equ    TFIRST, 6000    ; release to the time-out of the first reply fall (100 us)
+        .equ    TFIRST, 3600    ; release to the time-out of the first reply fall (60 us; TADD <= 4,095)
         .equ    GAP, 360        ; last time-out point to the next command (fall + 13 us)
         .equ    BUF, 512        ; command bytes in data memory
         .equ    BUFR, 640       ; reply bytes in data memory

@@ -95,6 +95,8 @@ async def board(dut, clk_ps=16666):
     dut.ena.value = 1
     dut.ui_in.value = 1 << hs.CS_N_BIT
     dut.uio_in.value = 0
+    dut.rst_n.value = 0
+    await ClockCycles(dut.clk, 10)
     dut.rst_n.value = 1
     await ClockCycles(dut.clk, 5)
 

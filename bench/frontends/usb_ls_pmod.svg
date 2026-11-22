@@ -72,7 +72,7 @@
   <rect x="850" y="290" width="150" height="150" fill="none" stroke="black" stroke-width="2"/>
   <text x="850" y="280" font-weight="bold">J3 USB-B receptacle</text>
   <g font-size="12">
-    <text x="858" y="320">1 VBUS</text><text x="1010" y="320">n.c. (self-powered)</text>
+    <text x="858" y="320">1 VBUS</text><text x="1010" y="320">C4 100 nF to GND (self-powered; SCAS818E Fig. 9 text)</text>
     <text x="858" y="350">2 D-</text><text x="820" y="350">DM</text>
     <text x="858" y="380">3 D+</text><text x="820" y="380">DP</text>
     <text x="858" y="410">4 GND</text><text x="820" y="410">GND</text>

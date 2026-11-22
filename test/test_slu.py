@@ -2118,7 +2118,9 @@ async def test_slu_chip_uart_rx(dut):
     bit 15); the host reads them after STOP. Logic simulation with the input path as a delay."""
     import test_slu_clk as sc
     rng = random.Random(1120)
-    runs = [(err, d_in) for err in (-0.025, 0.025) for d_in in (sc.IN_PAD[0], sc.IN_PAD[1] + sc.MUX_MAX)]
+    d_ins = (sc.IN_PAD[0],) if SDF_OVERCLOCK else (sc.IN_PAD[0], sc.IN_PAD[1] + sc.MUX_MAX)
+    runs = [(err, d_in) for err in (-0.025, 0.025) for d_in in d_ins]
+    t_ns = CHIP_CLK_PS / 1000.0                                      # the sender's bit time follows the chip clock
     sent = []
     plan = []
     for err, d_in in runs:

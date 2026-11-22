@@ -331,6 +331,22 @@ async def test_host_usb_keys(dut):
         rep = await glue.run(s.enumerate(addr=5, reset_ps=RESET_PS, recovery_ps=RECOVERY_PS))
         assert rep["device"]["idVendor"] == 0x1209, rep["device"]
 
+        def reads():                                     # descriptors as read from the RTL, for the bench judges
+            out = {}
+            for name, setup in (("device", C.get_descriptor(C.DT_DEVICE, 0, 18)),
+                                ("config", C.get_descriptor(C.DT_CONFIG, 0, 255)),
+                                ("string1", C.get_descriptor(C.DT_STRING, 1, 255, 0x0409)),
+                                ("string2", C.get_descriptor(C.DT_STRING, 2, 255, 0x0409))):
+                data, stalled = yield from s.control_read(5, setup)
+                assert not stalled and data, name
+                out[name] = bytes(data).hex()
+            return out
+        desc = await glue.run(reads())
+        os.makedirs(OUT_DIR, exist_ok=True)
+        with open(os.path.join(OUT_DIR, "usb_enum.json"), "w", encoding="utf-8") as f:
+            json.dump({"source": "test_host_usb_keys, RTL, read by the USB host model at address 5", **desc}, f,
+                      indent=1)
+
         def polls():
             naks = 0
             while len(got) < 2 * len(text):

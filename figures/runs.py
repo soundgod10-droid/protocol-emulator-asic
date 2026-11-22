@@ -40,12 +40,14 @@ WORKFLOWS = {
 SDF_JOB = re.compile(r"^sdf \(([^,]+), ([^)]+)\)$")
 
 
-def sdf_parts(branch, runs=15):
-    """Newest finished result of each SDF part at each corner over the last finished sdf runs of the branch (one sdf
-    run is dispatched with chosen parts, so no single run shows the whole scope): {part: {corner: job}}."""
-    data = api(f"repos/{REPO}/actions/workflows/sdf.yaml/runs?branch={branch}&status=completed&per_page={runs}")
+def sdf_parts(branch, runs=20):
+    """Newest finished result of each SDF part at each corner over the last `runs` sdf runs of the branch that ended
+    with success or failure (one sdf run is dispatched with chosen parts, and the runs started by a gds run are often
+    skipped, so no single run shows the whole scope): {part: {corner: job}}."""
+    data = api(f"repos/{REPO}/actions/workflows/sdf.yaml/runs?branch={branch}&status=completed&per_page=100")
+    done = [r for r in data["workflow_runs"] if r["conclusion"] in ("success", "failure")][:runs]
     out = {}
-    for run in data["workflow_runs"]:
+    for run in done:
         for job in api(f"repos/{REPO}/actions/runs/{run['id']}/jobs?per_page=100")["jobs"]:
             m = SDF_JOB.match(job["name"])
             if not m or job["conclusion"] not in ("success", "failure"):

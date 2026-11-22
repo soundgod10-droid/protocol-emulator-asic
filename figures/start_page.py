@@ -192,7 +192,8 @@ def main(runs_dir, out_md):
 
     W.append("## Firmware timing certificates\n")
     W.append(f"A certified program sets no LATE flag for any input and any host timing within the host rules (static "
-             f"analysis of every path; {L(cert)}). {selfchk}. {pins}.\n")
+             f"analysis of every path; {L(cert)}). {selfchk[:1].upper() + selfchk[1:]}. "
+             f"{pins[:1].upper() + pins[1:]}.\n")
     if certified:
         W.append("| Program | Words | Events | Smallest lead, cycles |")
         W.append("|---|---|---|---|")

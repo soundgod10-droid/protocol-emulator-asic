@@ -12,8 +12,9 @@
 ;   For each row pair: the COLS columns are shifted while the previous row
 ;   pair is lit, last column first (the bit clocked first moves to the far
 ;   end of the chain): the six data lines change at T, CLK rises at T + 2
-;   (set-up 33 ns; SN74HC595: 25 ns) and falls CHI cycles later (high 500 ns,
-;   low 567 ns; 20 ns), one column every COLT cycles (0.94 MHz; 25 MHz).
+;   (set-up 33 ns; SN74HC595: 25 ns) and falls at T + CHI (high CHI - SU
+;   cycles = 467 ns, low 600 ns; 20 ns), one column every COLT cycles
+;   (0.94 MHz; 25 MHz).
 ;   Then OE goes high (dark), LAT rises 2 cycles later (more than 500 ns
 ;   after the last CLK rise; 19 ns) for 14 cycles, the address changes 3
 ;   cycles after OE, and OE goes low 20 cycles after it. Every row pair is

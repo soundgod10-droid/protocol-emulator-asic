@@ -88,7 +88,7 @@ reads its input format and that its control fails; it does not show that a bench
 |---|---|---|---|---|
 | P1, USB wire | `capture.py row ROW.json CAPTURE.vcd OUT` | analyser export (VCD of named channels; sigrok-cli or the RP2040/RP2350 LogicAnalyzer), decoded by the pinned sigrok-cli with the decoder stack of the row; content equal to what the host program sent or received | the capture with one pulse of the data line inverted | `bench.yaml`: every scenario window of the sigrok run sampled at 24 and 100 MS/s |
 | USB (demo board) | `usb_os.judge_lsusb`, `judge_lsusb_tree` | `lsusb -v -d 1209:0001`, `lsusb -t` | a changed bInterval; a 12M link | `test.yaml` job host, descriptors read from the RTL |
-| USB (demo board) | `usb_os.judge_pnputil`, `judge_pnpdevice` | `pnputil /enum-devices /connected`; `Get-PnpDevice ... | ConvertTo-Json` | Status other than Started / OK; another product ID | as above |
+| USB (demo board) | `usb_os.judge_pnputil`, `judge_pnpdevice` | `pnputil /enum-devices /connected`; `Get-PnpDevice ...` piped to `ConvertTo-Json` | Status other than Started / OK; another product ID | as above |
 | USB (demo board) | `usb_os.judge_system_profiler` | `system_profiler SPUSBDataType -json` | full speed; another product ID | as above |
 | 10BASE-T (demo board) | `net.judge_ping_capture`, `judge_frames` | pcapng (Wireshark, or `pktmon etl2pcap`) | last echo reply removed; one ICMP checksum broken | `test.yaml` job host, the line of the RTL run |
 | 10BASE-T (demo board) | `net.judge_ping`, `judge_arp_table`, `judge_nic_stats` | `ping -n N`, `arp -a`, `Get-NetAdapterStatistics | ConvertTo-Json` before and after | one reply lost; another MAC; a receive error | as above |

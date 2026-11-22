@@ -21,7 +21,7 @@ What it does:
 Conditions: logic simulation at 60 MHz with ideal pins: no rise and fall times, no bus capacitance. The pads cannot
 sink the 20 mA of Fast-mode Plus (docs/verification.md section 9), so an Fm+ bus needs a buffer between the chip pins
 and the bus (docs/info.md, External hardware); the buffer's propagation delays add to the target's data valid time
-at the chip pins, which the firmware samples 0.483 us after its SCL fall.
+at the chip pins, which the firmware samples 0.467 us after its SCL fall.
 """
 
 import math

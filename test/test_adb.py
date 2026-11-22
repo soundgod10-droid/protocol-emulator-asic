@@ -115,7 +115,7 @@ class AdbDevice:
         if self.pend_data is not None and len(self.commands) == self.pend_after:
             self.pending = list(self.pend_data)
         a, code, r = cmd >> 4, (cmd >> 2) & 3, cmd & 3
-        if cmd & 0x0F == 0:  # SendReset
+        if (cmd & 0x0F) == 0:  # SendReset
             self.power_on()
             self.resets += 1
         elif code == 0 and r == 1 and a == self.addr:  # Flush

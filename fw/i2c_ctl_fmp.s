@@ -28,8 +28,9 @@
 ;   (docs/verification.md section 9: 7.6 mA at 0.4 V at the slow corner, 20 mA needed), so a bus at 1 MHz needs
 ;   an Fm+ buffer between the chip pins and the bus (docs/info.md, External hardware).
 ;
-; Limits of the .equ values (found in model runs): THIGH2 24 or more (the SCL fall event is issued 4 slots after
-;   the SAMPLE completes); HD 12 or more; TLOW + TSMP + THIGH2 is the bit time of bits 2 to 9; TSMPW 16 or more.
+; Limits of the .equ values: THIGH - TSMP 25 or more (above); TLOW + THIGH is the bit time of bits 2 to 9; TSMPW 16
+;   or more and THIGH2W 26 or more (bit 1, after the WAIT); THDSTA 20 or more (the first SDA event after a repeated
+;   START). test/test_i2c_fmp.py names any late event in the model.
 ; Registers: r0 byte word, r1 WAIT time and return address, r2 check word, r3 bus levels and bit count mark.
 
         .equ    SCL, UIO6

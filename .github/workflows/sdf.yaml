@@ -279,5 +279,6 @@ jobs:
             test/sdf_source.log
             test/sram_delay.vh
             test/shmoo.txt
+            test/overclock.txt
             test/sdf_nodelay.log
             test/pin_delays.json

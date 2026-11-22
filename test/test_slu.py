@@ -2167,7 +2167,7 @@ async def test_slu_chip_uart_rx(dut):
         "host call uart_rx_bytes differs from the bench"
     dut._log.info("chip UART RX on the USB helper, 15 Mbaud: %d words stored for %d bytes sent (sender -2.5 %% and "
                   "+2.5 %%, input %.2f and %.2f ns); %d equal with start 0 and stop 1; first words %s, first bytes %s" % (
-                      n, len(sent), sc.IN_PAD[0], sc.IN_PAD[1] + sc.MUX_MAX, good,
+                      n, len(sent), d_ins[0], d_ins[-1], good,
                       ["%04x" % w for w in got_words[:6]], ["%02x" % b for b in sent[:6]]))
     assert n == len(sent), "%d words stored, %d bytes sent" % (n, len(sent))
     assert good == len(sent), "first bad byte %s" % next(

@@ -150,7 +150,7 @@ async def test_sega6_words(dut):
 
 @cocotb.test(skip=GL)
 async def test_sega6_model(dut):
-    """fw/sega6.s in the reference model against the pad model: 15 button sets, a three-button pad, no pad, the select
+    """fw/sega6.s in the reference model against the pad model: 16 button sets, a three-button pad, no pad, the select
     timing; negative controls for the read point."""
     log = dut._log
     pad = Sega6Pad(SETS)

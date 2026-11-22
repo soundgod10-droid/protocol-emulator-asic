@@ -283,7 +283,8 @@ async def test_adb_model(dut):
     log.info(f"session: {len(want)} host words as expected; commands {[hex(c) for c in dev.commands]}; Listen data "
              f"{dev.listened}; device answers {dev.answers}; service requests {dev.srqs}; resets {dev.resets}; "
              f"{m.cycle} cycles ({m.cycle / F_MHZ / 1000:.2f} ms)")
-    part, pw = SESSION[1:2] + SESSION[6:8], [x for i in (1, 6, 7) for x in EXPECT[i]]
+    part = [[talk(3, 3)], [talk(2, 0)], [talk(3, 0)]]  # the device stays at address 3
+    pw = [0x63, 0x01, status(2), status(srq=True), 0x81, 0x7F, status(2)]
     for cell, f1, f0, resp, srq in ((70.0, 0.40, 0.60, 140.0, 210.0), (130.0, 0.30, 0.70, 260.0, 390.0),
                                     (130.0, 0.40, 0.60, 140.0, 390.0), (70.0, 0.30, 0.70, 260.0, 210.0)):
         dev = AdbDevice(cell_us=cell, f1=f1, f0=f0, resp_us=resp, srq_us=srq, pend_after=1)

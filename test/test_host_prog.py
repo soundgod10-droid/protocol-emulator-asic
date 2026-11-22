@@ -90,7 +90,14 @@ class SimTransport:
         return int(self.now_us)
 
 
+def dump(dut, on):
+    """Waveform dump on or off (test/tb.v dump_off, Icarus only): each test dumps only its review window."""
+    if hasattr(dut, "dump_off"):
+        dut.dump_off.value = 0 if on else 1
+
+
 async def board(dut, clk_ps=16666):
+    dump(dut, False)
     cocotb.start_soon(Clock(dut.clk, clk_ps, unit="ps").start())
     dut.ena.value = 1
     dut.ui_in.value = 1 << hs.CS_N_BIT

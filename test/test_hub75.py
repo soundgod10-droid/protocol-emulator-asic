@@ -185,7 +185,7 @@ async def test_hub75_model(dut):
     bench.send(0, *wa)
     bench.run(6 * frame_t)  # 128 words at 4 a row pair: 4 refreshes to load
     since = m.cycle
-    bench.run(2 * frame_t + 1000)
+    bench.run(2 * frame_t + row_period(cols))  # a lit interval counts when it ends: one row period of slack
     assert not panel.errors, f"frame A: {panel.errors[:3]}"
     n, dur = check_frame(panel, FRAME_A(cols), since, "frame A")
     ff.assert_status_clean(m, [0])

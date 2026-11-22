@@ -18,8 +18,9 @@ Cb vb 0 100n
 Rt1 vcc vref 7.50k
 Rt2 vref 0 9.76k
 Ct vref 0 100n
-* partner signal at the jack: CD1 = low then high, 10 MHz, from 0.5 us
-Vsrc lp lm PULSE({-A} {A} 0.55u 2n 2n 48n 100n)
+* partner signal at the jack: 10 MHz sine of peak A (the fundamental of all-ones Manchester; zero mean, as a
+* transformer-coupled line carries no DC), from 0.5 us
+Vsrc lp lm SIN(0 {A} 10MEG 0.5u)
 Rsrc lp jp 1
 Rret lm jm 1m
 * magnetics (1:1, RX winding pair of the jack)

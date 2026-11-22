@@ -110,3 +110,52 @@ P1 rates at the 25 MHz bench clock (T = 40 ns), from the firmware's cycle limits
 | CAN (fw/can.s) | about 124 cycles of receiver work per bit (C2) | 125 kbit/s (200 cycles); 250 kbit/s (100 cycles) does not fit | can:bitrate |
 | I2C (fw/i2c_ctl.s) | the .equ table per clock | Standard and Fast mode; the 25 MHz .equ values are set by the same model check as the 40/50/60 MHz table before the first P1 day | - |
 | PS/2, AM2302, 1-Wire, PDI | microsecond timing from the .equ / host words | the protocol's own rate | - |
+
+## 7. Silicon bring-up: the pin multiplexer delay (demo board)
+
+The delay of the shuttle's pin multiplexer on TTIHP27a is not measured. The published figure is an estimate of about
+10 ns round trip through the pads and the multiplexer, with no CMOS5L silicon measured. The shuttle documentation
+gives a measured figure only for an earlier SKY130 shuttle (worst round trip 20 ns, less than 2 ns between pins, one
+die at about 22 °C); it does not apply to this process. So the 30 MHz rates of the helper's clocked mode stay
+unit-test rates (docs/protocols.md) until the measurement below is done on silicon.
+
+**What the delay must not exceed (logic simulation, `test/test_mux_sweep.py`, CI job `mux`).** The T1 and T2 benches
+of `test/test_slu_clk.py`, unchanged, with the multiplexer delay swept. Spread sweep: the delay is anywhere from 0
+to M ns on each pin and each way (fast pads with no multiplexer, slow pads with M, and both skews), and one read-back
+setting must work at all four corners. Pads from the pad SPICE (docs/verification.md section 9), device models with
+their data-sheet times, 60 MHz, resolution 0.25 ns:
+
+| Rate | Last pass M | First failure M | Slowest round trip at the failure | Against the 10 ns estimate |
+|---|---|---|---|---|
+| SPI controller 30 MHz, mode 0 (flash model) | 11.75 ns | 12.00 ns | 27.77 ns | multiplexer round trip 24.0 ns at the failure, 2.4 x the estimate |
+| JTAG 30 MHz TCK (two TAPs, TDO 7 ns) | 12.25 ns | 12.50 ns | 28.77 ns | 25.0 ns, 2.5 x |
+| SPI controller 15 MHz, modes 0 and 3 | 28.25 ns | 28.50 ns | 60.77 ns | 57.0 ns, 5.7 x |
+| JTAG 15 MHz TCK | 29.00 ns | 29.25 ns | 62.27 ns | 58.5 ns, 5.9 x |
+| Host port, RP2350 PIO at SCK 10 MHz, sample point d = 2 (`test_host_pio_window`, docs/host_program.md) | 30 ns | 35 ns | - | 70 ns, 7 x |
+
+With a known delay (the same delay on every pin, pads at their corners and skews; the setting chosen for that delay,
+as after the measurement below) the 30 MHz SPI read works at every delay tried from 10 to 60 ns each way (settings
+from 4r 5r 5f at 10 ns to 10r 11r 11f at 60 ns; r = rising-edge copy, f = falling-edge copy). The 30 MHz control of
+`test_slc_spi_flash_7m5_30mhz` (sample delay 0) reads the ID wrong at every multiplexer delay from 0 to 10 ns: it
+shows that a wrong setting fails, not that the multiplexer delay is too large.
+
+**Measurement at bring-up (before any 30 MHz row is claimed).**
+
+1. Loop-back wire on a Pmod, under 2 cm: uio0 to ui_in[0]. The host loads a program that puts the USB helper in
+   clocked mode with receive on (TXA = data on uio0, SEL DIN = ui_in[0]) and sends a 64-bit pseudo-random frame.
+2. For each of the 32 read-back settings (sample delay 0 to 15, rising or falling-edge copy) the host compares the
+   received bits with the sent ones and records the passing settings. The window centre, in half-cycle steps of
+   8.33 ns, gives the round trip output pad + multiplexer + wire + multiplexer + input pad to +/-4.2 ns.
+3. Repeat at the chip clocks that the RP2350 makes exactly (60, 40 and 30 MHz from 120 MHz; 50 MHz from 150 MHz):
+   the window edges move by different steps (8.33, 12.5, 16.7, 10 ns), which narrows the round trip to about 2 ns.
+4. Repeat for every output pin that a clocked bus uses (uio0 to uio3) against every input that DIN can select
+   (ui_in[0] to ui_in[7]), so that the spread between pins is measured, not assumed.
+5. Decision rule: the 30 MHz rows move to "pins, measured on one board" only if, on every pin pair, the measured round
+   trip lies inside the simulated limits above (spread of the multiplexer delay under 12.0 ns each way for SPI and
+   12.5 ns for JTAG) and a T1 flash read (256 bytes, 03h) and a T2 IDCODE scan pass at the setting chosen from step 2.
+   Record the board, the clock, the room temperature and the settings in `bench/results/<date>/`.
+6. Host port: read READ_ID at the PIO sample points d = 0 to 4 (`host/pe_host/pio_spi.py`) and keep the centre of the
+   passing points.
+
+One die and one temperature do not give the spread over process and temperature; the result is stated with those
+conditions. Until this is done, 15 MHz is the rate at the pins.

@@ -367,10 +367,6 @@ class Rp2Module:
     def __init__(self, drive, read):
         self._drive, self._read = drive, read
         self.machines = []
-        self.pios = {}
-
-    def PIO(self, n):           # noqa: N802 (rp2 API name); shadows the class attribute on instances
-        return self.pios.setdefault(n, PIO(n))
 
     def StateMachine(self, sm_id, prog, freq=None, sideset_base=None, out_base=None, in_base=None):  # noqa: N802
         sm = StateMachine(sm_id, prog, freq, int(sideset_base), int(out_base), int(in_base),

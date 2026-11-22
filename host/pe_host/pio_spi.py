@@ -15,8 +15,8 @@ Program, at the state-machine clock f_sm (clkdiv from the chip clock, below):
   - CS_N low 6 cycles before the first rising edge, CS_N high 11 cycles after the last rising edge and at
     least 6 cycles between transactions.
 At f_sm = 120 MHz (chip 60 MHz) this is SCK 10 MHz, each level 50 ns >= 2 T (33.3 ns), the rated rate of
-host_port.md 6 and 12 rule 2. At the 25 MHz bench clock f_sm = 60 MHz: SCK 5 MHz, each level 100 ns >= 2 T
-(80 ns).
+host_port.md 6 and 12 rule 2. At the 25 MHz bench clock f_sm = 50 MHz (150 MHz / 3 on a Pico 2): SCK
+4.17 MHz, each level 120 ns = 3 T >= 2 T (80 ns).
 """
 
 try:

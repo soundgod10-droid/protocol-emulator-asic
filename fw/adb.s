@@ -193,6 +193,7 @@ done:   LDI     r1, 1
         LD      r0, NB
         OR      r1, r0
         PUSH    r1
+        TWAIT                   ; T = the last bus event (after a Global Reset 30,000 cycles ahead)
         LD      r0, IDLEW       ; the bus stays free 200 us before the next Attention
         TADD    r0
         JMP     get

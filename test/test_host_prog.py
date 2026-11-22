@@ -437,11 +437,6 @@ class PioSimTransport:
         return int(self.now_us)
 
 
-def pio_program_words():
-    """The words of the PIO program at d = 2 (for the encoding check against the data sheet table)."""
-    return pio_sim.Rp2Module(None, None).asm_pio  # placeholder, replaced below
-
-
 def link_check(chip, words=64, seed=1):
     """READ_ID, then WRITE_MEM / READ_MEM of a pseudo-random pattern; returns the number of errors."""
     if chip.read_id() != CHIP_ID:

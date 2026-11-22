@@ -162,6 +162,16 @@ async def test_p4_rtl(dut):
     bench.watch("dmx", lambda uo, uio, oe: (uo >> 2) & 1)
     send_all(bench)
     total = rf.HOST_START + dmx.run_cycles(DMX_PACKETS)
+    if hasattr(dut, "dump_off"):  # waveform of the start, with three threads active at once (tb.fst), for review
+        bench.watch("sel", lambda uo, uio, oe: uo & 1)
+        bench.watch("ird", lambda uo, uio, oe: (uo >> 1) & 1)
+        dut.dump_off.value = 0
+        await bench.run(rf.HOST_START + 12_000)
+        dut.dump_off.value = 1
+        now = get_sim_time(unit="ps")
+        ps = lambda c: round(now - (bench.m.cycle - c) * rf.CLK_PS)  # noqa: E731
+        firsts = {n: [(ps(c), v) for c, v in bench.changes(n)[1:4]] for n in ("sel", "ird", "dmx")}
+        log.info(f"{label}: waveform from the start; first changes (ps, level) {firsts}")
     for _ in range(60):
         if done(bench) and bench.m.cycle >= total:
             break

@@ -2143,9 +2143,9 @@ async def test_slu_chip_uart_rx(dut):
         dut._log.info("waveform: review window %.1f to %.1f ns, first bytes %s" % (
             t_rev, t_rev + 4000.0, ["%02X" % b for b in sent[:6]]))
     for err, d_in, data in plan:
-        bt = 4 * sc.T_NS * (1 + err)
+        bt = 4 * t_ns * (1 + err)
         sch = []
-        t = 100.0 + d_in + rng.random() * sc.T_NS
+        t = 100.0 + d_in + rng.random() * t_ns
         for b in data:
             for k, lv in enumerate([0] + [(b >> i) & 1 for i in range(8)] + [1]):
                 sch.append((t + k * bt, lv))

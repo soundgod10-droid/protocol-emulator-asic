@@ -63,33 +63,33 @@
         OUT     C, 0
 row:    LD      r2, ROW         ; pointer to the last column of this row pair
         SHL     r2, CSH
-        ADDI    r2, FB + COLS - 1 - 512
-        ADDI    r2, 511         ; (FB = 512: two steps, the ADDI range is -512 to 511)
-        ADDI    r2, 1
+        LDI     r1, FB + COLS - 1
+        ADD     r2, r1
         LDI     r3, COLS
         TSYNC   48
 col:    LDX     r1, [r2]
-        OUT     R1, r1>>
+        OUT     R1, r1>>        ; the six data lines at T
         OUT     G1, r1>>
         OUT     B1, r1>>
         OUT     R2, r1>>
         OUT     G2, r1>>
         OUT     B2, r1>>
-        OUT     CLK, 1, 2
-        OUT     CLK, 0, 4
-        TADD    COLT
+        OUT     CLK, 1, 2       ; CLK rises at T + 2
+        TADD    CHI
+        OUT     CLK, 0          ; and falls CHI cycles later
+        TADD    COLT - CHI
         ADDI    r2, -1
         DJNZ    r3, col
-        TADD    8               ; turn: dark, latch, address, light
-        OUT     OE, 1
-        OUT     LAT, 1, 2
-        OUT     LAT, 0, 4
+        OUT     OE, 1           ; turn: dark at T
+        OUT     LAT, 1, 2       ; latch at T + 2
         LD      r0, ROW
-        OUT     A, r0>>, 3
+        OUT     A, r0>>, 3      ; address at T + 3
         OUT     B, r0>>, 3
         OUT     C, r0>>, 3
-        OUT     OE, 0, 7
-        TADD    8
+        TADD    16
+        OUT     LAT, 0          ; T + 16
+        OUT     OE, 0, 4        ; lit at T + 20
+        TADD    20 + HOSTT      ; the next row pair starts HOSTT cycles after
         LDI     r3, 4           ; up to 4 host words while this row pair is lit
 hw:     PULL.NB r0
         BEC     next

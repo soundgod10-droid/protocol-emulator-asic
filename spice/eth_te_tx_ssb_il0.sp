@@ -46,14 +46,15 @@ Rdcs sm 0 1e6
 Cww1 pp sp 10p
 Cww2 pm sm 10p
 Rl sp sm 100
+Bdiff vdiff 0 V=V(sp)-V(sm)
 .options method=gear reltol=1e-3
 .tran 0.1n 3u 0 0.2n
-.meas tran vmax MAX v(sp,sm) from=1.5u to=3u
-.meas tran vmin MIN v(sp,sm) from=1.5u to=3u
+.meas tran vmax MAX v(vdiff) from=1.5u to=3u
+.meas tran vmin MIN v(vdiff) from=1.5u to=3u
 .meas tran iovdd_avg AVG i(Vio) from=1.5u to=3u
 .control
 set hcopydevtype=svg
 run
-hardcopy eth_te_tx_ssb_il0.svg v(sp,sm) xlimit 2u 2.4u
+hardcopy eth_te_tx_ssb_il0.svg v(vdiff) xlimit 2u 2.4u
 .endc
 .end

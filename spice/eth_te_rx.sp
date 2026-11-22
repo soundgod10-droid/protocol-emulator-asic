@@ -18,8 +18,8 @@ Vsup vcc 0 3.3
 Rb1 vcc vb 10k
 Rb2 vb 0 10k
 Cb vb 0 100n
-Rt1 vcc vref 7.50k
-Rt2 vref 0 9.76k
+Rt1 vcc vref 7.87k
+Rt2 vref 0 10.0k
 Ct vref 0 100n
 * partner signal at the jack: 10 MHz sine of peak A (the fundamental of all-ones Manchester; zero mean, as a
 * transformer-coupled line carries no DC), from 0.5 us

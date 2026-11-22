@@ -504,6 +504,14 @@ async def test_host_pio_link(dut):
     for phase in (0, 1):
         t = PioSimTransport(dut, CHIP_HZ, d=2, delay_ps=5000, phase_cycles=phase)
         chip = Chip(t, reset_pin=rst)
+        if phase == 0:                                   # review window: one READ_ID through the PIO program
+            dump(dut, True)
+            t_on = get_sim_time("ps")
+            got = await bridge(chip.read_id)()
+            await Timer(1, unit="us")
+            dump(dut, False)
+            dut._log.info("waveform window: %d to %d ps; READ_ID %s (MOSI 1E 00 00 00 00)" % (
+                t_on, get_sim_time("ps"), " ".join("%02X" % b for b in got)))
         e = await bridge(link_check)(chip)
         st = await bridge(chip.status)()
         t.close()

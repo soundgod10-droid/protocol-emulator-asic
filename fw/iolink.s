@@ -46,6 +46,7 @@
         .equ    EN, UO5
         .equ    BIT, 1563       ; TBIT (26.05 us)
         .equ    HB, 781         ; half a bit
+        .equ    TBT, BIT        ; bit time of the Device's own frames
         .equ    WTO, 3000       ; wake-up low time-out: 2 x WTO = 100 us
         .equ    WMIN, 225       ; wake-up low minimum: 225 x 16 cycles = 60 us
         .equ    TO1, 3900       ; stop sample to the time-out of the next start bit (2.5 bits)

@@ -1,7 +1,8 @@
 """Find the CI runs that the documentation cites, and download the artifacts that the figures read.
 
 What it does:
-  For each workflow (gds, test, coverage, formal) it takes the newest completed run of the branch that ended
+  For each workflow (gds, test, coverage, formal, and for the start page cert, equiv, mutation, sigrok and sdf) it
+  takes the newest completed run of the branch that ended
   with success or failure (a cancelled or skipped run has no results; for gds the newest successful run, because
   a failed layout run has no layout or gate-level artifacts, and a newer failed one is named; a branch with no
   successful gds run takes the newest one of the default branch, recorded as gds_fallback), lists its jobs with their result, reads

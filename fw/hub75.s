@@ -35,7 +35,7 @@
 ; Registers: r0 host word / work, r1 pixel bits, r2 pointer, r3 count.
 ; Memory: ROW, WP (host write pointer).
 
-        .equ    R1, UO0
+        .equ    RD1, UO0        ; R1 (the name R1 is a register)
         .equ    G1, UO1
         .equ    B1, UO2
         .equ    R2, UO3

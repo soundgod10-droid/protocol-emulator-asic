@@ -237,7 +237,7 @@ async def test_host_eth_ping(dut):
             frame, icmp = echo_request(seq, bytes(rng.randrange(256) for _ in range(32)))
             reqs.append(icmp)
             await Timer(20, unit="us")
-            await line.send(partner_wave(frame))
+            await send(frame)
             pk = await wait_packets(line, t0, 1 + seq)
         results["pk"] = pk
         results["reqs"] = reqs

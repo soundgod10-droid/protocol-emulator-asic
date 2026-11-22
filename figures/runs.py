@@ -131,6 +131,10 @@ def main(branch, out):
         result["runs"][key] = entry
         print(f"{key}: run {rid} ({run['conclusion']}, {run['head_sha'][:7]}), {len(jobs)} jobs, "
               f"artifacts {[n for n, p in entry['artifacts'].items() if p]}")
+    try:
+        result["sdf_parts"] = sdf_parts(branch)
+    except subprocess.CalledProcessError:
+        result["sdf_parts"] = None
     with open(os.path.join(out, "runs.json"), "w", encoding="utf-8") as f:
         json.dump(result, f, indent=1)
 

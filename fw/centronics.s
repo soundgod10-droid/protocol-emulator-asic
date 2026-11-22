@@ -35,11 +35,13 @@
 next:   TNOW    8
         PULL.NB r0
         BEC     next
-        IOR     r1, PINS        ; wait until the printer is not busy
+chk:    IOR     r1, PINS        ; wait until the printer is not busy
         SHR     r1, 11
         ANDI    r1, 1
         BEQ     ready
-        WAIT    BUSY, FALL, r1
+        TNOW    120             ; a fall between the read and the WAIT is not lost: read the level again
+        WAIT    BUSY, FALL, r1, TO
+        JMP     chk
 ready:  TNOW    16
         OUT     UIO0, r0>>      ; DATA BIT 1 .. 8
         OUT     UIO1, r0>>

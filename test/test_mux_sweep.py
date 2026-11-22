@@ -52,6 +52,15 @@ def round_trip(mux_max):
     return sc.OUT_PAD[1] + sc.IN_PAD[1] + 2 * mux_max
 
 
+def report(log, test, lines):
+    """The summary block to the log and to test/output/<test>.txt (kept as a CI artifact)."""
+    log.info("SUMMARY %s\n  %s" % (test, "\n  ".join(lines)))
+    out = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output")
+    os.makedirs(out, exist_ok=True)
+    with open(os.path.join(out, test + ".txt"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")
+
+
 def fmt(win):
     return " ".join("%d%s" % (d, "f" if f else "r") for d, f in win) or "none"
 

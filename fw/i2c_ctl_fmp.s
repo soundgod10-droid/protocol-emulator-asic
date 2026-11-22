@@ -6,7 +6,7 @@
 ;   external pull-ups). The difference is the bit loop. fw/i2c_ctl.s waits for the SCL rise after every SCL
 ;   release, which costs 7 cycles of input filter and up to one slot each bit: too slow for a 60-cycle bit. Here
 ;   only the first bit of each byte waits for the SCL rise; bits 2 to 9 are timed from T with no wait, so each
-;   of them is TLOW + TSMP + THIGH2 = 60 cycles (1.000 us). A target that holds SCL low after it has acknowledged
+;   of them is TLOW + THIGH = 60 cycles (1.000 us). A target that holds SCL low after it has acknowledged
 ;   a byte (byte-level clock stretching, NXP UM10204 Rev. 7.0, 3.1.9) is seen, because the first bit of the next
 ;   byte, the repeated START and the STOP wait for the SCL rise. A target that stretches SCL inside a byte (bit
 ;   level) is not seen: the controller then shortens the target's HIGH period. Use this program only with targets

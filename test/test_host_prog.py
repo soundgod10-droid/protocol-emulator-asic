@@ -214,6 +214,15 @@ async def test_host_eth_ping(dut):
     async def partner():
         await Timer(50, unit="us")
         await line.send(partner_wave(arp_request()))
+        n_tx = len(line.tx)
+        while len(line.tx) == n_tx:                      # review window: the ARP reply on the line
+            await Timer(1, unit="us")
+        dump(dut, True)
+        t_on = get_sim_time("ps")
+        await Timer(80, unit="us")
+        dump(dut, False)
+        dut._log.info("waveform window: %d to %d ps (ARP reply on TD+/TD-/OE = uio[0..2])" % (
+            t_on, get_sim_time("ps")))
         pk = await wait_packets(line, t0, 1)
         results["arp"] = pk[0]
         reqs = []

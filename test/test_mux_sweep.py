@@ -162,7 +162,9 @@ async def test_mux_spi_30mhz(dut):
 
         # review frames: one ID read at the slow corner at the last pass and at the first failure
         if hi is not None:
-            d, f = sorted(w, key=lambda s: -s[0])[0]
+            wl = await spi_window(dut, u, 1, 0, corners(lo))
+            assert wl, "SPI 30 MHz: no setting at the last passing delay %.2f ns" % lo
+            d, f = wl[len(wl) // 2]
             for m in (lo, hi):
                 sc.CORNERS = corners(m)
                 sc.dump_on(dut, True)

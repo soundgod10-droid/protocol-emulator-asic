@@ -113,7 +113,7 @@ nosrq:  LD      r0, CMD
         CMPI    r0, 12
         BEQ     talk
         CMPI    r0, 8
-        BNE     status          ; SendReset, Flush: no data
+        BNE     done            ; SendReset, Flush: no data
         LD      r0, STTW        ; Listen: stop-bit-to-start-bit time 200 us
         TADD    r0
         LDI     r1, 1

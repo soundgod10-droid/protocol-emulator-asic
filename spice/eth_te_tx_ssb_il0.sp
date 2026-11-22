@@ -13,7 +13,7 @@
 .lib cornerRES.lib res_wcs
 .include sg13cmos5l_io.spice
 .temp 125
-.param VD=1.08 VIO=3.2 RTX=71.5 RW=0
+.param VD=1.08 VIO=3.2 RTX=69.8 RW=0
 Vdd vdd 0 {VD}
 Vio iovdd 0 {VIO}
 Vcp0 cp0 0 PULSE(0 {VD} 0.55u 0.1n 0.1n 49.9n 100n)

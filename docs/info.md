@@ -30,6 +30,7 @@ Firmware in `fw/` (assembler `asm/pe_asm.py`):
 | `spi_ctl.s` | SPI controller, modes 0 to 3 | 26 | all four modes, SCK up to 1.2 MHz |
 | `spi_tgt.s` | SPI target, modes 0 to 3 | 33 | all four modes at 1 MHz |
 | `i2c_ctl.s` | I2C controller, Standard-mode and Fast-mode, clock stretching, repeated START, arbitration loss | 49 | Standard-mode and Fast-mode |
+| `i2c_ctl_fmp.s` | I2C controller with Fast-mode Plus timing (SCL 1 MHz); clock stretching seen only after an acknowledged byte | 58 | SCL 1 MHz, every bus time against UM10204 Table 11 Fast-mode Plus |
 | `can.s` | CAN 2.0A node (2 threads) | 123 | 250 kbit/s |
 | `jtag.s`, `jtag_tap.s` | JTAG controller | 31, 67 | TCK 1.5 MHz |
 | `swd.s` | SWD host | 62 | SWCLK 1.875 MHz |

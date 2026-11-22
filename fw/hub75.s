@@ -77,7 +77,7 @@ col:    LDX     r1, [r2]
         OUT     R2, r1>>
         OUT     G2, r1>>
         OUT     B2, r1>>
-        OUT     CLK, 1, 2       ; CLK rises at T + 2
+        OUT     CLK, 1, SU      ; CLK rises at T + SU
         TADD    CHI
         OUT     CLK, 0          ; and falls CHI cycles later
         TADD    COLT - CHI

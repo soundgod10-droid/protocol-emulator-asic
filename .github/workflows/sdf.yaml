@@ -46,7 +46,7 @@ on:
       extra:
         description: "JSON list of the slow-corner controls and shmoo (default: all three; [] for none)"
         required: false
-        default: '[{"corner":"nom_slow_1p08V_125C","part":"macro_control"},{"corner":"nom_slow_1p08V_125C","part":"nodelay_control"},{"corner":"nom_slow_1p08V_125C","part":"shmoo"}]'
+        default: '[{"corner":"nom_slow_1p08V_125C","part":"macro_control"},{"corner":"nom_slow_1p08V_125C","part":"nodelay_control"},{"corner":"nom_slow_1p08V_125C","part":"shmoo"},{"corner":"nom_slow_1p08V_125C","part":"p3_overclock"}]'
   workflow_run:
     workflows: [gds]
     types: [completed]

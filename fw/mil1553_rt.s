@@ -165,7 +165,7 @@ pchk:   MOV     r3, r2          ; parity: data bits xor parity sample must be 0
         ANDI    r3, 1
         SHL     r3, 3
         OR      r0, r3          ; bit 3 parity error
-        LDI     r2, 1
+pmark:  LDI     r2, 1
         SHL     r2, 15
         OR      r0, r2
         PUSH    r0

@@ -172,7 +172,7 @@ rxn:    DJNZ    r2, rx
         LDI     r2, 8
         JMP     rx
 rxend:  CMPI    r2, 8           ; the stop bit came after a whole byte
-        BEQ     status
+        BEQ     done
 stuck:  LDI     r0, 512         ; bits that are not whole bytes, or a low that does not end
         ST      r0, ERRF
         JMP     status

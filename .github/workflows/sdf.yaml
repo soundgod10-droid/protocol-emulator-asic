@@ -19,6 +19,11 @@ name: sdf
 #   nodelay_control  the gate-level netlist with no SDF: test_r3_sdf must fail (it needs a clock-to-MISO delay)
 #   shmoo            test_r3_sdf and test_core_alu_flags at clock periods from 16.666 ns down to 6 ns: pass or fail at
 #                    each period (a failure is run again without SDF)
+#   p3_overclock     the helper chip tests of SPI flash, JTAG IDCODE, UART RX and UART TX (15 MHz, 15 Mbaud) at clock
+#                    periods from 16.666 ns down to 5 ns; a failure is run again without SDF. The control passes when
+#                    each test passes at 60 MHz and fails with SDF at a period where it passes without SDF. The bench
+#                    keeps the device times of the data sheets and uses the fast pads with no board multiplexer
+#                    (SDF_OVERCLOCK in test/test_slu.py), so that a failure comes from the chip's own delays
 #
 # It runs by hand (Actions > sdf > Run workflow) with the id of the gds run, and after a successful gds run of a
 # tape-out tag. A run by hand can take the tests of the branch it runs on (tests: this ref; the src/ difference to the

@@ -136,8 +136,9 @@ def summary_line(name, lo, hi, step_win):
     if hi is None:
         return "%s: no failure up to %.2f ns each way (round trip %.2f ns)" % (name, lo, round_trip(lo))
     return ("%s: last pass %.2f ns, first failure %.2f ns each way (slowest round trip %.2f / %.2f ns, spread "
-            "against the fast corner %.2f ns)" % (name, lo, hi, round_trip(lo), round_trip(hi),
-                                                   round_trip(hi) - sc.OUT_PAD[0] - sc.IN_PAD[0]))
+            "against the fast corner %.2f ns); settings at the last whole step: %s" % (
+                name, lo, hi, round_trip(lo), round_trip(hi), round_trip(hi) - sc.OUT_PAD[0] - sc.IN_PAD[0],
+                fmt(step_win)))
 
 
 @cocotb.test(skip=GL)

@@ -75,7 +75,7 @@ col:    LDX     r1, [r2]
         OUT     RD1, r1>>       ; the six data lines at T
         OUT     G1, r1>>
         OUT     B1, r1>>
-        OUT     R2, r1>>
+        OUT     RD2, r1>>
         OUT     G2, r1>>
         OUT     B2, r1>>
         OUT     CLK, 1, SU      ; CLK rises at T + SU

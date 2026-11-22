@@ -42,6 +42,17 @@
         .equ    RING, 512
 
 new:    LDI     r2, RING
+        LD      r0, ERRF        ; after an error: wait until the bus has been idle for 2.7 us
+        MOV     r0, r0
+        BEQ     idle
+        LDI     r0, 0
+        ST      r0, ERRF
+quiet:  LDI     r3, 8
+qt:     IOR     r0, PINS
+        SHR     r0, 11
+        ANDI    r0, 3
+        BNE     quiet
+        DJNZ    r3, qt
 idle:   IOR     r0, PINS        ; wait for a sync: RXA (command/status) or RXB (data) high
         SHR     r0, 11
         ANDI    r0, 3

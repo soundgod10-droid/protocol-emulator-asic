@@ -217,7 +217,7 @@ SRQF:   .word   0
 ERRF:   .word   0
 NB:     .word   0
 ENDW:   .word   0
-ATTW:   .word   24000           ; half of the Attention
+ATTW:   .word   ATTH
 SRQTW:  .word   27000           ; service request: wait for the release up to 450 us
 TOW:    .word   17400           ; answer window after the stop bit
 RTOW:   .word   9000            ; a low longer than 150 us is a fault

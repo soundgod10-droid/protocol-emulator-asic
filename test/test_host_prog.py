@@ -171,10 +171,13 @@ def check_echo_reply(f, icmp_req):
 
 
 async def wait_packets(line, t0, n, timeout_us=20000):
+    """The first n chip packets, each ended 10 us before now (the decoder closes an open burst at the end of
+    the window, so a packet still on the line would count; a partner frame sent then collides with it)."""
     t_end = get_sim_time("us") + timeout_us
     while True:
-        evs = T.decode_tx(line.tx_wave(t0, get_sim_time("ps")))
-        pk = [e for e in evs if e.kind == "packet"]
+        now = get_sim_time("ps")
+        evs = T.decode_tx(line.tx_wave(t0, now))
+        pk = [e for e in evs if e.kind == "packet" and e.t1 < now - t0 - 10e6]
         if len(pk) >= n:
             return pk
         assert get_sim_time("us") < t_end, "the chip sent %d packets, waiting for %d" % (len(pk), n)

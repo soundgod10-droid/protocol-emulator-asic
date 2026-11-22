@@ -244,8 +244,9 @@ def count(rtl_files, gl_files):
         "examples": sorted(r["program"] for r in rows if r["class"] == "example"),
         "layered": sorted(r["program"] for r in rows if r["class"] == "layered"),
         "errors": errors,
-        "rows": [{k: r[k] for k in ("program", "protocol", "class", "role", "tier", "words", "a", "b", "c", "d",
-                                    "strict", "broad", "claim", "b_faults", "c_missing", "d_missing")} for r in rows],
+        "rows": [{k: r[k] for k in ("program", "protocol", "class", "role", "family", "device_interface", "tier",
+                                    "sigrok", "words", "a", "b", "c", "d", "strict", "broad", "claim", "b_faults",
+                                    "c_missing", "d_missing")} for r in rows],
     }
     return result, protos
 

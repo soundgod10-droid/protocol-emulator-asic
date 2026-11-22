@@ -233,4 +233,4 @@ async def test_mux_jtag(dut):
             out.append(summary_line(name + " (spread 0 to M)", lo, hi, w))
     finally:
         sc.CORNERS = saved
-    log.info("SUMMARY test_mux_jtag\n  " + "\n  ".join(out))
+    report(log, "test_mux_jtag", out)

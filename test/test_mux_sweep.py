@@ -191,7 +191,7 @@ async def test_mux_spi_30mhz(dut):
                        "%d settings: %s" % (m, sc.OUT_PAD[0] + sc.IN_PAD[0] + 2 * m, round_trip(m), len(win), fmt(win)))
     finally:
         sc.CORNERS = saved
-    log.info("SUMMARY test_mux_spi_30mhz\n  " + "\n  ".join(out))
+    report(log, "test_mux_spi_30mhz", out)
 
 
 @cocotb.test(skip=GL)

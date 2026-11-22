@@ -184,7 +184,7 @@ gr:     TWAIT
         TADD    r3
         DJNZ    r2, gr
         OUT     ADB, 1
-status: LDI     r1, 1
+done:   LDI     r1, 1
         ROR     r1, 1           ; 8000h
         LD      r0, SRQF
         OR      r1, r0

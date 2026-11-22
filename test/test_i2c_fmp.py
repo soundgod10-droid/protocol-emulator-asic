@@ -123,6 +123,15 @@ async def test_i2c_fmp_model(dut):
             assert want in str(e), f"control {equ}: wrong fault: {e}"
         else:
             raise AssertionError(f"control {equ}: Table 11 check found no fault")
+    # A target whose data and ACK come at the tVD;DAT / tVD;ACK maximum (0.45 us = 27 cycles after the SCL fall) is read
+    # correctly; 29 cycles (0.483 us, beyond Table 11) is a control: the firmware reads SDA as it was 28 cycles after
+    # the fall, so it must read a wrong bit.
+    for td, want_ok in ((27, True), (29, False)):
+        bench, m, bus = model_run(words, bus=ff.I2cBus(ff.I2C_ADDR, ff.I2C_READ, td=td))
+        ok = bench.words(0) == replies and ff.i2c_events(bus) == events
+        log.info(f"target data {td} cycles ({td / F_MHZ:.3f} us) after the SCL fall: replies "
+                 f"{[hex(w) for w in bench.words(0)]} ({'correct' if ok else 'wrong'})")
+        assert ok == want_ok, f"target data at {td} cycles: {'correct' if ok else 'wrong'}, want the other"
     bus = BitStretchBus(ff.I2C_ADDR, ff.I2C_READ, at=(1, 3), width=50)
     bench, m, bus = model_run(words, bus=bus)
     try:

@@ -39,7 +39,7 @@
         .equ    TSMPW, 16       ; SDA sample after the filtered SCL rise (bit 1, after the WAIT)
         .equ    THIGH2W, 26     ; SCL high after the sample of bit 1
         .equ    TSUSTA, 16      ; tSU;STA 0.26 us
-        .equ    THDSTA, 16      ; tHD;STA 0.26 us
+        .equ    THDSTA, 20      ; tHD;STA 0.26 us (20: lead of the first SDA event after a repeated START)
         .equ    TSUSTO, 16      ; tSU;STO 0.26 us
         .equ    TBUF, 30        ; tBUF 0.5 us
 

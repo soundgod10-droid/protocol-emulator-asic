@@ -58,8 +58,10 @@ jobs:
       - name: Run tests with coverage
         id: tests
         continue-on-error: true
-        # The regression takes about 50 min; a stop after 150 min still uploads coverage_sim.log (the last test run).
-        timeout-minutes: 150
+        # The regression took 73 min (run 45035665862, 285 testcases) but reached only testcase 179 of 285 in 150 min
+        # on a slower runner (runs 45033733064, 45052045293, same tests); 330 min leaves room for that runner within
+        # the 360-min job limit. A stop still uploads coverage_sim.log (the last test run).
+        timeout-minutes: 330
         shell: bash
         run: |
           set -o pipefail

@@ -2030,8 +2030,8 @@ async def test_slu_chip_spi_flash(dut):
     assert got == want, "%d of 256 bytes differ (first %s)" % (sum(a != b for a, b in zip(got, want)),
                                                               [(i, got[i], want[i]) for i in range(256) if got[i] != want[i]][:3])
     dut._log.info("chip SPI flash read: 03h of 256 bytes at 15 MHz SCK in mode 0 through uio0/uio1/ui_in[0], /CS on "
-                  "uio2 by thread 0, words stored by thread 1; slow pads + 10 ns mux both ways; equal to the flash, "
-                  "0 timing errors at the flash pins; status %04x" % status)
+                  "uio2 by thread 0, words stored by thread 1; pin path out %.2f ns, in %.2f ns; clock %d ps; equal to the "
+                  "flash, 0 timing errors at the flash pins; status %04x" % (d_out, d_in, CHIP_CLK_PS, status))
 
 
 @cocotb.test()

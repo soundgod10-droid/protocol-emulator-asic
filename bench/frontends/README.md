@@ -64,7 +64,11 @@ measures the amplitude into 100 ohm and the magnetics loss before the row is cla
 Receive: 100 ohm termination to VB = 1.65 V; slicer TLV3502 channel A (RD+ against RD-); squelch channel B (RD+
 against VREF = VB + 197 mV). ngspice (10 MHz sine at the jack): 300 mV peak gives -50.5 mV of comparator overdrive
 (rejected; IEEE 802.3 14.3.1.3.2), 585 mV gives +88.4 mV (+33.5 mV with -1.0 dB magnetics loss), against the
-comparator's 6.5 mV offset and 6 mV hysteresis (SBOS321E p.5).
+comparator's 6.5 mV maximum offset and 6 mV typical hysteresis (SBOS321E 6.6).
+
+The comparator is the TLV3502, the two-channel version of the TLV3501 (same data sheet SBOS321E, same 4.5 ns
+propagation delay, offset and hysteresis). One package for the slicer and the squelch keeps both channels on one die
+and one supply pin; two TLV3501AIDBVR are an equivalent choice.
 
 ## Parts (exact part numbers; prices and stock are read by the buyer)
 

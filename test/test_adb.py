@@ -307,8 +307,8 @@ async def test_adb_model(dut):
         assert not dev.errors and bench.words(0) == pw, f"{label}: {dev.errors[:3]} {[hex(w) for w in bench.words(0)]}"
         ff.assert_status_clean(m, [0])
         log.info(f"{label}: host words as expected")
-    for equ, want_text in ((dict(L0=3400, H0=2600), "host low time"), (dict(ATTW=20000), "Attention"),
-                           (dict(SYNC=3000), "Sync"), (dict(STTW=3000), "Listen start bit")):
+    for equ, want_text in ((dict(L0=3400, H0=2600), "host low time"), (dict(ATTH=20000), "Attention"),
+                           (dict(SYNC=3000), "Sync"), (dict(STT=3000), "Listen start bit")):
         dev = AdbDevice(pend_after=PEND_AFTER)
         words = flat(SESSION[1:3])
         model_run(dev, words, 4, cycles=1_000_000, **equ)

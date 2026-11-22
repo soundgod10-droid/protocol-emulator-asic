@@ -107,7 +107,7 @@ cbit:   TST     r1, r1
         LDI     r0, 1           ; the bus stays low
         SHL     r0, 10
         ST      r0, ERRF
-        JMP     status
+        JMP     done
 nosrq:  LD      r0, CMD
         ANDI    r0, 12
         CMPI    r0, 12

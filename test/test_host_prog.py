@@ -260,6 +260,12 @@ async def test_host_eth_ping(dut):
     for k, (e, req) in enumerate(zip(pk[1:], results["reqs"])):
         errs = check_echo_reply(e.frame[:-4], req)
         assert not errs, "echo reply %d: %s" % (k + 1, errs)
+    # the line as a laptop capture would hold it (no FCS), for the bench network judges
+    sys.path.insert(0, os.path.join(ROOT, "bench", "judges"))
+    import pcapng
+    os.makedirs(OUT_DIR, exist_ok=True)
+    frames = [(start, f[:-4]) for start, f in results["sent"]] + [((t0 + e.t0) / 1e6, e.frame[:-4]) for e in pk]
+    pcapng.write(os.path.join(OUT_DIR, "eth_line.pcapng"), sorted((int(t), f) for t, f in frames))
     dut._log.info("waveform marks: chip packets (start, end) ps %s" % [(t0 + e.t0, t0 + e.t1) for e in pk[:3]])
     dut._log.info("ETH: ARP reply + 10 echo replies correct; station log %s; events %s; %d SPI transactions; "
                   "first reply rate %+.1f ppm jitter %.0f ps; simulated %.3f ms" % (

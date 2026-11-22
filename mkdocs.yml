@@ -43,6 +43,7 @@ validation:
 
 nav:
   - Overview: index.md
+  - Start here: start.md
   - Guide for reviewers: guide.md
   - Architecture: architecture.md
   - Instruction set: isa.md

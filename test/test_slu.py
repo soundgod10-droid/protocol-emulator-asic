@@ -1223,6 +1223,93 @@ async def test_slu_clk_part_word(dut):
 
 
 @cocotb.test(skip=GL)
+async def test_slu_spec0_rules(dut):
+    """Rules of the general unit (SPEC 0, all configuration words written by the thread) that the other unit tests do
+    not reach (docs/helpers.md sections 2 and 6):
+    (a) line condition codes 2 (K) and 3 (no DIN edge): LTC with one tick a cycle, condition A = K with LTA 10,
+        condition B = no DIN edge with LTB 20. J held for 64 cycles while DIN changes every 4 cycles sets neither
+        LINEA nor LINEB; then K with DIN steady sets neither within 3 cycles and both within 43;
+    (b) configuration indices 21 to 31 hold no register: a CFGDAT write to index 31 leaves MODE unchanged, and the
+        index then wraps to 0, so the next CFGDAT write is MODE;
+    (c) a MODE word with RX off moves the receive state (LINE[7:4]) to 0 from hunt (1, NRZ) and from data (2,
+        clocked);
+    (d) clocked receive of frames that start at a DIN falling edge (LTC[10], no transmit): two 8N1 bytes at 16 cycles
+        a bit (TXPER 8), 10 bits a frame (TXCTRL[4:0]); each frame is one word with its bits in 15:6 (start bit in
+        bit 6, stop bit in bit 15), RXINFO[4:0] = 10, RXSOP and RXEOP set."""
+    LINEA, LINEB = 1 << 10, 1 << 11
+    s = await slu_reset(dut)
+    await s.cfg({8: DIN | (AUX0 << 4) | (AUX1 << 8), 16: 10, 17: 20, 18: (2 << 4) | (3 << 6)})
+
+    async def toggle_in_j(n):
+        for i in range(n):
+            dut.slu_pins.value = (1 << AUX1) | (((i + 1) & 1) << DIN)    # J: VP (AUX0) 0, VM (AUX1) 1
+            await ClockCycles(dut.clk, 4)
+
+    await toggle_in_j(4)
+    await s.wr(P_STATUS, 0xFFFF)
+    await toggle_in_j(16)
+    st_j = await s.rd(P_STATUS)
+    dut.slu_pins.value = 1 << AUX0                   # K: VP 1, VM 0; DIN steady low
+    await ClockCycles(dut.clk, 3)
+    st_k3 = await s.rd(P_STATUS)
+    await ClockCycles(dut.clk, 40)
+    st_k43 = await s.rd(P_STATUS)
+
+    s = await slu_reset_again(dut)
+    await s.cfg({6: 0x0001, 7: 15})                  # 16-bit start pattern ...0001: a low DIN never matches it
+
+    async def rx_state():
+        await ClockCycles(dut.clk, 2)
+        return ((await s.rd(P_LINE)) >> 4) & 15
+
+    await s.wr(P_CFGADR, 31)
+    await s.wr(P_CFGDAT, mode(0, rx=1))              # index 31: no register
+    st31 = await rx_state()
+    await s.wr(P_CFGDAT, mode(0, rx=1))              # index 0 after the wrap: MODE, NRZ with RX on
+    st_wrap = await rx_state()
+    await s.cfg({0: mode(0)})
+    st_hunt_off = await rx_state()
+    await s.cfg({0: mode(3, rx=1)})
+    st_data = await rx_state()
+    await s.cfg({0: mode(3)})
+    st_data_off = await rx_state()
+
+    s = await slu_reset_again(dut)
+    dut.slu_pins.value = 1 << DIN                    # line idle high
+    await s.cfg({0: mode(3, rx=1), 1: 8, 8: DIN | (15 << 4) | (15 << 8), 18: 1 << 10})
+    await s.wr(P_TXCTRL, 10)                         # 10 bits a frame: start, 8 data bits, stop
+    await s.wr(P_STATUS, 0xFFFF)
+    data = [0xA5, 0x3C]
+    bit_ns = 16 * T_NS
+    sch, t = [], 200.0
+    for b in data:
+        for lv in [0] + [(b >> i) & 1 for i in range(8)] + [1]:
+            sch.append((t, {DIN: lv}))
+            t += bit_ns
+    await drive_levels(dut, sch)
+    await Timer(round(4 * bit_ns * 1000), unit="ps")
+    st_rx = await s.rd(P_STATUS)
+    info = await s.rd(P_RXINFO)
+    words = [await s.rd(P_RXDATA, pop=True) for _ in range(2)]
+    exp = [(1 << 15) | (b << 7) for b in data]
+
+    dut._log.info(f"(a) J with DIN changing every 4 cycles: status {st_j:04x}; K with DIN steady, after 3 cycles "
+                  f"{st_k3:04x}, after 43 cycles {st_k43:04x}; (b) RX state after CFGDAT to index 31: {st31}, after "
+                  f"the next CFGDAT (index 0): {st_wrap}; (c) RX off from hunt: {st_hunt_off}, clocked RX on: "
+                  f"{st_data}, RX off from data: {st_data_off}; (d) edge-started frames: status {st_rx:04x}, RXINFO "
+                  f"{info:04x}, words " + " ".join(f"{w:04x}" for w in words) + " (expected " +
+                  " ".join(f"{w:04x}" for w in exp) + ")")
+    assert st_j & (LINEA | LINEB) == 0, f"(a) J with DIN edges every 4 cycles: status {st_j:04x}"
+    assert st_k3 & (LINEA | LINEB) == 0, f"(a) K for 3 cycles: status {st_k3:04x}"
+    assert st_k43 & (LINEA | LINEB) == LINEA | LINEB, f"(a) K, DIN steady for 43 cycles: status {st_k43:04x}"
+    assert (st31, st_wrap) == (0, 1), f"(b) RX state {st31} after index 31, {st_wrap} after the wrap to MODE"
+    assert (st_hunt_off, st_data, st_data_off) == (0, 2, 0), f"(c) RX states {st_hunt_off}, {st_data}, {st_data_off}"
+    assert st_rx & (1 << 4) and st_rx & (1 << 5), f"(d) RXSOP and RXEOP: status {st_rx:04x}"
+    assert info & 0x1F == 10 and (info >> 5) & 3 == 2, f"(d) RXINFO {info:04x}"
+    assert words == exp, "(d) received words differ"
+
+
+@cocotb.test(skip=GL)
 async def test_slu_eth_tx(dut):
     """10BASE-Te transmit: preamble and SFD from the thread, 46-byte payload, CRC-32 appended by the
     unit, Manchester at 3 cycles per half bit on TD+ (TXA) and TD- (TXB), tap B one cycle later,

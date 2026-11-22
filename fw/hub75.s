@@ -59,6 +59,12 @@
         ST      r0, WP
         LDI     r0, 0
         ST      r0, ROW
+        LDI     r1, FB          ; clear the frame buffer: the data memory has no defined
+        LDI     r3, COLS        ; content after power-up (isa 2.4), and the scan starts
+        SHL     r3, 3           ; before the host has sent a frame
+clr:    STX     r0, [r1]
+        ADDI    r1, 1
+        DJNZ    r3, clr
         TSYNC   64
         OUT     CLK, 0          ; drive the clock, latch and address lines
         OUT     LAT, 0

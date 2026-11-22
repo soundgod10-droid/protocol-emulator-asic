@@ -165,7 +165,7 @@ def main(runs_dir, out_md):
     W.append(f"| Netlist equivalence | dprove {dp.get('netlist', NO)}, teeth {teeth_ok} of {len(teeth)}; eqy "
              f"{eqy or NO} (partitions do not close; not used as evidence) | {L(equiv)} | timing, SRAM macro inside |")
     W.append(f"| Firmware timing certificates | {len(certified)} of {len(certs)} programs never LATE | {L(cert)} | "
-             f"programs with unbounded waits |")
+             f"programs whose leads depend on inputs or host timing (no verdict) |")
     W.append(f"| Mutation campaign of the RTL tests | {mline or NO} | {L(mut)} | timing, layout; survivors are read one "
              f"by one ([Verification](verification.md)) |")
     W.append(f"| sigrok decoders on the RTL pins | {sig['conclusion'] if sig else NO} | {L(sig)} | electrical levels |")

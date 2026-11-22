@@ -11,7 +11,9 @@ What it does:
   with Table 11 (PDF page 44): fSCL 1000 kHz maximum, tLOW 0.5 us, tHIGH 0.26 us, tHD;STA, tSU;STA, tSU;STO 0.26 us,
   tBUF 0.5 us, tSU;DAT 50 ns, tHD;DAT 0 minimum, tVD;DAT and tVD;ACK 0.45 us maximum. The model test runs without and
   with 300 cycles of stretching after each byte; the data bits must come at exactly 60 cycles (1.000 MHz).
-  Negative controls: tLOW of 29 cycles (0.483 us), a bit time of 57 cycles (1,053 kHz), and a target that holds SCL
+  A target whose data comes at the tVD;DAT maximum (27 cycles after the SCL fall) is read correctly, one at 29 cycles
+  (beyond Table 11) must give wrong data. Negative controls: tLOW of 29 cycles (0.483 us), TLOW 30 (a bit time of 55
+  cycles, 1,091 kHz), and a target that holds SCL
   low inside a byte (bit-level stretching, which the firmware does not see, as its header states): the HIGH period
   of that bit falls below 0.26 us and the check must find it. The RTL test runs the firmware on the chip in lockstep
   with the reference model; the same test runs on the gate-level netlist (gl_fw workflow).

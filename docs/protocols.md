@@ -67,6 +67,7 @@ Every rate here is at the declared clock of 60 MHz. Static timing signs off that
 | SPI controller, firmware | SCK 1.2 MHz, modes 0 to 3 | MISO bytes from the device model | yes | yes | yes (a) | ideal pins |
 | SPI target, firmware | 1 MHz, modes 0 to 3 | MOSI bytes; the controller model checks MISO | yes | yes | yes (a) | ideal pins |
 | I2C controller, firmware | Fast-mode and Standard-mode | read bytes and ACK; every bus time against UM10204 Table 11 | yes | yes | yes (a) | output low level met at every corner by pad SPICE (verification.md section 9) |
+| I2C controller, firmware, Fast-mode Plus timing (`i2c_ctl_fmp.s`) | SCL 1 MHz | read bytes and ACK; every bus time against UM10204 Table 11 Fast-mode Plus (`test/test_i2c_fmp.py`) | yes | (c) | no | ideal pins; an Fm+ buffer on the board ([info.md](info.md), External hardware); clock stretching seen only after an acknowledged byte |
 | CAN 2.0A node, firmware (2 threads) | 250 kbit/s | received frames with CRC-15 and ACK | yes | yes | yes (a) | other node at -0.5 % and +0.5 %, 10-cycle loop delay through the transceiver |
 | JTAG controller, firmware | TCK 1.5 MHz | TDO (IDCODE, IR and DR scans) | yes | yes | yes (a) | ideal pins |
 | SWD host, firmware | SWCLK 1.875 MHz | read data, ACK, parity | yes | yes | yes (a) | ideal pins |

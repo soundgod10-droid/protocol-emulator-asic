@@ -92,7 +92,10 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: host-results
-          path: test/results.xml
+          path: |
+            test/results.xml
+            test/output/usb_enum.json
+            test/output/eth_line.pcapng
 
   # Protocol count from these results (docs/counting.md, .github/workflows/count.yaml).
   count:

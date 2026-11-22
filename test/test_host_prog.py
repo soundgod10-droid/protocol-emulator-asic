@@ -493,6 +493,7 @@ async def test_host_pio_link_25mhz(dut):
         t = PioSimTransport(dut, 25_000_000, d=2, delay_ps=dly)
         chip = Chip(t, reset_pin=rst)
         e = await bridge(link_check)(chip)
+        t.close()
         res.append((dly, e))
         assert e == 0, "25 MHz, delay %d ps: %d errors" % (dly, e)
     dut._log.info("PIO 25 MHz: (delay ps, errors) %s" % res)

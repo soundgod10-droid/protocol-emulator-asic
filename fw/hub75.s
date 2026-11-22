@@ -38,7 +38,7 @@
         .equ    RD1, UO0        ; R1 (the name R1 is a register)
         .equ    G1, UO1
         .equ    B1, UO2
-        .equ    R2, UO3
+        .equ    RD2, UO3        ; R2
         .equ    G2, UO4
         .equ    B2, UO5
         .equ    OE, UO6

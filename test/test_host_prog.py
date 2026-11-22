@@ -360,7 +360,6 @@ class PioSimTransport:
         self._s = resume(self._asleep)
 
     def close(self):
-        getattr(self.task, "cancel", None) or self.task.kill
         (getattr(self.task, "cancel", None) or self.task.kill)()
 
     def _drive(self, pin, v):

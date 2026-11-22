@@ -139,7 +139,7 @@ lbit:   TST     r1, r1
 talk:   LD      r0, TOW         ; the answer starts within 260 us (window 290 us)
         TADD    r0
         WAIT    ADB, FALL, r0, TO, CT
-        BEC     status          ; no answer: 0 bytes
+        BEC     done            ; no answer: 0 bytes
         LDI     r1, 0
         LDI     r2, 9           ; first byte: start bit and 8 data bits
 rx:     TGET    r0              ; r0 = F, falling edge of this cell

@@ -116,8 +116,11 @@ merr:   STX     r1, [r2]        ; Manchester error: the word so far, error bit 1
         LDI     r0, 2
         STX     r0, [r2]
         ADDI    r2, 1
+        ST      r0, ERRF
         JMP     eom
-syerr:  LDI     r0, 0           ; sync error: an entry with error bit 2
+syerr:  LDI     r0, 1
+        ST      r0, ERRF
+        LDI     r0, 0           ; sync error: an entry with error bit 2
         STX     r0, [r2]
         ADDI    r2, 1
         STX     r0, [r2]

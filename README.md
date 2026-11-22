@@ -9,7 +9,7 @@ This chip is a small 4-thread processor that makes serial protocols (UART, SPI, 
 
 **In short:** every protocol is firmware on four threads whose pin changes happen at exact clock cycles; with its two line helpers the same chip is a USB low-speed device that enumerates on its own and a half-duplex 10BASE-T station with link pulses and the link integrity test, at its declared 60 MHz. The layout has no timing or design-rule violation at any corner, and every protocol is checked on the RTL and on the layout netlist against a model written from the standard, not from the design (logic simulation; the transceivers and line parts are board items, [info.md](docs/info.md)).
 
-**Start here:** the [guide for reviewers](docs/guide.md) maps each claim to its evidence, the CI run that shows it and the command that repeats it.
+**Start here:** the [verification start page](https://soundgod10-droid.github.io/protocol-emulator-asic/start/) gives every check with its newest run and what it does not check (generated from the CI runs on every site build); the [guide for reviewers](docs/guide.md) maps each claim to its evidence, the CI run that shows it and the command that repeats it.
 
 Documentation site: **<https://soundgod10-droid.github.io/protocol-emulator-asic/>**
 

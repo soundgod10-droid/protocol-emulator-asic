@@ -60,27 +60,32 @@ fdat:   CMPI    r0, 2
         LDI     r0, 0
 word:   STX     r0, [r2]        ; T = mid-sync edge; sync type first
         ADDI    r2, 1
-        TADD    98
-        TWAIT                   ; past the edge at the end of the sync (1.5 us +/- 150 ns)
-        TADD    34
-        WAIT    RXA, ANY, r0, TO, CT ; mid edge of bit 0 (2.0 us after the mid-sync)
-        BEC     merr
         LDI     r3, 16
-bit:    TADD    12
-        SAMPLE  RXA, r1<<, 4    ; second half of this bit (negative = 1)
-        TADD    26
-        TWAIT                   ; past the next bit-boundary edge (0.5 us +/- 150 ns)
-        TADD    34
-        WAIT    RXA, ANY, r0, TO, CT ; next mid-bit edge (1.0 us +/- 150 ns)
+        TADD    60              ; the loop adds 38: past the sync's end edge (1.5 us +/- 150 ns)
+bit:    TADD    38
+        TWAIT                   ; past the bit-boundary edge (0.5 us +/- 150 ns after the last mid-bit edge)
+        TADD    34              ; time-out of the next mid-bit edge (1.0 us +/- 150 ns)
+        WAIT    RXA, ANY, r0, TO, CT
+        IOR     r0, PINS        ; the level just after it: the second half (positive = 0)
         BEC     merr
+        SHR     r0, 11
+        ANDI    r0, 1
+        SHL     r1, 1
+        OR      r1, r0
         DJNZ    r3, bit
-        TADD    12
-        SAMPLE  RXA, r0<<, 4    ; parity bit, second half
+        TADD    38              ; parity bit, the same way
+        TWAIT
+        TADD    34
+        WAIT    RXA, ANY, r0, TO, CT
+        IOR     r0, PINS
+        BEC     merr
+        SHR     r0, 11
+        ANDI    r0, 1
         STX     r1, [r2]
         ADDI    r2, 1
         STX     r0, [r2]
         ADDI    r2, 1
-        TADD    120             ; time-out of the next word's mid-sync
+        TADD    135             ; time-out of the next word's mid-sync (2.0 us +/- 150 ns after the parity mid-bit edge)
         IOR     r0, PINS        ; next sync or idle
         SHR     r0, 11
         ANDI    r0, 3

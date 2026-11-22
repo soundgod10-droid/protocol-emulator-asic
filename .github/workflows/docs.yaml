@@ -6,6 +6,7 @@ name: docs
 #   waveform figures (figures/waves.py); the VCDs are kept in the cache while the RTL and the tests do not change;
 # - site: the block diagram from the RTL (Yosys), the layout render (KLayout) and the results page from the newest
 #   finished gds, test, coverage and formal runs, the protocol count page from the count artifact of that test run,
+#   the verification start page (also from the newest cert, equiv, mutation, sigrok and sdf runs),
 #   and the documentation site (mkdocs --strict, mkdocs.yml);
 # - sim: the browser simulator and its checks (.github/workflows/sim.yaml); the site job puts it under sim/, so the site
 #   is deployed only when the simulator's checks have passed;

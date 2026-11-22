@@ -211,7 +211,7 @@ async def test_mux_spi_15mhz(dut):
             out.append(summary_line("SPI 15 MHz mode %d (spread 0 to M)" % mode, lo, hi, w))
     finally:
         sc.CORNERS = saved
-    log.info("SUMMARY test_mux_spi_15mhz\n  " + "\n  ".join(out))
+    report(log, "test_mux_spi_15mhz", out)
 
 
 @cocotb.test(skip=GL)

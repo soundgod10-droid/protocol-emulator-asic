@@ -72,7 +72,7 @@ row:    LD      r2, ROW         ; pointer to the last column of this row pair
         LDI     r3, COLS
         TSYNC   48
 col:    LDX     r1, [r2]
-        OUT     R1, r1>>        ; the six data lines at T
+        OUT     RD1, r1>>       ; the six data lines at T
         OUT     G1, r1>>
         OUT     B1, r1>>
         OUT     R2, r1>>

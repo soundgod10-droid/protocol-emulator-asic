@@ -149,6 +149,9 @@ jobs:
       - name: Results page
         run: python figures/results.py build/runs build/site_src/figures build/site_src/results.md
 
+      - name: Protocol count page
+        run: python figures/count_page.py build/runs build/site_src/count.md
+
       - name: Site source
         run: python figures/site.py build/site_src build/runs/gds/tt_submission build/runs/runs.json
 

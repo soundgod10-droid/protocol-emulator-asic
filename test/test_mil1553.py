@@ -343,7 +343,7 @@ async def test_mil1553_bc_rtl(dut):
         log.info(f"{label}: INH edges {[(to_ps(c), v) for c, v in mon.inh[:4]]}; TX edges "
                  f"{[(to_ps(c), v) for c, v in mon.tx[:14]]}")
     await bench.finish(log)
-    msgs, errors = mon.decode(start_after=rf.HOST_START)
+    msgs, errors = mon.decode()
     assert not errors and msgs == [msg], f"{label}: {errors[:3]} {msgs}"
     log.info(f"{label}: message decoded {msgs}; host words {[hex(w) for w in bench.words(0)]}")
 

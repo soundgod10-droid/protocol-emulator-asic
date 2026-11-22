@@ -207,7 +207,7 @@ async def test_hub75_model(dut):
         bench.send(0, *wa)
         bench.run(6 * frame_t)
         since = m.cycle
-        bench.run(2 * frame_t)
+        bench.run(2 * frame_t + row_period(cols))
         found = panel.errors[:1]
         if not found:
             try:

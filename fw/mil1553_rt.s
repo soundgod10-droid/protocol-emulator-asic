@@ -22,8 +22,11 @@
 ;   During a message the words are stored raw in data memory; when the bus is
 ;   idle after a word, the thread checks the parity of each word and sends
 ;   two words per bus word to the host. It does not watch the bus while it
-;   does that (measured in test/test_mil1553.py: the next message must start
-;   at least 2.5 us + 3.4 us per word after the end of the previous one).
+;   does that (measured in test/test_mil1553.py: busy 0.6 us + 3.0 us per
+;   word after the end of a message, 99.5 us after a 33-word message; a
+;   message that starts earlier is missed). After a Manchester or sync error
+;   it waits until both receiver outputs have been low for 2.7 us, so the
+;   rest of a broken word is not taken as a new word.
 ;
 ; Why:
 ;   A 1553 terminal must decode 1 Mbit/s Manchester with its own bit

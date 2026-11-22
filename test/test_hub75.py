@@ -16,7 +16,7 @@ What it does:
   limits, that the controller never latches or changes the address while the panel is lit (a ghost row), that every lit
   interval shows exactly the frame-buffer row pair it addresses, and that all row pairs are lit for the same time.
   The model test loads a frame, checks two full refreshes, loads a second frame and checks again; negative controls
-  shorten the CLK high time and the data set-up, and give the firmware a column count that does not match the panel.
+  shorten the data set-up and give the firmware a column count that does not match the panel.
   The RTL test drives an 8-column panel in lockstep with the reference model; the same test runs on the gate-level
   netlist (gl_fw workflow).
 

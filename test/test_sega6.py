@@ -162,7 +162,7 @@ async def test_sega6_model(dut):
     falls = [c for c, n, v in pad.edges if v == 0]
     rises = [c for c, n, v in pad.edges if v == 1]
     lows = [(r - f) / F_MHZ for f, r in zip(falls, rises)]
-    highs = [(f - r) / F_MHZ for r, f in zip(rises, falls[1:]) if (f - r) / F_MHZ < 100]
+    highs = [(falls[i + 1] - rises[i]) / F_MHZ for i in range(len(falls) - 1) if i % 4 != 3]
     poll_t = (rises[3] - falls[0]) / F_MHZ
     log.info(f"model: {len(SETS)} polls as expected {[hex(w) for w in want]}; select low {min(lows):.2f} to "
              f"{max(lows):.2f} us, high within a poll {min(highs):.2f} to {max(highs):.2f} us (notes: 13.8 us in a "

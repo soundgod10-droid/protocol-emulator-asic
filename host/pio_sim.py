@@ -129,28 +129,12 @@ class _Emitter:
 
 
 def asm_pio(**kw):
-    """Decorator as rp2.asm_pio: runs the body twice (labels, then words) with the instruction names as its
-    globals, and returns a Program."""
+    """Decorator as rp2.asm_pio: runs the body with the instruction names as its globals and returns a
+    Program. Words are encoded after the body has run, so a JMP to a later label resolves in one pass."""
     def dec(f):
-        em = None
-        for _pass in (0, 1):
-            labels = em.labels if em is not None else {}
-            em = _Emitter(kw)
-            em.labels = dict(labels)
-            g = em.names()
-            fn = types.FunctionType(f.__code__, g, f.__name__, f.__defaults__, f.__closure__)
-            if _pass == 0:
-                # first pass: labels only; a forward label used by JMP is not known yet
-                for k in list(g):
-                    pass
-                em.labels = {}
-                fn2 = types.FunctionType(f.__code__, g, f.__name__, f.__defaults__, f.__closure__)
-                try:
-                    fn2()
-                except KeyError:
-                    pass
-            else:
-                fn()
+        em = _Emitter(kw)
+        fn = types.FunctionType(f.__code__, em.names(), f.__name__, f.__defaults__, f.__closure__)
+        fn()
         words = [i.encode() for i in em.ins]
         top = em.wrap_top if em.wrap_top is not None else len(words) - 1
         return Program(words, em.side_count, em.wrap_bottom, top, kw)

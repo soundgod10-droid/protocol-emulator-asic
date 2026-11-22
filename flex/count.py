@@ -287,6 +287,7 @@ def main(argv):
     ap.add_argument("--out")
     a = ap.parse_args(argv)
     res, protos = count(a.rtl, a.gl)
+    res["notes"] = a.note
     md = markdown(res, protos, a.note)
     print(md)
     if a.summary:

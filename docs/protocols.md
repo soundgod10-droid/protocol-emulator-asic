@@ -51,6 +51,44 @@ The rates above are firmware rates: one instruction every 4 cycles per thread. T
 
 Conditions: logic simulation; the pads (SPICE delays, [verification.md](verification.md) section 9) and the board multiplexer (0 to 10 ns each way, not measured; the [competition FAQ](https://blog.janestreet.com/protocol-emulator-asic-competition/) gives an estimate of about 10 ns round trip through the pads and the multiplexer, also not measured) are delay parameters of the tests. One helper serves USB and all of these buses, so one of them runs at a time. After START the helper's first output is the USB idle level until the thread writes MODE ([helpers.md](helpers.md) section 6, row "After START").
 
+## Rates: what each rate is and what shows it
+
+Every rate here is at the declared clock of 60 MHz. Static timing signs off that clock at the three corners of the flow (slow 1.08 V 125 °C, typical 1.20 V 25 °C, fast 1.32 V -40 °C) with no setup, hold, slew, capacitance or fanout violation; the slow-corner flip-flop margin is +2.706 ns ([gds 44983773384](https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44983773384)). For each rate the table gives the role of the chip, whether the data that the other device sends back is checked, and the evidence:
+
+- **RTL**: logic simulation of the RTL at 60 MHz (the firmware tests in lockstep with the reference model);
+- **gate level**: the layout netlist with functional cell models and no delays (`gl_protocols` jobs of the gds run);
+- **SDF**: the layout netlist with the cell and SRAM macro delays of its SDF file at the slow, typical and fast corners; no wire or pad delays ([verification.md](verification.md) section 5);
+- **hardware**: a measurement on a board. No rate has one: there is no silicon yet, and the FPGA bench ([bench.md](bench.md)) runs the RTL at 25 MHz, because the RTL on the bench FPGA does not reach 60 MHz (29.86 MHz, worst of 5 place-and-route seeds, nextpnr timing models). On the bench the firmware rates are those of 25 MHz (25/60 of the rates below), and USB low speed and 10BASE-T are not shown, because their helpers have line rates fixed for 60 MHz.
+
+| Bus and role | Rate | Data back from the device checked | RTL | Gate level | SDF, 3 corners | Conditions |
+|---|---|---|---|---|---|---|
+| UART transmitter, firmware | 1 Mbit/s 8N1 | - (a receiver model decodes each frame) | yes | yes | yes (a) | ideal pins |
+| UART receiver, firmware | 1 Mbit/s 8N1 | received bytes, framing | yes | yes | yes (a) | sender at -3.3 % and +3.3 % |
+| SPI controller, firmware | SCK 1.2 MHz, modes 0 to 3 | MISO bytes from the device model | yes | yes | yes (a) | ideal pins |
+| SPI target, firmware | 1 MHz, modes 0 to 3 | MOSI bytes; the controller model checks MISO | yes | yes | yes (a) | ideal pins |
+| I2C controller, firmware | Fast-mode and Standard-mode | read bytes and ACK; every bus time against UM10204 Table 11 | yes | yes | yes (a) | output low level met at every corner by pad SPICE (verification.md section 9) |
+| CAN 2.0A node, firmware (2 threads) | 250 kbit/s | received frames with CRC-15 and ACK | yes | yes | yes (a) | other node at -0.5 % and +0.5 %, 10-cycle loop delay through the transceiver |
+| JTAG controller, firmware | TCK 1.5 MHz | TDO (IDCODE, IR and DR scans) | yes | yes | yes (a) | ideal pins |
+| SWD host, firmware | SWCLK 1.875 MHz | read data, ACK, parity | yes | yes | yes (a) | ideal pins |
+| SPI controller, USB helper (clocked mode) | 15 MHz, mode 0 | MISO from a W25Q128JV model at its pins | yes | yes | yes (b) | slow pads and 10 ns of board multiplexer each way (parameter, not measured); modes 1 to 3 at 15 MHz and 30 MHz in mode 0: unit test only |
+| JTAG controller, USB helper | TCK 15 MHz (IDCODE scan of two TAPs) | TDO | yes | yes | yes (b) | slow pads + 10 ns each way and fast pads; the 1,000-bit scan and 30 MHz: unit test only |
+| SWD host, USB helper | SWCLK 7.5 MHz (DPIDR read) | read data, ACK, parity | yes | yes | yes (b) | target output 25 ns at slow pads + 10 ns, 2 ns at fast pads |
+| UART transmitter, USB helper (NRZ) | 15 Mbaud | - (every edge on the 4-cycle grid) | yes | yes | yes (b) | 12 Mbaud: unit test only |
+| UART receiver, USB helper | 15 Mbaud | received bytes, stop bit | yes | yes | yes (b) | sender at -2.5 % and +2.5 %, input path 0.26 to 10.45 ns; 7.5 Mbaud and the +/-2.8 % control (must fail): unit test only |
+| USB low-speed device, helper + firmware | 1.5 Mbit/s | every device packet by a USB 2.0 host model | yes | yes | yes (a) | ideal transceiver; not on the 25 MHz bench |
+| 10BASE-T station, helper + firmware | 10 Mbit/s | every frame by an IEEE 802.3 partner model | yes | yes | yes (a) | ideal slicer and squelch; not on the 25 MHz bench |
+
+(a) SDF run [44817952932](https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44817952932) on the layout of gds 44589189324 (the RTL before the three fixes of November 21; the present layout has the gate-level runs). (b) SDF run [44904006755](https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44904006755) on the layout of gds 44901436079, the present RTL.
+
+### What is not claimed
+
+- **CAN above 250 kbit/s.** The receiver needs about 124 cycles of work per bit; 500 kbit/s gives 120 cycles at 60 MHz and 1 Mbit/s gives 60 ([rationale.md](rationale.md) section 1). The node on the chip is a full CAN 2.0A node (transmitter with arbitration, receiver with CRC-15 check and ACK); 500 kbit/s and 1 Mbit/s need hardware bit monitoring that this version does not have.
+- **I2C Fast-mode Plus on the pads.** A pad sinks 7.6 mA at 0.4 V at the slow corner and 18.4 mA at the fast corner against the 20 mA of Fast-mode Plus (pad SPICE, [verification.md](verification.md) section 9). No Hs-mode.
+- **30 MHz SPI or JTAG at the pins.** 30 MHz is a unit-test rate with the pin path as delay parameters; the board multiplexer delay is not measured, so 15 MHz is the rate at the pins.
+- **UART full duplex at 15 Mbaud.** One helper runs one mode at a time; full duplex is the helper receiving at 15 Mbaud with a firmware transmitter at 1 Mbit/s on another thread.
+- **A clock above 60 MHz.** The layout is signed off at 60 MHz only. 1 / (16.667 ns - 2.706 ns) = 71.6 MHz is a calculation from the slow-corner margin, not a rating; the protocol timing is fixed in cycles at 60 MHz (a USB low-speed bit is 40 cycles, a 10BASE-T half bit 3 cycles), so a higher clock would change no rate.
+- **Sub-nanosecond pin timing.** Output events change a pin in the exact cycle of their time, in steps of 16.7 ns with no cycle of jitter (`formal/timed_out.sby`, every lead); the 10BASE-Te helper samples its input on both clock edges (8.3 ns), and helper time stamps (TSTAMP) count whole cycles. A finer step needs a delay line with a calibration, which this version does not have (the layout is at the 40 % utilisation limit, 0.400 in gds 44983773384); no absolute or pin-to-pin time below one cycle can be claimed without silicon.
+
 ## Line helpers: USB low speed and 10BASE-Te
 
 | Protocol layer | Helper | Chip test on the RTL at 60 MHz (`test/test_slu.py`) |

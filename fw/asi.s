@@ -11,7 +11,7 @@
 ;   each bit is a falling (0) or rising (1) edge in the middle of its 6 us bit
 ;   time (Figure 4.13).
 ;   Master request (14 bits, 84 us): ST = 0, CB, A4..A0, I4..I0, PB, EB = 1;
-;   PB makes CB..I0 + PB even (section 4.12.2 Parity_error). The end-bit edge
+;   PB makes CB..I0 + PB even (section 4.12, Parity_error of the master request). The end-bit edge
 ;   comes 13 x 6 us = 78 us after the start edge (End_bit_error).
 ;   Slave response (7 bits): ST, I3..I0, PB, EB, read at a quarter bit before
 ;   and after each bit middle, timed from the start edge; up to TRESP cycles

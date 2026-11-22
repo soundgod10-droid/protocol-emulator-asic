@@ -12,14 +12,15 @@
 ;   For each row pair: the COLS columns are shifted while the previous row
 ;   pair is lit, last column first (the bit clocked first moves to the far
 ;   end of the chain): the six data lines change at T, CLK rises at T + 2
-;   (set-up 33 ns; SN74HC595: 25 ns) and falls at T + 4 (high 33 ns, low
-;   COLT - 2 cycles; 20 ns), one column every COLT cycles. Then OE goes high
-;   (dark), LAT rises 2 cycles later (34 ns after the last CLK rise; 19 ns)
-;   for 2 cycles, the address changes 3 cycles after OE, and OE goes low 8
-;   cycles after it. Every row pair is lit for the same time (the shift time
-;   of the next one plus the turn), so the brightness is equal.
-;   Between two row pairs the thread takes up to 4 host words into the frame
-;   buffer (data memory 512 + ROW x COLS + column).
+;   (set-up 33 ns; SN74HC595: 25 ns) and falls CHI cycles later (high 500 ns,
+;   low 567 ns; 20 ns), one column every COLT cycles (0.94 MHz; 25 MHz).
+;   Then OE goes high (dark), LAT rises 2 cycles later (more than 500 ns
+;   after the last CLK rise; 19 ns) for 14 cycles, the address changes 3
+;   cycles after OE, and OE goes low 20 cycles after it. Every row pair is
+;   lit for the same time (HOSTT plus the shift time of the next one plus
+;   the turn), so the brightness is equal.
+;   In the HOSTT window after a row pair is lit the thread takes up to 4 host
+;   words into the frame buffer (data memory 512 + ROW x COLS + column).
 ;
 ; Why:
 ;   A HUB75 panel has no controller: the driver must clock in every row pair

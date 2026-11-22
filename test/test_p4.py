@@ -127,6 +127,76 @@ def check(bench, dev, end, label):
             f"{label}: thread 3 dmx512 {dmx.summary(got, stats)}"]
 
 
+P_ROWS = ["dmx512.s", "dcc.s", "sbus_tx.s", "sbus_rx.s", "lin_cmd.s", "lin_resp.s", "hd44780.s", "hx711.s", "irda_tx.s",
+          "irda_rx.s", "oregon.s", "ssi.s", "tm1637.s", "mdb.s", "tlc5940.s", "unio.s", "sent.s", "adb.s", "hub75.s",
+          "joybus.s", "iolink.s", "mil1553_bc.s", "mil1553_rt.s", "sdi12.s", "centronics.s", "sega6.s", "asi.s"]
+IOR_UIO = {"sega6.s": set(range(6))}  # uio inputs read with IOR PINS, which the words do not name
+
+
+def pin_use(words):
+    """Pins named by the program words (isa 11.2): OUT pins (0-7 uio, 8-14 uo_out) and SAMPLE / WAIT pins on uio
+    (0-7); ui_in pins are inputs that programs can share. Also whether the program uses data memory (LDX / STX)."""
+    pins, dmem = set(), False
+    for w in words.values():
+        op = w >> 12
+        if op == 0xC:
+            p, kind = (w >> 8) & 15, (w >> 3) & 7
+            if kind <= 5 or p < 8:
+                pins.add(p)
+        elif op == 0xD and ((w >> 8) & 15) < 8:
+            pins.add((w >> 8) & 15)
+        elif op == 0 and (w >> 8) in (3, 4):
+            dmem = True
+    return pins, dmem
+
+
+@cocotb.test(skip=GL)
+async def test_p4_fit(dut):
+    """Fit matrix of the list P programs (C1 WP10): word count of each, and the sets of 2 to 4 that fit in the program
+    memory and the 4 threads; for each set, whether two programs use one uio or uo_out pin at their default .equ pins,
+    and whether more than one uses data memory (fixed buffers at the default .equ). The clash-free sets of 4 with the
+    most words are assembled at consecutive base addresses as a check of the sums."""
+    import itertools
+    log = dut._log
+    info = {}
+    for n in P_ROWS:
+        p = ff.assemble(n)
+        pins, dmem = pin_use(p.words)
+        info[n] = (p.size, pins | IOR_UIO.get(n, set()), dmem)
+    name = lambda p: f"uio{p}" if p < 8 else f"uo{p - 8}"  # noqa: E731
+    for n in P_ROWS:
+        size, pins, dmem = info[n]
+        log.info(f"P program {n}: {size} words; pins {', '.join(name(p) for p in sorted(pins)) or 'none (ui only)'}"
+                 f"{'; data memory' if dmem else ''}")
+    fits, clean = [], []
+    for k in range(2, pe_model.N_THREADS + 1):
+        for combo in itertools.combinations(P_ROWS, k):
+            total = sum(info[n][0] for n in combo)
+            if total > pe_model.PROG_WORDS:
+                continue
+            pins = [p for n in combo for p in info[n][1]]
+            shared = sorted({p for p in pins if pins.count(p) > 1})
+            dm = sum(info[n][2] for n in combo)
+            fits.append((combo, total, shared, dm))
+            if not shared and dm <= 1:
+                clean.append((combo, total))
+    four = [c for c in clean if len(c[0]) == 4]
+    for combo, total in sorted(four, key=lambda c: -c[1])[:5]:
+        base = 0
+        for n in combo:
+            base += ff.assemble(n, base).size
+        assert base == total, (combo, base, total)
+    by_k = {k: (sum(1 for f in fits if len(f[0]) == k), sum(1 for c in clean if len(c[0]) == k)) for k in (2, 3, 4)}
+    biggest = max(fits, key=lambda f: f[1])
+    log.info(f"P programs: {len(P_ROWS)} ({sum(info[n][0] for n in P_ROWS)} words in all, largest "
+             f"{max(info[n][0] for n in P_ROWS)}); sets that fit in {pe_model.PROG_WORDS} words and 4 threads: "
+             + "; ".join(f"{k} programs {a} (no shared pin or data memory at the default .equ: {b})"
+                         for k, (a, b) in by_k.items())
+             + f"; the largest set {' + '.join(biggest[0])} = {biggest[1]} words; the 5 clean sets of 4 with the most "
+             f"words assemble at consecutive bases to the same sums")
+    assert all(f[1] <= pe_model.PROG_WORDS for f in fits) and by_k[4][1] > 0
+
+
 @cocotb.test(skip=GL)
 async def test_p4_model(dut):
     """The four programs from one image on the four threads of the reference model, each against its own model."""

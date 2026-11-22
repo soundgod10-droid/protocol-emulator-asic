@@ -475,6 +475,7 @@ async def test_host_pio_link(dut):
         chip = Chip(t, reset_pin=rst)
         e = await bridge(link_check)(chip)
         st = await bridge(chip.status)()
+        t.close()
         res.append((phase, e, st.cmd_err))
         assert e == 0 and not st.cmd_err, "phase %d: errors %d, %r" % (phase, e, st)
     dut._log.info("PIO 60 MHz: words %s; phases (phase, errors, CMD_ERR) %s" % (

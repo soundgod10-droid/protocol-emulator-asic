@@ -81,7 +81,8 @@ and one supply pin; two TLV3501AIDBVR are an equivalent choice.
 | USB R1 | RC0603FR-071K5L | Yageo | 1.5 kohm 1 % 0603, D- pull-up | 1 |
 | USB R2 | RC0603FR-0710KL | Yageo | 10 kohm 1 % 0603, OE# pull-up | 1 |
 | USB R3, R4 | RC0603FR-07100KL | Yageo | 100 kohm 1 % 0603 | 2 |
-| USB C1, C3 | GRM188R71H104KA93D | Murata | 100 nF X7R 50 V 0603 | 2 |
+| USB C1, C3, C4 | GRM188R71H104KA93D | Murata | 100 nF X7R 50 V 0603 (C4 on VBUS) | 3 |
+| USB JP1 | 2-pin 2.54 mm header with jumper | any | SUSPND to uio4 (open by default) | 1 |
 | USB C2 | GRM188R61E105KA12D | Murata | 1 uF X5R 25 V 0603 | 1 |
 | Eth J3 | HR911105A | HanRun | RJ45 with 10/100 magnetics and LEDs | 1 |
 | Eth U1 | TLV3502AIDCNR | Texas Instruments | dual 4.5 ns comparator, SOT-23-8 | 1 |

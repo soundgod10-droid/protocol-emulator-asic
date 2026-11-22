@@ -196,6 +196,49 @@ jobs:
               # the pin delays of the last test_core run (possibly a no-SDF rerun) are not a measurement of this part
               rm -f pin_delays.json
               cp results_r3_16666.xml results.xml ;;
+            p3_overclock)
+              # C2-5: T1-T4 at shorter clock periods with the SDF of this corner; a failure is run again without SDF (own
+              # build folder) to tell a timing failure from a bench limit. Icarus runs no setup check, so the first
+              # failing period lies below the STA minimum period.
+              export SDF_OVERCLOCK=1
+              ok() { [ -f results.xml ] && ! grep -q "<failure" results.xml && echo pass || echo fail; }
+              tests="test_slu_chip_spi_flash test_slu_chip_jtag_idcode test_slu_chip_uart_rx test_slu_chip_uart_tx"
+              declare -A first
+              base_fail=""
+              for p in 16666 12000 10000 9000 8000 7000 6000 5000; do
+                export CLK_PS=$p
+                line="$p ps ($(python -c "print(round(1e6/$p, 2))") MHz):"
+                for t in $tests; do
+                  export COCOTB_TEST_FILTER=$t
+                  rm -f results.xml; run make $sdf COCOTB_TEST_MODULES=test_slu
+                  r1=$(ok); cp results.xml "results_${t}_$p.xml" 2>/dev/null || true
+                  r2=""
+                  if [ "$r1" = fail ]; then
+                    [ "$p" = 16666 ] && base_fail="$base_fail $t"
+                    rm -f results.xml; GATES=yes make SIM_BUILD=sim_build/gl_nodelay COCOTB_TEST_MODULES=test_slu FST= 2>&1 \
+                      | grep -v "SDF WARNING" | tee -a sdf_nodelay.log > /dev/null || true
+                    r0=$(ok); r2=", without SDF $r0"
+                    if [ "$r0" = pass ] && [ -z "${first[$t]}" ]; then first[$t]=$p; fi
+                  fi
+                  line="$line ${t#test_slu_chip_} $r1$r2;"
+                done
+                echo "$line" | tee -a overclock.txt
+              done
+              unset COCOTB_TEST_FILTER CLK_PS SDF_OVERCLOCK
+              verdict=0
+              if [ -n "$base_fail" ]; then echo "fail with SDF at 60 MHz:$base_fail" >> overclock.txt; verdict=1; fi
+              for t in $tests; do
+                if [ -n "${first[$t]}" ]; then
+                  echo "${t#test_slu_chip_}: fails with SDF and passes without it from ${first[$t]} ps on" >> overclock.txt
+                else
+                  echo "${t#test_slu_chip_}: no period with a failure that only the SDF delays cause" >> overclock.txt
+                  verdict=1
+                fi
+              done
+              tail -n 5 overclock.txt
+              echo "::notice title=overclock control ${{ matrix.corner }}::$(sed -e ':a;N;$!ba;s/\n/%0A/g' overclock.txt)"
+              test "$verdict" = 0
+              cp results_test_slu_chip_spi_flash_16666.xml results.xml ;;
           esac
           # Clock-to-pin delays of the core lockstep tests (part main): pin terms of the firmware timing certificates.
           if [ -f pin_delays.json ]; then

@@ -91,7 +91,7 @@ reads its input format and that its control fails; it does not show that a bench
 | USB (demo board) | `usb_os.judge_pnputil`, `judge_pnpdevice` | `pnputil /enum-devices /connected`; `Get-PnpDevice ...` piped to `ConvertTo-Json` | Status other than Started / OK; another product ID | as above |
 | USB (demo board) | `usb_os.judge_system_profiler` | `system_profiler SPUSBDataType -json` | full speed; another product ID | as above |
 | 10BASE-T (demo board) | `net.judge_ping_capture`, `judge_frames` | pcapng (Wireshark, or `pktmon etl2pcap`) | last echo reply removed; one ICMP checksum broken | `test.yaml` job host, the line of the RTL run |
-| 10BASE-T (demo board) | `net.judge_ping`, `judge_arp_table`, `judge_nic_stats` | `ping -n N`, `arp -a`, `Get-NetAdapterStatistics | ConvertTo-Json` before and after | one reply lost; another MAC; a receive error | as above |
+| 10BASE-T (demo board) | `net.judge_ping`, `judge_arp_table`, `judge_nic_stats` | `ping -n N`, `arp -a`, `Get-NetAdapterStatistics` piped to `ConvertTo-Json`, before and after | one reply lost; another MAC; a receive error | as above |
 
 The USB and 10BASE-T judges serve the demo board (60 MHz); on the 25 MHz FPGA bench these rows are not run
 (section 1). The text formats are those of usbutils, Windows 10/11 in English and macOS 14; the first bench session

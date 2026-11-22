@@ -152,7 +152,7 @@ Does not check: layout parasitics of the pad ring and package; the shuttle's mul
 
 ## What is not verified
 
-- No FPGA prototype: the design needs 154 % of the logic cells of the template FPGA (run [41817455061], [docs/decisions.md](decisions.md) entry 12).
+- No FPGA result yet: the design needs 154 % of the logic cells of the template FPGA (run [41817455061], [docs/decisions.md](decisions.md) entry 12); a bench on a larger FPGA (ECP5) is drafted at 25 MHz, because the RTL does not reach 60 MHz on any FPGA measured ([docs/bench.md](bench.md)), so the bench shows the firmware protocols at 25 MHz rates and not USB low speed or 10BASE-T.
 - Pad electrical limits are simulated on the schematic pad cells only (section 9), not on the extracted pad ring or in silicon. The chip claims I2C Standard-mode and Fast-mode only and makes no 5 V claim.
 - The host port allowance of 27.4 ns for pads and the host input ([docs/host_port.md](host_port.md) section 6) is partly an estimate. It will be measured on the board.
 - No silicon result exists.

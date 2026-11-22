@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="720" viewBox="0 0 1100 720" font-family="Helvetica, Arial, sans-serif" font-size="13">
+  <rect x="0" y="0" width="1100" height="720" fill="white"/>
+  <text x="20" y="28" font-size="18" font-weight="bold">USB low-speed front end (Pmod module, demo board and FPGA bench) - bench/frontends/usb_ls_pmod.svg</text>
+  <text x="20" y="48">Net-labelled schematic. Chip signals per fw/usb_dev.s: uio0 VPO (helper TXA), uio1 VMO (TXB), uio2 OE# (not OE); ui_in[0] RCV, ui_in[1] VP, ui_in[2] VM.</text>
+
+  <!-- J1 uio Pmod -->
+  <rect x="40" y="90" width="170" height="250" fill="none" stroke="black" stroke-width="2"/>
+  <text x="50" y="82" font-weight="bold">J1 Pmod (uio), 2x6 2.54 mm</text>
+  <g font-size="12">
+    <text x="50" y="115">1  uio0</text><text x="215" y="115">VPO</text>
+    <text x="50" y="140">2  uio1</text><text x="215" y="140">VMO</text>
+    <text x="50" y="165">3  uio2</text><text x="215" y="165">OE_N</text>
+    <text x="50" y="190">4  uio3</text><text x="215" y="190">SOFTCON</text>
+    <text x="50" y="215">5  GND</text><text x="215" y="215">GND</text>
+    <text x="50" y="240">6  3V3</text><text x="215" y="240">3V3</text>
+    <text x="50" y="265">7  uio4</text><text x="215" y="265">SUSPND (JP1)</text>
+    <text x="50" y="290">8-10  n.c.</text>
+    <text x="50" y="315">11 GND, 12 3V3</text>
+  </g>
+  <!-- J2 ui Pmod -->
+  <rect x="40" y="400" width="170" height="160" fill="none" stroke="black" stroke-width="2"/>
+  <text x="50" y="392" font-weight="bold">J2 Pmod (ui), 2x6 2.54 mm</text>
+  <g font-size="12">
+    <text x="50" y="425">1  ui_in0</text><text x="215" y="425">RCV</text>
+    <text x="50" y="450">2  ui_in1</text><text x="215" y="450">VP</text>
+    <text x="50" y="475">3  ui_in2</text><text x="215" y="475">VM</text>
+    <text x="50" y="500">4, 7-10  n.c.</text>
+    <text x="50" y="525">5, 11  GND</text>
+    <text x="50" y="550">6, 12  3V3 (not used)</text>
+  </g>
+
+  <!-- U1 TUSB1106PWR -->
+  <rect x="430" y="110" width="220" height="420" fill="#f4f8ff" stroke="black" stroke-width="2"/>
+  <text x="455" y="100" font-weight="bold">U1 TUSB1106PWR (TSSOP-16)</text>
+  <g font-size="12">
+    <text x="438" y="140">13 VPO</text><text x="370" y="140">VPO</text>
+    <text x="438" y="170">14 VMO</text><text x="370" y="170">VMO</text>
+    <text x="438" y="200">3 OE#</text><text x="370" y="200">OE_N</text>
+    <text x="438" y="230">2 SOFTCON</text><text x="340" y="230">SOFTCON</text>
+    <text x="438" y="260">7 SUSPND</text><text x="340" y="260">SUSPND</text>
+    <text x="438" y="290">10 SPEED</text><text x="370" y="290">GND</text>
+    <text x="438" y="330">4 RCV</text><text x="370" y="330">RCV</text>
+    <text x="438" y="360">5 VP</text><text x="370" y="360">VP</text>
+    <text x="438" y="390">6 VM</text><text x="370" y="390">VM</text>
+    <text x="438" y="430">9 VCC(I/O)</text><text x="370" y="430">3V3</text>
+    <text x="438" y="460">15 Vreg(3.3)</text><text x="370" y="460">3V3</text>
+    <text x="438" y="490">16 VCC(5.0)</text><text x="370" y="490">3V3</text>
+    <text x="438" y="520">8 GND</text><text x="370" y="520">GND</text>
+    <text x="560" y="140">D+ 12</text><text x="660" y="140">DP</text>
+    <text x="560" y="170">D- 11</text><text x="660" y="170">DM</text>
+    <text x="545" y="230">Vpu(3.3) 1</text><text x="660" y="230">VPU</text>
+  </g>
+  <!-- resistors and caps -->
+  <g font-size="12">
+    <rect x="720" y="215" width="60" height="18" fill="none" stroke="black"/><text x="725" y="210">R1 1.5k 1%</text>
+    <text x="700" y="245">VPU</text><text x="790" y="245">DM</text>
+    <rect x="300" y="575" width="60" height="18" fill="none" stroke="black"/><text x="300" y="570">R2 10k: OE_N to 3V3</text>
+    <rect x="300" y="625" width="60" height="18" fill="none" stroke="black"/><text x="300" y="620">R3 100k: SOFTCON to GND</text>
+    <rect x="300" y="675" width="60" height="18" fill="none" stroke="black"/><text x="300" y="670">R4 100k: SUSPND to GND</text>
+    <text x="470" y="580">C1 100 nF + C2 1 uF: pins 15/16 to GND</text>
+    <text x="470" y="605">C3 100 nF: pin 9 to GND</text>
+  </g>
+
+  <!-- U2 ESD and J3 USB -->
+  <rect x="850" y="110" width="150" height="110" fill="#fff6ee" stroke="black" stroke-width="2"/>
+  <text x="850" y="100" font-weight="bold">U2 TPD2E2U06DRLR</text>
+  <g font-size="12">
+    <text x="858" y="140">IO1</text><text x="820" y="140">DP</text>
+    <text x="858" y="170">IO2</text><text x="820" y="170">DM</text>
+    <text x="858" y="200">GND</text><text x="820" y="200">GND</text>
+  </g>
+  <rect x="850" y="290" width="150" height="150" fill="none" stroke="black" stroke-width="2"/>
+  <text x="850" y="280" font-weight="bold">J3 USB-B receptacle</text>
+  <g font-size="12">
+    <text x="858" y="320">1 VBUS</text><text x="1010" y="320">n.c. (self-powered)</text>
+    <text x="858" y="350">2 D-</text><text x="820" y="350">DM</text>
+    <text x="858" y="380">3 D+</text><text x="820" y="380">DP</text>
+    <text x="858" y="410">4 GND</text><text x="820" y="410">GND</text>
+    <text x="858" y="435">shell: 1 M || 4.7 nF to GND</text>
+  </g>
+
+  <g font-size="12">
+    <text x="660" y="620">Notes</text>
+    <text x="660" y="640">SPEED low: low speed, slew control (SCAS818E p.4); 33 ohm series inside U1 (p.3).</text>
+    <text x="660" y="658">Regulator bypass: VCC(5.0) = Vreg(3.3) = 3V3 (3.0-3.6 V, p.7).</text>
+    <text x="660" y="676">R2 keeps OE# high while the chip pins are released (reset, STOP): no drive.</text>
+    <text x="660" y="694">SOFTCON high = 1.5k pull-up on D- (attach); R3 = detached at power-up.</text>
+    <text x="660" y="712">VBUS short: no 24 h rating stated for U1 (R5 row 5): open item.</text>
+  </g>
+</svg>

@@ -212,9 +212,15 @@ async def test_host_eth_ping(dut):
     rng = random.Random(5)
     results = {}
 
+    results["sent"] = []
+
+    async def send(frame):
+        t = await line.send(partner_wave(frame))
+        results["sent"].append((t / 1e6, frame))
+
     async def partner():
         await Timer(50, unit="us")
-        await line.send(partner_wave(arp_request()))
+        await send(arp_request())
         n_tx = len(line.tx)
         while len(line.tx) == n_tx:                      # review window: the ARP reply on the line
             await Timer(1, unit="us")

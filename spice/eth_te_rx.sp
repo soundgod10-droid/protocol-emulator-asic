@@ -1,5 +1,5 @@
 * 10BASE-Te receive front end of the demo-board module: RJ45 receive pair (driven here by an ideal differential
-* source of peak A, all-ones Manchester 10 MHz) -> 1:1 magnetics of the HR911105A (OCL 350 uH; insertion loss RW
+* source of peak A, a 10 MHz sine) -> 1:1 magnetics of the HR911105A (OCL 350 uH; insertion loss RW
 * per winding: 0 = 0 dB, 12.2 ohm = -1.0 dB) -> 2 x 49.9 ohm termination to the bias node VB (3.3 V / 2 by
 * 2 x 10 kohm, 100 nF) -> two TLV3501 comparators:
 *   slicer:  +IN = RXP, -IN = RXM (zero crossing; chip input ui_in[0], SEL DIN)

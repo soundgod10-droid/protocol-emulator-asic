@@ -41,7 +41,7 @@ Can the chip be reprogrammed for protocols it was not designed for? The evidence
 | Evidence | What | Where |
 |---|---|---|
 | Counting rule | one protocol per specification (roles, rates and outline programs are not counted again); the strict count needs a program that fits the memory alone, a test model written from a named public document, and a pass on the RTL at 60 MHz and on the layout netlist | [counting.md](docs/counting.md) |
-| Count today | 12 protocols in the strict count (18 programs): UART, SPI, I2C, CAN 2.0A, JTAG, SWD, PS/2, 1-Wire, AM2302, AVR PDI, USB low speed, 10BASE-T | [count run 44589189363][count], annotation "protocol count table" |
+| Count today | the newest strict and broad counts with every program, its family, tier and evidence, and a check a reader can do in five minutes; generated from the count job of the newest test run, so no number is typed here | [Protocol count](https://soundgod10-droid.github.io/protocol-emulator-asic/count/) page; the run's annotation "protocol count table" |
 | Written after the instruction set was fixed | CAN, JTAG, SWD, PS/2: named on the competition page, so known when the instruction set was made; each with what the instruction set lacked | [protocols.md](docs/protocols.md), Flexibility |
 | Hold-out trials | 1-Wire, AM2302, AVR XMEGA PDI: not named on the page or in the design documents; AM2302 and PDI chosen by a rule a reader can repeat (the first two eligible entries of the sigrok decoder list); written on the unchanged chip | [protocols.md](docs/protocols.md), Hold-out trials |
 | Outside decoders | sigrok decoders of a pinned build read the chip pins of the RTL tests: 19 of 19 scenarios agree, each with a negative control that must fail | [sigrok run 44557588966][sigrok] |

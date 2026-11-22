@@ -515,6 +515,7 @@ async def test_host_pio_window(dut):
                 t = PioSimTransport(dut, CHIP_HZ, d=d, delay_ps=dly * 1000, phase_cycles=phase)
                 chip = Chip(t, reset_pin=rst)
                 e = await bridge(link_check)(chip, 16, d * 100 + dly)
+                t.close()
                 ok = ok and e == 0
             row.append(ok)
         table[d] = row

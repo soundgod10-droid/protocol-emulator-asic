@@ -195,7 +195,7 @@ async def test_hub75_model(dut):
     bench.send(0, *frame_words(FRAME_B(cols)))
     bench.run(6 * frame_t)
     since = m.cycle
-    bench.run(2 * frame_t + 1000)
+    bench.run(2 * frame_t + row_period(cols))
     assert not panel.errors, f"frame B: {panel.errors[:3]}"
     n, dur = check_frame(panel, FRAME_B(cols), since, "frame B")
     ff.assert_status_clean(m, [0])

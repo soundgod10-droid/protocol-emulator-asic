@@ -50,6 +50,8 @@
         .equ    STOPH, 2100     ; stop bit: low 2 x 35 us = 70 us
         .equ    SRQS, 600       ; bus read 10 us after the end of the stop bit
         .equ    NBASE, 512
+        .equ    ATTH, 24000     ; half of the Attention (2 x 400 us)
+        .equ    STT, 11400      ; Listen: from 10 us to 200 us after the stop bit
 
 get:    TSYNC   16              ; keep T near now while there is no word (isa 7)
         PULL.NB r0

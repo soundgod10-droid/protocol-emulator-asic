@@ -16,6 +16,7 @@ Usage: python figures/runs.py <branch> <out folder>
 
 import json
 import os
+import re
 import subprocess
 import sys
 import time

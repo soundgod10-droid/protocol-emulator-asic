@@ -46,6 +46,7 @@ import build_image  # noqa: E402
 import host_spi as hs  # noqa: E402
 import pio_sim  # noqa: E402
 from linemodel import tenbaset as T  # noqa: E402
+from linemodel import usb_ch9 as C  # noqa: E402
 from linemodel import usb_host as H  # noqa: E402
 from pe_host.core import CHIP_ID, Chip  # noqa: E402
 from pe_host.eth import Station  # noqa: E402

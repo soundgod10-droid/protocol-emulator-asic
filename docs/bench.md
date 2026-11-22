@@ -94,7 +94,13 @@ reads its input format and that its control fails; it does not show that a bench
 | 10BASE-T (demo board) | `net.judge_ping`, `judge_arp_table`, `judge_nic_stats` | `ping -n N`, `arp -a`, `Get-NetAdapterStatistics` piped to `ConvertTo-Json`, before and after | one reply lost; another MAC; a receive error | as above |
 
 The USB and 10BASE-T judges serve the demo board (60 MHz); on the 25 MHz FPGA bench these rows are not run
-(section 1). The text formats are those of usbutils, Windows 10/11 in English and macOS 14; the first bench session
+(section 1).
+
+1-Wire in the capture proof: the RTL scenario's DS18B20 model holds a read 0 for the data-sheet minimum (tRDV,
+15 us: 900 cycles = 15.0012 us), 1.2 ns above the 15 us limit at which the onewire_link decoder reads a 0. Sampled
+by an analyser, the low time moves by up to one sample period, so the decoded bit depends on the sample phase; the
+proof reports this window but does not count it (`capture.py` AT_THRESHOLD). On the bench the row uses a real device
+and the capture states the measured low time of each read 0. The text formats are those of usbutils, Windows 10/11 in English and macOS 14; the first bench session
 checks each parser against the real output before its row counts.
 
 P1 rates at the 25 MHz bench clock (T = 40 ns), from the firmware's cycle limits (docs/host_port.md sections 11, 13,

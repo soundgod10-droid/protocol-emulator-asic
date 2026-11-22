@@ -5,7 +5,8 @@ name: docs
 # - waveforms: protocol tests of test/test_rtl_fw.py on the RTL with the pin VCD (test/tb.v PIN_VCD), and the
 #   waveform figures (figures/waves.py); the VCDs are kept in the cache while the RTL and the tests do not change;
 # - site: the block diagram from the RTL (Yosys), the layout render (KLayout) and the results page from the newest
-#   finished gds, test, coverage and formal runs, and the documentation site (mkdocs --strict, mkdocs.yml);
+#   finished gds, test, coverage and formal runs, the protocol count page from the count artifact of that test run,
+#   and the documentation site (mkdocs --strict, mkdocs.yml);
 # - sim: the browser simulator and its checks (.github/workflows/sim.yaml); the site job puts it under sim/, so the site
 #   is deployed only when the simulator's checks have passed;
 # - deploy: GitHub Pages, from the default branch only.

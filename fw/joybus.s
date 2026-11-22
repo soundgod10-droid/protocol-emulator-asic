@@ -12,7 +12,7 @@
 ;   rate may differ from 250 kbit/s by much more than a real pad does. The
 ;   reply goes to data memory first and to the host after the pad's stop bit
 ;   (low 2 us, not read), so a slow host cannot make the thread miss a bit.
-;   No fall within TFIRST (100 us) after the release, or within TOB after the
+;   No fall within TFIRST (60 us) after the release, or within TOB after the
 ;   sample point of a bit: the byte is flagged (bit 15) and its missing bits
 ;   are 0, and every later byte of the reply is 8000h.
 ;

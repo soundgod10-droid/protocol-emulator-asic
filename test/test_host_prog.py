@@ -355,9 +355,13 @@ class PioSimTransport:
         self.now_us = get_sim_time("us")
         self.xfers = 0
         self._apply(self.lvl)
-        cocotb.start_soon(self._watch())
+        self.task = cocotb.start_soon(self._watch())
         self._x = resume(self._axfer)
         self._s = resume(self._asleep)
+
+    def close(self):
+        getattr(self.task, "cancel", None) or self.task.kill
+        (getattr(self.task, "cancel", None) or self.task.kill)()
 
     def _drive(self, pin, v):
         self.nxt[pin] = v

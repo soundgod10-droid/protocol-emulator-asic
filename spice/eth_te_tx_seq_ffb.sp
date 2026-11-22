@@ -45,7 +45,7 @@ Bdiff vdiff 0 V=V(sp)-V(sm)
 .options method=gear reltol=1e-3
 .control
 set hcopydevtype=svg
-foreach rtx 56 66.5 68.1 71.5
+foreach rtx 56 66.5 68.1 71.5 69.8
   alterparam RTX = $rtx
   reset
   tran 0.1n 3u 0 0.2n
@@ -53,6 +53,6 @@ foreach rtx 56 66.5 68.1 71.5
   meas tran vmax MAX v(vdiff) from=1.5u to=3u
   meas tran vmin MIN v(vdiff) from=1.5u to=3u
 end
-hardcopy eth_te_tx_seq_ffb_r71p5.svg v(vdiff) xlimit 2u 2.8u
+hardcopy eth_te_tx_seq_ffb_r69p8.svg v(vdiff) xlimit 2u 2.8u
 .endc
 .end

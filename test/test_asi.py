@@ -229,7 +229,7 @@ async def test_asi_model(dut):
     assert not line.errors and got == want4, f"faults: {line.errors[:3]} {[hex(w) for w in got]}"
     ff.assert_status_clean(m, [0])
     log.info(f"planted response parity error (request 2) and distorted LED1 (request 3): {[hex(w) for w in got]}")
-    for equ, text in ((dict(HB=170), "No_information_error"), (dict(TRESP=1500), "words")):
+    for equ, text in ((dict(HB=170), "No_information_error"), (dict(TRESP=1000), "words")):
         line = AsiLine(SLAVES)
         bench, m = model_run(line, REQS[:3], **equ)
         found = [e for e in line.errors if text in e]

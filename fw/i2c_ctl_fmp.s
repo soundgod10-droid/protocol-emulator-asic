@@ -12,14 +12,16 @@
 ;   level) is not seen: the controller then shortens the target's HIGH period. Use this program only with targets
 ;   that do not stretch inside a byte; fw/i2c_ctl.s handles both.
 ;   Bit timing (60 MHz, .equ below), against UM10204 Table 11, Fast-mode Plus column (PDF page 44):
-;     tLOW = TLOW = 33 cycles = 0.550 us (0.5 us minimum); tHIGH = TSMP + THIGH2 = 27 cycles = 0.450 us (0.26 us);
-;     the SDA change comes HD = 12 cycles (0.200 us) after the SCL fall: tHD;DAT 0 minimum, tVD;DAT 0.45 us
-;     maximum, tSU;DAT = TLOW - HD = 21 cycles = 0.350 us (50 ns minimum); tHD;STA, tSU;STA, tSU;STO 16 cycles or
-;     more (0.26 us), tBUF 30 cycles or more (0.5 us). Times after a WAIT start at the filtered edge, 7 cycles
-;     after the pin edge (synchronizer and spike filter of SCL and SDA, K = 5, docs/isa.md 6.1).
+;     tLOW = TLOW = 35 cycles = 0.583 us (0.5 us minimum); tHIGH = THIGH = 25 cycles = 0.417 us (0.26 us);
+;     the SDA change comes HD = 7 cycles (0.117 us) after the SCL fall: tHD;DAT 0 minimum, tVD;DAT 0.45 us
+;     maximum, tSU;DAT = TLOW - HD = 28 cycles = 0.467 us (50 ns minimum); tHD;STA 20, tSU;STA and tSU;STO 16
+;     cycles or more (0.26 us), tBUF 30 cycles or more (0.5 us). Times after a WAIT start at the filtered edge,
+;     7 cycles after the pin edge (synchronizer and spike filter of SCL and SDA, K = 5, docs/isa.md 6.1).
 ;   The SDA sample of bits 2 to 9 is taken at the SCL release + TSMP; with the 7-cycle filter it reads SDA as it
-;   was 29 cycles (0.483 us) after the SCL fall, so a target's data must be valid within 0.483 us of the SCL fall
+;   was 28 cycles (0.467 us) after the SCL fall, so a target's data must be valid within 0.467 us of the SCL fall
 ;   at the chip pins (UM10204: tVD;DAT 0.45 us maximum, plus any delay between the target and the chip pins).
+;   Leads: after the SAMPLE completes (1 to 4 cycles after its time), 4 slots pass before the SCL fall event and 6
+;   before the next SDA event, so THIGH - TSMP must be 25 or more with HD = 7 (the largest OUT offset).
 ;
 ; Why:
 ;   C2-7 of the close plan: Fast-mode Plus timing in firmware. The pads cannot drive Fast-mode Plus currents

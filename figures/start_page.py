@@ -87,8 +87,9 @@ def main(runs_dir, out_md):
         mm = re.search(r"flops setup slack (-?[\d.]+)", rp.notices(gds, "gds", f"gds {corner}") or "")
         slack.append(f"{float(mm.group(1)):+.3f}" if mm else "?")
     vio = [m.get(f"timing__{k}_vio__count__corner:{c}") for k in ("setup", "hold") for _, c, _ in rp.CORNERS]
-    vio_txt = ("0 setup and 0 hold violations at the 3 corners" if vio and all(v == "0" for v in vio)
-               else "violation counts: " + ", ".join(str(v) for v in vio))
+    vio_txt = ("0 setup and 0 hold violations at the 3 corners" if all(v == "0" for v in vio)
+               else "violation counts not in this run" if not m
+               else "setup / hold violations at slow, typical, fast: " + ", ".join(str(v) for v in vio))
     # tests
     rtl = rp.testcases(rp.find(art(test, "test-results"), "results.xml"))
     n_pass = sum(1 for v in rtl.values() if v[1] == "pass")

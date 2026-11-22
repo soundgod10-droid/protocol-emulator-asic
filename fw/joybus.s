@@ -14,7 +14,8 @@
 ;   (low 2 us, not read), so a slow host cannot make the thread miss a bit.
 ;   No fall within TFIRST (60 us) after the release, or within TOB after the
 ;   sample point of a bit: the byte is flagged (bit 15) and its missing bits
-;   are 0, and every later byte of the reply is 8000h.
+;   are 0, and every later byte of the reply is 8000h. In a short reply the
+;   pad's stop bit is read as one more bit (its level 2 us after the fall).
 ;
 ; Why:
 ;   The controller line has no clock and no length field: the host must time

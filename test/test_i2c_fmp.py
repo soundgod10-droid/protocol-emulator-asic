@@ -98,22 +98,31 @@ def check_fmp(log, changes, label):
     # tVD;DAT / tVD;ACK: SDA changes inside SCL low periods that are not stretched. Table 11 note [3]: the maximum
     # applies only if the LOW period is not stretched; a longer LOW period (the controller between bytes, a target
     # after its ACK) needs only tSU;DAT before the release, which check_i2c_times checks.
+    # It is a time of data and acknowledge bits, so an SDA change that prepares a START or STOP condition (SDA changes
+    # again while SCL is high) is not counted; those have tSU;STA and tSU;STO. "Not stretched": a low period no longer
+    # than the shortest one of the transfer.
     need = math.floor(VD_US * F_MHZ + 1e-9)
-    plain = 2 * math.ceil(FMP["low"] * F_MHZ - 1e-9)  # an SCL low period of at most 60 cycles is not stretched
-    vd, fall, inside = [], None, []
+    regular = min(t["low"])
+    vd, fall, inside, pending, data_bit = [], None, [], [], False
     prev = changes[0][1]
     for c, (scl, sda) in changes[1:]:
         if scl != prev[0]:
-            if not scl:
-                fall, inside = c, []
-            elif fall is not None and c - fall <= plain:
-                vd += inside
-        elif sda != prev[1] and not scl and fall is not None:
-            inside.append(c - fall)
+            if not scl:  # SCL fall: the bit that ends here was a data or ACK bit if SDA did not change while SCL high
+                if data_bit:
+                    vd += pending
+                fall, inside, data_bit = c, [], False
+            else:  # SCL rise
+                pending = inside if fall is not None and c - fall <= regular else []
+                data_bit = True
+        elif sda != prev[1]:
+            if not scl and fall is not None:
+                inside.append(c - fall)
+            elif scl:
+                data_bit = False  # START or STOP condition
         prev = (scl, sda)
     assert vd and max(vd) <= need, f"{label}: SDA change {max(vd)} cycles after the SCL fall, tVD maximum {need} cycles"
-    log.info(f"{label}: tVD over {len(vd)} SDA changes in SCL low periods of at most {plain} cycles: latest "
-             f"{max(vd)} cycles ({max(vd) / F_MHZ:.3f} us) after the SCL fall (0.45 us = {need})")
+    log.info(f"{label}: tVD over {len(vd)} SDA changes of data and ACK bits in low periods of {regular} cycles: "
+             f"latest {max(vd)} cycles ({max(vd) / F_MHZ:.3f} us) after the SCL fall (0.45 us = {need})")
     return t
 
 

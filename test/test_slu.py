@@ -2304,7 +2304,7 @@ async def test_slu_chip_jtag_idcode(dut):
     prog = pe_asm.assemble(JTAG_HELPER_FW, "jtag_helper")
     want = fx.value_bits(fx.JTAG_IDS[1], 32) + fx.value_bits(fx.JTAG_IDS[0], 32)
     lines = []
-    for corner in ("slow, mux 10 ns", "fast, no mux"):
+    for corner in ("fast, no mux",) if SDF_OVERCLOCK else ("slow, mux 10 ns", "fast, no mux"):
         d = sc.CORNERS[corner]
         pins = [0] * 15
         pins[0], pins[1] = helper_pin(0, 1), helper_pin(0, 0)          # uio0 TCK (TXB), uio1 TDI (TXA)

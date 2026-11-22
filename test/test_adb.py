@@ -278,7 +278,8 @@ async def test_adb_model(dut):
     bench, m = model_run(dev, flat(SESSION), len(want))
     assert not dev.errors, f"session: {dev.errors[:3]}; host edges {dev.edges[:12]}"
     assert bench.words(0) == want, (f"session: {[hex(w) for w in bench.words(0)]}; device saw "
-                                    f"{[hex(c) for c in dev.commands]}, answered {dev.answers}")
+                                    f"{[hex(c) for c in dev.commands]}, answered {dev.answers}; mode {dev.mode}, bits "
+                                    f"{dev.bits}; host edges {dev.edges[:24]}")
     assert dev.listened == [(3, [0x0A, 0xFE]), (2, [0x12, 0x34, 0x56, 0x78])] and dev.srqs == 1, (dev.listened, dev.srqs)
     ff.assert_status_clean(m, [0])
     log.info(f"session: {len(want)} host words as expected; commands {[hex(c) for c in dev.commands]}; Listen data "

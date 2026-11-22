@@ -1,0 +1,74 @@
+name: bench
+# Bench judge for logic-analyser captures (bench/judges/capture.py, C4 W8; docs/bench.md rows P1 and the USB wire row):
+# after each sigrok run, the scenario windows that flex/sigrok_judge.py wrote from the RTL pin dump are sampled as a
+# 24 MS/s analyser (FX2 class) and a 100 MS/s analyser (RP2040/RP2350 LogicAnalyzer class) would sample them, written
+# as analyser exports, and judged with the pinned sigrok-cli; each must pass and its inverted-pulse copy must fail.
+# The OS and network judges run in the host job of test.yaml.
+on:
+  workflow_run:
+    workflows: [sigrok]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      sigrok_run_id:
+        description: "id of a successful sigrok run"
+        required: true
+
+concurrency:
+  group: bench-${{ github.event.workflow_run.id || inputs.sigrok_run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  capture:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout the commit of the sigrok run
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: sigrok-cli with the pinned decoders (cache of the sigrok workflow)
+        id: cache
+        uses: actions/cache@v5
+        with:
+          path: ~/sigrok
+          key: sigrok-${{ hashFiles('flex/sigrok_build.sh') }}-ubuntu-24.04
+
+      - name: Build sigrok-cli and libsigrokdecode 71f4514
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: bash flex/sigrok_build.sh "$HOME/sigrok"
+
+      - name: Runtime libraries
+        if: steps.cache.outputs.cache-hit == 'true'
+        run: sudo apt-get update -y && sudo apt-get install -y libsigrok4 libglib2.0-0t64 libpython3.12t64
+
+      - name: Scenario windows of the sigrok run
+        uses: actions/download-artifact@v5
+        with:
+          name: sigrok
+          path: art
+          run-id: ${{ github.event.workflow_run.id || inputs.sigrok_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Capture judge at 24 and 100 MS/s
+        env:
+          SIGROK_CLI: /home/runner/sigrok/bin/sigrok-cli
+        run: |
+          export LD_LIBRARY_PATH="$HOME/sigrok/lib"
+          ls art art/build/sigrok | head -n 50
+          python3 -I bench/judges/capture.py ci art/test/scenario.json art/build/sigrok build/bench 24000000 100000000
+
+      - name: Results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: bench-capture
+          path: |
+            build/bench/capture_judge.json
+            build/bench/capture_judge.md
+            build/bench/exports

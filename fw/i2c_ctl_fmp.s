@@ -33,9 +33,9 @@
         .equ    SCL, UIO6
         .equ    SDA, UIO7
         .equ    HD, 7           ; SDA change after the SCL fall (0.117 us; an OUT offset, 0 to 7)
-        .equ    TLOW, 32        ; SCL low time of bits 2 to 9 (tLOW 0.5 us = 30 cycles)
-        .equ    TSMP, 3         ; SDA sample after the SCL release (bits 2 to 9; a SAMPLE offset, 0 to 7)
-        .equ    THIGH, 28       ; SCL high time of bits 2 to 9 (tHIGH 0.26 us = 16 cycles)
+        .equ    TLOW, 35        ; SCL low time of bits 2 to 9 (tLOW 0.5 us = 30 cycles)
+        .equ    TSMP, 0         ; SDA sample at the SCL release (bits 2 to 9; a SAMPLE offset, 0 to 7)
+        .equ    THIGH, 25       ; SCL high time of bits 2 to 9 (tHIGH 0.26 us = 16 cycles)
         .equ    TSMPW, 16       ; SDA sample after the filtered SCL rise (bit 1, after the WAIT)
         .equ    THIGH2W, 26     ; SCL high after the sample of bit 1
         .equ    TSUSTA, 16      ; tSU;STA 0.26 us

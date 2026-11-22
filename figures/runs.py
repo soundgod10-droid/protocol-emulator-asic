@@ -28,7 +28,31 @@ WORKFLOWS = {
     "test": ("test.yaml", ["test-results", "count"]),
     "coverage": ("coverage.yaml", ["coverage"]),
     "formal": ("formal.yaml", []),
+    # read by figures/start_page.py
+    "cert": ("cert.yaml", ["cert"]),
+    "equiv": ("equiv.yaml", []),
+    "mutation": ("mutation.yaml", ["mutation-report"]),
+    "sigrok": ("sigrok.yaml", []),
+    "sdf": ("sdf.yaml", []),
 }
+SDF_JOB = re.compile(r"^sdf \(([^,]+), ([^)]+)\)$")
+
+
+def sdf_parts(branch, runs=15):
+    """Newest finished result of each SDF part at each corner over the last finished sdf runs of the branch (one sdf
+    run is dispatched with chosen parts, so no single run shows the whole scope): {part: {corner: job}}."""
+    data = api(f"repos/{REPO}/actions/workflows/sdf.yaml/runs?branch={branch}&status=completed&per_page={runs}")
+    out = {}
+    for run in data["workflow_runs"]:
+        for job in api(f"repos/{REPO}/actions/runs/{run['id']}/jobs?per_page=100")["jobs"]:
+            m = SDF_JOB.match(job["name"])
+            if not m or job["conclusion"] not in ("success", "failure"):
+                continue
+            corner, part = m.groups()
+            out.setdefault(part, {}).setdefault(corner, dict(conclusion=job["conclusion"], run=run["id"],
+                                                             url=run["html_url"], sha=run["head_sha"],
+                                                             completed=job["completed_at"]))
+    return out
 
 
 def gh(*args, tries=1):

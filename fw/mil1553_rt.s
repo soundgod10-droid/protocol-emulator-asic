@@ -13,8 +13,8 @@
 ;   first half; the timing comes from the edge in the middle of the sync and
 ;   then from the edge in the middle of every bit (a Manchester bit always
 ;   has one): the thread waits for each mid-bit edge in a window that starts
-;   after the bit-boundary edge, and reads the level 16 cycles after it (the
-;   second half: negative = 1). So each bit is timed from the previous mid-bit
+;   after the bit-boundary edge, and reads the level just after it with IOR
+;   PINS (the second half: negative = 1). So each bit is timed from the previous mid-bit
 ;   edge, and zero-crossing deviations of +/-150 ns from the previous
 ;   crossing (4.5.2.2.2.1) are accepted. A missing mid-bit edge is a
 ;   Manchester error and ends the message; a missing mid-sync edge is a sync

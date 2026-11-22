@@ -204,8 +204,8 @@ def main(runs_dir, out_md):
     W.append("## SDF scope\n")
     W.append("The layout netlist with the cell and SRAM macro delays of its SDF file, at 60 MHz. No wire delays, no "
              "pads; Icarus applies the delays but checks no setup or hold time, so static timing stays the signoff. "
-             "Newest result of each part over the last 20 sdf runs that ran (each link opens its run, which names "
-             "the layout run it used):\n")
+             "Newest result of each part over the last 20 sdf runs that ran (each link opens its run; the file "
+             "sdf_source.log in its artifacts names the layout run it used):\n")
     if parts:
         corners = [c for _, c, _ in rp.CORNERS]
         W.append("| Part | Slow | Typical | Fast |")

@@ -211,7 +211,8 @@ async def test_joybus_model(dut):
     pad = JoybusPad(short=1)
     bench, m = model_run(pad, words_of(SESSION[:2]), 7)
     got = bench.words(0)
-    assert not pad.errors and got == [0x05, 0x00, 0x8000, 0x12, 0x34, 0xFE, 0x00], f"short reply: {[hex(w) for w in got]}"
+    # the pad's stop bit (2 us low) starts one more bit cell: the flagged byte holds it as its first bit
+    assert not pad.errors and got == [0x05, 0x00, 0x8080, 0x12, 0x34, 0xFE, 0x00], f"short reply: {[hex(w) for w in got]}"
     ff.assert_status_clean(m, [0])
     log.info(f"pad answers 2 of 3 status bytes: {[hex(w) for w in got[:3]]}, next poll correct")
     pad = JoybusPad(present=False)

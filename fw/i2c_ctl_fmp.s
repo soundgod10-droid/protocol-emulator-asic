@@ -58,20 +58,19 @@ byte:   LDI     r3, 0x1FE
         SAMPLE  SDA, r3<<
         BES     ok1
         BCS     lost            ; sent 1, bus 0: arbitration lost
-ok1:    TADD    THIGH2
+ok1:    TADD    THIGH2W
         OUT     SCL, 0
-bit:    OUT     SDA, r0<<, HD   ; bits 2 to 9: timed from T, no wait
+        LDI     r1, 8           ; bits 2 to 9
+bit:    OUT     SDA, r0<<, HD   ; timed from T (the SCL fall), no wait: 12 slots = 48 of the 60 cycles
         SHL     r2, 1
-        TADD    TLOW
+        TADD    TLOW            ; T = SCL release
         OUT     SCL, 1
-        TADD    TSMP
-        SAMPLE  SDA, r3<<
+        SAMPLE  SDA, r3<<, TSMP
         BES     ok
         BCS     lost
-ok:     TADD    THIGH2
+ok:     TADD    THIGH           ; T = SCL fall
         OUT     SCL, 0
-        MOV     r3, r3
-        BMI     bit
+        DJNZ    r1, bit
         PUSH    r3
         SHL     r0, 1           ; C = STOP
         BCS     stop

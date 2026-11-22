@@ -6,7 +6,7 @@
 ;   LEDs on; uo pins are 1 from reset, so the panel is dark until the
 ;   firmware runs), CLK = uio[0], LAT = uio[1], A B C = uio[2..4] (UIO0..UIO4;
 ;   board pull-downs, released at reset). The panel holds one shift chain per
-;   colour line (16-output constant-current drivers \"like 74HC595s\"), latched
+;   colour line (16-output constant-current drivers that work like 74HC595s), latched
 ;   by LAT, and lights row pair ROW (row ROW on R1 G1 B1, row ROW + 8 on R2 G2
 ;   B2) selected by A + 2B + 4C while OE is low.
 ;   For each row pair: the COLS columns are shifted while the previous row

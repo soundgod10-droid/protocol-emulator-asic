@@ -99,7 +99,6 @@ def devices():
 
 def send_all(bench):
     bench.send(0, *HX_CODES)
-    bench.send(1, *range(0))  # placeholder kept empty: the AS-i words follow
     bench.send(1, *ASI_REQS)
     bench.send(2, *range(len(SEGA_SETS)))
     bench.send(3, *dmx.host_words(DMX_PACKETS))

@@ -31,7 +31,7 @@ uio4 (Pmod pin 7) for a firmware-driven suspend. VCC(I/O) (9) on 3.3 V (with
 VCC(I/O) open, D+ and D- are 3-state, Table 7). Regulator bypass (Figure 9, low speed): VCC(5.0) (16) and Vreg(3.3)
 (15) together on 3.3 V (3.3 V +/- 10 %). 1.5 kohm from Vpu(3.3) (1) to D- (11); Vpu(3.3) is open while SOFTCON is low.
 The 33 ohm series resistors are inside the device (functional block diagram). Self-powered: VBUS goes only to a
-100 nF capacitor (Figure 9 text).
+100 nF capacitor C4 (Figure 9 text).
 Open: the data sheet gives no 24 h VBUS-short rating for D+/D- (USB 2.0 7.1.1).
 
 ## 10BASE-Te (eth_te_pmod.svg)

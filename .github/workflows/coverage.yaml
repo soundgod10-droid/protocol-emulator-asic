@@ -58,9 +58,9 @@ jobs:
       - name: Run tests with coverage
         id: tests
         continue-on-error: true
-        # The regression took 73 min (run 45035665862, 285 testcases) but reached only testcase 179 of 285 in 150 min
-        # on a slower runner (runs 45033733064, 45052045293, same tests); 330 min leaves room for that runner within
-        # the 360-min job limit. A stop still uploads coverage_sim.log (the last test run).
+        # The regression took 73 min in run 45035665862 (285 testcases) but reached only testcase 179 of 285 in 150 min
+        # in run 45052045293 on the same tests (run 45033733064 also stopped at 150 min); 330 min leaves room for such
+        # a runner within the 360-min job limit. A stop still uploads coverage_sim.log (the last test run).
         timeout-minutes: 330
         shell: bash
         run: |

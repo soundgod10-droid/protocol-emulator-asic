@@ -152,7 +152,7 @@ def bc_words(msg, rtrt=False):
 BC_SESSION = [
     ([(0x0843, True), (0x1234, False), (0xABCD, False), (0x0000, False)], False),  # RT 1 receive, SA 2, 3 words
     ([(0x1022, True), (0x1C22, True)], True),  # RT to RT: receive command to RT 2, transmit command to RT 3
-    ([(0x0C20, True)] + [((k * 0x1111) ^ 0x8001, False) for k in range(32)], False),  # 32 data words
+    ([(0x0C20, True)] + [(((k * 0x1111) ^ 0x8001) & 0xFFFF, False) for k in range(32)], False),  # 32 data words
     ([(0x0FE2, True)], False),  # mode code command (transmit status word)
 ]
 

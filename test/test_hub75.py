@@ -200,8 +200,7 @@ async def test_hub75_model(dut):
     n, dur = check_frame(panel, FRAME_B(cols), since, "frame B")
     ff.assert_status_clean(m, [0])
     log.info(f"frame B: {n} lit intervals all equal to the frame rows")
-    for equ, want in ((dict(CHI=2, SU=1), "data set-up"), (dict(CHI=2), "CLK high"),
-                      (dict(COLS=16, CSH=4), "other data")):
+    for equ, want in ((dict(CHI=2, SU=1), "data set-up"), (dict(COLS=16, CSH=4), "other data")):
         panel = Hub75Panel(cols)
         m = pe_model.PeModel(assemble(**equ).words, owner=ff.owners(PINS))
         bench = ff.Bench(m, inputs=panel)

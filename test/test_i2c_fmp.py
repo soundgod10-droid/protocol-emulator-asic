@@ -95,10 +95,25 @@ def check_fmp(log, changes, label):
     """Table 11 Fm+ minima (test_fw_full.check_i2c_times) and the tVD;DAT / tVD;ACK maximum. Returns the bus times."""
     ff.check_i2c_times(log, changes, "Fm+", F_MHZ, label)
     t = ff.i2c_times(changes)
-    vd = max(t["hd_dat"])
+    # tVD;DAT / tVD;ACK: SDA changes inside SCL low periods that are not stretched. Table 11 note [3]: the maximum
+    # applies only if the LOW period is not stretched; a longer LOW period (the controller between bytes, a target
+    # after its ACK) needs only tSU;DAT before the release, which check_i2c_times checks.
     need = math.floor(VD_US * F_MHZ + 1e-9)
-    assert vd <= need, f"{label}: SDA change {vd} cycles after the SCL fall, tVD;DAT maximum {VD_US} us = {need} cycles"
-    log.info(f"{label}: latest SDA change {vd} cycles ({vd / F_MHZ:.3f} us) after an SCL fall (tVD 0.45 us = {need})")
+    plain = 2 * math.ceil(FMP["low"] * F_MHZ - 1e-9)  # an SCL low period of at most 60 cycles is not stretched
+    vd, fall, inside = [], None, []
+    prev = changes[0][1]
+    for c, (scl, sda) in changes[1:]:
+        if scl != prev[0]:
+            if not scl:
+                fall, inside = c, []
+            elif fall is not None and c - fall <= plain:
+                vd += inside
+        elif sda != prev[1] and not scl and fall is not None:
+            inside.append(c - fall)
+        prev = (scl, sda)
+    assert vd and max(vd) <= need, f"{label}: SDA change {max(vd)} cycles after the SCL fall, tVD maximum {need} cycles"
+    log.info(f"{label}: tVD over {len(vd)} SDA changes in SCL low periods of at most {plain} cycles: latest "
+             f"{max(vd)} cycles ({max(vd) / F_MHZ:.3f} us) after the SCL fall (0.45 us = {need})")
     return t
 
 

@@ -51,6 +51,47 @@ jobs:
             test/results.xml
             test/output/*
 
+  # Host program (host/pe_host) in CPython against the RTL: ARP + 10 ICMP echoes through fw/eth_10bt.s, 100 keystrokes
+  # through fw/usb_dev.s, the PIO SPI program in its interpreter (docs/host_program.md). Own job: about 20 min.
+  host:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+
+      - name: Install iverilog
+        shell: bash
+        run: sudo apt-get update && sudo apt-get install -y iverilog
+
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Install Python packages
+        shell: bash
+        run: pip install -r test/requirements.txt
+
+      - name: Run the host program tests
+        run: |
+          cd test
+          make clean
+          make COCOTB_TEST_MODULES=test_host_prog
+          python -m cocotb_tools.check_results results.xml
+
+      - name: Test Summary
+        uses: test-summary/action@v2.4
+        with:
+          paths: "test/results.xml"
+        if: always()
+
+      - name: Upload the results
+        if: success() || failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: host-results
+          path: test/results.xml
+
   # Protocol count from these results (docs/counting.md, .github/workflows/count.yaml).
   count:
     needs: test

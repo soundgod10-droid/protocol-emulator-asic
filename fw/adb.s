@@ -79,6 +79,7 @@ gath:   PULL    r1
 cmd:    TSYNC   32
         OUT     ADB, 0          ; Attention: low 800 us
         LD      r1, ATTW
+        TWAIT                   ; the Attention may start up to 200 us ahead (idle time)
         TADD    r1
         TWAIT                   ; T stays within the horizon
         TADD    r1

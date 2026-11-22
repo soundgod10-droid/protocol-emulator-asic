@@ -20,6 +20,7 @@ here has run on an RP2350.
                        phases: the window table and the first failing delay (GC-4).
 """
 
+import json
 import os
 import random
 import sys

@@ -219,7 +219,17 @@ async def test_host_eth_ping(dut):
     task = cocotb.start_soon(partner())
     n_icmp = lambda s: sum(1 for w, _ in s.log if w == "icmp")       # noqa: E731
     n_arp = lambda s: sum(1 for w, _ in s.log if w == "arp")         # noqa: E731
-    await bridge(st.serve)(lambda s: n_arp(s) >= 1 and n_icmp(s) >= 10, 60000)
+    try:
+        await bridge(st.serve)(lambda s: n_arp(s) >= 1 and n_icmp(s) >= 10, 60000)
+    except Exception:
+        evs = T.decode_tx(line.tx_wave(t0, get_sim_time("ps")))
+        stat = await bridge(chip.status)()
+        dut._log.info("diagnosis: station log %s; events %s; frames waiting %d; partner %s; chip line %s; "
+                      "partner bursts %s; %r" % (
+                          st.log, [hex(e) for e in st.events], len(st.frames), sorted(results),
+                          [(e.kind, round(e.t0 / 1e6, 2), len(e.frame)) for e in evs],
+                          [(round((a - t0) / 1e6, 2), round((b - t0) / 1e6, 2)) for a, b in line.rx_log], stat))
+        raise
     await task
     pk = results["pk"]
     assert len(pk) == 11, "chip packets %d" % len(pk)

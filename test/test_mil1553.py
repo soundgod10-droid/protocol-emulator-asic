@@ -227,8 +227,8 @@ def check_rt(label, bench, messages):
     want = []
     for _, words in messages:
         want += expect(words)
-    # data of a word with a Manchester error is not defined
-    mask = [0 if (i % 2 == 1 and want[i - 1] & 2) else 0xFFFF for i in range(len(want))]
+    # data of a word with a Manchester or sync error is not defined
+    mask = [0 if (i % 2 == 1 and want[i - 1] & 6) else 0xFFFF for i in range(len(want))]
     ok = len(got) == len(want) and all((g & k) == (w & k) for g, w, k in zip(got, want, mask))
     assert ok, f"{label}: host words {[hex(w) for w in got]}, expected {[hex(w) for w in want]}"
 

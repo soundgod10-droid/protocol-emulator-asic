@@ -121,7 +121,7 @@ async def test_i2c_fmp_model(dut):
         label = f"i2c_ctl_fmp model, stretch {stretch}"
         assert bench.words(0) == replies, f"{label}: replies {[hex(w) for w in bench.words(0)]}"
         assert ff.i2c_events(bus) == events, f"{label}: bus events {ff.i2c_events(bus)}"
-        ff.assert_status_clean(m, [0])
+        assert_on_time(m, bench, label)
         t = check_fmp(log, bus.changes, label)
         assert min(t["period"]) == 60, f"{label}: shortest SCL period {min(t['period'])} cycles, want 60"
         n60 = sum(1 for p in t["period"] if p == 60)

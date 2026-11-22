@@ -1547,7 +1547,11 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(
 import host_spi as hs  # noqa: E402
 import pe_asm  # noqa: E402
 
-CHIP_CLK_PS = 16666                 # 60 MHz
+CHIP_CLK_PS = int(os.environ.get("CLK_PS", "16666"))   # 60 MHz; the overclock control of the SDF job sets it
+# SDF overclock control (.github/workflows/sdf.yaml part p3_overclock): the helper chip tests of SPI, JTAG and UART keep
+# the device times of their data sheets but use the fast pads with no board multiplexer, so that a failure at a short
+# clock period comes from the chip's own delays and not from a pin path longer than a bit.
+SDF_OVERCLOCK = os.environ.get("SDF_OVERCLOCK") == "1"
 ETH_PORT, USB_PORT = 32, 16
 PIN_HDRV, PIN_HETH = 1 << 4, 1 << 5
 

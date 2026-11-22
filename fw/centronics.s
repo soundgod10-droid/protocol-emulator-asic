@@ -42,7 +42,7 @@ chk:    IOR     r1, PINS        ; wait until the printer is not busy
         TNOW    120             ; a fall between the read and the WAIT is not lost: read the level again
         WAIT    BUSY, FALL, r1, TO
         JMP     chk
-ready:  TNOW    16
+ready:  TNOW    48              ; eight OUTs take 32 cycles to issue: all eight lines change at T
         OUT     UIO0, r0>>      ; DATA BIT 1 .. 8
         OUT     UIO1, r0>>
         OUT     UIO2, r0>>

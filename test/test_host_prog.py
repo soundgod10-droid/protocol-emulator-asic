@@ -54,6 +54,7 @@ from test_eth_dev import Line, partner_wave  # noqa: E402
 from test_usb_dev import RECOVERY_PS, RESET_PS, Bus, Glue, check_clean, summary  # noqa: E402
 
 CHIP_HZ = 60_000_000
+OUT_DIR = os.path.join(HERE, "output")   # RTL results for the bench judges (test/test_bench_judges.py)
 MAC_DUT = bytes([0x02, 0, 0, 0, 0, 0x01])
 MAC_P = bytes([0x02, 0, 0, 0, 0, 0x02])
 IP_DUT = bytes([192, 168, 7, 2])

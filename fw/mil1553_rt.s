@@ -144,8 +144,10 @@ pl:     LD      r2, ENDP
         NOT     r1, r1          ; data
         MOV     r3, r2
         ANDI    r3, 6
-        OR      r0, r3          ; error bits 1, 2
-        MOV     r3, r2          ; parity: data bits xor parity sample must be 0
+        BEQ     pchk
+        OR      r0, r3          ; error bits 1, 2: the parity of a broken word is not checked
+        JMP     pmark
+pchk:   MOV     r3, r2          ; parity: data bits xor parity sample must be 0
         ANDI    r3, 1
         XOR     r3, r1
         MOV     r2, r3

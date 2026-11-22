@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1100" height="720" viewBox="0 0 1100 720" font-family="Helvetica, Arial, sans-serif" font-size="13">
   <rect x="0" y="0" width="1100" height="720" fill="white"/>
-  <text x="20" y="28" font-size="18" font-weight="bold">USB low-speed front end (Pmod module, demo board and FPGA bench) - bench/frontends/usb_ls_pmod.svg</text>
+  <text x="20" y="28" font-size="18" font-weight="bold">USB low-speed front end (Pmod module, demo board) - bench/frontends/usb_ls_pmod.svg</text>
   <text x="20" y="48">Net-labelled schematic. Chip signals per fw/usb_dev.s: uio0 VPO (helper TXA), uio1 VMO (TXB), uio2 OE# (not OE); ui_in[0] RCV, ui_in[1] VP, ui_in[2] VM.</text>
 
   <!-- J1 uio Pmod -->

@@ -175,3 +175,4 @@ pmark:  LDI     r2, 1
 
 ENDP:   .word   0
 PP:     .word   0
+ERRF:   .word   0

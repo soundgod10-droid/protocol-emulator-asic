@@ -209,7 +209,7 @@ At 40 MHz the UART receiver at 921,600 and 1,000,000 bit/s must not sample the s
 
 ## 12 Host program and firmware format (docs/decisions.md entry 9)
 
-Host program: on the demo board the host port is on RP2350 GPIO 24 (HOST_SCK), 23 (HOST_CS_N), 22 (HOST_MOSI) and 40 (HOST_MISO) (tt-micropython-firmware, src/ttboard/pins/gpio_map_dbv3.py). GPIO24 has no SPI clock function (RP2350 data sheet RP-008373-DS-3, Table 731 GPIO24_CTRL FUNCSEL, printed page 584: spi1_rx, uart1_tx, i2c0_sda, pwm, sio, pio0 to pio2, clocks_gpout_2, usb), so no RP2350 SPI block can drive HOST_SCK. The host is a PIO program, and a PIO program sets the time at which it samples MISO.
+Host program: on the demo board the host port is on RP2350 GPIO 24 (HOST_SCK), 23 (HOST_CS_N), 22 (HOST_MOSI) and 40 (HOST_MISO) (tt-micropython-firmware, src/ttboard/pins/gpio_map_dbv3.py). GPIO24 has no SPI clock function (RP2350 data sheet RP-008373-DS-3, Table 731 GPIO24_CTRL FUNCSEL, printed page 584: spi1_rx, uart1_tx, i2c0_sda, pwm, sio, pio0 to pio2, clocks_gpout_2, usb), so no RP2350 SPI block can drive HOST_SCK. The host is a PIO program, and a PIO program sets the time at which it samples MISO. The host program is in host/pe_host (docs/host_program.md).
 
 Rules for the PIO host:
 

@@ -66,7 +66,9 @@ def sample(ch, rate_hz, phase_ps):
     out = []
     for t, v in ch:
         k = -(-(t - phase_ps) // per) if t > phase_ps else 0
-        ts = int(round(phase_ps + k * per))
+        # the level at the start of the window is the export's first sample (time 0); without this the export
+        # began with up to one sample period of 'x', which the 1-Wire and CAN decoders read as a short low pulse
+        ts = 0 if t <= 0 else int(round(phase_ps + k * per))
         if out and out[-1][0] == ts:
             out[-1] = (ts, v)
         elif not out or out[-1][1] != v:

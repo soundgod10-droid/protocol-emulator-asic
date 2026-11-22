@@ -25,9 +25,12 @@ k = 4 to 7; GND on pins 5 and 11, 3.3 V on pins 6 and 12); check it against the 
 | ui_in[1] | ui pin 2 | VP | 5 VP |
 | ui_in[2] | ui pin 3 | VM | 6 VM |
 
-SPEED (10) to GND: low speed with slew-rate control, D+/D- edges 75-300 ns at 200-600 pF (SCAS818E p.4, p.11).
-Regulator bypass: VCC(5.0) (16) and Vreg(3.3) (15) on 3.3 V (3.0-3.6 V, p.7). 1.5 kohm from Vpu(3.3) (1) to D- (11).
-The 33 ohm series resistors are inside the device (block diagram, p.3). Self-powered: VBUS is not connected.
+Pin numbers are those of the PW (TSSOP-16) package, SCAS818E Table 1. SPEED (10) to GND: low speed with slew-rate
+control, D+/D- edges 75-300 ns at 200-600 pF (SCAS818E p.11). SUSPND (7) to GND. VCC(I/O) (9) on 3.3 V (with
+VCC(I/O) open, D+ and D- are 3-state, Table 7). Regulator bypass (Figure 9, low speed): VCC(5.0) (16) and Vreg(3.3)
+(15) together on 3.3 V (3.3 V +/- 10 %). 1.5 kohm from Vpu(3.3) (1) to D- (11); Vpu(3.3) is open while SOFTCON is low.
+The 33 ohm series resistors are inside the device (functional block diagram). Self-powered: VBUS goes only to a
+100 nF capacitor (Figure 9 text).
 Open: the data sheet gives no 24 h VBUS-short rating for D+/D- (USB 2.0 7.1.1).
 
 ## 10BASE-Te (eth_te_pmod.svg)

@@ -58,7 +58,7 @@ These 7 programs written after the instruction set (the four page-named protocol
 | Hold slack, slow / typical / fast corner | +0.59 / +0.28 / +0.10 ns | [gds 45035665776][gds] |
 | Setup, hold, max-slew, max-capacitance and max-fanout violations | 0 at all 3 corners (each of these checks stops the layout run at any corner) | [gds 45035665776][gds] |
 | Routing DRC, LVS, antenna, power grid | 0 / 0 / 0 / 0 errors | [gds 45035665776][gds] |
-| Layout precheck of the shuttle (KLayout DRC with the SRAM macros) | pass | [gds 44557589283][gds] |
+| Layout precheck of the shuttle (KLayout DRC with the SRAM macros) | pass | [gds 45035665776][gds] |
 | Protocols in the strict count ([counting rule](docs/counting.md)) | each on the RTL and on the layout netlist against a model from a named public document; the number is computed by the count job and shown on the [Protocol count](https://soundgod10-droid.github.io/protocol-emulator-asic/count/) page | newest test run (count job) |
 | RTL tests (cocotb, Icarus Verilog) | 175 testcases in 14 modules, no failure | [test 44589189363][test] |
 | Gate-level tests (layout netlist, functional cell models, no delays) | template test, the protocol programs, the line-helper chip tests, the USB device and the 10BASE-T station tests pass | [gds 44557589283][gds]; the chip-level UART tests: [gds 44589189324][gds2] (same RTL and layout values) |

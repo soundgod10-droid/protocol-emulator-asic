@@ -55,7 +55,7 @@ These 7 programs written after the instruction set (the four page-named protocol
 | Check | Result | Run |
 |---|---|---|
 | Timing at 60 MHz, setup slack of the flip-flop paths, slow / typical / fast corner | +2.71 / +4.47 / +4.61 ns | [gds 45035665776][gds] |
-| Hold slack, slow / typical / fast corner | +0.59 / +0.28 / +0.10 ns | [gds 44557589283][gds] |
+| Hold slack, slow / typical / fast corner | +0.59 / +0.28 / +0.10 ns | [gds 45035665776][gds] |
 | Setup, hold, max-slew, max-capacitance and max-fanout violations | 0 at all 3 corners (each of these checks stops the layout run at any corner) | [gds 44557589283][gds] |
 | Routing DRC, LVS, antenna, power grid | 0 / 0 / 0 / 0 errors | [gds 44557589283][gds] |
 | Layout precheck of the shuttle (KLayout DRC with the SRAM macros) | pass | [gds 44557589283][gds] |

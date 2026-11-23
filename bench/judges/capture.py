@@ -165,6 +165,7 @@ def ci(scen_path, win_dir, out_dir, rates):
 
 # Scenario windows whose RTL timing sits on a decoder threshold, so that any analyser sample grid decides the result
 # by its phase. They are judged and reported but do not count in the CI exit status; each reason gives the numbers.
+# The 1-Wire row is counted on the window onewire_hold30 (a read 0 held 30 us).
 AT_THRESHOLD = {
     "onewire": "the DS18B20 model (test/test_holdout.py OneWireDevice, t_rd = tRDV = 15 us) holds a read 0 for 900 "
                "cycles = 15.0012 us, 1.2 ns above the 15 us bit-0 limit of onewire_link (LOWR max); an analyser "

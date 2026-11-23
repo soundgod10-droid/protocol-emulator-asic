@@ -1,6 +1,6 @@
 # Guide for reviewers
 
-Each row gives one claim of this project, the conditions it holds under, the evidence, the CI run that shows it, and how to repeat it. Run pages are public: the values named here are in each run's summary or annotations, which GitHub shows without signing in. Commands run from the repository root unless they start with `cd`. The design under review is branch `cmos5l`; its RTL is that of layout run [44557589283] (commit b89bd94).
+Each row gives one claim of this project, the conditions it holds under, the evidence, the CI run that shows it, and how to repeat it. Run pages are public: the values named here are in each run's summary or annotations, which GitHub shows without signing in. Commands run from the repository root unless they start with `cd`. The design under review is branch `cmos5l`; its RTL is that of [layout run 45035665776](https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/45035665776) (commit 48506ef0, the RTL with the three fixes of 2026-11-21).
 
 All results are from simulation, formal proofs and static timing of the layout. No chip has been made; the board parts (transceivers, line network, pull-ups) are listed in [info.md](info.md) and are not in any simulation unless a row says so.
 

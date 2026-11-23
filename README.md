@@ -75,10 +75,10 @@ Conditions: static timing of the routed layout at the three corners of the flow 
 [gds2]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44589189324
 [test]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/45102654954
 [sweep]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/45102654876
-[cov]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44589189245
-[count]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44589189363
-[sigrok]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44557588966
-[formal]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44421405029
+[cov]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/45102654965
+[count]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/45102654954
+[sigrok]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/45102654921
+[formal]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44901436057
 
 ## See it run
 

@@ -448,13 +448,11 @@ async def test_sigrok_i2c_tgt(dut):
 # (0x33 'Read ROM', 0xcc 'Skip ROM'), "ROM: 0x{rom:016x}" (64 bits, first bit = bit 0), "Data: 0x{b:02x}".
 
 
-@cocotb.test()
-async def test_sigrok_onewire(dut):
-    """fw/onewire.s against the DS18B20 device model at its default times: Read ROM, Write Scratchpad, Read
-    Scratchpad (test_rtl_fw.test_rtl_onewire with the device's typical times)."""
+async def onewire_case(dut, test, name, t_rd, note):
+    """Read ROM, Write Scratchpad, Read Scratchpad with a device that holds a read 0 for t_rd us."""
     rf.start_clock(dut)
-    dev = ho.OneWireDevice(rf.F_MHZ)
-    label = "sigrok onewire.s"
+    dev = ho.OneWireDevice(rf.F_MHZ, t_rd=t_rd)
+    label = f"sigrok onewire.s, read 0 held {t_rd} us"
     bench = rf.RtlBench(dut, ho.assemble("onewire.s", **ho.OW_EQU[rf.F_MHZ]).words, owner=ff.owners({ho.P_OW: 0}),
                         od=ff.open_drain({ho.P_OW}), inputs=dev, label=label)
     await bench.run(100)

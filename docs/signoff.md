@@ -85,6 +85,9 @@ So 97 of the 112 missed line points are in the two SPEC 1 and SPEC 2 copies, 12 
    Limits: the macro read time and the wire delays are not in the simulation (static timing checks them); `test.py` and `test_core.py` keep their 50 MHz clock, because the UART receiver model of `test.py` is written for 50 MHz.
 5. **CDC by tool**: [formal/cdc.sby](../formal/cdc.sby) checks the synchronizer and reset structure; it does not judge reconvergence of synchronized bits (the three host bits, argued in section 2) and is not a commercial CDC tool with its full rule set.
 
+[45035665776]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/45035665776
+[45102654965]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/45102654965
+[44901436057]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/44901436057
 [43966684440]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43966684440
 [43966684593]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43966684593
 [43983798260]: https://github.com/soundgod10-droid/protocol-emulator-asic/actions/runs/43983798260

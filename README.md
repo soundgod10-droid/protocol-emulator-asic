@@ -67,7 +67,7 @@ These 7 programs written after the instruction set (the four page-named protocol
 | 10BASE-T receive margin of the helper's loop (1,000 frames of 1,518 bytes per case, model) | 1,000 of 1,000 at the 13.5 ns jitter limit, +1.34 ns margin with up to 3 ns pattern-dependent jitter | [helpers](docs/helpers.md) |
 | Outside decoders (sigrok, pinned build) on the RTL pins | 23 of 23 scenarios agree, each with a control that must fail | [sigrok 45102654921][sigrok] |
 | Code coverage of the RTL tests: line / branch / toggle | all RTL files as measured 84.1 % / 86.7 % / 80.2 %; the chip's code with proved exclusions 100.0 % / 100.0 % / 95.2 % (each excluded point has a formal unreachability proof; the figures per instance are on the [start page](https://soundgod10-droid.github.io/protocol-emulator-asic/start/)) | [coverage 45102654965][cov] |
-| Formal proofs and covers (SymbiYosys) | 27 of 27 jobs give their expected result (12 unbounded proofs, 15 planted faults found) | [formal 44421405029][formal] |
+| Formal proofs and covers (SymbiYosys) | 41 of 41 jobs give their expected result (the 27 jobs of [verification](docs/verification.md) section 3 and the jobs for the clocked and NRZ modes of the USB helper added on 2026-11-21) | [formal 44901436057][formal] |
 
 Conditions: static timing of the routed layout at the three corners of the flow (slow 1.08 V 125 °C, typical 1.20 V 25 °C, fast 1.32 V -40 °C). The tests are logic simulations. The gate-level tests use the netlist of the layout with functional cell models and no delays. There is no silicon result yet. The [Results](https://soundgod10-droid.github.io/protocol-emulator-asic/results/) page is made again from the newest runs on every push, with every value and its run.
 

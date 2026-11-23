@@ -470,9 +470,26 @@ async def onewire_case(dut, test, name, t_rd, note):
     texts = (["Reset/presence: true", "ROM command: 0x33 'Read ROM'", f"ROM: 0x{rom:016x}",
               "Reset/presence: true", "ROM command: 0xcc 'Skip ROM'"] + [f"Data: 0x{b:02x}" for b in (0x4E, 0x19, 0xE6, 0x3F)]
              + ["Reset/presence: true", "ROM command: 0xcc 'Skip ROM'", "Data: 0xbe"] + [f"Data: 0x{b:02x}" for b in scratch])
-    record("test_sigrok_onewire", "onewire", [["ow_bus", f"in:{ho.P_OW}"]], "onewire_link:owr=ow_bus,onewire_network",
-           {"onewire_network:text": texts}, t0, t1, "ow_bus",
-           "chip as 1-Wire controller with the DS18B20 model: bus level (open drain)")
+    record(test, name, [["ow_bus", f"in:{ho.P_OW}"]], "onewire_link:owr=ow_bus,onewire_network",
+           {"onewire_network:text": texts}, t0, t1, "ow_bus", note)
+
+
+@cocotb.test()
+async def test_sigrok_onewire(dut):
+    """fw/onewire.s against the DS18B20 device model at its default times: Read ROM, Write Scratchpad, Read
+    Scratchpad (test_rtl_fw.test_rtl_onewire with the device's typical times)."""
+    await onewire_case(dut, "test_sigrok_onewire", "onewire", 15,
+                       "chip as 1-Wire controller with the DS18B20 model: bus level (open drain)")
+
+
+@cocotb.test()
+async def test_sigrok_onewire_hold30(dut):
+    """The same transfers with a device that holds a read 0 for 30 us (a case of test_holdout.test_holdout_onewire).
+    The data sheet (page 16) gives 15 us as the time the data is valid at least; the device releases the bus by the
+    end of the 60 us slot. 15 us is also the limit of onewire_link/pd.py (LOWR max), so in a capture of the first
+    scenario the sample phase decides a read 0; 30 us is away from the limit (bench/judges/capture.py)."""
+    await onewire_case(dut, "test_sigrok_onewire_hold30", "onewire_hold30", 30,
+                       "chip as 1-Wire controller with the DS18B20 model, read 0 held 30 us: bus level (open drain)")
 
 
 # ----- JTAG -----

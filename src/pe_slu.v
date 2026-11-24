@@ -898,7 +898,7 @@ module pe_slu #(
           if (m_usb)                tx_v[1:0] <= 2'b00;                // SE0
           else if (m_code == C_MAN) tx_v[1:0] <= 2'b01;                // TP_IDL: TD+ held high
           else if (m_code == C_CLK) tx_v[1:0] <= {c_ltc[8], tx_bit};
-          else                      tx_v[1:0] <= 2'b11;
+          else                      tx_v[1:0] <= c_ext1[3] ? 2'b10 : 2'b11;   // tail level 1, or 0 with EXT1[3]
           tx_oe <= 1'b1;
         end
         T_TAIL2: begin

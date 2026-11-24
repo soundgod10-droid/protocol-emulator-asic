@@ -397,17 +397,23 @@ async def test_spi_tgt2_sweep(dut):
         assert rated >= worst + 2, (name, rated, smallest)
 
 
-async def rtl_run(dut, name, h_rated, window):
+RTL_GAP = 3000  # CS high between the transfers of the RTL tests (50 us): the real-time host at SCK 10 MHz refills the
+# 4-word FIFO of thread 0 between transfers (9 MISO words for 7 bytes); with 600 cycles the three-thread program's
+# host, which also serves two receiving threads, was late with the second word of the second transfer (MISO 0xFF)
+
+
+async def rtl_run(dut, name, h_rated, window, modes=range(4), offsets=range(4), gap=RTL_GAP):
     """A program on the chip at 60 MHz in all four modes at its rated half period and 4 start phases, against the
     controller model, in lockstep with the reference model: MISO bytes at the sample edges, the MOSI bytes in the host
     words of the receiving threads, MISO released while CS is high. `window`: the waveform of the first transfer of
-    mode 0, phase 0 is dumped for review (the Icarus bench only)."""
+    mode 0, phase 0 is dumped for review (the Icarus bench only). Returns the first fault text or None (the asserting
+    tests stop at it)."""
     rf.start_clock(dut)
     log = dut._log
-    for mode in range(4):
+    for mode in modes:
         prog, start_pc, go = program(name, mode)
-        for off in range(4):
-            ctl = ff.SpiController(mode, h_rated, [mosi for mosi, _ in XFERS], lead=30, gap=600,
+        for off in offsets:
+            ctl = ff.SpiController(mode, h_rated, [mosi for mosi, _ in XFERS], lead=30, gap=gap,
                                    t0=rf.HOST_START + 1000 + off)
             label = f"rtl {name} mode {mode} half period {h_rated} ({F_MHZ * 1e3 / (2 * h_rated):.0f} kHz), phase {off}"
             bench = rf.RtlBench(dut, prog.words, start_pc=start_pc, run=go, owner=ff.owners({ff.P_MISO: 0}),

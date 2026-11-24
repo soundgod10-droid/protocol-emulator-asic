@@ -186,6 +186,8 @@ module pe_slu #(
   wire       lp_bv, lp_bd, lp_init;
   wire [5:0] lp_nacc;
   reg        lp_en;
+  reg  [3:0] lp_pre;
+  wire       lp_step = (lp_pre == 4'd0);
   pe_slu_loop u_loop (
       .clk(clk), .rst_n(rst_n), .en(lp_en), .ddr(m_ddr), .x0(x0), .x1(x1), .n(c_loop0[5:0]),
       .manch(m_code == C_MAN), .kp0(c_loop0[8:6]), .kp1(c_loop0[11:9]), .kp2(c_loop0[14:12]),

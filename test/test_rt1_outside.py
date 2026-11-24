@@ -43,10 +43,22 @@ async def slu_reset_again(dut, idle=1):
     a receiver configured on a low line would take the schedule's first entry (the idle level, half a bit before
     the preamble) as its first edge and lock the bit clock half a bit off (the loop inits on the first edge and
     accepts later edges only inside its window)."""
-    s = await _slu_reset_again(dut)
+    await _slu_reset_again(dut)
     dut.slu_pins.value = idle << DIN
     await Timer(1000, unit="ns")
-    return s
+    return SluRx(dut)
+
+
+class SluRx(Slu):
+    async def cfg(self, words):
+        """MODE (index 0) last. A receiver switched on before SEL is written sees the pin select itself as an edge
+        (DIN goes from the 'no pin' 0 to the line level), and a hard-resync loop whose window is narrower than half
+        a bit may then never accept the real edges: in simulation the phase error is constant. A thread follows the
+        same order (docs/helpers.md section 5)."""
+        rest = {i: v for i, v in words.items() if i != 0}
+        await super().cfg(rest)
+        if 0 in words:
+            await super().cfg({0: words[0]})
 
 
 # ------------------------------------------------------------------------------------------------------

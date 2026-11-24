@@ -294,7 +294,7 @@ module pe_slu #(
     end
     if (rx_st == R_DATA) begin
       r_eop = (m_usb && eop_q) || (!m_usb && m_eop_car && eop_q) ||
-              (m_eop_len && (rx_bits >= {4'd0, c_pat2[9:4]})) || ck_eop;
+              (m_eop_len && (rx_bits >= eop_len)) || ck_eop;
       if (r_dec_v && !r_eop) begin
         if (m_stuff && (rx_run == m_k)) begin
           r_stuff_drop = 1'b1;

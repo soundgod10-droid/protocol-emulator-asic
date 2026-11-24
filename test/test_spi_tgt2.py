@@ -136,6 +136,7 @@ bit:    WAIT    SCK, SE, r3, CT
         DJNZ    r2, bit
         SHR     r1, 1
         PUSH.NB r1
+        LDI     r2, 7
         TADD    GAP
         JMP     first
 """ + TAIL

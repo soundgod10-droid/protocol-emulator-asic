@@ -271,6 +271,7 @@ module pe_slu #(
   wire [3:0]  pat_len  = c_pat2[3:0];
   wire [9:0]  eop_len  = (c_ext0[9:0] != 10'd0) ? c_ext0[9:0] : {4'd0, c_pat2[9:4]};
   wire        rx_block = c_ext1[8] && m_eop_len && (m_code != C_CLK);
+  wire        eop_by_len = m_eop_len && (rx_bits >= eop_len);     // the end by length (part of r_eop)
   wire [15:0] pat_mask = (pat_len == 4'd15) ? 16'hFFFF : ((16'd1 << (pat_len + 4'd1)) - 16'd1);
 
   // Combinational receive step.

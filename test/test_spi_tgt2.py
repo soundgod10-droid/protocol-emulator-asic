@@ -279,7 +279,7 @@ def expected_words(name, transfers):
 
 def words_fault(name, bench, transfers=XFERS):
     want = expected_words(name, transfers)
-    mask = 0xFF if name in ("A", "B", "C", "D0") else 0xFFFF
+    mask = 0xFF if name in ("A", "B", "C", "D0") else 0x7FF if name == "D" else 0xFFFF  # D: bits 15 to 11 are older bits
     got = {n: [w & mask for w in bench.words(n)] for n in want}
     if got != want:
         return "target words " + "; ".join(f"thread {n}: {[hex(w) for w in got[n]]}" for n in got)

@@ -267,9 +267,7 @@ act1:   WAIT    SCK, SE, r2, TO, CT ; sample edge of bit 7 of an own byte, or no
         BEC     rx1
         TADD    GAP
         JMP     act1
-end1:   ANDI    r2, 2
-        SHL     r1, 1
-        OR      r1, r2
+end1:   OR      r1, r2
         SHL     r1, 2
         ORI     r1, 1
         PUSH.NB r1

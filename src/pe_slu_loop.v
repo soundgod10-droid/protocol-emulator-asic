@@ -116,7 +116,7 @@ module pe_slu_loop_step (
     decided_o = decided;
     bit_v     = 1'b0;
     bit_d     = x;
-    xe        = allow && (x != xprev);
+    xe        = allow && (x != xprev) && !(fall_only && x);
     ok        = 1'b0;
     a         = 21'sd0;
     eps       = 21'sd0;

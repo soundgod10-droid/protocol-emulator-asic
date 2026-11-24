@@ -531,7 +531,7 @@ async def madeup_case(dut, s, name, code, per_sym, k, ones, crc_inv, preset_ones
     ev, _, _ = await receive(dut, s, sch, t_end, stop_after=1)
     ctl["stuff count k+1"] = (not ev) or (not (ev[0][0] & F_CRCA)) or bool(ev[0][0] & F_STUFF)
     s = await slu_reset_again(dut)
-    await s.cfg(dict(rx_cfg, **{6: pat ^ 1}))
+    await s.cfg({**rx_cfg, 6: pat ^ 1})
     sch, t_end = schedule([0, 1] * 8 + lv + [1, 0] * 8, per_sym * T_NS)
     ev, sp, _ = await receive(dut, s, sch, t_end, stop_after=1)
     ctl["wrong pattern"] = (not sp) and (not ev)

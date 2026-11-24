@@ -91,7 +91,7 @@ module tb ();
       .x1(slu_ut_x1), .n(slu_ut_n), .manch(slu_ut_manch), .kp0(slu_ut_kp0), .kp1(slu_ut_kp1),
       .kp2(slu_ut_kp2), .gn0(slu_ut_gn0), .gn1(slu_ut_gn1), .ki_en(slu_ut_ki_en),
       .ki_sh(slu_ut_ki_sh), .win(slu_ut_win), .wina(slu_ut_wina), .acq_n(slu_ut_acq_n),
-      .init_edge(slu_ut_init_edge), .bit_v(slu_ut_bit_v), .bit_d(slu_ut_bit_d),
+      .init_edge(slu_ut_init_edge), .sp(6'd0), .fall_only(1'b0), .step(1'b1), .bit_v(slu_ut_bit_v), .bit_d(slu_ut_bit_d),
       .nacc(slu_ut_nacc), .locked_init(slu_ut_init)
   );
 

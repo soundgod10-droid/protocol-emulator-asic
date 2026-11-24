@@ -135,7 +135,8 @@ module pe_slu #(
   //         data bit [15:8] with a recessive bit sent it is ARBLOST (flag 13), else BITERR (flag 14); FULL = 0
   //         forms only), [1] transmitted CRC not complemented, [2] only falling edges resynchronise, [3] tail
   //         level 0 (NRZ, NRZI), [7:4] sample prescaler - 1 (the loop takes one sample every [7:4] + 1 cycles),
-  //         [15:8] arbitration field length in data bits
+  //         [15:8] arbitration field length in data bits, [8] block receive (after an end by length the next
+  //         frame starts at once, without a start pattern: fixed-length codewords), [9] receive line inverted
   reg [15:0] c_ext0, c_ext1;
   reg [4:0]  cfg_adr;
 

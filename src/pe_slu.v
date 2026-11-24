@@ -793,7 +793,7 @@ module pe_slu #(
           if (bit_start && t_dbit && tx_bidx != 8'hFF) tx_bidx <= tx_bidx + 8'd1;
           if (mon_mis) begin                                // bit monitor: the line differs from the sent bit
             tx_st <= T_IDLE;
-            if ((tx_bidx < c_ext1[15:8]) && tx_bit) sticky[13] <= 1'b1;   // arbitration lost (sent recessive)
+            if ((tx_bidx < {2'd0, c_ext1[15:10]}) && tx_bit) sticky[13] <= 1'b1;   // arbitration lost (sent recessive)
             else                                    sticky[14] <= 1'b1;   // bit error
           end
         end

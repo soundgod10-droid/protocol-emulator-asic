@@ -134,14 +134,15 @@ act0:   WAIT    SCK, SE, r2, TO, CT ; sample edge of bit 7 of an own byte, or no
         SHL     r1, 1
         OR      r1, r2
         WAIT    SCK, SE, r2, CT ; bit 0
-        IOR     r2, PINS        ; masked and shifted in at the next edge or at the end
+        IOR     r2, PINS
+        ANDI    r2, 2           ; bit 0 is shifted in at the next edge or at the end
+        SHL     r1, 1
         TADD    GAP             ; timeout of the next byte start
 ; the other thread's byte: count the edges, give the own byte to the host at the second edge
-        WAIT    SCK, SE, r3, TO ; bit 7 of the other byte (T = own bit 0 edge + GAP; r2 keeps the pin levels)
+        WAIT    SCK, SE, r3, TO, CT ; bit 7 of the other byte (r3: r2 keeps bit 0; T = this edge)
         BEC     end0            ; no edge: the transfer ended with the own byte
-        ANDI    r2, 2
-        SHL     r1, 1
         OR      r1, r2          ; own byte in bits 8 to 1
+        TADD    GAP             ; timeout of the next edge
         WAIT    SCK, SE, r2, TO, CT ; bit 6 of the other byte
         BEC     rx0             ; a byte that is not whole
         SHL     r1, 2           ; own byte to bits 10 to 3

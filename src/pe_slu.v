@@ -178,8 +178,8 @@ module pe_slu #(
     end
   end
   // x0 = falling-edge sample half a cycle before x1; both 2 cycles behind the pad like s(c).
-  wire x0 = m_loop ? tx_line_q : din_f3;
-  wire x1 = m_loop ? tx_line_q : din_r2;
+  wire x0 = (m_loop ? tx_line_q : din_f3) ^ c_ext1[9];
+  wire x1 = (m_loop ? tx_line_q : din_r2) ^ c_ext1[9];
 
   // ----------------------------------------------------------------------------------------------
   // Receive loop

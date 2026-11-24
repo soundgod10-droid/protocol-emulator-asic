@@ -347,7 +347,7 @@ async def test_rt1_o1_tc_cltu(dut):
         prev_end = first + length
     found, blocks, rej = tc_decode(stream)
     low_filler = all(c[0] & 1 == 0 for first, length in runs[:3] for c in caps[first + length - (per - 4):first + length])
-    log.append(f"TX: {len(runs)} unit frames, armed {[a[1] for a in arm]}, gaps between frames {gaps} cycles; model: "
+    log.append(f"TX: {len(runs)} unit frames (start, cycles) {runs}, arming {arm}, gaps between frames {gaps} cycles; model: "
                f"start found {found}, {len(blocks)} codewords decoded, rejected at {rej}; filler low for {per - 4} "
                f"of {per} cycles: {low_filler}")
     assert found and blocks == infos and rej == 3, log[-1]

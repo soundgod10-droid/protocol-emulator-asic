@@ -193,6 +193,7 @@ module pe_slu #(
       .manch(m_code == C_MAN), .kp0(c_loop0[8:6]), .kp1(c_loop0[11:9]), .kp2(c_loop0[14:12]),
       .gn0(c_loop1[5:0]), .gn1(c_loop1[11:6]), .ki_en(c_loop2[12]), .ki_sh(c_loop1[15:12]),
       .win(c_loop2[5:0]), .wina(c_loop2[11:6]), .acq_n(c_loop3[5:0]), .init_edge(c_loop2[14:13]),
+      .sp(c_ext0[15:10]), .fall_only(c_ext1[2]), .step(lp_step),
       .bit_v(lp_bv), .bit_d(lp_bd), .nacc(lp_nacc), .locked_init(lp_init)
   );
 

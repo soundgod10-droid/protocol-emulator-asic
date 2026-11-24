@@ -310,6 +310,8 @@ module pe_slu_loop (
       decided <= 1'b0;
       xprev   <= x1;
       bit_v   <= 1'b0;
+    end else if (!step) begin
+      bit_v   <= 1'b0;                 // prescaler: this cycle's sample is not taken, the state holds
     end else begin
       th      <= th_b;
       ii      <= ii_b;

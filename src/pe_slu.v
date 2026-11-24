@@ -129,6 +129,14 @@ module pe_slu #(
   reg [15:0] c_mode, c_txper, c_loop0, c_loop1, c_loop2, c_loop3, c_pat, c_pat2, c_sel;
   reg [31:0] c_pa, c_ra;
   reg [15:0] c_crcb, c_crcw, c_tail, c_lta, c_ltb, c_ltc, c_sq, c_lp;
+  // 21 EXT0 [9:0] frame length in data bits for the end by length (0: PAT2[9:4]), [15:10] decision point in
+  //         samples for NRZ and NRZI (0: the bit centre)
+  // 22 EXT1 [0] bit monitor (a decided receive bit that differs from the bit being sent ends the frame: before
+  //         data bit [15:8] with a recessive bit sent it is ARBLOST (flag 13), else BITERR (flag 14); FULL = 0
+  //         forms only), [1] transmitted CRC not complemented, [2] only falling edges resynchronise, [3] tail
+  //         level 0 (NRZ, NRZI), [7:4] sample prescaler - 1 (the loop takes one sample every [7:4] + 1 cycles),
+  //         [15:8] arbitration field length in data bits
+  reg [15:0] c_ext0, c_ext1;
   reg [4:0]  cfg_adr;
 
   localparam C_NRZ = 2'd0, C_NRZI = 2'd1, C_MAN = 2'd2, C_CLK = 2'd3;

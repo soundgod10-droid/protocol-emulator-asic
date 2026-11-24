@@ -392,7 +392,7 @@ module pe_slu #(
         t_bit  = tx_buf0[0];
       end else if (tx_crcen && crc_w != 6'd0) begin
         t_kind = K_CRC;
-        t_bit  = ~crc_t[0];
+        t_bit  = crc_t[0] ^ ~c_ext1[1];
       end else begin
         t_kind = K_END;
       end

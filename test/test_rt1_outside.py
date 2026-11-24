@@ -551,19 +551,22 @@ async def madeup_case(dut, s, name, code, per_sym, k, ones, crc_inv, preset_ones
     lvb = stuff(bad, k, ones)
     sch, t_end = schedule([0, 1] * 8 + (lvb if code == 0 else manchester_ieee(lvb)) + [1, 0] * 8, per_sym * T_NS,
                           idle=idle)
-    ev, _, _ = await receive(dut, s, sch, t_end, stop_after=1)
+    ev, sp, wd = await receive(dut, s, sch, t_end, stop_after=1)
+    raw = {"corrupted CRC": (sp, len(ev), f"{ev[0][0]:04x}" if ev else "-", len(wd), len(lvb) - len(bad))}
     ctl["corrupted CRC"] = bool(ev) and not (ev[0][0] & F_CRCA)
     s = await slu_reset_again(dut, idle=idle)
     await s.cfg({**rx_cfg, 0: mode(code, rx=1, stuff=1, ones=ones, k=k + 1, eop_len=1)})
     sch, t_end = schedule([0, 1] * 8 + lv + [1, 0] * 8, per_sym * T_NS, idle=idle)
-    ev, _, _ = await receive(dut, s, sch, t_end, stop_after=1)
+    ev, sp, wd = await receive(dut, s, sch, t_end, stop_after=1)
+    raw["stuff count k+1"] = (sp, len(ev), f"{ev[0][0]:04x}" if ev else "-", len(wd))
     ctl["stuff count k+1"] = (not ev) or (not (ev[0][0] & F_CRCA)) or bool(ev[0][0] & F_STUFF)
     s = await slu_reset_again(dut, idle=idle)
     await s.cfg({**rx_cfg, 6: pat ^ 1})
     sch, t_end = schedule([0, 1] * 8 + lv + [1, 0] * 8, per_sym * T_NS, idle=idle)
-    ev, sp, _ = await receive(dut, s, sch, t_end, stop_after=1)
+    ev, sp, wd = await receive(dut, s, sch, t_end, stop_after=1)
+    raw["wrong pattern"] = (sp, len(ev), f"{ev[0][0]:04x}" if ev else "-", len(wd))
     ctl["wrong pattern"] = (not sp) and (not ev)
-    log.append(f"{name} controls rejected: {ctl}")
+    log.append(f"{name} controls rejected: {ctl}; raw (SOP, frames, status, words popped[, stuff bits]): {raw}")
     return tx_ok, rx_ok, all(ctl.values())
 
 

@@ -455,7 +455,7 @@ async def test_rt1_o2_prox1_pltu(dut):
     sch, t_end = schedule(biphase_l([1, 0] * 16 + bad + bits_msb(PROX_PN)), half_ns, idle=0)
     ev_bad, _, _ = await receive(dut, s, sch, t_end, stop_after=1)
     s = await slu_reset_again(dut)
-    await s.cfg(dict(rx_cfg, **{6: 0xF321}))
+    await s.cfg({**rx_cfg, 6: 0xF321})
     sch, t_end = schedule(biphase_l([1, 0] * 16 + pltu + bits_msb(PROX_PN)), half_ns, idle=0)
     ev_pat, sop_pat, _ = await receive(dut, s, sch, t_end, stop_after=1)
     log.append(f"controls: corrupted CRC bit -> {len(ev_bad)} frame(s), CRCA_OK "

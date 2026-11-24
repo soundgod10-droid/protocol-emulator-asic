@@ -526,6 +526,8 @@ module pe_slu #(
           5'd18: c_ltc   <= p_wdata;
           5'd19: c_sq    <= p_wdata;
           5'd20: c_lp    <= p_wdata;
+          5'd21: c_ext0  <= p_wdata;
+          5'd22: c_ext1  <= p_wdata;
           default: ;
         endcase
       end

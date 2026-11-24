@@ -789,6 +789,12 @@ module pe_slu #(
           end
           if (FULL && jabber) tx_st <= T_IDLE;
           if (ck_eend) tx_st <= T_IDLE;                    // edge-started frame: wait for the next edge
+          if (bit_start && t_dbit && tx_bidx != 8'hFF) tx_bidx <= tx_bidx + 8'd1;
+          if (mon_mis) begin                                // bit monitor: the line differs from the sent bit
+            tx_st <= T_IDLE;
+            if ((tx_bidx < c_ext1[15:8]) && tx_bit) sticky[13] <= 1'b1;   // arbitration lost (sent recessive)
+            else                                    sticky[14] <= 1'b1;   // bit error
+          end
         end
         T_TAIL1: begin
           if (tx_tail <= 8'd1) begin                     // tail 1 lasts c_tail[7:0] cycles

@@ -523,7 +523,11 @@ async def madeup_case(dut, s, name, code, per_sym, k, ones, crc_inv, preset_ones
     tx_ok = p >= 0 and body[:nbits] == bits_msb(data) and body[nbits:] == crc_exp and not serr
     log.append(f"{name} TX: {len(line)} line bits, {len(line) - len(dest)} stuff bits, model decode ok {tx_ok}")
     # ---- the model transmits, the unit receives ----
-    s = await slu_reset_again(dut)
+    # Idle level: 1 for NRZ. For Manchester the line idles low, so that the first edge of the preamble (0 then 1 =
+    # a '1' bit) is a mid-bit edge: the loop takes its first edge as a mid-bit edge (10BASE-T preamble rule). With
+    # an idle-high line the first edge would be the bit boundary before the preamble, half a bit off.
+    idle = 1 if code == 0 else 0
+    s = await slu_reset_again(dut, idle=idle)
     res = unit_residue(bits_msb(data) + crc_exp, width, poly_ref, preset_ones)
     rx_cfg = {0: mode_rx, 1: per_sym, 2: per_bit, 3: 0, 4: (per_bit // 3) | ((per_bit // 3) << 6) | (1 << 13),
               5: (2 << 6), 6: pat, 7: 7, 8: DIN | NOPIN, 9: poly_ref, 10: 0, 11: res, 12: 0,

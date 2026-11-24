@@ -254,7 +254,7 @@ module pe_slu_loop (
       .x(x0), .xprev(xprev), .allow(1'b0), .th(th), .ii(ii), .nacc(nacc_q), .nedge(nedge),
       .init(init), .decided(decided), .n(n), .manch(manch), .kp0(kp0), .kp1(kp1), .kp2(kp2),
       .gn0(gn0), .gn1(gn1), .ki_en(ki_en), .ki_sh(ki_sh), .win(win), .wina(wina), .acq_n(acq_n),
-      .init_edge(init_edge), .th_o(th_a0), .ii_o(ii_a0), .nacc_o(nacc_a0), .nedge_o(nedge_a0),
+      .init_edge(init_edge), .sp(sp), .fall_only(fall_only), .th_o(th_a0), .ii_o(ii_a0), .nacc_o(nacc_a0), .nedge_o(nedge_a0),
       .init_o(init_a0), .decided_o(dec_a0), .bit_v(bv_a0), .bit_d(bd_a0)
   );
 

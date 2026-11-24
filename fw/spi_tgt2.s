@@ -129,6 +129,7 @@ b6:     WAIT    SCK, SE, r2, CT ; bit 6
         JMP     first1
 flush:  SHR     r1, 1
         PUSH.NB r1              ; last byte of the transfer
+        WAIT    CS, FALL, r2    ; the next transfer
         WAIT    SCK, SE, r2, CT ; bit 7 of the next transfer
         IOR     r1, PINS
         ANDI    r1, 2

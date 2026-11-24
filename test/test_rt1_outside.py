@@ -552,7 +552,13 @@ async def madeup_case(dut, s, name, code, per_sym, k, ones, crc_inv, preset_ones
     sch, t_end = schedule([0, 1] * 8 + (lvb if code == 0 else manchester_ieee(lvb)) + [1, 0] * 8, per_sym * T_NS,
                           idle=idle)
     ev, sp, wd = await receive(dut, s, sch, t_end, stop_after=1)
-    raw = {"corrupted CRC": (sp, len(ev), f"{ev[0][0]:04x}" if ev else "-", len(wd), len(lvb) - len(bad))}
+    u = dut.u_slu_ut
+    diff_at = next((i for i, (a, b) in enumerate(zip(line_m, lvb)) if a != b), None)
+    raw = {"corrupted CRC": (sp, len(ev), f"{ev[0][0]:04x}" if ev else "-", len(wd), len(lvb) - len(bad),
+                             f"status {await s.rd(P_STATUS):04x} rx_st {int(u.rx_st.value)} rx_bits {int(u.rx_bits.value)} "
+                             f"rx_run {int(u.rx_run.value)} nacc {int(u.lp_nacc.value)}; good line {len(line_m)} bits "
+                             f"{''.join(map(str, line_m[-14:]))}, bad {len(lvb)} bits {''.join(map(str, lvb[-14:]))}, "
+                             f"first difference at {diff_at}")}
     ctl["corrupted CRC"] = bool(ev) and not (ev[0][0] & F_CRCA)
     s = await slu_reset_again(dut, idle=idle)
     await s.cfg({**rx_cfg, 0: mode(code, rx=1, stuff=1, ones=ones, k=k + 1, eop_len=1)})

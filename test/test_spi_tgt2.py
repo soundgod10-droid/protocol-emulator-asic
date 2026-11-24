@@ -444,11 +444,15 @@ async def rtl_run(dut, name, h_rated, window, modes=range(4), offsets=range(4), 
             for n, words in expected_words(name, XFERS).items():
                 await bench.collect(n, len(words))
             f = fault(name, bench, bench.m, ctl)
+            if f is not None and gap != RTL_GAP:
+                log.info(f"{label}, CS high {gap} between transfers: {f}")
+                return f
             assert f is None, f"{label}: {f}; {bench.diag()}"
             su, hold, rel, _ = ctl.miso_timing()
             log.info(f"{label}: correct; MISO set-up >= {su}, hold >= {hold} cycles at the sample edge, released <= "
-                     f"{rel} cycles after the CS rise")
+                     f"{rel} cycles after the CS rise; CS high {gap} cycles between transfers")
             await bench.finish(log)
+    return None
 
 
 @cocotb.test()
@@ -461,3 +465,25 @@ async def test_spi_tgt2_rtl(dut):
 async def test_spi_tgt3_rtl(dut):
     """fw/spi_tgt3.s (three threads) on the chip at the rated half period H_RATED_E, all modes, 4 phases, lockstep."""
     await rtl_run(dut, "E", H_RATED_E, True)
+
+
+@cocotb.test(skip=GL)
+async def test_spi_tgt_rtl_gap(dut):
+    """Smallest CS high time between transfers at which the real-time host (SCK 10 MHz, docs/host_port.md 9 and 10)
+    has the MISO words of the next transfer in the FIFO of thread 0 in time, mode 0, phase 0, steps of 300 cycles:
+    a host-rate condition of the RTL tests, not a limit of the firmware (the model tests give the words at once)."""
+    log = dut._log
+    lines = []
+    for name, h in (("D", H_RATED_D), ("E", H_RATED_E)):
+        found = None
+        for gap in range(300, RTL_GAP + 1, 300):
+            f = await rtl_run(dut, name, h, False, modes=(0,), offsets=(0,), gap=gap)
+            if f is None:
+                found = gap
+                break
+        lines.append(f"{name}: smallest CS high between transfers with the words in time: {found} cycles "
+                     f"({'none up to ' + str(RTL_GAP) if found is None else f'{found / 60:.1f} us'}); the step below fails")
+        log.info(lines[-1])
+    os.makedirs(os.path.join(ROOT, "build"), exist_ok=True)
+    with open(os.path.join(ROOT, "build", "spi_tgt_rtl_gap.txt"), "w", encoding="utf-8") as f:
+        f.write("\n".join(lines) + "\n")

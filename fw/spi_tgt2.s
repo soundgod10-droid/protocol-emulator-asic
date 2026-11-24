@@ -78,7 +78,8 @@ done:   TNOW    8
         JMP     idle
 
 ; ----- thread 1: MOSI. r1 MOSI bits (the byte in bits 8 to 1 until the shift), r2 temporary.
-rx:     WAIT    SCK, SE, r2, CT ; sample edge of bit 7 of the first byte after START
+rx:     WAIT    CS, FALL, r2    ; a transfer starts: SCK idles high in modes 2 and 3, so no SCK edge counts before
+        WAIT    SCK, SE, r2, CT ; sample edge of bit 7 of the first byte
         IOR     r1, PINS        ; pin levels 5 to 8 cycles after the edge cycle
         ANDI    r1, 2           ; MOSI (uio[1]) in bit 1
         JMP     b6

@@ -536,7 +536,7 @@ async def madeup_case(dut, s, name, code, per_sym, k, ones, crc_inv, preset_ones
     payload = bits_msb(bytes([0x55, pat]) + data) + crc_exp
     line_m = stuff(payload, k, ones)
     lv = line_m if code == 0 else manchester_ieee(line_m)
-    sch, t_end = schedule([0, 1] * 8 + lv + [1, 0] * 8, per_sym * T_NS)
+    sch, t_end = schedule([0, 1] * 8 + lv + [1, 0] * 8, per_sym * T_NS, idle=idle)
     events, sop, words = await receive(dut, s, sch, t_end, stop_after=1)
     got = words_to_bits(words, nbits) if events else []
     rx_ok = bool(events) and bool(events[0][0] & F_CRCA) and got == bits_msb(data) and not (events[0][0] & F_STUFF)

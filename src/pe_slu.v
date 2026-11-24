@@ -807,11 +807,15 @@ module pe_slu #(
           end
           if (FULL && jabber) tx_st <= T_IDLE;
           if (ck_eend) tx_st <= T_IDLE;                    // edge-started frame: wait for the next edge
-          if (SPEC == 0 && bit_start && t_dbit && tx_bidx != 8'hFF) tx_bidx <= tx_bidx + 8'd1;
+          if (SPEC == 0 && bit_start && t_new && t_kind != K_STUFF) begin    // a data or CRC bit starts
+            if (tx_bidx != 10'h3FF) tx_bidx <= tx_bidx + 10'd1;
+            tx_hist <= {tx_hist[2:0], t_bit};
+          end
           if (mon_mis) begin                                // bit monitor: the line differs from the sent bit
             tx_st <= T_IDLE;
-            if ((tx_bidx < {2'd0, c_ext1[15:10]}) && tx_bit) sticky[13] <= 1'b1;   // arbitration lost (sent recessive)
-            else                                    sticky[14] <= 1'b1;   // bit error
+            // sent bit index rx_bits + 1 inside the arbitration field with a recessive bit sent: arbitration lost
+            if ((rx_bits + 10'd1 < {4'd0, c_ext1[15:10]}) && mon_bit) sticky[13] <= 1'b1;
+            else                                                       sticky[14] <= 1'b1;   // bit error
           end
         end
         T_TAIL1: begin

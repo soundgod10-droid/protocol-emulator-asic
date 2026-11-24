@@ -235,9 +235,15 @@ async def send_chain(dut, s, frames, per_bit, caps_len):
     planned time (the previous start + its bits x per_bit) when the lead is still 4 or more, else at once.
     Returns the capture and a list of (planned, armed as 'time' or 'now')."""
     caps, log = [], []
+    u = dut.u_slu_ut
     cocotb.start_soon(capture(dut, caps_len, caps))
-    t_prev, bits_prev = None, 0
+    t_prev, bits_prev, crc_prev = None, 0, 0
     for k, f in enumerate(frames):
+        if t_prev is not None:
+            # TXCTRL (bits of the last word, CRC on) and CRCW are live registers: write them for the next frame
+            # only when the previous frame has passed its last data bit (its CRC state, or its tail).
+            while int(u.tx_st.value) not in ((3, 4) if crc_prev else (4,)) and int(u.tx_st.value) != 0:
+                await FallingEdge(dut.clk)
         await s.cfg({14: f["crcw"]})
         await s.wr(P_TXCTRL, (f["last"] % 16) | (f["crc"] << 5))
         words = list(f["words"])
@@ -249,25 +255,26 @@ async def send_chain(dut, s, frames, per_bit, caps_len):
         if t_prev is None:
             planned = (c + 40) & 0xFFFF
             await s.wr(P_TXTIME, planned)
-            log.append((planned, "time"))
+            log.append((k, planned, c, "time"))
         else:
             planned = (t_prev + bits_prev * per_bit) & 0xFFFF
-            if ((planned - (c + 1)) & 0xFFFF) >= 4 and ((planned - (c + 1)) & 0xFFFF) < 1000:
+            lead = (planned - (c + 1)) & 0xFFFF
+            if 4 <= lead < 1000:
                 await s.wr(P_TXTIME, planned)
-                log.append((planned, "time"))
+                log.append((k, planned, c, "time", lead))
             else:
                 await s.wr(P_TXCTRL, (f["last"] % 16) | (f["crc"] << 5) | (1 << 9))
-                log.append((planned, "now"))
-        t_prev, bits_prev = planned, f["bits"]
+                log.append((k, planned, c, "now", lead))
+        t_prev, bits_prev, crc_prev = planned, f["bits"], f["crc"]
         feed = rest
         while feed:
             free = await s.rd(P_TXDATA)
             if free:
                 w = feed.pop(0)
                 await s.wr(P_TXLAST if not feed else P_TXDATA, w)
-        if rest:
-            while (await s.rd(P_TXDATA)) != 2:       # the frame has taken every word
-                pass
+        while (await s.rd(P_TXDATA)) != 2:           # the frame has taken every word
+            pass
+        log.append(("status", await s.rd(P_STATUS)))
     while len(caps) < caps_len:
         await RisingEdge(dut.clk)
     return caps, log

@@ -236,12 +236,13 @@ act1:   WAIT    SCK, SE, r2, TO, CT ; sample edge of bit 7 of an own byte, or no
         OR      r1, r2
         WAIT    SCK, SE, r2, CT ; bit 0
         IOR     r2, PINS
-        TADD    GAP
-        WAIT    SCK, SE, r3, TO ; bit 7 of the other byte
-        BEC     end1
         ANDI    r2, 2
         SHL     r1, 1
+        TADD    GAP
+        WAIT    SCK, SE, r3, TO, CT ; bit 7 of the other byte
+        BEC     end1
         OR      r1, r2
+        TADD    GAP
         WAIT    SCK, SE, r2, TO, CT ; bit 6 of the other byte
         BEC     rx1
         SHL     r1, 2

@@ -459,7 +459,7 @@ async def test_rt1_o2_prox1_pltu(dut):
     assert res["alternating preamble"] == (True, 1, True, True), log[-1]
 
     # ---- controls: a corrupted CRC bit; a wrong pattern ----
-    s = await slu_reset_again(dut)
+    s = await slu_reset_again(dut, idle=0)
     await s.cfg(rx_cfg)
     bad = list(pltu)
     bad[-5] ^= 1

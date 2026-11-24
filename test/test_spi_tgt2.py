@@ -417,9 +417,24 @@ async def rtl_run(dut, name, h_rated, window):
             if window and mode == 0 and off == 0 and hasattr(dut, "dump_off"):
                 await bench.run(rf.HOST_START + 900)
                 dut.dump_off.value = 0
+                t_on = bench.t
                 await bench.run(2400)
                 dut.dump_off.value = 1
+                t_off = bench.t
             await bench.run(ctl.end + 1000 - bench.m.cycle)
+            if window and mode == 0 and off == 0 and hasattr(dut, "dump_off"):
+                # Times of the dumped window for a waveform review (ps of the test bench): the sample edges of the
+                # controller (pin time) and the MISO changes seen at the pin, model cycle -> (t0 + cycle) * CLK_PS.
+                ps = lambda c: (bench.t0 + c) * rf.CLK_PS  # noqa: E731
+                edges = sorted(ctl.sample_at)
+                miso = [c for c, _ in ctl.miso_seen[1:]]
+                os.makedirs(os.path.join(ROOT, "build"), exist_ok=True)
+                with open(os.path.join(ROOT, "build", f"spi_tgt_{name}_window.txt"), "w", encoding="utf-8") as f:
+                    f.write(f"{label}\ndump on {t_on * rf.CLK_PS} ps, off {t_off * rf.CLK_PS} ps (test-bench cycles {t_on}, "
+                            f"{t_off}); model cycle 0 at test-bench cycle {bench.t0}\n")
+                    f.write("sample edges (pin), ps: " + " ".join(str(ps(c)) for c in edges[:16]) + "\n")
+                    f.write("MISO changes at the pin, ps: " + " ".join(str(ps(c)) for c in miso[:16]) + "\n")
+                    f.write("CS fall, ps: " + " ".join(str(ps(c)) for c, v in ctl.cs if v == 0) + "\n")
             for n, words in expected_words(name, XFERS).items():
                 await bench.collect(n, len(words))
             f = fault(name, bench, bench.m, ctl)

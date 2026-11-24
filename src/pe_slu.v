@@ -137,7 +137,10 @@ module pe_slu #(
   //         level 0 (NRZ, NRZI), [7:4] sample prescaler - 1 (the loop takes one sample every [7:4] + 1 cycles),
   //         [15:8] arbitration field length in data bits, [8] block receive (after an end by length the next
   //         frame starts at once, without a start pattern: fixed-length codewords), [9] receive line inverted
-  reg [15:0] c_ext0, c_ext1;
+  // 23 EXT2 [2:0] stuff run at the start of a frame: the start pattern's last bits that count in the first run of
+  //         the destuffer (CAN's SOF is its start pattern and is the first bit of the first run: 1; 0 keeps the
+  //         USB behaviour, which starts the count at the first bit after the SYNC)
+  reg [15:0] c_ext0, c_ext1, c_ext2;
   reg [4:0]  cfg_adr;
 
   localparam C_NRZ = 2'd0, C_NRZI = 2'd1, C_MAN = 2'd2, C_CLK = 2'd3;

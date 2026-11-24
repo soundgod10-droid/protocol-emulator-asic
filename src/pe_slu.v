@@ -629,8 +629,10 @@ module pe_slu #(
         rx_lastn <= rx_nb;
         // An end by length comes in the cycle after the last data bit, before the octet-boundary sample below
         // has taken it: a frame that ends on an octet boundary is judged on the register as it is now.
-        crc_a_ok <= (rx_bph == 3'd0 && rx_bits != 10'd0) ? (((crc_a ^ c_ra) & crc_mask) == 32'd0) : crc_a_byte;
-        crc_b_ok <= (rx_bph == 3'd0 && rx_bits != 10'd0) ? (crc_b == c_crcb[15:8]) : crc_b_byte;
+        // An end by length (any bit count, also between octet boundaries) is judged on the register as well: the
+        // frame has no dribble bits, its last data bit is the last CRC bit.
+        crc_a_ok <= (eop_by_len || (rx_bph == 3'd0 && rx_bits != 10'd0)) ? (((crc_a ^ c_ra) & crc_mask) == 32'd0) : crc_a_byte;
+        crc_b_ok <= (eop_by_len || (rx_bph == 3'd0 && rx_bits != 10'd0)) ? (crc_b == c_crcb[15:8]) : crc_b_byte;
         rx_nb    <= 5'd0;
       end
       if (ck_lastb) begin                                   // edge-started frame complete

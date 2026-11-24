@@ -68,6 +68,7 @@ module pe_slu_loop_step (
   wire signed [20:0] mid_s  = manch ? half_s : 21'sd0;
   // Decision point: (3/4 N - 1/2) * 2^12 (Manchester) or (1/2 N - 1/2) * 2^12.
   wire signed [20:0] tdec_s = manch ? ($signed({5'd0, n, 10'd0}) + $signed({4'd0, n, 11'd0}) - 21'sd2048)
+                            : (sp != 6'd0) ? ($signed({3'b000, sp, 12'd0}) - 21'sd2048)
                                     : (half_s - 21'sd2048);
   // Configuration-only terms (the same in both step copies; synthesis shares them).
   wire signed [20:0] kb_s   = -21'sd2048 - mid_s;

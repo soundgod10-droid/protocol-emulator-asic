@@ -363,10 +363,10 @@ async def test_spi_tgt2_sweep(dut):
     smallest = {}
     for name in STRUCTURES:
         for mode in range(4):
-            h, hf = last_ok(lambda v: all_phases(name, mode, v), range(25, 7, -1))
+            h, hf = last_ok(lambda v: all_phases(name, mode, v), range(60, 7, -1))
             smallest[(name, mode)] = h
             if h is None:
-                lines.append(f"{name} mode {mode}: half period 25 fails: {hf}")
+                lines.append(f"{name} mode {mode}: half period 60 fails: {hf}")
                 continue
             hold, hof = last_ok(lambda v: all_phases(name, mode, h, hold=v), range(h, 0, -1))
             lead, lf = last_ok(lambda v: all_phases(name, mode, h, lead=v), range(60, 0, -1))

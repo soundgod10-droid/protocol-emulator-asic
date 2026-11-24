@@ -167,9 +167,7 @@ act0:   WAIT    SCK, SE, r2, TO, CT ; sample edge of bit 7 of an own byte, or no
         BEC     rx0
         TADD    GAP             ; timeout of the next own byte
         JMP     act0
-end0:   ANDI    r2, 2
-        SHL     r1, 1
-        OR      r1, r2
+end0:   OR      r1, r2          ; bit 0 (masked and shifted at its edge)
         SHL     r1, 2
         ORI     r1, 1           ; bit 0 = 1: the last byte of the transfer
         PUSH.NB r1

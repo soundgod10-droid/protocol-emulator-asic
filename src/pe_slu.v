@@ -468,6 +468,7 @@ module pe_slu #(
       c_loop2 <= F_LOOP2; c_loop3 <= F_LOOP3; c_pat <= F_PAT; c_pat2 <= F_PAT2; c_sel <= 16'hFFFF;
       c_pa <= F_PA; c_ra <= F_RA; c_crcb <= F_CRCB; c_crcw <= F_CRCW; c_tail <= F_TAIL;
       c_lta <= F_LTA; c_ltb <= F_LTB; c_ltc <= F_LTC; c_sq <= F_SQ; c_lp <= F_LP; cfg_adr <= 5'd0;
+      c_ext0 <= 16'd0; c_ext1 <= 16'd0; lp_pre <= 4'd0; tx_bidx <= 8'd0;
       evmask <= 16'd0; sticky <= 16'd0; tstamp <= 16'd0;
       din_prev <= 1'b0; q_cnt <= 6'd0; carrier <= 1'b0; sq_gap <= 7'd0; sq_good <= 4'd0;
       lp_w <= 6'd0; lt_a <= 16'd0; lt_b <= 16'd0; lt_a_hit <= 1'b0; lt_b_hit <= 1'b0;

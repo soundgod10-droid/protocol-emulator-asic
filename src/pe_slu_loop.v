@@ -210,6 +210,9 @@ module pe_slu_loop (
     input  wire       [5:0]  wina,
     input  wire       [5:0]  acq_n,
     input  wire       [1:0]  init_edge,
+    input  wire       [5:0]  sp,         // decision point in samples (NRZ, NRZI); 0 = the bit centre
+    input  wire              fall_only,  // 1: only falling edges correct the phase
+    input  wire              step,       // 0: hold the state this cycle (sample prescaler)
     output reg               bit_v,      // a bit was decided in this cycle
     output reg               bit_d,
     output wire       [5:0]  nacc,

@@ -448,7 +448,7 @@ async def test_rt1_o2_prox1_pltu(dut):
     res = {}
     for name, pre in (("PN idle", bits_msb(PROX_PN * 2)), ("PN idle, other phase", [0] + bits_msb(PROX_PN * 2)),
                       ("alternating preamble", [1, 0] * 16)):
-        s = await slu_reset_again(dut)
+        s = await slu_reset_again(dut, idle=0)
         await s.cfg(rx_cfg)
         stream = pre + pltu + bits_msb(PROX_PN)
         sch, t_end = schedule(biphase_l(stream), half_ns, idle=0)

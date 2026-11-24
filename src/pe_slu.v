@@ -383,7 +383,7 @@ module pe_slu #(
         t_bit  = stuff_bit;
       end else if (tx_st == T_CRC) begin
         t_kind = (tx_crcn == 6'd0) ? K_END : K_CRC;
-        t_bit  = ~crc_t[0];
+        t_bit  = crc_t[0] ^ ~c_ext1[1];
       end else if (tx_nb != 5'd0) begin
         t_kind = K_DATA;
         t_bit  = tx_sh[0];

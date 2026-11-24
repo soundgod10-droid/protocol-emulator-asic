@@ -407,11 +407,18 @@ module pe_slu #(
   wire t_new  = (t_kind == K_STUFF) || (t_kind == K_DATA) || (t_kind == K_LOAD) ||
                 (t_kind == K_CRC) || (t_kind == K_JAM);
   wire t_dbit = (t_kind == K_DATA) || (t_kind == K_LOAD);    // a data bit (goes into the CRC)
-  // Bit monitor (EXT1[0]): a decided receive bit while the unit sends is compared with the bit on the line. The
-  // receive decision of bit k must come before bit k + 1 starts: loop delay + sample point + 3 cycles < one bit.
-  reg  [7:0] tx_bidx;                                        // data bits sent in this frame (saturating)
-  wire       mon_mis = c_ext1[0] && (tx_st == T_DATA || tx_st == T_CRC) && r_dec_v && (m_code != C_CLK) &&
-                       (r_dec != tx_bit);
+  // Bit monitor (EXT1[0]): the k-th received data bit (destuffed, counted from the start pattern; the pattern is
+  // the SOF for CAN) is compared with the (k + 1)-th bit sent in this frame (the SOF is sent bit 0; stuff bits are
+  // not counted on either side) through a history of the last 4 bits sent. The comparison by index does not
+  // depend on the transceiver loop delay (the receive grid is the sent grid delayed by it): up to 3 bits may be in
+  // flight. A transmitter samples its own bit inside that bit (Bosch Part A: the propagation segment covers the
+  // loop delay), so the age is 0 or 1 in a CAN system.
+  reg  [9:0] tx_bidx;                                        // data and CRC bits sent in this frame (saturating)
+  reg  [3:0] tx_hist;                                        // the last 4 of them, newest in bit 0
+  wire [9:0] mon_age = tx_bidx - rx_bits - 10'd2;
+  wire       mon_bit = tx_hist[mon_age[1:0]];
+  wire       mon_mis = c_ext1[0] && (tx_st == T_DATA || tx_st == T_CRC) && r_data_v && (m_code != C_CLK) &&
+                       (mon_age < 10'd4) && (r_data != mon_bit);
   wire tx_take_go   = tx_go && !tx_pulse && !(FULL && jabber) && (tx_cnt != 2'd0);
   wire tx_take_bit  = (t_kind == K_LOAD);
   wire tx_take      = tx_take_go || tx_take_bit;

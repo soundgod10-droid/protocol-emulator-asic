@@ -380,7 +380,7 @@ async def test_rt1_o1_tc_cltu(dut):
     await s.cfg({0: mode(0)})
     flags_bad = [bool(e[0] & F_CRCA) for e in ev_bad]
     s = await slu_reset_again(dut)
-    await s.cfg(dict(rx_cfg, **{6: 0xEB91}))                       # wrong start pattern
+    await s.cfg({**rx_cfg, 6: 0xEB91})                             # wrong start pattern
     sch, t_end = schedule(acq + cltu + acq, per * T_NS)
     ev_pat, sop_pat, _ = await receive(dut, s, sch, t_end, stop_after=1)
     await s.cfg({0: mode(0)})

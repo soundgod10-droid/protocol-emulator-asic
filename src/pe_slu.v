@@ -268,6 +268,7 @@ module pe_slu #(
   wire        ck_lastb;             // clocked mode: last sample of an edge-started frame (LTC[10])
 
   wire [3:0]  pat_len  = c_pat2[3:0];
+  wire [9:0]  eop_len  = (c_ext0[9:0] != 10'd0) ? c_ext0[9:0] : {4'd0, c_pat2[9:4]};
   wire [15:0] pat_mask = (pat_len == 4'd15) ? 16'hFFFF : ((16'd1 << (pat_len + 4'd1)) - 16'd1);
 
   // Combinational receive step.

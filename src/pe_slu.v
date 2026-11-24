@@ -401,6 +401,11 @@ module pe_slu #(
   wire t_new  = (t_kind == K_STUFF) || (t_kind == K_DATA) || (t_kind == K_LOAD) ||
                 (t_kind == K_CRC) || (t_kind == K_JAM);
   wire t_dbit = (t_kind == K_DATA) || (t_kind == K_LOAD);    // a data bit (goes into the CRC)
+  // Bit monitor (EXT1[0]): a decided receive bit while the unit sends is compared with the bit on the line. The
+  // receive decision of bit k must come before bit k + 1 starts: loop delay + sample point + 3 cycles < one bit.
+  reg  [7:0] tx_bidx;                                        // data bits sent in this frame (saturating)
+  wire       mon_mis = c_ext1[0] && (tx_st == T_DATA || tx_st == T_CRC) && r_dec_v && (m_code != C_CLK) &&
+                       (r_dec != tx_bit);
   wire tx_take_go   = tx_go && !tx_pulse && !(FULL && jabber) && (tx_cnt != 2'd0);
   wire tx_take_bit  = (t_kind == K_LOAD);
   wire tx_take      = tx_take_go || tx_take_bit;

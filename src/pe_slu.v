@@ -536,7 +536,7 @@ module pe_slu #(
       if (p_we && p_addr == 4'd3) evmask <= p_wdata;
 
       // ---------------- line conditions ----------------
-      lp_pre   <= lp_step ? c_ext1[7:4] : lp_pre - 4'd1;
+      if (SPEC == 0) lp_pre <= lp_step ? c_ext1[7:4] : lp_pre - 4'd1;
       din_prev <= x1;
       if (m_usb) q_cnt <= se0 ? ((q_cnt == 6'd63) ? 6'd63 : q_cnt + 6'd1) : 6'd0;
       // Manchester data has an edge at least every bit (127 ns with +/-13.5 ns jitter: 7.6 cycles);

@@ -716,6 +716,7 @@ module pe_slu #(
               tx_skipw  <= c_crcw[9:7];
               crc_t     <= crc_init;
               tx_crcn   <= crc_w;
+              tx_bidx   <= 8'd0;
             end
           end
         end

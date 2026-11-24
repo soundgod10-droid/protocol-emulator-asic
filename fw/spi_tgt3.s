@@ -202,8 +202,8 @@ rx1:    WAIT    CS, FALL, r2, CT ; a transfer starts
         BEC     rx1
         TADD    GAP             ; timeout of byte 1
 act1:   WAIT    SCK, SE, r2, TO, CT ; sample edge of bit 7 of an own byte, or no edge for GAP cycles
-        BEC     rx1
         IOR     r1, PINS
+        BEC     rx1
         ANDI    r1, 2
         WAIT    SCK, SE, r2, CT ; bit 6
         IOR     r2, PINS

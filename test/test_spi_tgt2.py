@@ -237,6 +237,9 @@ async def test_spi_tgt2_sweep(dut):
         log.info(f"{name}: {STRUCTURES[name]}")
     for line in lines:
         log.info(line)
+    os.makedirs(os.path.join(ROOT, "build"), exist_ok=True)
+    with open(os.path.join(ROOT, "build", "spi_tgt2_sweep.txt"), "w", encoding="utf-8") as f:  # the full result table
+        f.write("\n".join([f"{k}: {v}" for k, v in STRUCTURES.items()] + lines) + "\n")
     # fw/spi_tgt2.s: every half period from 15 to 40 passes in every mode (no hole above the limit)
     holes = [(mode, v) for mode in range(4) for v in range(15, 41) if all_phases("D", mode, v)]
     log.info(f"D: half periods 15 to 40, all modes, 4 phases: {'no hole' if not holes else holes}")

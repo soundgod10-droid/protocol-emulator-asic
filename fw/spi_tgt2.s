@@ -37,7 +37,8 @@
 ; Words from thread 1 (PUSH.NB; the host must read them before four are complete): one for each MOSI byte: byte
 ;   k in bits 10 to 3 of the word given at the second sample edge of byte k + 1, bits 2 and 1 = bits 7 and 6 of
 ;   byte k + 1, bit 0 = 0; the last byte of a transfer GAP cycles after its last sample edge, in bits 10 to 3 with
-;   bit 0 = 1 and bits 2 and 1 = 0. The host takes (word >> 3) and 0xFF.
+;   bit 0 = 1 and bits 2 and 1 = 0. Bits 15 to 11 hold older bits (the word is never cleared: a mask would
+;   cost a slot). The host takes (word >> 3) and 0xFF, and bit 0.
 ; Controller limits in clock cycles at 60 MHz, measured in the model (test_spi_tgt2_sweep): half period, MOSI hold
 ;   after the sample edge, CS low to the first sample edge, CS high between transfers, MISO set-up and hold.
 ; Not done: SCK edges while CS is high (another target's transfer on a shared bus) are taken as bits, as in

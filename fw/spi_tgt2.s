@@ -105,8 +105,8 @@ done:   TNOW    8
 rx:     WAIT    CS, FALL, r2, CT ; a transfer starts (SCK idles high in modes 2 and 3: no edge counts before CS)
         TADD    GAP             ; timeout of the first sample edge
         WAIT    SCK, SE, r2, TO, CT ; sample edge of bit 7 of the first byte
+        IOR     r1, PINS        ; pin levels 5 to 8 cycles after the edge cycle (IOR does not change E)
         BEC     rx              ; no clock after CS low
-        IOR     r1, PINS        ; pin levels 5 to 8 cycles after the edge cycle
         ANDI    r1, 2           ; MOSI (uio[1]) in bit 1
         WAIT    SCK, SE, r2, CT ; bit 6 of the first byte (no word to give yet)
         IOR     r2, PINS

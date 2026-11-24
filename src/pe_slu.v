@@ -582,7 +582,7 @@ module pe_slu #(
         end
         R_DATA: begin
           if (!m_rx) rx_st <= R_OFF;
-          else if (r_eop) rx_st <= m_usb ? R_EOPW : (m_code == C_CLK ? R_DATA : R_RST);
+          else if (r_eop) rx_st <= m_usb ? R_EOPW : ((m_code == C_CLK || rx_block) ? R_DATA : R_RST);
         end
         R_EOPW: if (!se0) rx_st <= R_RST;                     // USB: EOP ends at the first J
         R_RST:  rx_st <= m_rx ? R_HUNT : R_OFF;               // one cycle with the loop off

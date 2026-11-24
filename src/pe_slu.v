@@ -588,7 +588,7 @@ module pe_slu #(
         R_RST:  rx_st <= m_rx ? R_HUNT : R_OFF;               // one cycle with the loop off
         default: rx_st <= R_OFF;
       endcase
-      if (rx_sop) begin
+      if (rx_sop || (r_eop && rx_block)) begin
         rx_run     <= 3'd0;
         rx_lastbit <= r_dec;
         rx_sh      <= 16'd0;

@@ -367,7 +367,7 @@ NODE_FRAMES = [
 
 
 async def scenario(dut, chip_frames, node_frames, delay, ppm, node_start=None, bad_crc=False, stuff_err=False,
-                   node_rate=None, monitor=True, slot=SLOT, first_tx=700, ack=True, peek=False):
+                   node_rate=None, monitor=True, slot=SLOT, first_tx=700, ack=True, peek=False, watch=None):
     """One run on a freshly reset unit. node_start None: the node gets its frames after the unit's own frames are
     done (the thread hands them over), so the two sides do not arbitrate; a number: the node has its frames from
     that bus cycle on. Returns (thread, node, bus, peek)."""

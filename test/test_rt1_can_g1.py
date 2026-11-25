@@ -387,6 +387,8 @@ async def scenario(dut, chip_frames, node_frames, delay, ppm, node_start=None, b
     await s.cfg(cfg)
     await s.wr(P_EVMASK, EVENTS)
     th = Thread(dut, s, bus, slot, ack=ack)
+    if watch is not None:
+        cocotb.start_soon(watch(th, bus))
     total_bits = sum(len(stream_of(f)[0]) + 3 for f in list(chip_frames) + list(node_frames)) + 60
     until = bus.c + total_bits * 2 * BT + 20 * BT * (2 + len(chip_frames) + len(node_frames))
     await th.run(chip_frames, until, deferred=node_frames if deferred else (), node=node, first_tx=first_tx)

@@ -246,7 +246,7 @@ class Thread:
                     if txst in (2, 3):
                         self.own, length_known = True, True
                     else:                                        # another SOF came first: withdraw the armed frame
-                        await self.iow(P_TXCTRL, 1 << 8)
+                        await self.iow(P_TXCTRL, (1 << 8) | (1 << 10))   # abort and flush
                         self.ev("WITHDRAWN", self.sending["ident"])
                         self.sending, tx_at, feed = None, None, []
             if st & F_ARBLOST:

@@ -815,7 +815,7 @@ module pe_slu #(
           end
           if (FULL && jabber) tx_st <= T_IDLE;
           if (ck_eend) tx_st <= T_IDLE;                    // edge-started frame: wait for the next edge
-          if (SPEC == 0 && bit_start && t_new && t_kind != K_STUFF) begin    // a data or CRC bit starts
+          if ((SPEC == 0 || GEN != 0) && bit_start && t_new && t_kind != K_STUFF) begin    // a data or CRC bit starts
             if (tx_bidx != 10'h3FF) tx_bidx <= tx_bidx + 10'd1;
             tx_hist <= {tx_hist[2:0], t_bit};
           end

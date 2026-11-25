@@ -1,0 +1,50 @@
+# slu_gen_equiv: at the USB reset configuration (no CFGDAT write except to SEL), the chip's general line unit
+# (pe_slu SPEC 1, GEN 1, DDR_EN 0, KI_EN 0) equals the dedicated USB helper (pe_slu SPEC 1) at every output and
+# register in every cycle, for every other port access and pin input (formal/slu_gen_equiv_fv.v explains the
+# filter). equiv_make pairs every same-named signal of the two flattened units, equiv_induct proves all pairs by
+# induction, equiv_status -assert fails the job if one pair is not proved. The dedicated form's partial-write
+# registers (c_mode, c_txper, c_ltc) are held at their reset values by the filter on both sides, so they pair
+# like every other register. The tooth slu_gen_equiv_mut (SLU_GEN_EQUIV_FREE) lets MODE writes through and must
+# fail: the general unit takes the whole MODE word, the dedicated form masks it.
+
+[options]
+mode prove
+
+[engines]
+smtbmc z3
+
+[script]
+read_verilog -sv pe_slu_loop.v pe_slu.v
+read_verilog -sv slu_gen_equiv_fv.v
+hierarchy -check
+proc
+flatten
+cd slu_gequiv_old
+connect -set uadr u.cfg_adr
+cd slu_gequiv_new
+connect -set uadr u.cfg_adr
+cd ..
+check -assert
+async2sync
+opt_clean
+equiv_make slu_gequiv_old slu_gequiv_new slu_gequiv
+hierarchy -top slu_gequiv
+equiv_simple -seq 8
+equiv_induct -seq 8
+tee -o equiv_status.txt equiv_status
+equiv_status -assert
+design -reset
+read_verilog -formal tiny.v
+prep -top tiny
+
+[files]
+../src/pe_slu_loop.v
+../src/pe_slu.v
+slu_gen_equiv_fv.v
+
+[file tiny.v]
+module tiny(input clk);
+  reg a = 1'b0;
+  always @(posedge clk) a <= a;
+  always @* assert (!a);
+endmodule

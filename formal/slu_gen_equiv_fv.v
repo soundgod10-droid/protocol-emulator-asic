@@ -4,16 +4,21 @@
 
 `default_nettype none
 
-// Wrappers of formal/slu_gen_equiv.sby: the same input filter in front of the dedicated USB helper (pe_slu SPEC 1,
-// the form proved by slu_usb.sby and slu_usb_equiv.sby) and of the chip's general line unit (pe_slu SPEC 1 with
-// GEN 1, DDR_EN 0, KI_EN 0: helper select 0 since the general unit replaced the dedicated helper). The filter
-// drops every CFGDAT (port 13) write while the unit's own CFGADR is not 8 (SEL), so both units stay at their
-// reset configuration, which is the USB helper's; every other port access (SEL, TXDATA, TXLAST, TXCTRL, TXTIME,
-// STATUS, EVMASK, CFGADR, reads) and every pin input reaches both unchanged. With the two units equal at every
-// output and every register in every cycle, the USB claims proved and tested on the dedicated form hold for the
-// general unit in that configuration. SLU_GEN_EQUIV_FREE (the tooth) lets the writes to MODE (CFGADR 0)
-// through: the general unit then takes the whole word where the dedicated form masks it, so the proof must fail.
-// uadr is left undriven here; the proof script connects it to u.cfg_adr after flatten.
+// Wrappers of formal/slu_gen_equiv.sby: the dedicated USB helper (pe_slu SPEC 1, the form proved by slu_usb.sby and
+// slu_usb_equiv.sby) and the chip's general line unit (pe_slu SPEC 1 with GEN 1, DDR_EN 0, KI_EN 0: helper select 0
+// since the general unit replaced the dedicated helper) behind the same port filter. The dedicated form can be
+// configured only through SEL (CFGADR 8), MODE bits 0, 1, 3, 4 and 9 (the clocked and NRZ modes), TXPER[7:0] (1 to
+// 255) and LTC[12:8]; every other CFGDAT write is masked or ignored there. The filter drops every CFGDAT write
+// outside this set on both sides (a TXPER write with a low byte of 0 too: the port definition needs TXPER >= 1), and
+// the general unit, which takes a whole configuration word, is given the masked word that the dedicated form keeps.
+// Every other port access (TXDATA, TXLAST, TXCTRL, TXTIME, STATUS, EVMASK, CFGADR, reads) and every pin input reaches
+// both unchanged. With the two units equal at every output and every register in every cycle (except the bit
+// monitor's sent-bit history, which only the general unit keeps and which no output reads while EXT1 is 0), the USB
+// and helper-mode claims proved and tested on the dedicated form hold for the general unit over the whole
+// configuration space of the dedicated form. SLU_GEN_EQUIV_FREE (the tooth) gives the general unit the whole MODE
+// word, so it can leave that space and the proof must fail. uadr and txper_lo are left undriven here; the proof
+// script connects them to u.cfg_adr and u.c_txper[7:0] after flatten (txper_nz is the invariant TXPER[7:0] != 0 that
+// the induction needs, stated as an equiv_add constant).
 
 module slu_gequiv_old (
     input  wire        clk,

@@ -153,7 +153,7 @@ module pe_slu #(
 
   localparam C_NRZ = 2'd0, C_NRZI = 2'd1, C_MAN = 2'd2, C_CLK = 2'd3;
   wire [1:0] m_code    = c_mode[1:0];
-  wire       m_ddr     = c_mode[2];
+  wire       m_ddr     = (DDR_EN != 0) && c_mode[2];
   wire       m_rx      = c_mode[3];
   wire       m_stuff   = c_mode[4];
   wire       m_ones    = c_mode[5];

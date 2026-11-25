@@ -1,11 +1,14 @@
-# slu_gen_equiv: at the USB reset configuration (no CFGDAT write except to SEL), the chip's general line unit
-# (pe_slu SPEC 1, GEN 1, DDR_EN 0, KI_EN 0) equals the dedicated USB helper (pe_slu SPEC 1) at every output and
-# register in every cycle, for every other port access and pin input (formal/slu_gen_equiv_fv.v explains the
-# filter). equiv_make pairs every same-named signal of the two flattened units, equiv_induct proves all pairs by
-# induction, equiv_status -assert fails the job if one pair is not proved. The dedicated form's partial-write
-# registers (c_mode, c_txper, c_ltc) are held at their reset values by the filter on both sides, so they pair
-# like every other register. The tooth slu_gen_equiv_mut (SLU_GEN_EQUIV_FREE) lets MODE writes through and must
-# fail: the general unit takes the whole MODE word, the dedicated form masks it.
+# slu_gen_equiv: the chip's general line unit (pe_slu SPEC 1, GEN 1, DDR_EN 0, KI_EN 0) equals the dedicated USB
+# helper (pe_slu SPEC 1) at every output and register in every cycle, for every port access that stays inside the
+# dedicated form's configuration space (SEL; MODE bits 0, 1, 3, 4, 9; TXPER 1 to 255; LTC bits 8 to 12) and every pin
+# input (formal/slu_gen_equiv_fv.v explains the filter). equiv_make pairs every same-named signal of the two
+# flattened units; the general unit's bit-monitor history (tx_bidx, tx_hist, mon_age, mon_bit), which the dedicated
+# form keeps at 0, is not paired (blacklist): no output reads it while EXT1 is 0. The configuration words that the
+# filter keeps constant (the F_* values of SPEC 1, the fixed bits of MODE and LTC, TXPER[15:8] = 0, EXT0 to EXT2 = 0,
+# the prescaler) and the invariant TXPER[7:0] != 0 are stated as equiv_add constants on the gold side, so that the
+# induction does not start from a configuration the filter cannot reach; equiv_induct proves them like every other
+# cell. equiv_status -assert fails the job if one pair is not proved. The tooth slu_gen_equiv_mut (SLU_GEN_EQUIV_FREE)
+# gives the general unit the whole MODE word and must fail.
 
 [options]
 mode prove
@@ -21,14 +24,47 @@ proc
 flatten
 cd slu_gequiv_old
 connect -set uadr u.cfg_adr
+connect -set txper_lo u.c_txper[7:0]
 cd slu_gequiv_new
 connect -set uadr u.cfg_adr
+connect -set txper_lo u.c_txper[7:0]
 cd ..
 check -assert
 async2sync
 opt_clean
-equiv_make slu_gequiv_old slu_gequiv_new slu_gequiv
+equiv_make -blacklist slu_gen_equiv_bl.txt slu_gequiv_old slu_gequiv_new slu_gequiv
 hierarchy -top slu_gequiv
+cd slu_gequiv
+equiv_add 1'b1 txper_nz_gold
+equiv_add 8'b00000000 u.c_txper_gold[15:8]
+equiv_add 1'b0 u.c_mode_gold[2]
+equiv_add 1'b1 u.c_mode_gold[5]
+equiv_add 1'b0 u.c_mode_gold[6]
+equiv_add 1'b1 u.c_mode_gold[7]
+equiv_add 1'b1 u.c_mode_gold[8]
+equiv_add 6'b000000 u.c_mode_gold[15:10]
+equiv_add 8'b01000100 u.c_ltc_gold[7:0]
+equiv_add 3'b000 u.c_ltc_gold[15:13]
+equiv_add 16'b0000000000101000 u.c_loop0_gold
+equiv_add 16'b0000000000000000 u.c_loop1_gold
+equiv_add 16'b0100010100010100 u.c_loop2_gold
+equiv_add 16'b0000000010000000 u.c_loop3_gold
+equiv_add 16'b0000000000000001 u.c_pat_gold
+equiv_add 16'b0101000000000010 u.c_pat2_gold
+equiv_add 32'b00000000000000001010000000000001 u.c_pa_gold
+equiv_add 32'b00000000000000001011000000000001 u.c_ra_gold
+equiv_add 16'b0000011000010100 u.c_crcb_gold
+equiv_add 16'b0010000011010000 u.c_crcw_gold
+equiv_add 16'b0010100001010100 u.c_tail_gold
+equiv_add 16'b0000000000010011 u.c_lta_gold
+equiv_add 16'b0011101010011000 u.c_ltb_gold
+equiv_add 16'b0000000000000000 u.c_sq_gold
+equiv_add 16'b0000000000000000 u.c_lp_gold
+equiv_add 16'b0000000000000000 u.c_ext0_gold
+equiv_add 16'b0000000000000000 u.c_ext1_gold
+equiv_add 16'b0000000000000000 u.c_ext2_gold
+equiv_add 4'b0000 u.lp_pre_gold
+cd ..
 equiv_simple -seq 8
 equiv_induct -seq 8
 tee -o equiv_status.txt equiv_status
@@ -41,6 +77,20 @@ prep -top tiny
 ../src/pe_slu_loop.v
 ../src/pe_slu.v
 slu_gen_equiv_fv.v
+
+[file slu_gen_equiv_bl.txt]
+u.tx_bidx
+u.tx_hist
+u.mon_age
+u.mon_bit
+u.tx_bidx_gold
+u.tx_hist_gold
+u.mon_age_gold
+u.mon_bit_gold
+u.tx_bidx_gate
+u.tx_hist_gate
+u.mon_age_gate
+u.mon_bit_gate
 
 [file tiny.v]
 module tiny(input clk);

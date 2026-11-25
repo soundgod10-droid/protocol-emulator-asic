@@ -254,6 +254,7 @@ class Thread:
                 self.tx_results.append(("lost", self.sending["ident"] if self.sending else None))
                 self.ev("ARBLOST")
                 self.sending, self.own, tx_at, feed = None, False, None, []
+                await self.iow(P_TXCTRL, 1 << 10)                # flush the words of the lost frame (the ACK frame would send them)
                 await self.set_len(1023)
                 length_known, L = False, None
                 for k in range(len(words)):                      # the winner's words received so far

@@ -524,7 +524,7 @@ module pe_slu #(
         endcase
       end
       if (p_we && p_addr == 4'd13) cfg_adr <= cfg_adr + 5'd1;
-      if (p_we && p_addr == 4'd13 && SPEC == 0) begin
+      if (p_we && p_addr == 4'd13 && (SPEC == 0 || GEN != 0)) begin
         case (cfg_adr)
           5'd0:  c_mode  <= p_wdata;
           5'd1:  c_txper <= p_wdata;

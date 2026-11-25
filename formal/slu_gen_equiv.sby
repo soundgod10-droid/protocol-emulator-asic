@@ -58,7 +58,6 @@ equiv_add 16'b0010000011010000 u.c_crcw_gold
 equiv_add 16'b0010100001010100 u.c_tail_gold
 equiv_add 16'b0000000000010011 u.c_lta_gold
 equiv_add 16'b0011101010011000 u.c_ltb_gold
-equiv_add 16'b0000000000000000 u.c_sq_gold
 equiv_add 16'b0000000000000000 u.c_lp_gold
 equiv_add 16'b0000000000000000 u.c_ext0_gold
 equiv_add 16'b0000000000000000 u.c_ext1_gold

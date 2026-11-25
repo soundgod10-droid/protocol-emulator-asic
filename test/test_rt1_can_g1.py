@@ -481,7 +481,7 @@ async def test_rt1_can_g1_1m(dut):
     assert [(c >> i) & 1 for i in range(15)] == to_bits(crc(bits, 0x4599, 15), 15), \
         "test fault: the reflected polynomial does not give the CAN CRC-15 bit sequence"
     await slu_reset(dut)
-    log = dut._log
+    log = FileLog(dut._log, "test_rt1_can_g1_1m")
     lines = []
     for ppm in (-5000, 5000):
         for delay in (10, 14):

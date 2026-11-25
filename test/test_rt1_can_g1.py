@@ -498,15 +498,17 @@ async def test_rt1_can_g1_1m(dut):
     cf = [dict(ident=0x7F0, data=[0x22, 0x33])]
     nf = [dict(ident=0x100, data=[0x11]), dict(ident=0x3C1, data=[0x44])]
     th, node, bus, pk = await scenario(dut, cf, nf, 14, 0, node_start=0, peek=True)
-    f = fault(th, node, cf, nf, expect_lost=2)
-    lines.append(f"arbitration (node 0x100 and 0x3C1 against the unit's 0x7F0): {'PASS' if f is None else 'FAIL: ' + f}; "
+    # the node's first frame starts before the unit's first frame is armed (received, acknowledged); the node's
+    # second frame joins the unit's SOF in the intermission after it: one arbitration, lost at data bit 0
+    f = fault(th, node, cf, nf, expect_lost=1)
+    lines.append(f"arbitration (node 0x100 then 0x3C1 against the unit's 0x7F0): {'PASS' if f is None else 'FAIL: ' + f}; "
                  f"lost at data bits {pk.hits}; node results {list(node.results)}; {summary(th)}")
-    if f is not None or pk.hits != [0, 0]:
+    if f is not None or pk.hits != [0]:
         log.info(timeline(th, node, bus))
     for line in lines:
         log.info(line)
     assert f is None, lines[-1]
-    assert pk.hits == [0, 0], lines[-1]
+    assert pk.hits == [0], lines[-1]
 
 
 @cocotb.test(skip=GL)

@@ -306,7 +306,7 @@ async def send_chain(dut, s, frames, per_bit, caps_len):
 async def receive(dut, s, sch, t_end, max_eops=8, stop_after=None):
     """Drive the line and collect, per end of frame, (status, words popped so far). Returns the list."""
     await s.wr(P_STATUS, 0xFFFF)
-    cocotb.start_soon(drive_levels(dut, sch))
+    driver = cocotb.start_soon(drive_levels(dut, sch))
     events, words = [], []
     t_stop = t_end + 3000.0
     t = 0.0

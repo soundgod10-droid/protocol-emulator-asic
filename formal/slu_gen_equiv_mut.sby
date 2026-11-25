@@ -1,7 +1,7 @@
-# slu_gen_equiv_mut: the tooth of slu_gen_equiv. With SLU_GEN_EQUIV_FREE the filter lets CFGDAT writes to MODE
-# (CFGADR 0) through: the dedicated USB helper masks such a write to the mode bits 0x021B, the general unit takes
-# the whole word, so the two units differ and equiv_status -assert must fail. The workflow expects this job to
-# fail ("expect fail").
+# slu_gen_equiv_mut: check of the check for formal/slu_gen_equiv.sby. With SLU_GEN_EQUIV_FREE the wrapper gives the
+# general unit the whole MODE word (CFGADR 0) where the dedicated USB helper keeps every bit outside 0x021B, so the
+# two units differ and the equivalence must break: the job passes only if at least one signal pair stays unproven
+# after the same proof steps (as slu_usb_equiv_mut.sby).
 
 [options]
 mode prove
@@ -17,18 +17,52 @@ proc
 flatten
 cd slu_gequiv_old
 connect -set uadr u.cfg_adr
+connect -set txper_lo u.c_txper[7:0]
 cd slu_gequiv_new
 connect -set uadr u.cfg_adr
+connect -set txper_lo u.c_txper[7:0]
 cd ..
 check -assert
 async2sync
 opt_clean
-equiv_make slu_gequiv_old slu_gequiv_new slu_gequiv
+equiv_make -blacklist slu_gen_equiv_bl.txt slu_gequiv_old slu_gequiv_new slu_gequiv
 hierarchy -top slu_gequiv
+cd slu_gequiv
+equiv_add 1'b1 txper_nz_gold
+equiv_add 8'b00000000 u.c_txper_gold[15:8]
+equiv_add 1'b0 u.c_mode_gold[2]
+equiv_add 1'b1 u.c_mode_gold[5]
+equiv_add 1'b0 u.c_mode_gold[6]
+equiv_add 1'b1 u.c_mode_gold[7]
+equiv_add 1'b1 u.c_mode_gold[8]
+equiv_add 6'b000000 u.c_mode_gold[15:10]
+equiv_add 8'b01000100 u.c_ltc_gold[7:0]
+equiv_add 3'b000 u.c_ltc_gold[15:13]
+equiv_add 16'b0000000000101000 u.c_loop0_gold
+equiv_add 16'b0000000000000000 u.c_loop1_gold
+equiv_add 16'b0100010100010100 u.c_loop2_gold
+equiv_add 16'b0000000010000000 u.c_loop3_gold
+equiv_add 16'b0000000000000001 u.c_pat_gold
+equiv_add 16'b0101000000000010 u.c_pat2_gold
+equiv_add 32'b00000000000000001010000000000001 u.c_pa_gold
+equiv_add 32'b00000000000000001011000000000001 u.c_ra_gold
+equiv_add 16'b0000011000010100 u.c_crcb_gold
+equiv_add 16'b0010000011010000 u.c_crcw_gold
+equiv_add 16'b0010100001010100 u.c_tail_gold
+equiv_add 16'b0000000000010011 u.c_lta_gold
+equiv_add 16'b0011101010011000 u.c_ltb_gold
+equiv_add 16'b0000000000000000 u.c_sq_gold
+equiv_add 16'b0000000000000000 u.c_lp_gold
+equiv_add 16'b0000000000000000 u.c_ext0_gold
+equiv_add 16'b0000000000000000 u.c_ext1_gold
+equiv_add 16'b0000000000000000 u.c_ext2_gold
+equiv_add 4'b0000 u.lp_pre_gold
+cd ..
 equiv_simple -seq 8
 equiv_induct -seq 8
 tee -o equiv_status.txt equiv_status
-equiv_status -assert
+equiv_remove
+select -assert-min 1 t:$equiv
 design -reset
 read_verilog -formal tiny.v
 prep -top tiny
@@ -37,6 +71,20 @@ prep -top tiny
 ../src/pe_slu_loop.v
 ../src/pe_slu.v
 slu_gen_equiv_fv.v
+
+[file slu_gen_equiv_bl.txt]
+u.tx_bidx
+u.tx_hist
+u.mon_age
+u.mon_bit
+u.tx_bidx_gold
+u.tx_hist_gold
+u.mon_age_gold
+u.mon_bit_gold
+u.tx_bidx_gate
+u.tx_hist_gate
+u.mon_age_gate
+u.mon_bit_gate
 
 [file tiny.v]
 module tiny(input clk);

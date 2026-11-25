@@ -78,6 +78,9 @@ prep -top tiny
 slu_gen_equiv_fv.v
 
 [file slu_gen_equiv_bl.txt]
+u.p_wdata
+u.p_wdata_gold
+u.p_wdata_gate
 u.tx_bidx
 u.tx_hist
 u.mon_age

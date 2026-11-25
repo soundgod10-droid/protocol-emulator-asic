@@ -36,11 +36,12 @@ module slu_gequiv_old (
     output wire        ev
 );
   wire [4:0] uadr;
-`ifdef SLU_GEN_EQUIV_FREE
-  wire we_f = p_we && !((p_addr == 4'd13) && (uadr != 5'd8) && (uadr != 5'd0));
-`else
-  wire we_f = p_we && !((p_addr == 4'd13) && (uadr != 5'd8));
-`endif
+  (* keep *) wire [7:0] txper_lo;
+  (* keep *) wire       txper_nz = |txper_lo;
+  // CFGDAT writes that the dedicated form takes: SEL, MODE (masked), TXPER (low byte, not 0), LTC (masked)
+  wire cfg_wr = p_we && (p_addr == 4'd13);
+  wire cfg_ok = (uadr == 5'd8) || (uadr == 5'd0) || (uadr == 5'd18) || ((uadr == 5'd1) && (p_wdata[7:0] != 8'd0));
+  wire we_f   = p_we && !(cfg_wr && !cfg_ok);
   pe_slu #(.FULL(0), .SPEC(1)) u (
       .clk(clk), .rst_n(rst_n), .now(now), .p_we(we_f), .p_re(p_re), .p_addr(p_addr),
       .p_wdata(p_wdata), .p_rdata(p_rdata), .pin_raw(pin_raw), .pin_sync(pin_sync), .tx_v(tx_v),

@@ -516,7 +516,7 @@ async def test_rt1_can_g1_arb_bits(dut):
     frame of the same identifier); both start in the intermission after the node's first frame; the unit must report
     ARBLOST at data bit k, receive the winner and send its frame after it."""
     await slu_reset(dut)
-    log = dut._log
+    log = FileLog(dut._log, "test_rt1_can_g1_arb_bits")
     lines = []
     for k in range(12):
         if k < 11:

@@ -54,7 +54,7 @@ equiv_add 16'b0011101010011000 u.c_ltb_gold
 equiv_add 16'b0000000000000000 u.c_lp_gold
 equiv_add 16'b0000000000000000 u.c_ext0_gold
 equiv_add 16'b0000000000000000 u.c_ext1_gold
-equiv_add 16'b0000000000000000 u.c_ext2_gold
+equiv_add 16'b0000000000000000 u.c_ext2_gate
 equiv_add 4'b0000 u.lp_pre_gold
 cd ..
 equiv_simple -seq 8

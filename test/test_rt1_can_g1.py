@@ -27,6 +27,9 @@ in the intermission with its own identifier (CAN 2.0B page 31): its frames start
 SOF comes first, the armed frame is withdrawn and started again after that frame.
 """
 
+import datetime
+import os
+
 import cocotb
 from cocotb.triggers import FallingEdge
 

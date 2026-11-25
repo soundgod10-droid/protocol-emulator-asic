@@ -193,8 +193,11 @@ module pe_proc (
 
   // Line helpers. DIN is captured on both clock edges from the pad level; AUX inputs use s(c).
   pe_slu #(
-      .FULL(0),
-      .SPEC(1)
+      .FULL  (0),
+      .SPEC  (1),
+      .GEN   (1),
+      .DDR_EN(0),
+      .KI_EN (0)
   ) u_usb (
       .clk     (clk),
       .rst_n   (run_rst_n),

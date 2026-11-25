@@ -75,6 +75,9 @@ slu_gen_equiv_fv.v
 u.p_wdata
 u.p_wdata_gold
 u.p_wdata_gate
+u.lead
+u.lead_gold
+u.lead_gate
 u.tx_bidx
 u.tx_hist
 u.mon_age

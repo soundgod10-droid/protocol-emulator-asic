@@ -531,7 +531,9 @@ async def madeup_case(dut, s, name, code, per_sym, k, ones, crc_inv, preset_ones
     res = unit_residue(bits_msb(data) + crc_exp, width, poly_ref, preset_ones)
     rx_cfg = {0: mode_rx, 1: per_sym, 2: per_bit, 3: 0, 4: (per_bit // 3) | ((per_bit // 3) << 6) | (1 << 13),
               5: (2 << 6), 6: pat, 7: 7, 8: DIN | NOPIN, 9: poly_ref, 10: 0, 11: res, 12: 0,
-              14: width | (preset_ones << 6), EXT0: nbits + width, EXT1: ext1}
+              14: width | (preset_ones << 6), EXT0: nbits + width, EXT1: ext1,
+              # the pattern's trailing run counts in the first stuff run (the sender counts from the frame start)
+              EXT2: 8 - len(f"{pat:08b}".rstrip("1" if ones else str(pat & 1)))}
     await s.cfg(rx_cfg)
     payload = bits_msb(bytes([0x55, pat]) + data) + crc_exp
     line_m = stuff(payload, k, ones)

@@ -602,3 +602,53 @@ async def test_rt1_m_madeup(dut):
     dut._log.info("made-up formats (TX ok, RX ok, controls rejected): " + "; ".join(f"{k}: {v}" for k, v in r.items())
                   + " | " + " | ".join(log))
     assert r["M1a"] == (True, True, True) and r["M2a"] == (True, True, True), r
+
+
+async def rx_trace(dut, out, stop):
+    """Every decided bit of the unit's receiver: (now, rx_bits, rx_run, data valid, stuff drop, stuff error, bit)."""
+    u = dut.u_slu_ut
+    fe = FallingEdge(dut.clk)
+    while not stop[0]:
+        await fe
+        if int(u.r_data_v.value) or int(u.r_stuff_drop.value):
+            out.append((int(dut.slu_now.value), int(u.rx_bits.value), int(u.rx_run.value), int(u.r_data_v.value),
+                        int(u.r_stuff_drop.value), int(u.r_stuff_err.value), int(u.r_dec.value), int(u.rx_st.value)))
+
+
+@cocotb.test(skip=GL)
+async def test_rt1_m2a_diag(dut):
+    """Diagnosis of M2a's corrupted-CRC control (run of 2026-11-25 09:28 UTC: no end of frame, the receiver in the
+    data state at 65 bits with STUFFERR, while the corrupted stream differs from the good one in its last bit only).
+    The good and the corrupted stream are received with a trace of every decided bit and the traces are compared."""
+    await slu_reset(dut)
+    width, poly, poly_ref = 12, 0x80F, 0xF01
+    data, pat, k, ones, per_sym = bytes([0x5A, 0xFF, 0x00, 0x0F, 0xF0, 0x33, 0xCC]), 0x9D, 4, 0, 10
+    nbits, per_bit = 8 * len(data), 2 * per_sym
+    crc_exp = crc_bits(crc_msb(bits_msb(data), width, poly, 0), width)
+    payload = bits_msb(bytes([0x55, pat]) + data) + crc_exp
+    res = unit_residue(bits_msb(data) + crc_exp, width, poly_ref, False)
+    rx_cfg = {0: mode(2, rx=1, stuff=1, ones=ones, k=k, eop_len=1), 1: per_sym, 2: per_bit, 3: 0,
+              4: (per_bit // 3) | ((per_bit // 3) << 6) | (1 << 13), 5: (2 << 6), 6: pat, 7: 7, 8: DIN | NOPIN,
+              9: poly_ref, 10: 0, 11: res, 12: 0, 14: width, EXT0: nbits + width, EXT1: 1 << 1,
+              EXT2: 8 - len(f"{pat:08b}".rstrip(str(pat & 1)))}
+    traces, lines = {}, []
+    for name, pl in (("good", payload), ("bad", payload[:-1] + [1 - payload[-1]])):
+        s = await slu_reset_again(dut, idle=0)
+        await s.cfg(rx_cfg)
+        out, stop = [], [False]
+        cocotb.start_soon(rx_trace(dut, out, stop))
+        line = stuff(pl, k, ones)
+        sch, t_end = schedule([0, 1] * 8 + manchester_ieee(line) + [1, 0] * 8, per_sym * T_NS, idle=0)
+        events, sop, words = await receive(dut, s, sch, t_end, stop_after=1)
+        stop[0] = True
+        st = await s.rd(P_STATUS)
+        traces[name] = out
+        lines.append(f"{name}: line {len(line)} bits ending {''.join(map(str, line[-12:]))}; {len(events)} frame(s), status {st:04x}, "
+                     f"{len(out)} decided bits, last 12 (rx_bits, run, data_v, drop, err, bit, st): "
+                     f"{[t[1:] for t in out[-12:]]}")
+    g, b = traces["good"], traces["bad"]
+    first = next((i for i, (x, y) in enumerate(zip(g, b)) if x[1:] != y[1:]), None)
+    lines.append(f"first difference at decided bit {first} of {len(g)} / {len(b)}: good {[t[1:] for t in g[max(0, (first or 0) - 3):(first or 0) + 5]]}, "
+                 f"bad {[t[1:] for t in b[max(0, (first or 0) - 3):(first or 0) + 5]]}")
+    for ln in lines:
+        dut._log.info(ln)

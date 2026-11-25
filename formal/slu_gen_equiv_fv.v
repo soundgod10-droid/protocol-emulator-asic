@@ -64,13 +64,29 @@ module slu_gequiv_new (
     output wire        ev
 );
   wire [4:0] uadr;
-`ifdef SLU_GEN_EQUIV_FREE
-  wire we_f = p_we && !((p_addr == 4'd13) && (uadr != 5'd8) && (uadr != 5'd0));
-`else
-  wire we_f = p_we && !((p_addr == 4'd13) && (uadr != 5'd8));
+  (* keep *) wire [7:0] txper_lo;
+  (* keep *) wire       txper_nz = |txper_lo;
+  wire cfg_wr = p_we && (p_addr == 4'd13);
+  wire cfg_ok = (uadr == 5'd8) || (uadr == 5'd0) || (uadr == 5'd18) || ((uadr == 5'd1) && (p_wdata[7:0] != 8'd0));
+  wire we_f   = p_we && !(cfg_wr && !cfg_ok);
+  // The general unit takes the whole word: it is given the word the dedicated form keeps (F_MODE and F_LTC of SPEC 1
+  // outside the writable bits 0x021B and 0x1F00, TXPER's low byte). The tooth gives it the whole MODE word.
+  reg [15:0] wd_f;
+  always @* begin
+    wd_f = p_wdata;
+    if (cfg_wr) begin
+      case (uadr)
+`ifndef SLU_GEN_EQUIV_FREE
+        5'd0:    wd_f = (16'h03B9 & ~16'h021B) | (p_wdata & 16'h021B);
 `endif
+        5'd1:    wd_f = {8'd0, p_wdata[7:0]};
+        5'd18:   wd_f = (16'h0044 & ~16'h1F00) | (p_wdata & 16'h1F00);
+        default: ;
+      endcase
+    end
+  end
   pe_slu #(.FULL(0), .SPEC(1), .GEN(1), .DDR_EN(0), .KI_EN(0)) u (
       .clk(clk), .rst_n(rst_n), .now(now), .p_we(we_f), .p_re(p_re), .p_addr(p_addr),
-      .p_wdata(p_wdata), .p_rdata(p_rdata), .pin_raw(pin_raw), .pin_sync(pin_sync), .tx_v(tx_v),
+      .p_wdata(wd_f), .p_rdata(p_rdata), .pin_raw(pin_raw), .pin_sync(pin_sync), .tx_v(tx_v),
       .tx_oe(tx_oe), .ev(ev));
 endmodule

@@ -51,7 +51,15 @@ module pe_slu #(
     // both; in SPEC 1 also MODE bits 0, 1, 3, 4, 9, TXPER[7:0] and LTC[12:8], so that the USB helper
     // also runs the clocked and NRZ modes (SPI controller, JTAG, SWD clock, UART). SPEC 1 and 2 exist
     // to measure the dedicated-helper alternative with the same RTL.
-    parameter SPEC = 0
+    parameter SPEC = 0,
+    // GEN = 1: the general unit with the reset values of SPEC (every configuration word writable, as SPEC 0).
+    // DDR_EN = 0 removes the both-edge receive step (one sample per cycle, up to 60 MS/s); KI_EN = 0 removes the
+    // receive loop's frequency integrator (a first-order loop). The chip's general line unit (helper select 0)
+    // is SPEC 1, GEN 1, DDR_EN 0, KI_EN 0: the USB low-speed helper's reset values, any line a program
+    // configures. The 10BASE-Te helper keeps both.
+    parameter GEN = 0,
+    parameter DDR_EN = 1,
+    parameter KI_EN = 1
 ) (
     input  wire        clk,
     input  wire        rst_n,

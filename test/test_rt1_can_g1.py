@@ -441,6 +441,24 @@ def summary(th):
             f"ACK samples {th.ack_samples}; lost {sum(1 for r in th.tx_results if r[0] == 'lost')}")
 
 
+class FileLog:
+    """Each line goes to the simulator log and to test/output/rt1_can_g1.txt (appended; a header with the test name
+    and the wall clock in UTC per test), because the run log is cut when it is long."""
+
+    PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output", "rt1_can_g1.txt")
+
+    def __init__(self, log, name):
+        self.log = log
+        os.makedirs(os.path.dirname(self.PATH), exist_ok=True)
+        with open(self.PATH, "a", encoding="utf-8") as f:
+            f.write(f"== {name} at {datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='seconds')}\n")
+
+    def info(self, text):
+        self.log.info(text)
+        with open(self.PATH, "a", encoding="utf-8") as f:
+            f.write(text + "\n")
+
+
 def timeline(th, node, bus, n=60):
     """The first n events of the thread, the node's results and the bus edges, in bits from the first SOF."""
     t0 = bus.changes[1][0] if len(bus.changes) > 1 else 0

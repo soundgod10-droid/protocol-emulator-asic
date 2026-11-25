@@ -326,6 +326,7 @@ async def receive(dut, s, sch, t_end, max_eops=8, stop_after=None):
                 break
         t += 4 * T_NS
         await Timer(round(2 * T_NS * 1000), unit="ps")
+    driver.cancel()                                           # no leftover writes into the next case's stream
     return events, sop, words
 
 

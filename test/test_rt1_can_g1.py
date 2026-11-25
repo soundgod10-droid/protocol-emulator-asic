@@ -545,7 +545,7 @@ async def test_rt1_can_g1_controls(dut):
     (d) the bit monitor off in the arbitration case: no ARBLOST, the node sees a bit error; (e) the thread at half
     pace (8-cycle slots): the DLC 0 frame's length is written late (recorded, pass or fail)."""
     await slu_reset(dut)
-    log = dut._log
+    log = FileLog(dut._log, "test_rt1_can_g1_controls")
     nf = [dict(ident=0x3C1, data=[0xFF, 0x00, 0x0F])]
     th, node, bus, _ = await scenario(dut, [], nf, 14, 0, node_start=0, bad_crc=True)
     r = [(x["crc_ok"], x["acked"]) for x in th.rx_frames]

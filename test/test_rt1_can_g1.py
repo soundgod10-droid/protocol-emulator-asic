@@ -369,6 +369,8 @@ async def scenario(dut, chip_frames, node_frames, delay, ppm, node_start=None, b
     done (the thread hands them over), so the two sides do not arbitrate; a number: the node has its frames from
     that bus cycle on. Returns (thread, node, bus, peek)."""
     s = SluRx(dut)
+    if node_start is not None and node_start < 300:
+        node_start = 300                                     # the unit's configuration takes about 100 cycles
     btn = BT * (1 + ppm * 1e-6) if node_rate is None else node_rate
     deferred = node_start is None and bool(chip_frames)
     node = Node(btn, round(0.8 * btn), frames=[] if deferred else [dict(f) for f in node_frames],

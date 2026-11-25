@@ -1,0 +1,46 @@
+# slu_gen_equiv_mut: the tooth of slu_gen_equiv. With SLU_GEN_EQUIV_FREE the filter lets CFGDAT writes to MODE
+# (CFGADR 0) through: the dedicated USB helper masks such a write to the mode bits 0x021B, the general unit takes
+# the whole word, so the two units differ and equiv_status -assert must fail. The workflow expects this job to
+# fail ("expect fail").
+
+[options]
+mode prove
+
+[engines]
+smtbmc z3
+
+[script]
+read_verilog -sv pe_slu_loop.v pe_slu.v
+read_verilog -sv -DSLU_GEN_EQUIV_FREE slu_gen_equiv_fv.v
+hierarchy -check
+proc
+flatten
+cd slu_gequiv_old
+connect -set uadr u.cfg_adr
+cd slu_gequiv_new
+connect -set uadr u.cfg_adr
+cd ..
+check -assert
+async2sync
+opt_clean
+equiv_make slu_gequiv_old slu_gequiv_new slu_gequiv
+hierarchy -top slu_gequiv
+equiv_simple -seq 8
+equiv_induct -seq 8
+tee -o equiv_status.txt equiv_status
+equiv_status -assert
+design -reset
+read_verilog -formal tiny.v
+prep -top tiny
+
+[files]
+../src/pe_slu_loop.v
+../src/pe_slu.v
+slu_gen_equiv_fv.v
+
+[file tiny.v]
+module tiny(input clk);
+  reg a = 1'b0;
+  always @(posedge clk) a <= a;
+  always @* assert (!a);
+endmodule

@@ -16,9 +16,9 @@
 //   - 15 output event slots with their pin registers (pe_timed_out), one
 //     for each output pin 0 to 14 (docs/isa.md 5.1),
 //   - the input synchronizers and the input history (pe_timed_in),
-//   - the USB low-speed helper (pe_slu SPEC 1) on I/O ports 16 to 31 and
-//     event input 13, and the 10BASE-Te helper (pe_slu SPEC 2) on ports 32
-//     to 47 and event input 14.
+//   - the general line unit (pe_slu SPEC 1 with GEN 1: the USB low-speed helper's reset values, every
+//     configuration word writable, one receive sample per cycle, first-order loop) on I/O ports 16 to 31
+//     and event input 13, and the 10BASE-Te helper (pe_slu SPEC 2) on ports 32 to 47 and event input 14.
 //   pin_v and pin_oe are the outputs of flip-flops: pins 0 to 7 go to uio,
 //   pins 8 to 14 to uo_out[6:0].
 //

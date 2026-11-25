@@ -33,7 +33,7 @@ from cocotb.triggers import FallingEdge, RisingEdge, Timer
 from test_slu import (GL, DIN, AUX0, AUX1, T_NS, P_TXDATA, P_RXDATA, P_STATUS, P_TXCTRL, P_TXTIME, P_RXINFO,
                       P_TXLAST, Slu, slu_reset, slu_reset_again as _slu_reset_again, mode, drive_levels, capture)
 
-EXT0, EXT1 = 21, 22
+EXT0, EXT1, EXT2 = 21, 22, 23
 F_TXDONE, F_RXSOP, F_RXEOP, F_CRCA, F_STUFF = 1 << 0, 1 << 4, 1 << 5, 1 << 6, 1 << 8
 NOPIN = 15 << 4 | 15 << 8
 

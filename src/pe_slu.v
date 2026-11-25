@@ -610,7 +610,7 @@ module pe_slu #(
         default: rx_st <= R_OFF;
       endcase
       if (rx_sop || (r_eop && rx_block)) begin
-        rx_run     <= (SPEC == 0) ? c_ext2[2:0] : 3'd0;     // the pattern's last bits that count in the first run
+        rx_run     <= (SPEC == 0 || GEN != 0) ? c_ext2[2:0] : 3'd0;     // the pattern's last bits that count in the first run
         rx_lastbit <= r_dec;
         rx_sh      <= 16'd0;
         rx_nb      <= 5'd0;

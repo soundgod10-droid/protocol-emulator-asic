@@ -578,3 +578,71 @@ async def test_rt1_can_g1_controls(dut):
     th, node, bus, _ = await scenario(dut, [], nf3, 14, 0, node_start=0, slot=8)
     f = fault(th, node, [], nf3)
     log.info(f"(e) thread at 8-cycle slots, DLC 0 and 2 frames: {'PASS' if f is None else 'FAIL: ' + f}; {summary(th)}")
+
+
+@cocotb.test(skip=GL)
+async def test_rt1_can_g1_wave(dut):
+    """A short dump window for the check on screen (D45): the arbitration case (node 0x010 then 0x3C1 against the
+    unit's 0x7F0, delay 14, node clock exact) with the waveform dump on from the unit's TXTIME write for 1,100 cycles
+    (18 us): the SOF on the bus and on DIN 14 cycles later, the decision points 50 cycles after the DIN edge and every
+    60 cycles, the bit monitor's flag at data bit 0, the transmitter's stop. Writes test/output/rt1_can_g1_wave.gtkw
+    with the markers (A SOF on the bus, B SOF on DIN, C and D the first two decision points, E ARBLOST, F dump off)."""
+    await slu_reset(dut)
+    dut.dump_off.value = 1
+    log = FileLog(dut._log, "test_rt1_can_g1_wave")
+    marks = {}
+    T_PS = 16666
+
+    async def watcher(th, bus):
+        seen = 0
+        prev = 0
+        fe = FallingEdge(dut.clk)
+        from cocotb.utils import get_sim_time
+        while not bus.stop:
+            await fe
+            if len(th.events) > seen:
+                for e in th.events[seen:]:
+                    if e[1] == "TXTIME" and "on" not in marks:
+                        dut.dump_off.value = 0
+                        marks["on"] = bus.c
+                        marks["on_ps"] = get_sim_time("ps")
+                seen = len(th.events)
+            v = (int(dut.u_slu_ut.sticky.value) >> 13) & 1
+            if v and not prev and "arblost" not in marks:
+                marks["arblost"] = bus.c
+            prev = v
+            if "on" in marks and "off" not in marks and bus.c >= marks["on"] + 1100:
+                dut.dump_off.value = 1
+                marks["off"] = bus.c
+
+    cf = [dict(ident=0x7F0, data=[0x22, 0x33])]
+    nf = [dict(ident=0x010, data=[0x01]), dict(ident=0x3C1, data=[0x44])]
+    th, node, bus, pk = await scenario(dut, cf, nf, 14, 0, node_start=0, peek=True, watch=watcher)
+    f = fault(th, node, cf, nf, expect_lost=1)
+    sof = next((c for c, v in bus.changes if c > marks.get("on", 10 ** 9) and v == 0), None)
+
+    def ps(c):
+        return marks["on_ps"] + (c - marks["on"]) * T_PS
+
+    if sof is not None:
+        din = sof + 14
+        mk = {"A": ps(sof), "B": ps(din), "C": ps(din + 50), "D": ps(din + 110), "E": ps(marks.get("arblost", sof)),
+              "F": ps(marks["off"])}
+        names = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        markers = " ".join(str(int(mk[n])) if n in mk else "-1" for n in names)
+        gtkw = os.path.join(os.path.dirname(os.path.abspath(__file__)), "output", "rt1_can_g1_wave.gtkw")
+        fst = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tb.fst")
+        with open(gtkw, "w", encoding="utf-8") as fh:
+            fh.write(f'[dumpfile] "{fst}"\n[timestart] {int(ps(marks["on"]))}\n[size] 1600 900\n[signals_width] 330\n')
+            fh.write(f"*-22.5 {int(mk['B'])} {markers}\n")
+            for sig in ("tb.slu_now[15:0]", "(12)tb.slu_pins[12:0]", "(3)tb.slu_txv[3:0]", "tb.u_slu_ut.tx_st[3:0]",
+                        "tb.u_slu_ut.rx_st[3:0]", "tb.u_slu_ut.rx_bits[9:0]", "tb.u_slu_ut.lp_bv", "tb.u_slu_ut.lp_bd",
+                        "tb.u_slu_ut.mon_mis", "(2)tb.u_slu_ut.sticky[15:0]", "tb.u_slu_ut.tx_bidx[9:0]"):
+                fh.write(sig + "\n")
+        log.info(f"wave window: dump on at bus cycle {marks['on']} ({marks['on_ps']} ps), off at {marks.get('off')}; SOF on the bus "
+                 f"at cycle {sof} = {int(mk['A'])} ps, on DIN {din} = {int(mk['B'])} ps, decisions {int(mk['C'])} and {int(mk['D'])} ps, "
+                 f"ARBLOST at cycle {marks.get('arblost')} = {int(mk['E'])} ps (data bit {pk.hits}); result "
+                 f"{'PASS' if f is None else 'FAIL: ' + f}; save file {gtkw}")
+    else:
+        log.info(f"wave window: no SOF found after the TXTIME write; marks {marks}; result {f}")
+    assert f is None and pk.hits == [0], f

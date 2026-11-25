@@ -268,6 +268,7 @@ class Thread:
                 self.tx_results.append(("biterr", self.sending["ident"] if self.sending else None))
                 self.ev("BITERR")
                 self.sending, self.own, tx_at, feed = None, False, None, []
+                await self.iow(P_TXCTRL, 1 << 10)                # flush the words of the failed frame
             if st & (F_TXLATE | F_TXUNDER):
                 await self.iow(P_STATUS, F_TXLATE | F_TXUNDER)
                 self.ev("TXLATE/UNDER", st & (F_TXLATE | F_TXUNDER))
